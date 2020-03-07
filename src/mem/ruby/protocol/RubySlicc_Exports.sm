@@ -172,6 +172,9 @@ enumeration(RubyRequestType, desc="...", default="RubyRequestType_NULL") {
   COMMIT,            desc="Commit version";
   NULL,              desc="Invalid request type";
   FLUSH,             desc="Flush request type";
+  FLUSHALL,          desc="Flush everything from the cache";
+  LD_Bypass,         desc="Load, but bypass the L1";
+  ST_Bypass,         desc="Store, but bypass the L1";
   Release,           desc="Release operation";
   Acquire,           desc="Acquire opertion";
   AcquireRelease,    desc="Acquire and Release opertion";
@@ -234,6 +237,9 @@ enumeration(MachineType, desc="...", default="MachineType_NULL") {
     SQC,         desc="GPU L1 Instr Cache (Sequencer Cache)";
     RegionDir,   desc="Region-granular directory";
     RegionBuffer,desc="Region buffer for CPU and GPU";
+    GPUL1Cache,  desc="GPUL1Cache";
+    GPUL2Cache,  desc="GPUL2Cache";
+    GPUCopyDMA,  desc="GPUCopyDMA";
     NULL,        desc="null mach type";
 }
 

@@ -46,6 +46,8 @@
 #include "base/types.hh"
 #include "config/the_isa.hh"
 #include "mem/se_translating_port_proxy.hh"
+// TODO schi add
+#include "mem/page_table.hh"
 #include "sim/fd_array.hh"
 #include "sim/fd_entry.hh"
 #include "sim/mem_state.hh"
@@ -55,7 +57,6 @@ struct ProcessParams;
 
 class EmulatedDriver;
 class ObjectFile;
-class EmulationPageTable;
 class SyscallDesc;
 class SyscallReturn;
 class System;

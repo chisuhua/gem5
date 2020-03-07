@@ -402,6 +402,27 @@ CacheMemory::setMRU(Addr address, int occupancy)
     }
 }
 
+void
+CacheMemory::flashInvalidate()
+{
+    // NOTE: It may make sense to invalidate Read_Write data but the assert
+    //       is added for safety.
+    for (int i = 0; i < m_cache_num_sets; i++) {
+        for (int j = 0; j < m_cache_assoc; j++) {
+            if (m_cache[i][j] == NULL) {
+                continue;
+            }
+            assert(m_cache[i][j]->m_Permission != AccessPermission_Busy);
+            assert(m_cache[i][j]->m_Permission != AccessPermission_Read_Write);
+            AbstractCacheEntry *entry = m_cache[i][j];
+            m_cache[i][j] = NULL;
+            delete entry;
+        }
+    }
+    m_tag_index.clear();
+}
+
+
 int
 CacheMemory::getReplacementWeight(int64_t set, int64_t loc)
 {

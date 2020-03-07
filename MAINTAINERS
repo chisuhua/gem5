@@ -68,6 +68,9 @@ fastmodel: Changes relating to ARM Fast Models
 gpu-compute:
   Tony Gutierrez <anthony.gutierrez@amd.com>
 
+gpgpu:
+  chi suhua <chisuhua@gmail.com>
+
 learning-gem5: The code and configs for the Learning gem5 book (see
                learning.gem5.com)
   Jason Lowe-Power <jason@lowepower.com>

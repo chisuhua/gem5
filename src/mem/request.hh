@@ -156,6 +156,13 @@ class Request
         PF_EXCLUSIVE                = 0x02000000,
         /** The request should be marked as LRU. */
         EVICT_NEXT                  = 0x04000000,
+
+
+        // TODO schi add from gem5-gpu
+        /** The request should bypass the L1 cache. */
+        BYPASS_L1                   = 0x08000000,
+
+
         /** The request should be marked with ACQUIRE. */
         ACQUIRE                     = 0x00020000,
         /** The request should be marked with RELEASE. */
@@ -274,6 +281,9 @@ class Request
         VALID_PC             = 0x00000010,
         /** Whether or not the context ID is valid. */
         VALID_CONTEXT_ID     = 0x00000020,
+
+        // TODO schi add from gem5-gpu
+        VALID_THREAD_ID      = 0x00000040,
         /** Whether or not the sc result is valid. */
         VALID_EXTRA_DATA     = 0x00000080,
         /** Whether or not the stream ID and substream ID is valid. */
@@ -382,6 +392,8 @@ class Request
 
     /** The context ID (for statistics, locks, and wakeups). */
     ContextID _contextId;
+    /** The thread ID (id within this CPU) */
+    ThreadID _threadId;
 
     /** program counter of initiating access; for tracing/debugging */
     Addr _pc;
@@ -402,7 +414,7 @@ class Request
     Request()
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {}
@@ -411,7 +423,7 @@ class Request
             InstSeqNum seq_num, ContextID cid)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
           _reqInstSeqNum(seq_num), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {
@@ -428,7 +440,7 @@ class Request
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {
@@ -438,7 +450,7 @@ class Request
     Request(Addr paddr, unsigned size, Flags flags, MasterID mid, Tick time)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {
@@ -449,7 +461,7 @@ class Request
             Addr pc)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(pc),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(pc),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {
@@ -461,12 +473,25 @@ class Request
             MasterID mid, Addr pc, ContextID cid)
         : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
           _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
-          _extraData(0), _contextId(0), _pc(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
           _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
           accessDelta(0), depth(0)
     {
         setVirt(asid, vaddr, size, flags, mid, pc);
         setContext(cid);
+    }
+
+    Request(uint64_t asid, Addr vaddr, unsigned size, Flags flags,
+            MasterID mid, Addr pc, ContextID cid, ThreadID tid)
+        : _paddr(0), _size(0), _masterId(invldMasterId), _time(0),
+          _taskId(ContextSwitchTaskId::Unknown), _asid(0), _vaddr(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
+          _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
+          accessDelta(0), depth(0)
+    {
+        setVirt(asid, vaddr, size, flags, mid, pc);
+        // TODO schi setContext(cid);
+        setThreadContext(cid, tid);
     }
 
     Request(uint64_t asid, Addr vaddr, unsigned size, Flags flags,
@@ -487,7 +512,7 @@ class Request
           _time(other._time),
           _taskId(other._taskId), _asid(other._asid), _vaddr(other._vaddr),
           _extraData(other._extraData), _contextId(other._contextId),
-          _pc(other._pc), _reqInstSeqNum(other._reqInstSeqNum),
+          _threadId(other._threadId), _pc(other._pc), _reqInstSeqNum(other._reqInstSeqNum),
           translateDelta(other.translateDelta),
           accessDelta(other.accessDelta), depth(other.depth)
     {
@@ -506,6 +531,18 @@ class Request
     {
         _contextId = context_id;
         privateFlags.set(VALID_CONTEXT_ID);
+    }
+
+    // TODO schi add from gem5-gpu
+    /**
+     * Set up CPU and thread numbers.
+     */
+    void
+    setThreadContext(ContextID context_id, ThreadID tid)
+    {
+        _contextId = context_id;
+        _threadId = tid;
+        privateFlags.set(VALID_CONTEXT_ID|VALID_THREAD_ID);
     }
 
     void
@@ -827,6 +864,15 @@ class Request
         return _substreamId;
     }
 
+    /** Accessor function for thread ID. */
+    ThreadID
+    threadId() const
+    {
+        assert(privateFlags.isSet(VALID_THREAD_ID));
+        return _threadId;
+    }
+
+
     void
     setPC(Addr pc)
     {
@@ -913,6 +959,8 @@ class Request
     bool isKernel() const { return _flags.isSet(KERNEL); }
     bool isAtomicReturn() const { return _flags.isSet(ATOMIC_RETURN_OP); }
     bool isAtomicNoReturn() const { return _flags.isSet(ATOMIC_NO_RETURN_OP); }
+    // TODO add from gem5-gpu
+    bool isBypassL1() const { return _flags.isSet(BYPASS_L1); }
 
     bool
     isAtomic() const

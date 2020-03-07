@@ -57,6 +57,7 @@ Import('*')
 #
 #################################################################
 
+# TODO schi add tlb.hh
 env.SwitchingHeaders(
     Split('''
         decoder.hh
@@ -72,6 +73,7 @@ env.SwitchingHeaders(
         remote_gdb.hh
         stacktrace.hh
         types.hh
+        tlb.hh
         utility.hh
         vtophys.hh
         '''),
