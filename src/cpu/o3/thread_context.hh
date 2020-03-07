@@ -425,6 +425,8 @@ class O3ThreadContext : public ThreadContext
     /** Sets a misc. register. */
     void setMiscRegNoEffect(RegIndex misc_reg, RegVal val) override;
 
+    void setMiscRegActuallyNoEffect(int misc_reg, const RegVal &val) override;
+
     /** Sets a misc. register, including any side-effects the
      * write might have as defined by the architecture. */
     void setMiscReg(RegIndex misc_reg, RegVal val) override;

@@ -571,6 +571,13 @@ class SimpleThread : public ThreadState, public ThreadContext
     }
 
     void
+    setMiscRegActuallyNoEffect(int misc_reg, const RegVal &val)
+    {
+        return isa->setMiscRegNoEffect(misc_reg, val);
+    }
+
+
+    void
     setMiscReg(RegIndex misc_reg, RegVal val) override
     {
         return isa->setMiscReg(misc_reg, val, this);

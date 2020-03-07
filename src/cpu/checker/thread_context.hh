@@ -460,6 +460,15 @@ class CheckerThreadContext : public ThreadContext
         actualTC->setMiscRegNoEffect(misc_reg, val);
     }
 
+    void setMiscRegActuallyNoEffect(int misc_reg, const RegVal &val)
+    {
+        DPRINTF(Checker, "Setting misc reg with no effect: %d to both Checker"
+                         " and O3..\n", misc_reg);
+        checkerTC->setMiscRegActuallyNoEffect(misc_reg, val);
+        actualTC->setMiscRegActuallyNoEffect(misc_reg, val);
+    }
+
+
     void
     setMiscReg(RegIndex misc_reg, RegVal val) override
     {
