@@ -172,6 +172,7 @@ structure(RubyRequest, desc="...", interface="Message", external="yes") {
   HSAScope scope,            desc="HSA scope";
   HSASegment segment,        desc="HSA segment";
   PacketPtr pkt,             desc="Packet associated with this request";
+  void writeData(DataBlock), desc="TODO hack from gpgpu";
 }
 
 structure(AbstractCacheEntry, primitive="yes", external = "yes") {
@@ -202,6 +203,8 @@ structure (CacheMemory, external = "yes") {
   void setMRU(AbstractCacheEntry);
   void recordRequestType(CacheRequestType, Addr);
   bool checkResourceAvailable(CacheResourceType, Addr);
+
+  void flashInvalidate();	// TODO hack from gpgpu
 
   int getCacheSize();
   int getNumBlocks();

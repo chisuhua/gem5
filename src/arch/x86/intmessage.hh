@@ -60,12 +60,14 @@ namespace X86ISA
             INIT = 5,
             SIPI = 6,
             ExtInt = 7,
+            GPUFault = 8,       // TODO schi
             NumModes
         };
 
+        // TODO schi add GPUFault
         static const char * const names[NumModes] = {
             "Fixed", "LowestPriority", "SMI", "Reserved",
-            "NMI", "INIT", "Startup", "ExtInt"
+            "NMI", "INIT", "Startup", "ExtInt", "GPUFault"
         };
 
         static inline bool

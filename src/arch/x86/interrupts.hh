@@ -226,6 +226,14 @@ class Interrupts : public BaseInterrupts
         return entry.periodic;
     }
 
+    // TODO schi add from gem5-gpu
+    void
+    triggerGPUInterrupt()
+    {
+        requestInterrupt(0, DeliveryMode::GPUFault, false);
+    }
+
+
     AddrRangeList getAddrRanges() const;
     AddrRangeList getIntAddrRange() const;
 

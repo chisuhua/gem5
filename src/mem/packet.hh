@@ -134,6 +134,12 @@ class MemCmd
         FlushReq,      //request for a cache flush
         InvalidateReq,   // request for address to be invalidated
         InvalidateResp,
+
+        // TODO schi add from gem5-gpu
+        FlushAllReq,      // Flush entire cache request
+        FlushAllResp,
+        FenceReq,       // Enforce memory access ordering based on pkt contents
+        FenceResp,      // Fence operation has completed
         NUM_MEM_CMDS
     };
 
@@ -928,6 +934,30 @@ class Packet : public Printable
     {
         deleteData();
     }
+
+    /**
+     * Reinitialize packet address and size from the associated
+     * Request object, and reset other fields that may have been
+     * modified by a previous transaction.  Typically called when a
+     * statically allocated Request/Packet pair is reused for multiple
+     * transactions.
+     */
+    void
+    reinitFromRequest()
+    {
+        assert(req->hasPaddr());
+        flags = 0;
+        flags.set(VALID_ADDR|VALID_SIZE);
+        addr = req->getPaddr();
+        size = req->getSize();
+
+        bytesValid.clear();
+        headerDelay = 0;
+        payloadDelay = 0;
+
+        deleteData();
+    }
+
 
     /**
      * Take a request packet and modify it in place to be suitable for

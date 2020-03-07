@@ -294,6 +294,9 @@ class ThreadContext : public PCEventScope
 
     virtual void setMiscRegNoEffect(RegIndex misc_reg, RegVal val) = 0;
 
+    // TODO schi add from gem5-gpu
+    virtual void setMiscRegActuallyNoEffect(int misc_reg, const RegVal &val) = 0;
+
     virtual void setMiscReg(RegIndex misc_reg, RegVal val) = 0;
 
     virtual RegId flattenRegId(const RegId& regId) const = 0;
