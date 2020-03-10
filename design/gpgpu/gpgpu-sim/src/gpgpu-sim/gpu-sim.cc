@@ -27,6 +27,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include "gpu/gpgpu-sim/cuda_gpu.hh"
+
+#include "gpu-sim.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -44,8 +48,6 @@
 #include "dram.h"
 #include "gpu-cache.h"
 #include "gpu-misc.h"
-#include "gpu-sim.h"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "icnt_wrapper.h"
 #include "l2cache.h"
 #include "mem_fetch.h"

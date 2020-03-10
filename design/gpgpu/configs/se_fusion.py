@@ -52,14 +52,12 @@ import GPUMemConfig
 from common import Options
 from ruby import Ruby
 from common import Simulation
-import pdb
 
 parser = optparse.OptionParser()
 GPUConfig.addGPUOptions(parser)
 GPUMemConfig.addMemCtrlOptions(parser)
 Options.addCommonOptions(parser)
 Options.addSEOptions(parser)
-pdb.set_trace()
 
 #
 # Add the ruby specific and protocol specific options
@@ -101,7 +99,7 @@ if options.fast_forward:
 #
 # Setup benchmark to be run
 #
-process = LiveProcess()
+process = Process()
 process.executable = options.cmd
 process.cmd = [options.cmd] + options.options.split()
 
@@ -185,9 +183,9 @@ for (i, cpu) in enumerate(system.cpu):
     cpu.itb.walker.port = system.ruby._cpu_ports[i].slave
     cpu.dtb.walker.port = system.ruby._cpu_ports[i].slave
     if buildEnv['TARGET_ISA'] == "x86":
-        cpu.interrupts.pio = ruby_port.master
-        cpu.interrupts.int_master = ruby_port.slave
-        cpu.interrupts.int_slave = ruby_port.master
+        cpu.interrupts[0].pio = ruby_port.master
+        cpu.interrupts[0].int_master = ruby_port.slave
+        cpu.interrupts[0].int_slave = ruby_port.master
 
 #
 # Connect GPU ports
