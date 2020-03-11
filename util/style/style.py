@@ -119,7 +119,10 @@ style_ignores = [
     # project that does not follow the gem5 coding convention
     _re_ignore("tests/test-progs/asmtest/src/riscv/"),
     # Ignore RISC-V assembly dump files
-    _re_ignore("tests/test-progs/asmtest/dump/riscv/")
+    _re_ignore("tests/test-progs/asmtest/dump/riscv/"),
+    # Ignore gpgpu-sim
+    _re_ignore("design/gpgpu/gpgpu-sim/src/gpugpu-sim/"),
+    _re_ignore("design/gpgpu/src/gpu/gpugpu-sim/")
 ]
 
 def check_ignores(fname):

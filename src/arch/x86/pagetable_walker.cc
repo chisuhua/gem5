@@ -587,6 +587,9 @@ Walker::WalkerState::setupWalk(Addr vaddr)
     entry.vaddr = vaddr;
 
     Request::Flags flags = Request::PHYSICAL;
+    if (walker->bypassL1) {
+        flags.set(Request::BYPASS_L1);
+    }
     if (cr3.pcd)
         flags.set(Request::UNCACHEABLE);
 

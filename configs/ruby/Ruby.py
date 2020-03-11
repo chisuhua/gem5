@@ -83,7 +83,8 @@ def define_options(parser):
                       help="Recycle latency for ruby controller input buffers")
 
     protocol = buildEnv['PROTOCOL']
-    exec("from . import %s" % protocol)
+    #exec("from . import %s" % protocol)
+    exec "import %s" % protocol
     eval("%s.define_options(parser)" % protocol)
     Network.define_options(parser)
 
@@ -171,7 +172,8 @@ def create_system(options, full_system, system, piobus = None, dma_ports = [],
     ruby.network = network
 
     protocol = buildEnv['PROTOCOL']
-    exec("from . import %s" % protocol)
+    #TODO fix for gpgpu exec("from . import %s" % protocol)
+    exec("import %s" % protocol)
     try:
         (cpu_sequencers, dir_cntrls, topology) = \
              eval("%s.create_system(options, full_system, system, dma_ports,\

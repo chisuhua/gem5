@@ -32,12 +32,12 @@ import m5
 import VI_hammer
 from m5.objects import *
 from m5.defines import buildEnv
-from Cluster import Cluster
+from topologies.Cluster import Cluster
 
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
 
-def create_system(options, full_system, system, dma_devices, ruby_system):
+def create_system(options, full_system, system, dma_devices, bootmem, ruby_system):
 
     #if not buildEnv['GPGPU_SIM']:
     #    m5.util.panic("This script requires GPGPU-Sim integration to be built.")
@@ -48,6 +48,7 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
                                                                 full_system,
                                                                 system,
                                                                 dma_devices,
+                                                                bootmem,
                                                                 ruby_system)
 
     cpu_cntrl_count = len(cpu_cluster) + len(dir_cntrls)
@@ -91,7 +92,7 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
         #
         cache = L1Cache(size = options.sc_l1_size,
                             assoc = options.sc_l1_assoc,
-                            replacement_policy = LRUReplacementPolicy(),
+                            replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
                             start_index_bit = block_size_bits,
                             dataArrayBanks = 4,
                             tagArrayBanks = 4,
@@ -113,8 +114,8 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
                             dcache = cache,
                             max_outstanding_requests = options.gpu_l1_buf_depth,
                             ruby_system = ruby_system,
-                            deadlock_threshold = 2000000,
-                            connect_to_io = False)
+                            deadlock_threshold = 2000000)
+                            # connect_to_io = False)
 
         l1_cntrl.sequencer = gpu_seq
 
@@ -163,7 +164,7 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
         l2_cache = L2Cache(size = options.sc_l2_size,
                            assoc = options.sc_l2_assoc,
                            start_index_bit = l2_index_start,
-                           replacement_policy = LRUReplacementPolicy(),
+                           replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
                            dataArrayBanks = 4,
                            tagArrayBanks = 4,
                            dataAccessLatency = 4,
@@ -212,13 +213,13 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
     #       performance (see Section 6.2 of Power et al. HPCA 2014).
     pwd_cache = L1Cache(size = options.pwc_size,
                             assoc = 16, # 64 is fully associative @ 8kB
-                            replacement_policy = LRUReplacementPolicy(),
+                            replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
                             start_index_bit = block_size_bits,
                             resourceStalls = False)
     # Small cache since CPU L1 requires I and D
     pwi_cache = L1Cache(size = "512B",
                             assoc = 2,
-                            replacement_policy = LRUReplacementPolicy(),
+                            replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
                             start_index_bit = block_size_bits,
                             resourceStalls = False)
 
@@ -243,12 +244,13 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
     cpu_seq = RubySequencer(version = options.num_cpus + options.num_sc,
                             icache = pwd_cache, # Never get data from pwi_cache
                             dcache = pwd_cache,
-                            dcache_hit_latency = 8,
-                            icache_hit_latency = 8,
+                            # TODO the latency value is setting in controller
+                            # dcache_hit_latency = 8,
+                            # icache_hit_latency = 8,
                             max_outstanding_requests = options.gpu_l1_buf_depth,
                             ruby_system = ruby_system,
-                            deadlock_threshold = 2000000,
-                            connect_to_io = False)
+                            deadlock_threshold = 2000000)
+                            #connect_to_io = False)
 
     l1_cntrl.sequencer = cpu_seq
 
@@ -297,8 +299,8 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
                                dcache = cache,
                                max_outstanding_requests = max_out_reqs,
                                support_inst_reqs = False,
-                               ruby_system = ruby_system,
-                               connect_to_io = False)
+                               ruby_system = ruby_system)
+                               #connect_to_io = False)
 
     gpu_ce_cntrl = GPUCopyDMA_Controller(version = 0,
                                   sequencer = gpu_ce_seq,
