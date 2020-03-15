@@ -138,8 +138,10 @@ endif
 # NOTE: You may need to change this path if you are not using the
 # canonical gem5-gpu directory structure. This directory includes
 # m5op.h, m5ops.h, and the m5op_<arch>.S assembly files
-M5OP_PATH = ../../gem5/util/m5
-INCLUDES = -I./ -I$(CUDAHOME)/include -I$(M5OP_PATH)
+#M5OP_PATH = ../../gem5/util/m5
+# we assume the depot dir is gem5
+M5OP_PATH = ../../util/m5
+INCLUDES = -I./ -I$(CUDAHOME)/include -I$(M5OP_PATH) -I../../include
 
 PROG = cuda
 M5OP = m5op_x86
@@ -148,7 +150,7 @@ ifeq ($(ARCH),ARM32)
 endif
 
 CXX_SRCS = cuda_runtime_api.cc
-CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
+CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -fpermissive
 
 .PHONY: clean
 

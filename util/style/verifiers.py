@@ -163,6 +163,10 @@ class Verifier(object):
         # don't want to check it anyway.
         if os.path.islink(filename):
             return True
+        skip_re = re.compile(r'(benchmarks)')
+        match = skip_re.search(filename)
+        if (match):
+            return True
         return lang_type(filename) not in self.languages
 
     def apply(self, filename, regions=all_regions):
@@ -346,7 +350,7 @@ class SortedIncludes(Verifier):
         self.sort_includes = sort_includes.SortIncludes()
 
     def check(self, filename, regions=all_regions, fobj=None, silent=False):
-        skip_re = re.compile(r'(gpgpu-sim)')
+        skip_re = re.compile(r'(gpgpu-sim|benchmarks)')
         match = skip_re.search(filename)
         if (match):
             return 0
