@@ -1,0 +1,24 @@
+################################################################################
+#
+# Build script for project
+#
+################################################################################
+
+# Add source files here
+EXECUTABLE	:= vectorAdd
+# CUDA source files (compiled with cudacc)
+CUFILES		:= vectorAdd.cu
+# CUDA dependency files
+# CU_DEPS		:= vectorAdd_kernel.cu
+# C/C++ source files (compiled with gcc / c++)
+#CFILES		:= facetrain.c imagenet.c backprop.c
+CFILES		:=
+
+CFLAGS		:= -DOUTPUT -I.
+#CUFLAGS		:= -DOUTPUT -I/usr/local/cuda/include 
+CUFLAGS		:= -DOUTPUT -I${CUDAHOME}/include 
+
+################################################################################
+# Rules and targets
+
+include ../common/common.mk

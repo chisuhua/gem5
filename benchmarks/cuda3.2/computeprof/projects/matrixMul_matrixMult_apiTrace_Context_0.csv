@@ -1,0 +1,39 @@
+# CUDA_PROFILE_LOG_VERSION 2.0
+# CUDA_PROFILE_CSV 1
+# TIMESTAMPFACTOR 11cb0957f2beadc8
+# CUDA_DEVICE 0 GeForce GTX 480
+gpustarttimestamp,method,gputime,cputime,occupancy,gridSizeX,gridSizeY,blockSizeX,blockSizeY,blockSizeZ,dynSmemPerBlock,staSmemPerBlock,registerPerThread,streamID,localblocksize,memTransferSize,memtransferhostmemtype
+11cb0c8edb71b740,memcpyHtoD,32.192,84.36,,,,,,,,,,0,0,51200,0
+11cb0c8edb739ae0,memcpyHtoD,15.968,58.64,,,,,,,,,,0,0,25600,0
+11cb0c8edb7acbc0,_Z9matrixMulPfS_S_ii,19.712,13.92,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc88dce0,_Z9matrixMulPfS_S_ii,18.624,22.52,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc892f80,_Z9matrixMulPfS_S_ii,17.312,5.6,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc897ce0,_Z9matrixMulPfS_S_ii,17.504,5.52,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc89cb00,_Z9matrixMulPfS_S_ii,17.504,4.92,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8a1920,_Z9matrixMulPfS_S_ii,17.632,5.08,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8a67c0,_Z9matrixMulPfS_S_ii,17.376,20.4,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8ab560,_Z9matrixMulPfS_S_ii,17.44,5.12,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8b0340,_Z9matrixMulPfS_S_ii,17.536,4.84,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8b5180,_Z9matrixMulPfS_S_ii,17.888,4.72,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8ba120,_Z9matrixMulPfS_S_ii,17.728,5.2,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8bf020,_Z9matrixMulPfS_S_ii,17.856,21.72,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8c3fa0,_Z9matrixMulPfS_S_ii,18.144,9.56,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8c9060,_Z9matrixMulPfS_S_ii,17.472,5.08,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8cde80,_Z9matrixMulPfS_S_ii,17.344,5.68,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8d2c20,_Z9matrixMulPfS_S_ii,17.696,4.88,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8d7b20,_Z9matrixMulPfS_S_ii,17.472,20.08,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8dc940,_Z9matrixMulPfS_S_ii,18.016,5.08,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8e1960,_Z9matrixMulPfS_S_ii,17.376,4.68,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8e6720,_Z9matrixMulPfS_S_ii,17.44,4.68,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8eb520,_Z9matrixMulPfS_S_ii,17.504,4.76,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8f0340,_Z9matrixMulPfS_S_ii,17.76,19.76,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8f5280,_Z9matrixMulPfS_S_ii,17.792,4.92,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8fa1e0,_Z9matrixMulPfS_S_ii,17.504,4.8,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc8ff000,_Z9matrixMulPfS_S_ii,17.504,4.84,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc903e20,_Z9matrixMulPfS_S_ii,17.536,4.76,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc908c80,_Z9matrixMulPfS_S_ii,17.6,19.12,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc90dae0,_Z9matrixMulPfS_S_ii,17.76,5.16,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc912a00,_Z9matrixMulPfS_S_ii,17.728,4.76,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc917900,_Z9matrixMulPfS_S_ii,17.376,5,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edc91c6c0,_Z9matrixMulPfS_S_ii,17.44,9.16,0.833,5,10,16,16,1,0,2048,21,0,-1,,0
+11cb0c8edcb2c420,memcpyDtoH,38.144,685,,,,,,,,,,0,0,51200,0
