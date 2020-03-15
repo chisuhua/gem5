@@ -138,13 +138,13 @@ ShaderTLB::translateTiming(const RequestPtr &req, ThreadContext *tc,
 
     if (tlbMemory->lookup(vp_base, pp_base)) {
         DPRINTF(ShaderTLB, "TLB hit. Phys addr %#x.\n", pp_base + offset);
-        hits++;
+        // FIXME schi hits++;
         req->setPaddr(pp_base + offset);
         translation->finish(NoFault, req, tc, mode);
     } else {
         // TLB miss! Let the TLB handle the walk, etc
         DPRINTF(ShaderTLB, "TLB miss for addr %#x\n", vaddr);
-        misses++;
+        // FIXME schi misses++;
         translation->markDelayed();
 
         mmu->beginTLBMiss(this, translation, req, mode, tc);
@@ -222,6 +222,7 @@ TLBMemory::insert(Addr vp_base, Addr pp_base)
 void
 ShaderTLB::regStats()
 {
+/* FIXME schi it miss regStats is parent
     hits
         .name(name()+".hits")
         .desc("Number of hits in this TLB")
@@ -236,6 +237,7 @@ ShaderTLB::regStats()
         ;
 
     hitRate = hits / (hits + misses);
+    */
 }
 
 ShaderTLB *

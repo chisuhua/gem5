@@ -254,8 +254,8 @@ class ShaderLSQ : public MemObject
     // TODO schi
     // virtual BaseMasterPort& getMasterPort(const std::string &if_name, PortID idx = -1);
     // virtual BaseSlavePort& getSlavePort(const std::string &if_name, PortID idx = -1);
-    virtual Port& getMasterPort(const std::string &if_name, PortID idx = -1);
-    virtual Port& getSlavePort(const std::string &if_name, PortID idx = -1);
+    virtual Port& getPort(const std::string &if_name, PortID idx = -1);
+    // virtual Port& getSlavePort(const std::string &if_name, PortID idx = -1);
     bool isSquashed() { return false; }
     void finishTranslation(WholeTranslationState *state);
 
@@ -305,6 +305,7 @@ class ShaderLSQ : public MemObject
     EventWrapper<ShaderLSQ, &ShaderLSQ::ejectAccessResponses> ejectAccessesEvent;
     EventWrapper<ShaderLSQ, &ShaderLSQ::commitWarpInst> commitInstEvent;
 
+    /* FIXME schi
     // Stats
     Stats::Histogram activeWarpInstBuffers;
     Stats::Average accessesOutstandingToCache;
@@ -319,6 +320,7 @@ class ShaderLSQ : public MemObject
     Stats::Histogram warpLatencyFence;
     Stats::Histogram warpLatencyAtomic;
     Stats::Histogram tlbMissLatency;
+    */
     void regStats();
 
 };

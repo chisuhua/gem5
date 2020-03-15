@@ -91,7 +91,7 @@ CudaCore::~CudaCore()
 // TODO schi change
 // BaseMasterPort&
 Port&
-CudaCore::getMasterPort(const std::string &if_name, PortID idx)
+CudaCore::getPort(const std::string &if_name, PortID idx)
 {
     if (if_name == "inst_port") {
         return instPort;
@@ -581,6 +581,9 @@ CudaCore *CudaCoreParams::create() {
 void
 CudaCore::regStats()
 {
+    MemObject::regStats();
+    using namespace Stats;
+
     numLocalLoads
         .name(name() + ".local_loads")
         .desc("Number of loads from local space")
@@ -673,6 +676,8 @@ CudaCore::regStats()
         .name(name() + ".kernels_completed")
         .desc("Number of kernels completed")
         ;
+
+    itb->regStats();
 }
 
 void

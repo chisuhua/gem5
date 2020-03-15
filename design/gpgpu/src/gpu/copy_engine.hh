@@ -168,7 +168,7 @@ public:
 
     GPUCopyEngine(const Params *p);
     // TODO schi change from BaseMasterPort
-    virtual Port& getMasterPort(const std::string &if_name, PortID idx = -1);
+    virtual Port& getPort(const std::string &if_name, PortID idx = -1);
     void finishTranslation(WholeTranslationState *state);
     int memcpy(Addr src, Addr dst, size_t length, stream_operation_type type);
     int memset(Addr dst, int value, size_t length);

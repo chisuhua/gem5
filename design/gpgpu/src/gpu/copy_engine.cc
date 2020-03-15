@@ -40,8 +40,8 @@ using namespace std;
 
 GPUCopyEngine::GPUCopyEngine(const Params *p) :
     MemObject(p), ceExitCB(this, p->stats_filename),
-    hostPort(name() + ".hostPort", this, 0),
-    devicePort(name() + ".devicePort", this, 0), readPort(NULL),
+    hostPort(name() + ".host_port", this, 0),
+    devicePort(name() + ".device_port", this, 0), readPort(NULL),
     writePort(NULL), tickEvent(this), masterId(p->sys->getMasterId(this, name())),
     cudaGPU(p->gpu), cacheLineSize(p->cache_line_size),
     driverDelay(p->driver_delay), hostDTB(p->host_dtb),
@@ -418,7 +418,7 @@ void GPUCopyEngine::finishTranslation(WholeTranslationState *state)
 }
 
 Port&
-GPUCopyEngine::getMasterPort(const std::string &if_name, PortID idx)
+GPUCopyEngine::getPort(const std::string &if_name, PortID idx)
 {
     if (if_name == "host_port")
         return hostPort;
@@ -430,6 +430,10 @@ GPUCopyEngine::getMasterPort(const std::string &if_name, PortID idx)
 }
 
 void GPUCopyEngine::regStats() {
+
+    MemObject::regStats();
+    using namespace Stats;
+
     numOperations
         .name(name() + ".numOperations")
         .desc("Number of copy/memset operations")
@@ -446,6 +450,11 @@ void GPUCopyEngine::regStats() {
         .name(name() + ".opTimeTicks")
         .desc("Total time spent in copy/memset operations")
         ;
+
+    if (hostDTB) { hostDTB->regStats(); }
+    if (deviceDTB) { deviceDTB->regStats(); }
+    if (readDTB) { readDTB->regStats(); }
+    if (writeDTB) { writeDTB->regStats(); }
 }
 
 GPUCopyEngine *GPUCopyEngineParams::create() {

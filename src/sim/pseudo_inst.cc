@@ -75,6 +75,12 @@
 #include "sim/system.hh"
 #include "sim/vptr.hh"
 
+// TODO schi I copied from gem5-gpu
+struct gpusyscall;
+typedef struct gpusyscall gpusyscall_t;
+typedef uint64_t (*cudaFunc_t)(ThreadContext *, gpusyscall_t *);
+extern cudaFunc_t gpgpu_funcs[];
+
 using namespace std;
 using namespace Stats;
 
@@ -583,6 +589,17 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
             exitSimLoop("work items exit count reached");
         }
     }
+}
+
+void
+gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
+{
+    if (gpusysno > 85) {
+        warn("Ignoring gpu syscall %d\n", gpusysno);
+        return;
+    }
+
+    gpgpu_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
 }
 
 } // namespace PseudoInst

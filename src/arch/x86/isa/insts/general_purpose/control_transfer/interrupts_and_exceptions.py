@@ -137,6 +137,15 @@ processCSDescriptor:
     br label("doPopStackStuff"), flags=(nCEZF,)
     # We can modify user visible state here because we're know
     # we're done with things that can fault.
+
+    # TODO schi copied from gem5-gpu
+    # gem5-gpu: Grab the old return stack pointer into t6, then pop the
+    # old stack. Must save the stack pointer to ensure the thread knows
+    # precisely when it needs to to notify the GPU. Do this before popping
+    # the stack pointer!
+    ld t6, ss, [1, t0, rsp], "3 * env.dataSize", dataSize=ssz
+
+
     addi rsp, rsp, "3 * env.stackSize"
     br label("fallThroughPopStackStuff")
 
@@ -205,6 +214,21 @@ fallThroughPopStackStuff:
     #}
 
 skipSegmentSquashing:
+
+    # TODO schi copied from gem5-gpu
+    # Check if this was a GPU fault and if so, notify the GPU.
+    rdval t5, "InstRegIndex(MISCREG_GPU_FAULT)"
+    andi t0, t5, 2, flags=(EZF,)
+    br label("notGPUFaultFallThrough"), flags=(CEZF,)
+    # At this point, t6 *should* contain the old stack pointer from where the
+    # fault was raised, no matter how the microcode reached this GPU check. If
+    # t6 is equal to the GPU faulting RSP, notify the GPU of finished fault!
+    rdval t5, "InstRegIndex(MISCREG_GPU_FAULT_RSP)"
+    xor t5, t5, t6, flags=(EZF,)
+    br label("notGPUFaultFallThrough"), flags=(nCEZF,)
+    gpufaultfinish
+
+notGPUFaultFallThrough:
 
     # Ignore this for now.
     #RFLAGS.v = temp_RFLAGS
