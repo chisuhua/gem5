@@ -1,0 +1,11 @@
+# OPENCL_PROFILE_LOG_VERSION 2.0
+# CUDA_PROFILE_CSV 1
+# TIMESTAMPFACTOR 11cb0957f293b550
+# CUDA_DEVICE 0 GeForce GTX 480
+gpustarttimestamp,method,gputime,cputime,occupancy,ndrangesizeX,ndrangesizeY,workgroupsizeX,workgroupsizeY,workgroupsizeZ,stapmemperworkgroup,regperworkitem,streamID,localworkgroupsize,memTransferSize,memtransferhostmemtype,local_load,local_store,gld_request,gst_request,l2_subp0_write_sector_misses,l2_subp0_write_sector_queries,fb_subp0_read_sectors,shared_load,shared_store,sm_cta_launched,l1_local_load_hit,l2_subp1_write_sector_misses,l2_subp1_write_sector_queries,fb_subp1_read_sectors,branch,l1_local_load_miss,l1_local_store_hit,l2_subp0_read_sector_misses,l2_subp0_read_sector_queries,fb_subp0_write_sectors,divergent_branch,l1_local_store_miss,l1_global_load_hit,l2_subp1_read_sector_misses,l2_subp1_read_sector_queries,fb_subp1_write_sectors,inst_issued,l1_global_load_miss,inst_executed,uncached_global_load_transaction,global_store_transaction,warps_launched,threads_launched,l1_shared_bank_conflict,active_warps,active_cycles,tex0_cache_sector_queries,tex0_cache_sector_misses
+11cb0c9da0ff0cc0,memcpyDtoDasync,6.432,1281.16,,,,,,,,,1,0,51200,2
+11cb0c9da118acc0,matrixMul,20,471.52,1,5,10,16,16,1,0,19,1,1,,0,0,0,320,32,800,800,28,5120,320,4,0,800,800,16,224,0,0,28,0,800,0,0,133,16,0,800,11483,498,10976,0,64,32,1024,0,227057,9134,0,0
+11cb0c9da1861480,memcpyDtoHasync,38.56,1754.4,,,,,,,,,1,0,51200,0
+11cb0c9da1b2aba0,memcpyDtoDasync,37.44,660.56,,,,,,,,,1,0,51200,0
+11cb0c9da23f7fe0,matrixMul,12.256,560.36,1,5,5,16,16,1,0,19,1,1,,0,0,0,160,16,400,400,0,2560,160,2,0,400,400,0,112,0,0,0,0,400,0,0,66,0,0,400,5712,256,5488,0,32,16,512,0,78836,5337,0,0
+11cb0c9da2eae6e0,memcpyDtoHasync,19.328,530.56,,,,,,,,,1,0,25600,0

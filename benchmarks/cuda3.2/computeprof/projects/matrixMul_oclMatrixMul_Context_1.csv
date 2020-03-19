@@ -1,0 +1,8 @@
+# OPENCL_PROFILE_LOG_VERSION 2.0
+# CUDA_PROFILE_CSV 1
+# TIMESTAMPFACTOR 11cb0958526a8e90
+# CUDA_DEVICE 1 GeForce 9500 GT
+gpustarttimestamp,method,gputime,cputime,occupancy,ndrangesizeX,ndrangesizeY,workgroupsizeX,workgroupsizeY,workgroupsizeZ,stapmemperworkgroup,regperworkitem,streamID,localworkgroupsize,memTransferSize,memtransferhostmemtype,local_load,local_store,sm_cta_launched,branch,divergent_branch
+11cb0c9e01f53080,memcpyDtoDasync,7.136,2396.92,,,,,,,,,1,0,25600,2
+11cb0c9e02a29200,matrixMul,68.288,575.12,0.667,5,5,16,16,1,44,14,1,1,,0,0,0,6,816,0
+11cb0c9e02ed99e0,memcpyDtoHasync,19.232,2853.6,,,,,,,,,1,0,25600,0

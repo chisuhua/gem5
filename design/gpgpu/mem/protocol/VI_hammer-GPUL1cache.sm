@@ -303,11 +303,12 @@ machine(MachineType:GPUL1Cache, "VI GPU L1 Cache")
         out_msg.Destination.add(getL2ID(address, num_l2, l2_select_num_bits, l2_select_low_bit));
         out_msg.MessageSize := MessageSizeType:Data;
         // must write the data to the message so the L2 will have the right data
+        in_msg.writeData(out_msg.DataBlk);
         // TODO hack schi in_msg.writeData(out_msg.DataBlk);
         // is this one? out_msg.DataBlk := in_msg.DataBlk;
 		// or add writeData in
-        assert(is_valid(cache_entry));
-        out_msg.DataBlk := cache_entry.DataBlk;
+        // assert(is_valid(cache_entry));
+        // out_msg.DataBlk := cache_entry.DataBlk;
         out_msg.Offset := getOffset(in_msg.PhysicalAddress);
         out_msg.Size := in_msg.Size;
         DPRINTF(RubySlicc, "%s: offset: %d, size: %d\n", address, out_msg.Offset, out_msg.Size);

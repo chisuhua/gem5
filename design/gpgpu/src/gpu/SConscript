@@ -38,7 +38,7 @@ SimObject('ShaderMMU.py')
 Source('atomic_operations.cc')
 Source('copy_engine.cc')
 Source('lsq_warp_inst_buffer.cc')
-Source('shader_lsq.cc')
+Source('shader_lsq.cc', append={'CXXFLAGS': '-Wno-error=unused-variable'})
 Source('shader_tlb.cc')
 Source('shader_mmu.cc')
 

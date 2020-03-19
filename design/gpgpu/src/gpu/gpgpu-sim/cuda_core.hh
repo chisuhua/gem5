@@ -241,7 +241,7 @@ class CudaCore : public MemObject
 
     // Required for implementing MemObject
     // TODO schi change from BaseMasterPort
-    virtual Port& getMasterPort(const std::string &if_name,
+    virtual Port& getPort(const std::string &if_name,
                                           PortID idx = -1);
 
     // For checkpoint restore (empty unserialize)

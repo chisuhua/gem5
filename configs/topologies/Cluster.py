@@ -90,21 +90,25 @@ class Cluster(BaseTopology):
         """ Recursively make all of the links and routers
         """
 
+        # If this sub-Cluster has already been constructed
+        if self.router is not None:
+            return
+
         # make a router to connect all of the nodes
         self.router = Router(router_id=self.num_routers())
         network.routers.append(self.router)
 
         for node in self.nodes:
             if type(node) == Cluster:
-                node.makeTopology(options, network, IntLink,
-                                  ExtLink, Router)
+                node.makeTopology(options, network, IntLink, ExtLink, Router)
 
                 if node.getConnectToParent():
                     # connect this cluster to the router
-                    link_out = IntLink(link_id=self.num_int_links(), src_node=self.router,
-                           dst_node=node.router)
-                    link_in = IntLink(link_id=self.num_int_links(), src_node=node.router,
-                                  dst_node=self.router)
+                    link_out = IntLink(link_id=self.num_int_links(),
+                                       src_node=self.router, dst_node=node.router)
+
+                    link_in = IntLink(link_id=self.num_int_links(),
+                                      src_node=node.router, dst_node=self.router)
 
                     if node.extBW:
                         link_out.bandwidth_factor = node.extBW

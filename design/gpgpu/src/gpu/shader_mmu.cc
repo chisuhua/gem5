@@ -638,6 +638,9 @@ ShaderMMU::insertPrefetch(Addr vp_base, Addr pp_base)
 void
 ShaderMMU::regStats()
 {
+    ClockedObject::regStats();
+    using namespace Stats;
+
     numPagefaults
         .name(name()+".numPagefaults")
         .desc("Number of Pagefaults")

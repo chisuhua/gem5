@@ -1,0 +1,9 @@
+# CUDA_PROFILE_LOG_VERSION 2.0
+# CUDA_PROFILE_CSV 1
+# TIMESTAMPFACTOR 11cb0957f5489ce8
+# CUDA_DEVICE 0 GeForce GTX 480
+gpustarttimestamp,method,gputime,cputime,occupancy,gridSizeX,gridSizeY,blockSizeX,blockSizeY,blockSizeZ,dynSmemPerBlock,staSmemPerBlock,registerPerThread,streamID,localblocksize,memTransferSize,memtransferhostmemtype,tex0_cache_sector_queries,tex0_cache_sector_misses
+11cb0bb3a77725a0,memcpyHtoA,656.32,1508.16,,,,,,,,,,0,0,1048576,0
+11cb0bb3a785dec0,_Z15transformKernelPfiif,162.752,363.8,0.333,64,64,8,8,1,0,0,25,0,-1,,0,15671,4138
+11cb0bb3a7a790e0,_Z15transformKernelPfiif,161.12,495.88,0.333,64,64,8,8,1,0,0,25,0,-1,,0,15808,4315
+11cb0bb3a7c61760,memcpyDtoH,745.12,2455.36,,,,,,,,,,0,0,1048576,0

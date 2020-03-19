@@ -94,17 +94,27 @@ ShaderLSQ::~ShaderLSQ()
 
 // TODO schi BaseMasterPort &
 Port &
-ShaderLSQ::getMasterPort(const string &if_name, PortID idx)
+ShaderLSQ::getPort(const string &if_name, PortID idx)
 {
     if (if_name == "cache_port") {
         return cachePort;
+    } else if (if_name == "lane_port") {
+        if (idx >= static_cast<PortID>(lanePorts.size())) {
+            panic("RubyPort::getSlavePort: unknown index %d\n", idx);
+        }
+        return *lanePorts[idx];
+    } else if (if_name == "control_port") {
+        return controlPort;
     } else {
-        // return MemObject::getMasterPort(if_name, idx);
+        // pass it along to our super class
+        // return MemObject::getSlavePort(if_name, idx);
         return MemObject::getPort(if_name, idx);
     }
+
 }
 
 // TODO schi BaseSlavePort &
+/*
 Port &
 ShaderLSQ::getSlavePort(const string &if_name, PortID idx)
 {
@@ -122,6 +132,7 @@ ShaderLSQ::getSlavePort(const string &if_name, PortID idx)
         return MemObject::getPort(if_name, idx);
     }
 }
+*/
 
 AddrRangeList
 ShaderLSQ::LanePort::getAddrRanges() const
@@ -225,7 +236,7 @@ ShaderLSQ::incrementActiveWarpInstBuffers()
 {
     if (lastWarpInstBufferChange > 0) {
         Tick sinceLastChange = curTick() - lastWarpInstBufferChange;
-        activeWarpInstBuffers.sample(numActiveWarpInstBuffers, sinceLastChange);
+        // FIXME schi activeWarpInstBuffers.sample(numActiveWarpInstBuffers, sinceLastChange);
     }
     numActiveWarpInstBuffers++;
     lastWarpInstBufferChange = curTick();
@@ -236,7 +247,7 @@ ShaderLSQ::decrementActiveWarpInstBuffers()
 {
     if (lastWarpInstBufferChange > 0) {
         Tick sinceLastChange = curTick() - lastWarpInstBufferChange;
-        activeWarpInstBuffers.sample(numActiveWarpInstBuffers, sinceLastChange);
+        // FIXME schi activeWarpInstBuffers.sample(numActiveWarpInstBuffers, sinceLastChange);
     }
     numActiveWarpInstBuffers--;
     lastWarpInstBufferChange = curTick();
@@ -344,7 +355,7 @@ ShaderLSQ::issueWarpInstTranslations(WarpInstBuffer *warp_inst)
 
     const list<WarpInstBuffer::CoalescedAccess*> *coalesced_accesses =
             warp_inst->getCoalescedAccesses();
-    warpCoalescedAccesses.sample(coalesced_accesses->size());
+    // FIXME schi warpCoalescedAccesses.sample(coalesced_accesses->size());
     list<WarpInstBuffer::CoalescedAccess*>::const_iterator iter =
             coalesced_accesses->begin();
     for (; iter != coalesced_accesses->end(); iter++) {
@@ -397,7 +408,7 @@ ShaderLSQ::finishTranslation(WholeTranslationState *state)
     }
 
     if (state->delay) {
-        tlbMissLatency.sample(curCycle() - mem_access->tlbStartCycle);
+        // FIXME schi tlbMissLatency.sample(curCycle() - mem_access->tlbStartCycle);
     }
 
     delete state;
@@ -446,7 +457,7 @@ ShaderLSQ::injectCacheAccesses()
             // width for this cycle, but it is not currently counted here
             blockedAccesses[line_addr].push(mem_access);
             injectBuffer.pop_front();
-            mshrHitQueued++;
+            // FIXME schi mshrHitQueued++;
             DPRINTF(ShaderLSQ,
                     "[%d: ] Line blocked %s access for paddr: %p\n",
                     mem_access->getWarpId(),
@@ -461,7 +472,7 @@ ShaderLSQ::injectCacheAccesses()
                         mem_access->req->getPaddr());
                 mshrsFull = true;
                 mshrsFullStarted = curCycle();
-                mshrsFullCount++;
+                // FIXME schi mshrsFullCount++;
                 return;
             } else {
                 DPRINTF(ShaderLSQ,
@@ -479,7 +490,7 @@ ShaderLSQ::injectCacheAccesses()
                 injectBuffer.pop_front();
                 num_injected++;
                 perWarpOutstandingAccesses[mem_access->getWarpId()]++;
-                accessesOutstandingToCache++;
+                // FIXME schi accessesOutstandingToCache++;
                 WarpInstBuffer *warp_inst = mem_access->getWarpBuffer();
                 warp_inst->removeCoalesced(mem_access);
                 if (warp_inst->coalescedAccessesSize() == 0) {
@@ -528,7 +539,7 @@ ShaderLSQ::scheduleRetryInject()
     assert(!injectBuffer.empty());
     assert(!injectAccessesEvent.scheduled());
     mshrsFull = false;
-    mshrsFullCycles += curCycle() - mshrsFullStarted;
+    // FIXME schi mshrsFullCycles += curCycle() - mshrsFullStarted;
     DPRINTF(ShaderLSQ, "[ : ] Unblocking MSHRs, restarting injection\n");
     schedule(injectAccessesEvent, clockEdge(Cycles(0)));
 }
@@ -589,7 +600,7 @@ ShaderLSQ::recvResponsePkt(PacketPtr pkt)
             mem_access->getWarpId(),
             mem_access->getWarpBuffer()->getInstTypeString(),
             mem_access->req->getPaddr());
-    accessesOutstandingToCache--;
+    // FIXME schi accessesOutstandingToCache--;
     return true;
 }
 
@@ -670,7 +681,7 @@ ShaderLSQ::commitWarpInst()
                     // Fence responses are always accepted by the CudaCore
                     assert(!warp_inst->isFence());
                     writebackBlocked = true;
-                    writebackBlockedCycles++;
+                    // FIXME schi writebackBlockedCycles++;
                     return;
                 }
                 lane_request_pkts[i] = NULL;
@@ -685,13 +696,13 @@ ShaderLSQ::commitWarpInst()
                  max(commitInstBuffer.front()->getCompleteTick(), nextCycle()));
     }
     if (warp_inst->isLoad()) {
-        warpLatencyRead.sample(ticksToCycles(warp_inst->getLatency()));
+        // FIXME schi warpLatencyRead.sample(ticksToCycles(warp_inst->getLatency()));
     } else if (warp_inst->isStore()) {
-        warpLatencyWrite.sample(ticksToCycles(warp_inst->getLatency()));
+        // FIXME schi warpLatencyWrite.sample(ticksToCycles(warp_inst->getLatency()));
     } else if (warp_inst->isFence()) {
-        warpLatencyFence.sample(ticksToCycles(warp_inst->getLatency()));
+        // FIXME schi warpLatencyFence.sample(ticksToCycles(warp_inst->getLatency()));
     } else if (warp_inst->isAtomic()) {
-        warpLatencyAtomic.sample(ticksToCycles(warp_inst->getLatency()));
+        // FIXME schi warpLatencyAtomic.sample(ticksToCycles(warp_inst->getLatency()));
     } else {
         panic("Don't know how to record latency for this instruction\n");
     }
@@ -719,7 +730,7 @@ ShaderLSQ::processFlush()
     assert(flushing && flushingPkt);
     assert(numActiveWarpInstBuffers == 0);
     Tick since_last_change = curTick() - lastWarpInstBufferChange;
-    activeWarpInstBuffers.sample(numActiveWarpInstBuffers, since_last_change);
+    // FIXME schi activeWarpInstBuffers.sample(numActiveWarpInstBuffers, since_last_change);
     lastWarpInstBufferChange = 0;
     if (forwardFlush) {
         MasterID master_id = flushingPkt->req->masterId();
@@ -751,6 +762,10 @@ void ShaderLSQ::finalizeFlush()
 void
 ShaderLSQ::regStats()
 {
+    MemObject::regStats();
+    using namespace Stats;
+
+    /* FIXME schi
     activeWarpInstBuffers
         .name(name()+".warpInstBufActive")
         .desc("Histogram of number of active warp inst buffers at a given time")
@@ -806,6 +821,9 @@ ShaderLSQ::regStats()
         .desc("Latency in cycles for TLB miss")
         .init(16)
         ;
+        */
+
+    tlb->regStats();
 }
 
 

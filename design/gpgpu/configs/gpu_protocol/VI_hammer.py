@@ -61,7 +61,8 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
     # consistent with the NetDest list.  Therefore the l1 controller nodes must be
     # listed before the directory nodes and directory nodes before dma nodes, etc.
     #
-    l1_cntrl_nodes = []
+    #l1_cntrl_nodes = []
+    dir_cntrl_nodes = []
     dma_cntrl_nodes = []
 
     topology = Cluster(intBW = 68, extBW = 68)
@@ -116,7 +117,6 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
         # Add controllers and sequencers to the appropriate lists
         #
         cpu_sequencers.append(cpu_seq)
-        l1_cntrl_nodes.append(l1_cntrl)
         topology.add(l1_cntrl)
 
         # Connect the L1 controller and the network
@@ -164,25 +164,31 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
             pf_start_bit = block_size_bits
 
 
-    mem_dir_cntrl_nodes, rom_dir_cntrl_node = create_directories(
-        options, bootmem, ruby_system, system)
+    #mem_dir_cntrl_nodes, rom_dir_cntrl_node = create_directories(
+    #    options, bootmem, ruby_system, system)
 
-    #dir_cntrl_nodes = []
-    dir_cntrl_nodes = mem_dir_cntrl_nodes[:]
-    if rom_dir_cntrl_node is not None:
-        dir_cntrl_nodes.append(rom_dir_cntrl_node)
+    #dir_cntrl_nodes = mem_dir_cntrl_nodes[:]
+    #if rom_dir_cntrl_node is not None:
+    #    dir_cntrl_nodes.append(rom_dir_cntrl_node)
 
-    #for i in xrange(options.num_dirs):
-    for dir_cntrl in dir_cntrl_nodes:
+    #for dir_cntrl in dir_cntrl_nodes:
+    for i in xrange(options.num_dirs):
         #
         # Create the Ruby objects associated with the directory controller
         #
 
-        #dir_size = MemorySize('0B')
-        #dir_size.value = mem_module_size
+        dir_size = MemorySize('0B')
+        dir_size.value = mem_module_size
 
-        #pf = ProbeFilter(size = pf_size, assoc = 4,
-        #                 start_index_bit = pf_start_bit)
+        pf = ProbeFilter(size = pf_size, assoc = 4,
+                         start_index_bit = pf_start_bit)
+
+        dir_cntrl = Directory_Controller()
+        dir_cntrl.version = i
+        # TODO fix option
+        dir_cntrl.directory = RubyDirectoryMemory()
+        dir_cntrl.ruby_system = ruby_system
+        dir_cntrl.probeFilter = pf
 
         #dir_cntrl = Directory_Controller(version = i,
         #                                 directory = \
@@ -190,18 +196,18 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
         #                                            version = i,
         #                                            size = dir_size,
         #                                            numa_high_bit = \
-        #                                              options.numa_high_bit),
+        #                                            options.numa_high_bit),
         #                                 probeFilter = pf,
         #                                 probe_filter_enabled = options.pf_on,
         #                                 full_bit_dir_enabled = options.dir_on,
         #                                 transitions_per_cycle = options.ports,
         #                                 ruby_system = ruby_system)
 
-        #if options.recycle_latency:
-        #    dir_cntrl.recycle_latency = options.recycle_latency
+        if options.recycle_latency:
+            dir_cntrl.recycle_latency = options.recycle_latency
 
-        #exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
-        #dir_cntrl_nodes.append(dir_cntrl)
+        exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
+        dir_cntrl_nodes.append(dir_cntrl)
 
         # Connect the directory controller to the network
         dir_cntrl.forwardFromDir = MessageBuffer()
@@ -250,9 +256,6 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
 
         dma_cntrl.mandatoryQueue = MessageBuffer()
 
-    # added
-    all_cntrls = l1_cntrl_nodes + dir_cntrl_nodes + dma_cntrl_nodes
-
     # Create the io controller and the sequencer
     if full_system:
         io_seq = DMASequencer(version=len(dma_ports), ruby_system=ruby_system)
@@ -273,7 +276,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
 
         dma_cntrl_nodes.append(io_controller)
 
-    # TODO fix me 5 or 10
-    ruby_system.network.number_of_virtual_networks = 5
-    #topology = create_topology(all_cntrls, options)
+    # TODO fix me 5 or 10, why need to specifiy
+    ruby_system.network.number_of_virtual_networks = 10
+
     return (cpu_sequencers, dir_cntrl_nodes, dma_cntrl_nodes, topology)

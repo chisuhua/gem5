@@ -773,12 +773,23 @@ Addr CudaGPU::allocateGPUMemory(size_t size)
 
 void CudaGPU::regStats()
 {
+
+    ClockedObject::regStats();
+    using namespace Stats;
+
     numKernelsStarted
         .name(name() + ".kernels_started")
         .desc("Number of kernels started");
     numKernelsCompleted
         .name(name() + ".kernels_completed")
         .desc("Number of kernels completed");
+
+    // it is called in addStatGroup
+    // copyEngine->regStats();
+    for (auto iter = cudaCores.begin(); iter != cudaCores.end(); ++iter) {
+        // (*iter)->regStats();
+    }
+    // shaderMMU->regStats();
 }
 
 GPGPUSimComponentWrapper *GPGPUSimComponentWrapperParams::create() {

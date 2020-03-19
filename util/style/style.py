@@ -122,7 +122,8 @@ style_ignores = [
     _re_ignore("tests/test-progs/asmtest/dump/riscv/"),
     # Ignore gpgpu-sim
     _re_ignore("design/gpgpu/gpgpu-sim/src/gpugpu-sim/"),
-    _re_ignore("design/gpgpu/src/gpu/gpugpu-sim/")
+    _re_ignore("design/gpgpu/src/gpu/gpugpu-sim/"),
+    _re_ignore("^benchmarks/")
 ]
 
 def check_ignores(fname):

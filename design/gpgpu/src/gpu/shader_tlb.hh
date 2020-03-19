@@ -167,10 +167,11 @@ public:
     void insert(Addr vp_base, Addr pp_base);
 
     void regStats();
-
+/* FIXME schi it miss regStats is parent
     Stats::Scalar hits;
     Stats::Scalar misses;
     Stats::Formula hitRate;
+    */
 };
 
 #endif /* SHADER_TLB_HH_ */
