@@ -132,6 +132,7 @@ class MemCmd
         // Fake simulator-only commands
         PrintReq,       // Print state matching address
         FlushReq,      //request for a cache flush
+        FlushResp,     // TODO schi add
         InvalidateReq,   // request for address to be invalidated
         InvalidateResp,
 
@@ -153,6 +154,7 @@ class MemCmd
         IsWrite,        //!< Data flows from requester to responder
         IsUpgrade,
         IsInvalidate,
+        NeedsExclusive, //!< Requires exclusive copy to complete in-cache
         IsClean,        //!< Cleans any existing dirty blocks
         NeedsWritable,  //!< Requires writable copy to complete in-cache
         IsRequest,      //!< Issued by requester
@@ -205,6 +207,7 @@ class MemCmd
     bool isUpgrade() const         { return testCmdAttrib(IsUpgrade); }
     bool isRequest() const         { return testCmdAttrib(IsRequest); }
     bool isResponse() const        { return testCmdAttrib(IsResponse); }
+    bool needsExclusive() const    { return testCmdAttrib(NeedsExclusive); }
     bool needsWritable() const     { return testCmdAttrib(NeedsWritable); }
     bool needsResponse() const     { return testCmdAttrib(NeedsResponse); }
     bool isInvalidate() const      { return testCmdAttrib(IsInvalidate); }
@@ -545,6 +548,7 @@ class Packet : public Printable
         assert(isRequest());
         return cmd.needsWritable();
     }
+    bool needsExclusive() const      { return cmd.needsExclusive(); }
     bool needsResponse() const       { return cmd.needsResponse(); }
     bool isInvalidate() const        { return cmd.isInvalidate(); }
     bool isEviction() const          { return cmd.isEviction(); }

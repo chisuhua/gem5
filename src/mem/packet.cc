@@ -70,6 +70,8 @@
 #define SET6(a1, a2, a3, a4, a5, a6) (SET5(a1, a2, a3, a4, a5) | SET1(a6))
 #define SET7(a1, a2, a3, a4, a5, a6, a7) (SET6(a1, a2, a3, a4, a5, a6) | \
                                           SET1(a7))
+#define SET8(a1, a2, a3, a4, a5, a6, a7, a8) (SET7(a1, a2, a3, a4, a5, a6, a7) | \
+                                          SET1(a8))
 
 const MemCmd::CommandInfo
 MemCmd::commandInfo[] =
@@ -85,12 +87,12 @@ MemCmd::commandInfo[] =
     { SET4(IsRead, IsResponse, HasData, IsInvalidate),
             InvalidCmd, "ReadRespWithInvalidate" },
     /* WriteReq */
-    { SET5(IsWrite, NeedsWritable, IsRequest, NeedsResponse, HasData),
+    { SET6(IsWrite, NeedsExclusive, NeedsWritable, IsRequest, NeedsResponse, HasData),
             WriteResp, "WriteReq" },
     /* WriteResp */
-    { SET2(IsWrite, IsResponse), InvalidCmd, "WriteResp" },
+    { SET3(IsWrite, NeedsExclusive, IsResponse), InvalidCmd, "WriteResp" },
     /* WritebackDirty */
-    { SET5(IsWrite, IsRequest, IsEviction, HasData, FromCache),
+    { SET6(IsWrite, NeedsExclusive, IsRequest, IsEviction, HasData, FromCache),
             InvalidCmd, "WritebackDirty" },
     /* WritebackClean - This allows the upstream cache to writeback a
      * line to the downstream cache without it being considered
@@ -118,36 +120,36 @@ MemCmd::commandInfo[] =
     { SET4(IsRead, IsResponse, IsHWPrefetch, HasData),
             InvalidCmd, "HardPFResp" },
     /* WriteLineReq */
-    { SET5(IsWrite, NeedsWritable, IsRequest, NeedsResponse, HasData),
+    { SET6(IsWrite, NeedsExclusive, NeedsWritable, IsRequest, NeedsResponse, HasData),
             WriteResp, "WriteLineReq" },
     /* UpgradeReq */
-    { SET6(IsInvalidate, NeedsWritable, IsUpgrade, IsRequest, NeedsResponse,
+    { SET7(IsInvalidate, NeedsExclusive, NeedsWritable, IsUpgrade, IsRequest, NeedsResponse,
             FromCache),
             UpgradeResp, "UpgradeReq" },
     /* SCUpgradeReq: response could be UpgradeResp or UpgradeFailResp */
-    { SET7(IsInvalidate, NeedsWritable, IsUpgrade, IsLlsc,
+    { SET8(IsInvalidate, NeedsExclusive, NeedsWritable, IsUpgrade, IsLlsc,
            IsRequest, NeedsResponse, FromCache),
             UpgradeResp, "SCUpgradeReq" },
     /* UpgradeResp */
-    { SET2(IsUpgrade, IsResponse),
+    { SET3(IsUpgrade, NeedsExclusive, IsResponse),
             InvalidCmd, "UpgradeResp" },
     /* SCUpgradeFailReq: generates UpgradeFailResp but still gets the data */
-    { SET7(IsRead, NeedsWritable, IsInvalidate,
+    { SET8(IsRead, NeedsExclusive, NeedsWritable, IsInvalidate,
            IsLlsc, IsRequest, NeedsResponse, FromCache),
             UpgradeFailResp, "SCUpgradeFailReq" },
     /* UpgradeFailResp - Behaves like a ReadExReq, but notifies an SC
      * that it has failed, acquires line as Dirty*/
-    { SET3(IsRead, IsResponse, HasData),
+    { SET4(IsRead, NeedsExclusive, IsResponse, HasData),
             InvalidCmd, "UpgradeFailResp" },
     /* ReadExReq - Read issues by a cache, always cache-line aligned,
      * and the response is guaranteed to be writeable (exclusive or
      * even modified) */
-    { SET6(IsRead, NeedsWritable, IsInvalidate, IsRequest, NeedsResponse,
+    { SET7(IsRead, NeedsExclusive, NeedsWritable, IsInvalidate, IsRequest, NeedsResponse,
             FromCache),
             ReadExResp, "ReadExReq" },
     /* ReadExResp - Response matching a read exclusive, as we check
      * the need for exclusive also on responses */
-    { SET3(IsRead, IsResponse, HasData),
+    { SET4(IsRead, NeedsExclusive, IsResponse, HasData),
             InvalidCmd, "ReadExResp" },
     /* ReadCleanReq - Read issued by a cache, always cache-line
      * aligned, and the response is guaranteed to not contain dirty data
@@ -164,21 +166,21 @@ MemCmd::commandInfo[] =
     { SET4(IsRead, IsLlsc, IsRequest, NeedsResponse),
             ReadResp, "LoadLockedReq" },
     /* StoreCondReq */
-    { SET6(IsWrite, NeedsWritable, IsLlsc,
+    { SET7(IsWrite, NeedsExclusive, NeedsWritable, IsLlsc,
            IsRequest, NeedsResponse, HasData),
             StoreCondResp, "StoreCondReq" },
     /* StoreCondFailReq: generates failing StoreCondResp */
-    { SET6(IsWrite, NeedsWritable, IsLlsc,
+    { SET7(IsWrite, NeedsExclusive, NeedsWritable, IsLlsc,
            IsRequest, NeedsResponse, HasData),
             StoreCondResp, "StoreCondFailReq" },
     /* StoreCondResp */
-    { SET3(IsWrite, IsLlsc, IsResponse),
+    { SET4(IsWrite, NeedsExclusive, IsLlsc, IsResponse),
             InvalidCmd, "StoreCondResp" },
     /* SwapReq -- for Swap ldstub type operations */
-    { SET6(IsRead, IsWrite, NeedsWritable, IsRequest, HasData, NeedsResponse),
+    { SET7(IsRead, IsWrite, NeedsExclusive, NeedsWritable, IsRequest, HasData, NeedsResponse),
         SwapResp, "SwapReq" },
     /* SwapResp -- for Swap ldstub type operations */
-    { SET4(IsRead, IsWrite, IsResponse, HasData),
+    { SET5(IsRead, IsWrite, NeedsExclusive, IsResponse, HasData),
             InvalidCmd, "SwapResp" },
     { 0, InvalidCmd, "Deprecated_MessageReq" },
     { 0, InvalidCmd, "Deprecated_MessageResp" },
@@ -215,13 +217,24 @@ MemCmd::commandInfo[] =
     /* PrintReq */
     { SET2(IsRequest, IsPrint), InvalidCmd, "PrintReq" },
     /* Flush Request */
-    { SET3(IsRequest, IsFlush, NeedsWritable), InvalidCmd, "FlushReq" },
+    { SET5(IsRequest, IsFlush, NeedsExclusive, NeedsWritable, NeedsResponse), FlushResp, "FlushReq" },
+    /* Flush Response */
+    { SET3(IsResponse, IsFlush, NeedsExclusive), InvalidCmd, "FlushResp" },
     /* Invalidation Request */
-    { SET5(IsInvalidate, IsRequest, NeedsWritable, NeedsResponse, FromCache),
+    { SET6(IsInvalidate, IsRequest, NeedsExclusive, NeedsWritable, NeedsResponse, FromCache),
       InvalidateResp, "InvalidateReq" },
     /* Invalidation Response */
-    { SET2(IsInvalidate, IsResponse),
-      InvalidCmd, "InvalidateResp" }
+    { SET3(IsInvalidate, IsResponse, NeedsExclusive),
+      InvalidCmd, "InvalidateResp" },
+    /* FlushAll Request */
+    { SET4(IsRequest, NeedsResponse, IsFlush, IsInvalidate), FlushAllResp,
+      "FlushAllReq" },
+    /* FlushAll Response */
+    { SET3(IsResponse, IsFlush, IsInvalidate), InvalidCmd, "FlushAllResp" },
+    /* Fence Request */
+    { SET2(IsRequest, NeedsResponse), FenceResp, "FenceReq" },
+    /* Fence Response */
+    { SET1(IsResponse), InvalidCmd, "FenceResp" },
 };
 
 AddrRange
