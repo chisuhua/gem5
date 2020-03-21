@@ -85,7 +85,7 @@ SCMasterPort::SCMasterPort(const std::string& name_,
                            const std::string& systemc_name,
                            ExternalMaster& owner_,
                            Gem5SimControl& simControl)
-  : ExternalMaster::Port(name_, owner_),
+  : ExternalMaster::ExternalPort(name_, owner_),
     peq(this, &SCMasterPort::peq_cb),
     waitForRetry(false),
     pendingRequest(nullptr),
@@ -412,7 +412,7 @@ SCMasterPort::recvRangeChange()
                       "received address range change but ignored it");
 }
 
-ExternalMaster::Port*
+ExternalMaster::ExternalPort*
 SCMasterPortHandler::getExternalPort(const std::string &name,
                                      ExternalMaster &owner,
                                      const std::string &port_data)

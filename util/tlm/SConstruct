@@ -36,9 +36,9 @@ import os
 import sys
 
 
-gem5_arch = 'ARM'
-gem5_variant = 'opt'
-#gem5_variant = 'debug'
+gem5_arch = 'X86_VI_hammer'
+#gem5_variant = 'opt'
+gem5_variant = 'debug'
 
 gem5_root = Dir('#../..').srcnode().abspath
 
