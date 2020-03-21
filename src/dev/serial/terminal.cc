@@ -149,7 +149,7 @@ OutputStream *
 Terminal::terminalDump(const TerminalParams* p)
 {
     switch (p->outfile) {
-      case Enums::TerminalDump::none:
+      case Enums::TerminalDump::term_none:
         return nullptr;
       case Enums::TerminalDump::stdoutput:
         return simout.findOrCreate("stdout");

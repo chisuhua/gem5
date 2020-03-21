@@ -67,7 +67,7 @@ from Caches import *
 # Create a system with a Crossbar and an Elastic Trace Player as CPU:
 
 # Setup System:
-system = System(cpu=TraceCPU(cpu_id=0),
+system = System(cpu=TraceCPU(cpu_id=0, numThreads=0),
                 mem_mode='timing',
                 mem_ranges = [AddrRange('512MB')],
                 cache_line_size = 64)

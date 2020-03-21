@@ -63,6 +63,7 @@
 
 #include "mem/port.hh"
 #include "params/TlmToGem5BridgeBase.hh"
+#include "sim/sim_object.hh"
 #include "systemc/ext/core/sc_module.hh"
 #include "systemc/ext/core/sc_module_name.hh"
 #include "systemc/ext/tlm_core/2/generic_payload/gp.hh"
@@ -74,8 +75,12 @@
 namespace sc_gem5
 {
 
-class TlmToGem5BridgeBase : public sc_core::sc_module
+class TlmToGem5BridgeBase : public sc_core::sc_module, public SimObject
 {
+  public:
+  TlmToGem5BridgeBase(Params *params, const sc_core::sc_module_name &mn);
+
+
   protected:
     using sc_core::sc_module::sc_module;
 };

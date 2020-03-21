@@ -69,6 +69,13 @@
 namespace sc_gem5
 {
 
+  TlmToGem5BridgeBase::TlmToGem5BridgeBase(Params *params, const sc_core::sc_module_name &mn) :
+    SimObject(params)
+  {
+  }
+
+
+
 PacketPtr
 payload2packet(MasterID masterId, tlm::tlm_generic_payload &trans)
 {
@@ -467,14 +474,14 @@ TlmToGem5Bridge<BITWIDTH>::gem5_getPort(const std::string &if_name, int idx)
 template <unsigned int BITWIDTH>
 TlmToGem5Bridge<BITWIDTH>::TlmToGem5Bridge(
         Params *params, const sc_core::sc_module_name &mn) :
-    TlmToGem5BridgeBase(mn), peq(this, &TlmToGem5Bridge<BITWIDTH>::peq_cb),
+    TlmToGem5BridgeBase(params, mn), peq(this, &TlmToGem5Bridge<BITWIDTH>::peq_cb),
     waitForRetry(false), pendingRequest(nullptr), pendingPacket(nullptr),
     needToSendRetry(false), responseInProgress(false),
-    bmp(std::string(name()) + "master", *this), socket("tlm_socket"),
-    wrapper(socket, std::string(name()) + ".tlm", InvalidPortID),
+    bmp(params->name + "master", *this), socket("tlm_socket"),
+    wrapper(socket, params->name + ".tlm", InvalidPortID),
     system(params->system),
     masterId(params->system->getGlobalMasterId(
-                std::string("[systemc].") + name()))
+                std::string("[systemc].") + params->name))
 {
 }
 

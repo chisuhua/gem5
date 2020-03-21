@@ -72,6 +72,12 @@
 namespace sc_gem5
 {
 
+  Gem5ToTlmBridgeBase::Gem5ToTlmBridgeBase(Params *params, const sc_core::sc_module_name &mn) :
+    SimObject(params)
+  {
+  }
+
+
 /**
  * Instantiate a tlm memory manager that takes care about all the
  * tlm transactions in the system.
@@ -447,9 +453,9 @@ Gem5ToTlmBridge<BITWIDTH>::invalidate_direct_mem_ptr(
 template <unsigned int BITWIDTH>
 Gem5ToTlmBridge<BITWIDTH>::Gem5ToTlmBridge(
         Params *params, const sc_core::sc_module_name &mn) :
-    Gem5ToTlmBridgeBase(mn), bsp(std::string(name()) + ".gem5", *this),
+    Gem5ToTlmBridgeBase(params, mn), bsp(params->name + ".gem5", *this),
     socket("tlm_socket"),
-    wrapper(socket, std::string(name()) + ".tlm", InvalidPortID),
+    wrapper(socket, params->name + ".tlm", InvalidPortID),
     system(params->system), blockingRequest(nullptr),
     needToSendRequestRetry(false), blockingResponse(nullptr),
     addrRanges(params->addr_ranges.begin(), params->addr_ranges.end())

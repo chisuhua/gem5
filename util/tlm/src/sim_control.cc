@@ -128,6 +128,9 @@ Gem5SimControl::Gem5SimControl(sc_core::sc_module_name name,
     CxxConfig::statsEnable();
     getEventQueue(0)->dump();
 
+    // FIXME schi sim/core.cc 's freqency need to be setup
+    fixClockFrequency();
+
     try {
         config_manager->instantiate();
     } catch (CxxConfigManager::Exception &e) {

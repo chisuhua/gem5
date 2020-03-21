@@ -521,7 +521,7 @@ public:
     // previous value:
     template <typename T> T* set_extension(T* ext)
     {
-        return static_cast<T*>(set_extension(T::ID, ext));
+        return static_cast<T*>(set_extension(T::ID - 1, ext));
     }
 
     // non-templatized version with manual index:
@@ -537,7 +537,7 @@ public:
     // previous value and schedule its release
     template <typename T> T* set_auto_extension(T* ext)
     {
-        return static_cast<T*>(set_auto_extension(T::ID, ext));
+        return static_cast<T*>(set_auto_extension(T::ID - 1, ext));
     }
 
     // non-templatized version with manual index:
@@ -558,11 +558,14 @@ public:
     }
     template <typename T> T* get_extension() const
     {
-        return static_cast<T*>(get_extension(T::ID));
+        return static_cast<T*>(get_extension(T::ID - 1));
     }
     // Non-templatized version with manual index:
     tlm_extension_base* get_extension(unsigned int index) const
     {
+        // FIXME schi why Gem5Extension(sc_ext.hh don't increate the max_num_extensions?
+        //    m_extensions size is 1, but Gem5Extension::ID is 1
+        //    workaround is to use ID - 1 as index
         return m_extensions[index];
     }
 
@@ -581,7 +584,7 @@ public:
     // recommended use: when 100% sure there is no MM
     template <typename T> void clear_extension()
     {
-        clear_extension(T::ID);
+        clear_extension(T::ID - 1);
     }
 
     //this call removes the extension from the txn and does
@@ -597,7 +600,7 @@ public:
     // recommended use: when not sure there is no MM
     template <typename T> void release_extension()
     {
-        release_extension(T::ID);
+        release_extension(T::ID - 1);
     }
 
 private:
