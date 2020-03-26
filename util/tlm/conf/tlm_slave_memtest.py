@@ -30,6 +30,7 @@
 #
 # Authors: Matthias Jung
 
+
 import m5
 from m5.objects import *
 
@@ -56,7 +57,10 @@ from m5.objects import *
 system = System()
 system.membus = IOXBar(width = 16)
 system.physmem = SimpleMemory() # This must be instanciated, even if not needed
-system.cpu = TrafficGen(config_file = "conf/tgen.cfg")
+
+#system.cpu = TrafficGen(config_file = "conf/tgen.cfg")
+system.cpu = MemTest(max_loads = 1e5, progress_interval = 1e4)
+
 system.clk_domain = SrcClockDomain(clock = '1.5GHz',
     voltage_domain = VoltageDomain(voltage = '1V'))
 
@@ -95,8 +99,16 @@ system.cpu.port = system.membus.slave
 system.system_port = system.membus.slave
 system.membus.master = system.tlm.port
 
+# -----------------------
+# run simulation
+# -----------------------
+
 # Start the simulation:
 root = Root(full_system = False, system = system)
 root.system.mem_mode = 'timing'
+
 m5.instantiate()
-m5.simulate() #Simulation time specified later on commandline
+#m5.simulate() #Simulation time specified later on commandline
+exit_event = m5.simulate(1000000000)
+if exit_event.getCause() != "simulate() limit reached":
+    exit(1)
