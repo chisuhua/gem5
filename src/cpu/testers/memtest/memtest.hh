@@ -159,6 +159,8 @@ class MemTest : public ClockedObject
     Addr baseAddr2;
     Addr uncacheAddr;
 
+    Tick startTick;
+
     const unsigned progressInterval;  // frequency of progress reports
     const Cycles progressCheck;
     Tick nextProgressMessage;   // access # for next progress report

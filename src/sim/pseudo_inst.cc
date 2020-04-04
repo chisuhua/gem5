@@ -591,6 +591,7 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     }
 }
 
+#ifdef BUILD_PPU
 void
 gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 {
@@ -601,5 +602,6 @@ gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 
     gpgpu_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
 }
+#endif
 
 } // namespace PseudoInst
