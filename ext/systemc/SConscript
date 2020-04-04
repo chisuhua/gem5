@@ -40,6 +40,9 @@ systemc.Prepend(CPATH=Dir('./src'))
 systemc.Prepend(CXXFLAGS=['-DSC_INCLUDE_FX'])
 systemc.Prepend(CFLAGS=['-DSC_INCLUDE_FX'])
 
+systemc.Prepend(CXXFLAGS=['-DSC_BUILD'])
+systemc.Prepend(CFLAGS=['-DSC_BUILD'])
+
 conf = Configure(systemc,
                  conf_dir = os.path.join(build_root, '.scons_config'),
                  log_file = os.path.join(build_root, 'scons_config.log'))

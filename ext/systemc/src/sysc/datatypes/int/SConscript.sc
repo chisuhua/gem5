@@ -27,11 +27,8 @@ Import('systemc', 'SystemCSource')
 
 SystemCSource(
     'sc_int_base.cpp',
-    'sc_int32_mask.cpp',
-    'sc_int64_io.cpp',
-    'sc_int64_mask.cpp',
+    'sc_int_mask.cpp',
     'sc_length_param.cpp',
-    'sc_nbdefs.cpp',
     'sc_nbexterns.cpp',
     'sc_nbutils.cpp',
     'sc_signed.cpp',
