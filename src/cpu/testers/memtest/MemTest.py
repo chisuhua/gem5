@@ -51,6 +51,7 @@ class MemTest(ClockedObject):
     # touched, and an optional stop condition
     interval = Param.Cycles(1, "Interval between request packets")
     size = Param.Unsigned(65536, "Size of memory region to use (bytes)")
+    block_addrmask = Param.Unsigned(0, "bydefault(0) , it use blockSize - 1")
     max_loads = Param.Counter(0, "Number of loads to execute before exiting")
 
     # Control the mix of packets and if functional accesses are part of
@@ -58,6 +59,11 @@ class MemTest(ClockedObject):
     percent_reads = Param.Percent(65, "Percentage reads")
     percent_functional = Param.Percent(50, "Percentage functional accesses")
     percent_uncacheable = Param.Percent(10, "Percentage uncacheable")
+
+    base_addr1 = Param.Unsigned(0x100000, "base addr1 of memory region to test)")
+    base_addr2 = Param.Unsigned(0x400000, "base addr2 of memory region to test)")
+    uncache_addr = Param.Unsigned(0x800000, "base addr of uncacheAddr memory region to test)")
+    start_tick = Param.Counter(0x10000, "the tick to start test)")
 
     # Determine how often to print progress messages and what timeout
     # to use for checking progress of both requests and responses

@@ -97,7 +97,11 @@ MemTest::MemTest(const Params *p)
       percentUncacheable(p->percent_uncacheable),
       masterId(p->system->getMasterId(this)),
       blockSize(p->system->cacheLineSize()),
-      blockAddrMask(blockSize - 1),
+      blockAddrMask(p->block_addrmask == 0? blockSize - 1 : p->block_addrmask - 1),
+      baseAddr1(p->base_addr1),
+      baseAddr2(p->base_addr2),
+      uncacheAddr(p->uncache_addr),
+      startTick(p->start_tick),
       progressInterval(p->progress_interval),
       progressCheck(p->progress_check),
       nextProgressMessage(p->progress_interval),
@@ -109,16 +113,18 @@ MemTest::MemTest(const Params *p)
     fatal_if(id >= blockSize, "Too many testers, only %d allowed\n",
              blockSize - 1);
 
-    baseAddr1 = 0x100000;
-    baseAddr2 = 0x400000;
-    uncacheAddr = 0x800000;
+    // baseAddr1 = baseAddr;
+    // baseAddr2 = 0x400000;
+    // uncacheAddr = 0x800000;
 
     // set up counters
     numReads = 0;
     numWrites = 0;
 
+    // Tick startTick = 100000;
+
     // kick things into action
-    schedule(tickEvent, curTick());
+    schedule(tickEvent, curTick() + startTick);
     schedule(noRequestEvent, clockEdge(progressCheck));
 }
 
