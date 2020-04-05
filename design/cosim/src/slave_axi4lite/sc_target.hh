@@ -42,7 +42,7 @@
 #include <systemc>
 #include <tlm>
 
-#include "bridge_to_axi4lite.hh"
+#include "target_to_axi4lite.hh"
 #include "tlm_utils/simple_initiator_socket.h"
 
 using namespace sc_core;

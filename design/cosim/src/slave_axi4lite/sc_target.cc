@@ -32,8 +32,8 @@
  * Authors: Matthias Jung
  */
 
-#include "bridge_to_axi4lite.hh"
 #include "sc_target.hh"
+#include "target_to_axi4lite.hh"
 
 using namespace sc_core;
 using namespace std;
