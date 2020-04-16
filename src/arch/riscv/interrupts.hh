@@ -56,6 +56,7 @@ class Interrupts : public BaseInterrupts
 {
   private:
     BaseCPU * cpu;
+
     std::bitset<NumInterruptTypes> ip;
     std::bitset<NumInterruptTypes> ie;
 

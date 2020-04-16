@@ -115,6 +115,7 @@ TimerCpu::write(PacketPtr pkt)
                         "Ignore write on TimerCpu r-o time register.\n");
                     break;
                 case TimeCmp:
+                    DPRINTF(Timer, "write on TimerCmp LO register.\n");
                     // FIXME timecmp = pkt->get<uint32_t>();
                     timecmp = pkt->getRaw<uint32_t>();
                     // clear mtip bit
@@ -122,6 +123,7 @@ TimerCpu::write(PacketPtr pkt)
                     startTimer(timecmp);
                     break;
                 case (TimeCmp + 4):
+                    DPRINTF(Timer, "write on TimerCmp HI register.\n");
                     // FIXME timecmp = (uint64_t)pkt->get<uint32_t>() << 32;
                     timecmp = (uint64_t)pkt->getRaw<uint32_t>() << 32;
                     // clear mtip bit
@@ -141,6 +143,8 @@ TimerCpu::write(PacketPtr pkt)
                         "Ignore write on TimerCpu r-o time register.\n");
                     break;
                 case TimeCmp:
+                    DPRINTF(Timer,
+                        "write on TimerCmp HI time register.\n");
                     // FIXME timecmp = pkt->get<uint64_t>();
                     timecmp = pkt->getRaw<uint64_t>();
                     // clear mtip bit

@@ -50,6 +50,7 @@ namespace RiscvISA
 class RemoteGDB : public BaseRemoteGDB
 {
   protected:
+    static const int ExplicitCSRs = 4;
     static const int NumGDBRegs = 4162;
     static const int NumCSRs = 4096;
 
@@ -64,8 +65,16 @@ class RemoteGDB : public BaseRemoteGDB
         struct {
             uint64_t gpr[NumIntArchRegs];
             uint64_t pc;
-        } r;
-      public:
+            FloatReg fpr[NumFloatRegs];
+
+            // MiscReg csr_base;
+            uint32_t fflags;
+            uint32_t frm;
+            uint32_t fcsr;
+            // MiscReg csr[NumMiscRegs - ExplicitCSRs -1];
+        } __attribute__((__packed__)) r;
+
+       public:
         char *data() const { return (char *)&r; }
         size_t size() const { return sizeof(r); }
         void getRegs(ThreadContext*);
@@ -78,7 +87,36 @@ class RemoteGDB : public BaseRemoteGDB
         }
     };
 
+    /**
+     * 32 Bit architecture
+     */
+    class Riscv32GdbRegCache : public BaseGdbRegCache
+    {
+      using BaseGdbRegCache::BaseGdbRegCache;
+      private:
+        struct {
+            uint32_t gpr[NumIntArchRegs];
+            uint32_t pc;
+            // uint32_t fpr[NumFloatRegs];
+            // uint32_t dcsr;
+            // uint32_t dpc;
+            // uint32_t dscratch;
+        } __attribute__((__packed__)) r;
+      public:
+        char *data() const { return (char *)&r; }
+        size_t size() const { return sizeof(r); }
+        void getRegs(ThreadContext*);
+        void setRegs(ThreadContext*) const;
+
+        const std::string
+        name() const
+        {
+            return gdb->name() + ".Riscv32GdbRegCache";
+        }
+    };
+
     RiscvGdbRegCache regCache;
+    Riscv32GdbRegCache regCache32;
 
   public:
     RemoteGDB(System *_system, ThreadContext *tc, int _port);

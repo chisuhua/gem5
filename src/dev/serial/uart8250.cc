@@ -84,9 +84,9 @@ Uart8250::scheduleIntr(Event *event)
         reschedule(event, curTick() + interval);
 }
 
-
+// FIXME schi what pio_size should be ?
 Uart8250::Uart8250(const Params *p)
-    : Uart(p, 8), IER(0), DLAB(0), LCR(0), MCR(0), lastTxInt(0),
+    : Uart(p, p->pio_size), IER(0), DLAB(0), LCR(0), MCR(0), lastTxInt(0),
       txIntrEvent([this]{ processIntrEvent(TX_INT); }, "TX"),
       rxIntrEvent([this]{ processIntrEvent(RX_INT); }, "RX")
 {
@@ -121,14 +121,14 @@ Uart8250::read(PacketPtr pkt)
                ;
             }
             break;
-        case 0x1:
+        case 0x1 * 4:
             if (!(LCR & 0x80)) { // Intr Enable Register(IER)
                 pkt->setRaw(IER);
             } else { // DLM divisor latch MSB
                 ;
             }
             break;
-        case 0x2: // Intr Identification Register (IIR)
+        case 0x2 * 4: // Intr Identification Register (IIR)
             DPRINTF(Uart, "IIR Read, status = %#x\n", (uint32_t)status);
 
             if (status & RX_INT) /* Rx data interrupt has a higher priority */
@@ -141,13 +141,13 @@ Uart8250::read(PacketPtr pkt)
                 pkt->setRaw(IIR_NOPEND);
 
             break;
-        case 0x3: // Line Control Register (LCR)
+        case 0x3 * 4: // Line Control Register (LCR)
             pkt->setRaw(LCR);
             break;
-        case 0x4: // Modem Control Register (MCR)
+        case 0x4 * 4: // Modem Control Register (MCR)
             pkt->setRaw(MCR);
             break;
-        case 0x5: // Line Status Register (LSR)
+        case 0x5 * 4: // Line Status Register (LSR)
             uint8_t lsr;
             lsr = 0;
             // check if there are any bytes to be read
@@ -156,10 +156,10 @@ Uart8250::read(PacketPtr pkt)
             lsr |= UART_LSR_TEMT | UART_LSR_THRE;
             pkt->setRaw(lsr);
             break;
-        case 0x6: // Modem Status Register (MSR)
+        case 0x6 * 4: // Modem Status Register (MSR)
             pkt->setRaw((uint8_t)0);
             break;
-        case 0x7: // Scratch Register (SCR)
+        case 0x7 * 4: // Scratch Register (SCR)
             pkt->setRaw((uint8_t)0); // doesn't exist with at 8250.
             break;
         default:
@@ -197,7 +197,7 @@ Uart8250::write(PacketPtr pkt)
                ;
             }
             break;
-        case 0x1:
+        case 0x1 * 4:
             if (!(LCR & 0x80)) { // Intr Enable Register(IER)
                 IER = pkt->getRaw<uint8_t>();
                 if (UART_IER_THRI & IER)
@@ -242,16 +242,16 @@ Uart8250::write(PacketPtr pkt)
                 ;
             }
             break;
-        case 0x2: // FIFO Control Register (FCR)
+        case 0x2 * 4: // FIFO Control Register (FCR)
             break;
-        case 0x3: // Line Control Register (LCR)
+        case 0x3 * 4: // Line Control Register (LCR)
             LCR = pkt->getRaw<uint8_t>();
             break;
-        case 0x4: // Modem Control Register (MCR)
+        case 0x4 * 4: // Modem Control Register (MCR)
             if (pkt->getRaw<uint8_t>() == (UART_MCR_LOOP | 0x0A))
                     MCR = 0x9A;
             break;
-        case 0x7: // Scratch Register (SCR)
+        case 0x7 * 4: // Scratch Register (SCR)
             // We are emulating a 8250 so we don't have a scratch reg
             break;
         default:

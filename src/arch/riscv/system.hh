@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "base/loader/hex_file.hh"
 #include "base/loader/symtab.hh"
 #include "cpu/pc_event.hh"
 #include "kern/system_events.hh"
@@ -52,6 +53,8 @@ class RiscvSystem : public System
     bool _isBareMetal;
     // entry point for simulation
     Addr _resetVect;
+    // checker, if architecture is 32 bit wide
+    bool _rv32;
 
   public:
     typedef RiscvSystemParams Params;
@@ -60,9 +63,17 @@ class RiscvSystem : public System
 
     // return reset vector
     Addr resetVect() const { return _resetVect; }
-
     // return bare metal checker
     bool isBareMetal() const { return _isBareMetal; }
+    // return architecture type
+    bool rv32() const { return _rv32; }
+
+    // return reset address of thread context
+    static Addr resetVect(ThreadContext* tc);
+    // return bare metal checker of thread context
+    static bool isBareMetal(ThreadContext* tc);
+    // return architecture type of thread context
+    static bool rv32(ThreadContext* tc);
 
     virtual bool breakpoint();
 
@@ -79,12 +90,27 @@ class RiscvSystem : public System
     /** Object pointer for the console code */
     ObjectFile *console;
 
+    /** Used by some Bare Iron Configurations */
+    HexFile *hexFile;
+
+#ifndef NDEBUG
+  /** Event to halt the simulator if the console calls panic() */
+    BreakPCEvent *consolePanicEvent;
+#endif
+
   protected:
     const Params *params() const { return (const Params *)_params; }
+
+    /** Add a function-based event to the console code. */
+    template <class T>
+    T *
+    addConsoleFuncEvent(const char *lbl)
+    {
+        return addFuncEvent<T>(consoleSymtab, lbl);
+    }
 
     virtual Addr fixFuncEventAddr(Addr addr);
 
 };
 
 #endif
-

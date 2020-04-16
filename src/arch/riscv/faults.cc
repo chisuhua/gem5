@@ -40,6 +40,7 @@
 #include "cpu/thread_context.hh"
 #include "sim/debug.hh"
 #include "sim/full_system.hh"
+#include "sim/pseudo_inst.hh"
 
 namespace RiscvISA
 {
@@ -140,16 +141,35 @@ RiscvFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 
 void Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    tc->setMiscReg(MISCREG_PRV, PRV_M);
-    STATUS status = tc->readMiscReg(MISCREG_STATUS);
-    status.mie = 0;
-    status.mprv = 0;
-    tc->setMiscReg(MISCREG_STATUS, status);
-    tc->setMiscReg(MISCREG_MCAUSE, 0);
+    // TODO copied from riscv-ccc
+    if (FullSystem)
+    {
+        tc->getCpuPtr()->clearInterrupts(tc->threadId());
+        tc->clearArchRegs();
+        STATUS status = tc->readMiscRegNoEffect(MISCREG_STATUS);
+        status.mie = 0;
+        status.mprv = 0;
+        tc->setMiscRegNoEffect(MISCREG_STATUS, status);
+    } else {
+        tc->setMiscReg(MISCREG_PRV, PRV_M);
+        STATUS status = tc->readMiscReg(MISCREG_STATUS);
+        status.mie = 0;
+        status.mprv = 0;
+        tc->setMiscReg(MISCREG_STATUS, status);
+        tc->setMiscReg(MISCREG_MCAUSE, 0);
+    }
 
     // Advance the PC to the implementation-defined reset vector
     PCState pc = static_cast<RiscvSystem *>(tc->getSystemPtr())->resetVect();
     tc->pcState(pc);
+}
+
+void
+UnknownInstFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+{
+    warn("Illegal instruction 0x%08x at pc 0x%016llx", inst->machInst,
+        tc->pcState().pc());
+    // PseudoInst::m5exit(tc, 0);
 }
 
 void
@@ -160,10 +180,20 @@ UnknownInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 }
 
 void
+IllegalInstFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+{
+    warn("Illegal instruction 0x%08x at pc 0x%016llx: %s", inst->machInst,
+        tc->pcState().pc(), reason.c_str());
+    PseudoInst::m5exit(tc, 0);
+}
+
+void
 IllegalInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
 {
-    panic("Illegal instruction 0x%08x at pc 0x%016llx: %s", inst->machInst,
+    // panic("Illegal instruction 0x%08x at pc 0x%016llx: %s", inst->machInst,
+    warn("Illegal instruction 0x%08x at pc 0x%016llx: %s", inst->machInst,
         tc->pcState().pc(), reason.c_str());
+    // PseudoInst::m5exit(tc, 0);
 }
 
 void
@@ -194,4 +224,62 @@ SyscallFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)
     tc->syscall(fault);
 }
 
+void
+SyscallFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+{
+    // redirect se mode syscall faults
+    if (!FullSystem) {
+        RiscvFault::invoke(tc, inst);
+        return;
+    }
+
+    // fill the appropriate registers and set pc to trap handler
+    MiscRegIndex cause = MISCREG_MCAUSE;
+    MiscRegIndex epc = MISCREG_MEPC;
+    MiscReg prv = 0x3;
+    MiscReg pp = tc->readMiscRegNoEffect(MISCREG_PRV);
+    STATUS status = tc->readMiscReg(MISCREG_STATUS);
+
+    tc->setMiscReg(cause, _code);
+    tc->setMiscReg(epc, tc->instAddr());
+    tc->setMiscReg(MISCREG_PRV, prv);
+
+    // disable interrupts
+    status.mpp = bits(pp, 1, 0);
+    status.mpie = status.mie;
+    status.mie = 0;
+    tc->setMiscReg(MISCREG_STATUS, status);
+
+    PCState pc = tc->pcState();
+    pc.set(tc->readMiscReg(MISCREG_MTVEC));
+    tc->pcState(pc);
+}
+
+void
+InterruptFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+{
+    MiscRegIndex cause = MISCREG_MCAUSE;
+    MiscRegIndex epc = MISCREG_MEPC;
+    MiscReg prv = 0x3;
+    MiscReg pp = tc->readMiscRegNoEffect(MISCREG_PRV);
+    STATUS status = tc->readMiscReg(MISCREG_STATUS);
+
+    if (tc->pcState().rv32())
+        tc->setMiscReg(cause, (1UL << ((sizeof(uint32_t) * 8) - 1)) | _code);
+    else
+        tc->setMiscReg(cause, (1UL << ((sizeof(MiscReg) * 8) - 1)) | _code);
+
+    tc->setMiscReg(epc, tc->instAddr());
+    tc->setMiscReg(MISCREG_PRV, prv);
+
+    // disable interrupts
+    status.mpp = bits(pp, 1, 0);
+    status.mpie = status.mie;
+    status.mie = 0;
+    tc->setMiscReg(MISCREG_STATUS, status);
+
+    PCState pc = tc->pcState();
+    pc.set(tc->readMiscReg(MISCREG_MTVEC));
+    tc->pcState(pc);
+}
 } // namespace RiscvISA

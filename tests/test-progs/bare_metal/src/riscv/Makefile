@@ -34,8 +34,11 @@ OBJ=$(ASM:.S=.o) $(SRC:.c=.o)
 
 CC=riscv64-unknown-elf-gcc
 AS=riscv64-unknown-elf-as
+#CC=riscv32-unknown-elf-gcc
+#AS=riscv32-unknown-elf-as
 
 ASMFLAGS=-march=rv64gc
+#ASMFLAGS=-march=rv32gc
 CFLAGS=-std=c99 -O0 -Wall -Werror
 LDFLAGS=-T link.ld
 
@@ -53,7 +56,7 @@ $(TARGET) : $(OBJ)
 	$(AS) $(ASMFLAGS) $< -o $@
 
 %.o : %.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c -g $(CFLAGS) $< -o $@
 
 .PHONY: clean clean_objects
 clean:

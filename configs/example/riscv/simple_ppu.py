@@ -32,6 +32,7 @@ System definition.
 
 from m5.objects import *
 #from minor_custom_fu import MinorCustomFUPool
+import pdb
 
 class PPUFUPool(MinorFUPool):
     funcUnits = [MinorDefaultIntFU(), MinorDefaultIntFU(),
@@ -59,8 +60,8 @@ class SimpleSystem(BareMetalRiscvSystem):
 
         # set up our board
         self.board = SimpleBoard(
-                    timer_cpu=TimerCpu(pio_addr=0x92000000),
-                    uart = Uart8250(pio_addr=0x90013000)
+                    #timer_cpu=TimerCpu(pio_addr=0x4400bff8),
+                    #uart = Uart8250(pio_addr=0x70013000, pio_size=0x1000)
                     )
         # appearently we need a dedicated interrupt controller
         self.intrctrl = IntrControl()
@@ -90,7 +91,7 @@ class SimpleSystem(BareMetalRiscvSystem):
         # for now start at 0x0
         # take 3GB as size as it is a bit lower than 0xffffffff bytes
         mem_start = Addr(0x00000000)
-        mem_size = '2GB'
+        mem_size = '1GB'
         self.mem_ranges = [AddrRange(start=mem_start, size=mem_size)]
 
         # define bit mode
