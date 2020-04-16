@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2002-2005 The Regents of The University of Michigan
- * Copyright (c) 2007-2008 The Florida State University
- * Copyright (c) 2009 The University of Edinburgh
- * Copyright (c) 2014-2015 Sven Karlsson
+ * Copyright (c) 2002-2004 The Regents of The University of Michigan
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,40 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Ali Saidi
- *          Nathan Binkert
- *          Stephen Hines
- *          Timothy M. Jones
- *          Sven Karlsson
+ * Authors: Jaidev Patwardhan
  */
 
-#ifndef __ARCH_RISCV_VTOPHYS_HH__
-#define __ARCH_RISCV_VTOPHYS_HH__
+#ifndef __BASE_LOADER_HEX_FILE_HH__
+#define __BASE_LOADER_HEX_FILE_HH__
 
-#include "arch/riscv/isa_traits.hh"
-#include "arch/riscv/utility.hh"
+#include <cstdio>
+#include <limits>
+#include <string>
 
-class ThreadContext;
+#include "base/types.hh"
 
-namespace RiscvISA {
+class PortProxy;
 
-inline Addr
-vtophys(Addr vaddr)
+class HexFile
 {
-    // TODO schi fatal("VTOPHYS: Unimplemented on RISC-V\n");
-    warn_once("VTOPHYS: Unimplemented on RISC-V\n");
-    return vaddr;
-}
+  protected:
+    const std::string filename;
+    FILE *fp;
 
-inline Addr
-vtophys(ThreadContext *tc, Addr vaddr)
-{
-    // TODO schi fatal("VTOPHYS: Unimplemented on RISC-V\n");
-    warn_once("VTOPHYS: Unimplemented on RISC-V\n");
-    return vtophys(vaddr);
-}
+    void parseLine(char *, Addr *, uint32_t *);
 
-} // namespace RiscvISA
+  public:
+    HexFile(const std::string _filename);
+    virtual ~HexFile();
 
-#endif // __ARCH_RISCV_VTOPHYS_HH__
+    void close();
+    bool loadSections(PortProxy& memProxy);
+};
 
+#endif // __BASE_LOADER_HEX_FILE_HH__

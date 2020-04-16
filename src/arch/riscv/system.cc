@@ -35,6 +35,7 @@
 #include "arch/riscv/system.hh"
 
 #include "arch/vtophys.hh"
+#include "base/loader/hex_file.hh"
 #include "base/loader/object_file.hh"
 #include "base/loader/symtab.hh"
 #include "base/trace.hh"
@@ -42,15 +43,44 @@
 #include "params/RiscvSystem.hh"
 #include "sim/byteswap.hh"
 
+using namespace LittleEndianGuest;
+
 RiscvSystem::RiscvSystem(Params *p)
     : System(p),
       _isBareMetal(p->bare_metal),
-      _resetVect(p->reset_vect)
+      _resetVect(p->reset_vect),
+      _rv32(p->rv32)
 {
 }
 
 RiscvSystem::~RiscvSystem()
 {
+}
+/**
+ * Return the reset vector.
+ */
+Addr
+RiscvSystem::resetVect(ThreadContext* tc)
+{
+    return dynamic_cast<RiscvSystem *>(tc->getSystemPtr())->resetVect();
+}
+
+/**
+ * Return the bare metal checker.
+ */
+bool
+RiscvSystem::isBareMetal(ThreadContext* tc)
+{
+    return dynamic_cast<RiscvSystem *>(tc->getSystemPtr())->isBareMetal();
+}
+
+/**
+ * Return true, if the architecture uses 32 bit address space
+ */
+bool
+RiscvSystem::rv32(ThreadContext* tc)
+{
+    return dynamic_cast<RiscvSystem *>(tc->getSystemPtr())->rv32();
 }
 
 Addr
@@ -74,4 +104,3 @@ RiscvSystemParams::create()
 {
     return new RiscvSystem(this);
 }
-

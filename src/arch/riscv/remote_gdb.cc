@@ -140,6 +140,8 @@
 #include <string>
 
 #include "arch/riscv/registers.hh"
+#include "arch/riscv/system.hh"
+#include "arch/riscv/utility.hh"
 #include "cpu/thread_state.hh"
 #include "debug/GDBAcc.hh"
 #include "mem/page_table.hh"
@@ -149,15 +151,27 @@ using namespace std;
 using namespace RiscvISA;
 
 RemoteGDB::RemoteGDB(System *_system, ThreadContext *tc, int _port)
-    : BaseRemoteGDB(_system, tc, _port), regCache(this)
+    : BaseRemoteGDB(_system, tc, _port), regCache(this), regCache32(this)
 {
 }
 
 bool
 RemoteGDB::acc(Addr va, size_t len)
 {
-    panic_if(FullSystem, "acc not implemented for RISCV FS!");
-    return context()->getProcessPtr()->pTable->lookup(va) != nullptr;
+    // panic_if(FullSystem, "acc not implemented for RISCV FS!");
+    if (FullSystem) {
+        /**
+         * currently no mapping from virt to phys
+         * va = phys
+         */
+        if (va) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return context()->getProcessPtr()->pTable->lookup(va) != nullptr;
+    }
 }
 
 void
@@ -167,6 +181,18 @@ RemoteGDB::RiscvGdbRegCache::getRegs(ThreadContext *context)
     for (int i = 0; i < NumIntArchRegs; i++)
         r.gpr[i] = context->readIntReg(i);
     r.pc = context->pcState().pc();
+    for (int i = 0; i < NumFloatRegs; i++)
+        r.fpr[i] = context->readFloatReg(i);
+
+    // TODO schi
+    // r.csr_base = context->readMiscReg(0);
+    r.fflags = context->readMiscReg(MISCREG_FFLAGS);
+    r.frm = context->readMiscReg(MISCREG_FRM);
+    r.fcsr = context->readMiscReg(MISCREG_FCSR);
+    /* TODO schi
+    for (int i = ExplicitCSRs; i < NumMiscRegs - 1; i++)
+        r.csr[i - ExplicitCSRs] = context->readMiscReg(i);
+        */
 }
 
 void
@@ -176,10 +202,65 @@ RemoteGDB::RiscvGdbRegCache::setRegs(ThreadContext *context) const
     for (int i = 0; i < NumIntArchRegs; i++)
         context->setIntReg(i, r.gpr[i]);
     context->pcState(r.pc);
+    for (int i = 0; i < NumFloatRegs; i++)
+        context->setFloatReg(i, r.fpr[i]);
+
+    // TODO schi
+    // context->setMiscReg(0, r.csr_base);
+    context->setMiscReg(MISCREG_FFLAGS, r.fflags);
+    context->setMiscReg(MISCREG_FRM, r.frm);
+    context->setMiscReg(MISCREG_FCSR, r.fcsr);
+    /* TODO schi
+    for (int i = ExplicitCSRs; i < NumMiscRegs; i++)
+        context->setMiscReg(i, r.csr[i - ExplicitCSRs]);
+        */
+}
+
+void
+RemoteGDB::Riscv32GdbRegCache::getRegs(ThreadContext *context)
+{
+    DPRINTF(GDBAcc, "getregs in remotegdb\n");
+
+    // read pc
+    r.pc = context->pcState().pc();
+    DPRINTF(GDBAcc, "current pc: %#x\n", r.pc);
+    // read general purpose registers
+    for (int i = 0; i < NumIntArchRegs; i++) {
+        r.gpr[i] = context->readIntReg(i);
+    }
+    // read floating point registers
+    /*
+    for (int i = 0; i < NumFloatRegs; i++) {
+        r.fpr[i] = context->readFloatReg(i);
+    }
+
+    r.dcsr = context->readMiscReg(MISCREG_DCSR);
+    r.dpc = context->readMiscReg(MISCREG_DPC);
+    r.dscratch = context->readMiscReg(MISCREG_DSCRATCH);
+    */
+}
+
+void
+RemoteGDB::Riscv32GdbRegCache::setRegs(ThreadContext *context) const
+{
+    DPRINTF(GDBAcc, "setregs in remotegdb\n");
+
+    // set pc
+    context->pcState(r.pc);
+    // set general purpose registers
+    for (int i = 0; i < NumIntArchRegs; i++) {
+        context->setIntReg(i, r.gpr[i]);
+    }
 }
 
 BaseGdbRegCache*
 RemoteGDB::gdbRegs()
 {
-    return &regCache;
+    // if (isRv32(context())) {
+    if (dynamic_cast<RiscvSystem*>(system())->rv32()) {
+        return &regCache32;
+    } else {
+        return &regCache;
+    }
+    // return &regCache;
 }

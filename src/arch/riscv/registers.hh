@@ -69,6 +69,10 @@ using RiscvISAInst::MaxInstSrcRegs;
 using RiscvISAInst::MaxInstDestRegs;
 const int MaxMiscDestRegs = 2;
 
+// TODO copied from riscv-ccc
+typedef uint64_t FloatReg;
+typedef uint64_t MiscReg;
+
 // Not applicable to RISC-V
 using VecElem = ::DummyVecElem;
 using VecReg = ::DummyVecReg;
@@ -258,6 +262,7 @@ enum MiscRegIndex {
     MISCREG_UTVAL,
     MISCREG_FFLAGS,
     MISCREG_FRM,
+    MISCREG_FCSR,
 
     NUM_MISCREGS
 };
@@ -598,6 +603,12 @@ const std::map<int, CSRMetadata> CSRData = {
     {CSR_DPC, {"dpc", MISCREG_DPC}},
     {CSR_DSCRATCH, {"dscratch", MISCREG_DSCRATCH}}
 };
+
+BitUnion64(MISA)
+    Bitfield<63, 62>    mxl;
+    Bitfield<31, 30>    mxl32;
+    Bitfield<25, 0>     extensions;
+EndBitUnion(MISA)
 
 /**
  * These fields are specified in the RISC-V Instruction Set Manual, Volume II,

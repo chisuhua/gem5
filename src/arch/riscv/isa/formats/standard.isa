@@ -349,10 +349,13 @@ def template CSRExecute {{
                                 oldinterrupt.msi == newinterrupt.msi) {
                                 xc->setMiscReg(CSRData.at(csr).physIndex,data);
                             } else {
+                            /* FIXME schi temp disable check
                                 std::string error = "Interrupt m bits are "
                                                     "read-only\n";
                                 fault = make_shared<IllegalInstFault>(error,
                                                                      machInst);
+                            */
+                                xc->setMiscReg(CSRData.at(csr).physIndex,data);
                             }
                             break;
                           default:

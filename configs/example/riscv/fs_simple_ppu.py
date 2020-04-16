@@ -31,7 +31,7 @@ Full system script
 '''
 
 import argparse
-from simple_system import SimpleSystem
+from simple_ppu import SimpleSystem
 
 import m5
 from m5.objects import *

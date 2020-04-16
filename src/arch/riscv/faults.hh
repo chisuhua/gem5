@@ -92,12 +92,19 @@ enum ExceptionCode : uint64_t {
     NumInterruptTypes
 };
 
+enum InterruptCode {
+    SOFTWARE,
+    TIMER,
+    EXTERNAL
+};
+
 class RiscvFault : public FaultBase
 {
   protected:
     const FaultName _name;
     const bool _interrupt;
     ExceptionCode _code;
+    InterruptCode _int;
 
     RiscvFault(FaultName n, bool i, ExceptionCode c)
         : _name(n), _interrupt(i), _code(c)
@@ -107,6 +114,10 @@ class RiscvFault : public FaultBase
     bool isInterrupt() const { return _interrupt; }
     ExceptionCode exception() const { return _code; }
     virtual RegVal trap_value() const { return 0; }
+    InterruptCode
+    interrupt() const { return _int; }
+
+    // virtual void invoke_se(ThreadContext *tc, const StaticInstPtr &inst);
 
     virtual void invokeSE(ThreadContext *tc, const StaticInstPtr &inst);
     void invoke(ThreadContext *tc, const StaticInstPtr &inst) override;
@@ -130,6 +141,8 @@ class InterruptFault : public RiscvFault
   public:
     InterruptFault(ExceptionCode c) : RiscvFault("interrupt", true, c) {}
     InterruptFault(int c) : InterruptFault(static_cast<ExceptionCode>(c)) {}
+
+    void invoke(ThreadContext *tc, const StaticInstPtr &inst);
 };
 
 class InstFault : public RiscvFault
@@ -152,6 +165,7 @@ class UnknownInstFault : public InstFault
         : InstFault("Unknown instruction", inst)
     {}
 
+    void invoke(ThreadContext *tc, const StaticInstPtr &inst);
     void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;
 };
 
@@ -162,9 +176,11 @@ class IllegalInstFault : public InstFault
 
   public:
     IllegalInstFault(std::string r, const ExtMachInst inst)
-        : InstFault("Illegal instruction", inst)
+        : InstFault("Illegal instruction", inst),
+          reason(r)
     {}
 
+    void invoke(ThreadContext *tc, const StaticInstPtr &inst);
     void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;
 };
 
@@ -172,7 +188,6 @@ class UnimplementedFault : public InstFault
 {
   private:
     const std::string instName;
-
   public:
     UnimplementedFault(std::string name, const ExtMachInst inst)
         : InstFault("Unimplemented instruction", inst),
@@ -246,6 +261,7 @@ class SyscallFault : public RiscvFault
     }
 
     void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;
+    void invoke(ThreadContext *tc, const StaticInstPtr &inst);
 };
 
 } // namespace RiscvISA

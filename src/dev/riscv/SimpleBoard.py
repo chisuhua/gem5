@@ -54,21 +54,21 @@ class SimpleBoard(Platform):
     cxx_header = 'dev/riscv/simpleboard.hh'
     system = Param.System(Parent.any, 'system')
 
-    timer_cpu = TimerCpu(pio_addr=0x92000000)
+    timer_cpu = TimerCpu(pio_addr=0x70014000) # defult BasicPioDevice pio_size is 0x10
 
     term = Terminal()
-    uart = Uart8250(pio_addr=0x10013000)
+    uart = Uart8250(pio_addr=0x70013000, pio_size=0x10)
 
-    cust_regs = CustomRegs(pio_addr=0x90000000,
-                           regs=[0x90000000,
-                                 0x90000004,
-                                 0x90000008,
-                                 0x9000000c])
+    #cust_regs = CustomRegs(pio_addr=0x90000000,
+    #                       regs=[0x90000000,
+    #                             0x90000004,
+    #                             0x90000008,
+    #                             0x9000000c])
 
     # attach I/O devices to bus
     # call this method after bus is defined at system level
     def attachIO(self, bus):
-        self.cust_regs.pio = bus.master
+        #self.cust_regs.pio = bus.master
         self.timer_cpu.pio = bus.master
         self.uart.device = self.term
         self.uart.pio = bus.master

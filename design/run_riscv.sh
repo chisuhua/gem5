@@ -81,7 +81,7 @@ OPTION="${OPTION},Stack"
 CMD="tests/test-progs/hello/bin/x86/linux/hello"
 CMD="tests/test-progs/threads/bin/X86/linux/threads"
 
-CONF="configs/example/riscv/fs_bare_metal.py"
+CONF="configs/example/riscv/fs_simple_ppu.py"
 CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
 
 echo $RUN $OPTION $CONF $CMD

@@ -37,7 +37,11 @@
 class BareMetalRiscvSystem : public RiscvSystem
 {
   protected:
-    ObjectFile* bootloader;
+    // bootloader object file
+    ObjectFile *bootloader;
+
+    // bootloader symbol table, not sure if needed
+    SymbolTable *bootloaderSymtab;
 
   public:
     typedef BareMetalRiscvSystemParams Params;
@@ -46,7 +50,9 @@ class BareMetalRiscvSystem : public RiscvSystem
 
     // initialize the system
     virtual void initState();
+
+  protected:
+    const Params *params() const { return (const Params *)_params; }
 };
 
 #endif // __ARCH_RISCV_BARE_METAL_SYSTEM_HH__
-

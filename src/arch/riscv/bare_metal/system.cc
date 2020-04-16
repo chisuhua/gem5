@@ -34,18 +34,34 @@
 #include "base/loader/object_file.hh"
 
 BareMetalRiscvSystem::BareMetalRiscvSystem(Params *p)
-    : RiscvSystem(p),
-      bootloader(createObjectFile(p->bootloader))
+    : RiscvSystem(p)
 {
+    bootloaderSymtab = new SymbolTable;
+    // load bootloader code into memory
+    bootloader = createObjectFile(p->bootloader);
     if (bootloader == NULL) {
          fatal("Could not load bootloader file %s", p->bootloader);
     }
+
+    // load symbols
+    if (!bootloader->loadGlobalSymbols(bootloaderSymtab)) {
+        panic("Could not load bootloader symbols\n");
+    }
+
+    if (!bootloader->loadLocalSymbols(bootloaderSymtab)) {
+        panic("Could not load bootloader symbols\n");
+    }
+
+    // check architecture
+    if (bootloader->getArch() == ObjectFile::Riscv32)
+        _rv32 = true;
 
     _resetVect = bootloader->entryPoint();
 }
 
 BareMetalRiscvSystem::~BareMetalRiscvSystem()
 {
+    delete bootloaderSymtab;
     delete bootloader;
 }
 
@@ -71,4 +87,3 @@ BareMetalRiscvSystemParams::create()
 {
     return new BareMetalRiscvSystem(this);
 }
-

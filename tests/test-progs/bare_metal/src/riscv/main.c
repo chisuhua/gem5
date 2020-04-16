@@ -30,9 +30,17 @@
 
 #include <stdio.h>
 
+#define TimerCpu_addr 0x92000000
+#define Uart8250_addr 0x90013000
+
 int main()
 {
-    while (1);
+    int i = 10;
+    int j = i * 100;
+    while (i > 0) {
+        // printf("hello");
+        j--;
+    };
 
     return 0;
 }
