@@ -1461,7 +1461,7 @@ cloneFunc(SyscallDesc *desc, int callnum, ThreadContext *tc)
     RegVal newStack = p->getSyscallArg(tc, index);
     Addr ptidPtr = p->getSyscallArg(tc, index);
 
-#if THE_ISA == RISCV_ISA or THE_ISA == ARM_ISA
+#if THE_ISA == RISCV_ISA or THE_ISA == ARM_ISA or THE_ISA == PPU_ISA
     /**
      * Linux sets CLONE_BACKWARDS flag for RISC-V and Arm.
      * The flag defines the list of clone() arguments in the following
