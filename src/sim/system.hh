@@ -43,6 +43,9 @@
  *          Nathan Binkert
  *          Rick Strong
  */
+#ifdef BUILD_PPU
+#include "ppu_sim/system.hh"
+#else
 
 #ifndef __SYSTEM_HH__
 #define __SYSTEM_HH__
@@ -72,7 +75,16 @@
 class BaseRemoteGDB;
 class KvmVM;
 class ObjectFile;
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 class System : public SimObject, public PCEventScope
 {
@@ -679,3 +691,4 @@ class System : public SimObject, public PCEventScope
 void printSystems();
 
 #endif // __SYSTEM_HH__
+#endif

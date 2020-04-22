@@ -64,8 +64,17 @@
 #endif
 
 class System;
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
 
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 #if !CP_ANNOTATE
 class CPA

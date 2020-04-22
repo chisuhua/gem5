@@ -50,7 +50,7 @@
  * NB: Be careful to only use it once all the CPUs that you care about
  *     have been initialized
  */
-extern int maxThreadsPerCPU;
+extern int PpumaxThreadsPerCPU;
 
 /**
  * Changes the status and priority of the thread with the given number.

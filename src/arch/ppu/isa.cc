@@ -37,7 +37,7 @@
 #include "arch/ppu/interrupts.hh"
 #include "arch/ppu/registers.hh"
 #include "base/bitfield.hh"
-#include "cpu/base.hh"
+#include "ppu/base.hh"
 #include "debug/PpuMisc.hh"
 #include "params/PpuISA.hh"
 #include "sim/core.hh"

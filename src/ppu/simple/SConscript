@@ -30,27 +30,29 @@
 
 Import('*')
 
+Return()
+
 need_simple_base = False
-if 'AtomicSimpleCPU' in env['CPU_MODELS']:
+if 'AtomicSimplePPU' in env['CPU_MODELS']:
     need_simple_base = True
     SimObject('AtomicSimpleCPU.py')
-    Source('atomic.cc')
+    Source('atomic.cc', append={'CXXFLAGS': '-DBUILD_PPU'} )
 
     # The NonCachingSimpleCPU is really an atomic CPU in
     # disguise. It's therefore always enabled when the atomic CPU is
     # enabled.
     SimObject('NonCachingSimpleCPU.py')
-    Source('noncaching.cc')
+    Source('noncaching.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-if 'TimingSimpleCPU' in env['CPU_MODELS']:
+if 'TimingSimplePPU' in env['CPU_MODELS']:
     need_simple_base = True
     SimObject('TimingSimpleCPU.py')
-    Source('timing.cc')
+    Source('timing.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-if 'AtomicSimpleCPU' in env['CPU_MODELS'] or \
+if 'AtomicSimplePPU' in env['CPU_MODELS'] or \
        'TimingSimpleCPU' in env['CPU_MODELS']:
-    DebugFlag('SimpleCPU')
+    DebugFlag('PpuSimpleCPU')
 
 if need_simple_base:
-    Source('base.cc')
+    Source('base.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     SimObject('BaseSimpleCPU.py')

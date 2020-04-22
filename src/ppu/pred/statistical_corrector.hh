@@ -39,13 +39,17 @@
  * Statistical corrector base class
  */
 
-#ifndef __CPU_PRED_STATISTICAL_CORRECTOR_HH
-#define __CPU_PRED_STATISTICAL_CORRECTOR_HH
+#ifndef __PPU_PRED_STATISTICAL_CORRECTOR_HH
+#define __PPU_PRED_STATISTICAL_CORRECTOR_HH
 
 #include "base/statistics.hh"
 #include "base/types.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 #include "sim/sim_object.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 struct StatisticalCorrectorParams;
 
@@ -269,4 +273,4 @@ class StatisticalCorrector : public SimObject
 
     virtual size_t getSizeInBits() const;
 };
-#endif//__CPU_PRED_STATISTICAL_CORRECTOR_HH
+#endif//__PPU_PRED_STATISTICAL_CORRECTOR_HH

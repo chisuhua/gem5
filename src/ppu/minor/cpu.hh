@@ -43,15 +43,15 @@
  *  Top level definition of the Minor in-order CPU model
  */
 
-#ifndef __CPU_MINOR_CPU_HH__
-#define __CPU_MINOR_CPU_HH__
+#ifndef __PPU_MINOR_CPU_HH__
+#define __PPU_MINOR_CPU_HH__
 
-#include "cpu/minor/activity.hh"
-#include "cpu/minor/stats.hh"
-#include "cpu/base.hh"
-#include "cpu/simple_thread.hh"
+#include "ppu/minor/activity.hh"
+#include "ppu/minor/stats.hh"
+#include "ppu/base.hh"
+#include "ppu/simple_thread.hh"
 #include "enums/ThreadPolicy.hh"
-#include "params/MinorCPU.hh"
+#include "params/MinorPPU.hh"
 
 namespace Minor
 {
@@ -64,19 +64,19 @@ typedef SimpleThread MinorThread;
 };
 
 /**
- *  MinorCPU is an in-order CPU model with four fixed pipeline stages:
+ *  MinorPPU is an in-order CPU model with four fixed pipeline stages:
  *
  *  Fetch1 - fetches lines from memory
  *  Fetch2 - decomposes lines into macro-op instructions
  *  Decode - decomposes macro-ops into micro-ops
  *  Execute - executes those micro-ops
  *
- *  This pipeline is carried in the MinorCPU::pipeline object.
- *  The exec_context interface is not carried by MinorCPU but by
+ *  This pipeline is carried in the MinorPPU::pipeline object.
+ *  The exec_context interface is not carried by MinorPPU but by
  *      Minor::ExecContext objects
  *  created by Minor::Execute.
  */
-class MinorCPU : public BaseCPU
+class MinorPPU : public PpuBaseCPU
 {
   protected:
     /** pipeline is a container for the clockable pipeline stage objects.
@@ -85,7 +85,7 @@ class MinorCPU : public BaseCPU
 
   public:
     /** Activity recording for pipeline.  This belongs to Pipeline but
-     *  stages will access it through the CPU as the MinorCPU object
+     *  stages will access it through the CPU as the MinorPPU object
      *  actually mediates idling behaviour */
     Minor::MinorActivityRecorder *activityRecorder;
 
@@ -97,14 +97,14 @@ class MinorCPU : public BaseCPU
   public:
     /** Provide a non-protected base class for Minor's Ports as derived
      *  classes are created by Fetch1 and Execute */
-    class MinorCPUPort : public MasterPort
+    class MinorPPUPort : public MasterPort
     {
       public:
         /** The enclosing cpu */
-        MinorCPU &cpu;
+        MinorPPU &cpu;
 
       public:
-        MinorCPUPort(const std::string& name_, MinorCPU &cpu_)
+        MinorPPUPort(const std::string& name_, MinorPPU &cpu_)
             : MasterPort(name_, &cpu_), cpu(cpu_)
         { }
 
@@ -120,9 +120,9 @@ class MinorCPU : public BaseCPU
     Port &getInstPort() override;
 
   public:
-    MinorCPU(MinorCPUParams *params);
+    MinorPPU(MinorPPUParams *params);
 
-    ~MinorCPU();
+    ~MinorPPU();
 
   public:
     /** Starting, waking and initialisation */
@@ -135,10 +135,10 @@ class MinorCPU : public BaseCPU
     /** Processor-specific statistics */
     Minor::MinorStats stats;
 
-    /** Stats interface from SimObject (by way of BaseCPU) */
+    /** Stats interface from SimObject (by way of PpuBaseCPU) */
     void regStats() override;
 
-    /** Simple inst count interface from BaseCPU */
+    /** Simple inst count interface from PpuBaseCPU */
     Counter totalInsts() const override;
     Counter totalOps() const override;
 
@@ -152,16 +152,16 @@ class MinorCPU : public BaseCPU
     /** Drain interface */
     DrainState drain() override;
     void drainResume() override;
-    /** Signal from Pipeline that MinorCPU should signal that a drain
+    /** Signal from Pipeline that MinorPPU should signal that a drain
      *  is complete and set its drainState */
     void signalDrainDone();
     void memWriteback() override;
 
-    /** Switching interface from BaseCPU */
+    /** Switching interface from PpuBaseCPU */
     void switchOut() override;
-    void takeOverFrom(BaseCPU *old_cpu) override;
+    void takeOverFrom(PpuBaseCPU *old_cpu) override;
 
-    /** Thread activation interface from BaseCPU. */
+    /** Thread activation interface from PpuBaseCPU. */
     void activateContext(ThreadID thread_id) override;
     void suspendContext(ThreadID thread_id) override;
 
@@ -192,4 +192,4 @@ class MinorCPU : public BaseCPU
     void wakeupOnEvent(unsigned int stage_id);
 };
 
-#endif /* __CPU_MINOR_CPU_HH__ */
+#endif /* __PPU_MINOR_CPU_HH__ */

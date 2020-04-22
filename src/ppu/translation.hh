@@ -42,8 +42,8 @@
  *          Timothy M. Jones
  */
 
-#ifndef __CPU_TRANSLATION_HH__
-#define __CPU_TRANSLATION_HH__
+#ifndef __PPU_TRANSLATION_HH__
+#define __PPU_TRANSLATION_HH__
 
 #include "arch/generic/tlb.hh"
 #include "sim/faults.hh"
@@ -271,4 +271,4 @@ class DataTranslation : public BaseTLB::Translation
     }
 };
 
-#endif // __CPU_TRANSLATION_HH__
+#endif // __PPU_TRANSLATION_HH__

@@ -39,10 +39,10 @@
  * 8KB TAGE-SC-L branch predictor (devised by Andre Seznec)
  */
 
-#include "cpu/pred/tage_sc_l_8KB.hh"
+#include "ppu/pred/tage_sc_l_8KB.hh"
 
 #include "base/random.hh"
-#include "debug/TageSCL.hh"
+#include "debug/PpuTageSCL.hh"
 
 TAGE_SC_L_8KB_StatisticalCorrector::TAGE_SC_L_8KB_StatisticalCorrector(
     TAGE_SC_L_8KB_StatisticalCorrectorParams *p)
@@ -155,7 +155,7 @@ TAGE_SC_L_TAGE_8KB::initFoldedHistories(ThreadHistory & history)
             history.computeIndices[i].origLength, 13);
         history.computeTags[1][i].init(
             history.computeIndices[i].origLength, 11);
-        DPRINTF(TageSCL, "HistLength:%d, TTSize:%d, TTTWidth:%d\n",
+        DPRINTF(PpuTageSCL, "HistLength:%d, TTSize:%d, TTTWidth:%d\n",
                 histLengths[i], logTagTableSizes[i], tagTableTagWidths[i]);
     }
 }

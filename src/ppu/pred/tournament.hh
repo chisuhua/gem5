@@ -42,15 +42,19 @@
  *          Nilay Vaish
  */
 
-#ifndef __CPU_PRED_TOURNAMENT_PRED_HH__
-#define __CPU_PRED_TOURNAMENT_PRED_HH__
+#ifndef __PPU_PRED_TOURNAMENT_PRED_HH__
+#define __PPU_PRED_TOURNAMENT_PRED_HH__
 
 #include <vector>
 
 #include "base/sat_counter.hh"
 #include "base/types.hh"
-#include "cpu/pred/bpred_unit.hh"
+#include "ppu/pred/bpred_unit.hh"
 #include "params/TournamentBP.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /**
  * Implements a tournament branch predictor, hopefully identical to the one
@@ -242,4 +246,4 @@ class TournamentBP : public BPredUnit
     unsigned choiceThreshold;
 };
 
-#endif // __CPU_PRED_TOURNAMENT_PRED_HH__
+#endif // __PPU_PRED_TOURNAMENT_PRED_HH__

@@ -35,7 +35,16 @@
 
 #include "sim/eventq.hh"
 
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 /**
  * This class creates a global list of events that need a pointer to a

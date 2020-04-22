@@ -49,16 +49,21 @@
  * one that predicted when the prediction is incorrect.
  */
 
-#ifndef __CPU_PRED_LTAGE
-#define __CPU_PRED_LTAGE
+#ifndef __PPU_PRED_LTAGE
+#define __PPU_PRED_LTAGE
 
 
 #include <vector>
 
 #include "base/types.hh"
-#include "cpu/pred/loop_predictor.hh"
-#include "cpu/pred/tage.hh"
+#include "ppu/pred/loop_predictor.hh"
+#include "ppu/pred/tage.hh"
 #include "params/LTAGE.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+
 
 class LTAGE : public TAGE
 {
@@ -112,4 +117,4 @@ class LTAGE : public TAGE
         ThreadID tid, Addr branch_pc, bool cond_branch, void* &b) override;
 };
 
-#endif // __CPU_PRED_LTAGE
+#endif // __PPU_PRED_LTAGE

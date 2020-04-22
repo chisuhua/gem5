@@ -41,24 +41,24 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 
 #include "arch/generic/vec_pred_reg.hh"
 #include "base/logging.hh"
 #include "base/trace.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/quiesce_event.hh"
-#include "debug/Context.hh"
-#include "debug/Quiesce.hh"
+#include "ppu/base.hh"
+#include "ppu/quiesce_event.hh"
+#include "debug/PpuContext.hh"
+#include "debug/PpuQuiesce.hh"
 #include "kern/kernel_stats.hh"
-#include "params/BaseCPU.hh"
+#include "params/PpuBaseCPU.hh"
 #include "sim/full_system.hh"
 
 void
 ThreadContext::compare(ThreadContext *one, ThreadContext *two)
 {
-    DPRINTF(Context, "Comparing thread contexts\n");
+    DPRINTF(PpuContext, "Comparing thread contexts\n");
 
     // First loop through the integer registers.
     for (int i = 0; i < ThePpuISA::NumIntRegs; ++i) {
@@ -135,7 +135,7 @@ ThreadContext::quiesce()
     if (!getCpuPtr()->params()->do_quiesce)
         return;
 
-    DPRINTF(Quiesce, "%s: quiesce()\n", getCpuPtr()->name());
+    DPRINTF(PpuQuiesce, "%s: quiesce()\n", getCpuPtr()->name());
 
     suspend();
     if (getKernelStats())
@@ -146,7 +146,7 @@ ThreadContext::quiesce()
 void
 ThreadContext::quiesceTick(Tick resume)
 {
-    BaseCPU *cpu = getCpuPtr();
+    PpuBaseCPU *cpu = getCpuPtr();
 
     if (!cpu->params()->do_quiesce)
         return;
@@ -155,7 +155,7 @@ ThreadContext::quiesceTick(Tick resume)
 
     cpu->reschedule(quiesceEvent, resume, true);
 
-    DPRINTF(Quiesce, "%s: quiesceTick until %lu\n", cpu->name(), resume);
+    DPRINTF(PpuQuiesce, "%s: quiesceTick until %lu\n", cpu->name(), resume);
 
     suspend();
     if (getKernelStats())
@@ -259,13 +259,13 @@ takeOverFrom(ThreadContext &ntc, ThreadContext &otc)
     if (FullSystem) {
         assert(ntc.getSystemPtr() == otc.getSystemPtr());
 
-        BaseCPU *ncpu(ntc.getCpuPtr());
+        PpuBaseCPU *ncpu(ntc.getCpuPtr());
         assert(ncpu);
         EndQuiesceEvent *oqe(otc.getQuiesceEvent());
         assert(oqe);
         assert(oqe->tc == &otc);
 
-        BaseCPU *ocpu(otc.getCpuPtr());
+        PpuBaseCPU *ocpu(otc.getCpuPtr());
         assert(ocpu);
         EndQuiesceEvent *nqe(ntc.getQuiesceEvent());
         assert(nqe);

@@ -37,7 +37,16 @@
 #include "sim/sim_object.hh"
 
 class Process;
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 /**
  * EmulatedDriver is an abstract base class for fake SE-mode device drivers.

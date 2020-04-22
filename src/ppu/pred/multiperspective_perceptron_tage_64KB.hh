@@ -36,12 +36,16 @@
  * Multiperspective Perceptron Predictor with TAGE (by Daniel A. Jiménez)
  * 64 KB version
  */
-#ifndef __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__
-#define __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__
+#ifndef __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__
+#define __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__
 
-#include "cpu/pred/multiperspective_perceptron_tage.hh"
+#include "ppu/pred/multiperspective_perceptron_tage.hh"
 #include "params/MPP_StatisticalCorrector_64KB.hh"
 #include "params/MultiperspectivePerceptronTAGE64KB.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class MPP_StatisticalCorrector_64KB : public MPP_StatisticalCorrector {
     const unsigned numEntriesSecondLocalHistories;
@@ -85,4 +89,4 @@ class MultiperspectivePerceptronTAGE64KB :
             const MultiperspectivePerceptronTAGE64KBParams *p);
 };
 
-#endif // __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__
+#endif // __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_64KB_HH__

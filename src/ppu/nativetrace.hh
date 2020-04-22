@@ -28,8 +28,8 @@
  * Authors: Gabe Black
  */
 
-#ifndef __CPU_NATIVETRACE_HH__
-#define __CPU_NATIVETRACE_HH__
+#ifndef __PPU_NATIVETRACE_HH__
+#define __PPU_NATIVETRACE_HH__
 
 #include <unistd.h>
 
@@ -38,10 +38,18 @@
 #include "base/socket.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
-#include "cpu/exetrace.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/exetrace.hh"
+#include "ppu/static_inst.hh"
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
 
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 namespace Trace {
 
@@ -118,4 +126,4 @@ class NativeTrace : public ExeTracer
 
 } // namespace Trace
 
-#endif // __CPU_NATIVETRACE_HH__
+#endif // __PPU_NATIVETRACE_HH__

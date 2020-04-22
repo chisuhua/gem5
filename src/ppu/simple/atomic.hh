@@ -40,14 +40,18 @@
  * Authors: Steve Reinhardt
  */
 
-#ifndef __CPU_SIMPLE_ATOMIC_HH__
-#define __CPU_SIMPLE_ATOMIC_HH__
+#ifndef __PPU_SIMPLE_ATOMIC_HH__
+#define __PPU_SIMPLE_ATOMIC_HH__
 
-#include "cpu/simple/base.hh"
-#include "cpu/simple/exec_context.hh"
+#include "ppu/simple/base.hh"
+#include "ppu/simple/exec_context.hh"
 #include "mem/request.hh"
 #include "params/AtomicSimpleCPU.hh"
 #include "sim/probe/probe.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class AtomicSimpleCPU : public BaseSimpleCPU
 {
@@ -188,7 +192,7 @@ class AtomicSimpleCPU : public BaseSimpleCPU
     void drainResume() override;
 
     void switchOut() override;
-    void takeOverFrom(BaseCPU *oldCPU) override;
+    void takeOverFrom(PpuBaseCPU *oldCPU) override;
 
     void verifyMemoryMode() const override;
 
@@ -238,4 +242,4 @@ class AtomicSimpleCPU : public BaseSimpleCPU
     void printAddr(Addr a);
 };
 
-#endif // __CPU_SIMPLE_ATOMIC_HH__
+#endif // __PPU_SIMPLE_ATOMIC_HH__

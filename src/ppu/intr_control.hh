@@ -37,7 +37,7 @@
 #include "base/logging.hh"
 #include "params/IntrControl.hh"
 #include "sim/sim_object.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 class IntrControl : public SimObject
 {

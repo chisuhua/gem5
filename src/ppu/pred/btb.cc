@@ -28,11 +28,11 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/pred/btb.hh"
+#include "ppu/pred/btb.hh"
 
 #include "base/intmath.hh"
 #include "base/trace.hh"
-#include "debug/Fetch.hh"
+#include "debug/PpuFetch.hh"
 
 DefaultBTB::DefaultBTB(unsigned _numEntries,
                        unsigned _tagBits,
@@ -43,7 +43,7 @@ DefaultBTB::DefaultBTB(unsigned _numEntries,
       instShiftAmt(_instShiftAmt),
       log2NumThreads(floorLog2(_num_threads))
 {
-    DPRINTF(Fetch, "BTB: Creating BTB object.\n");
+    DPRINTF(PpuFetch, "BTB: Creating BTB object.\n");
 
     if (!isPowerOf2(numEntries)) {
         fatal("BTB entries is not a power of 2!");

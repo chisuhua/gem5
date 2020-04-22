@@ -46,11 +46,11 @@
  * a StaticInst.
  */
 
-#ifndef __CPU_TIMING_EXPR_HH__
-#define __CPU_TIMING_EXPR_HH__
+#ifndef __PPU_TIMING_EXPR_HH__
+#define __PPU_TIMING_EXPR_HH__
 
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
 #include "enums/TimingExprOp.hh"
 #include "params/TimingExpr.hh"
 #include "params/TimingExprBin.hh"
@@ -62,6 +62,11 @@
 #include "params/TimingExprSrcReg.hh"
 #include "params/TimingExprUn.hh"
 #include "sim/sim_object.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+// namespace PpuISA {
 
 /** These classes are just the C++ counterparts for those in Expr.py and
  *  are, therefore, documented there */
@@ -212,5 +217,6 @@ class TimingExprIf : public TimingExpr
 
     uint64_t eval(TimingExprEvalContext &context);
 };
+// }
 
 #endif

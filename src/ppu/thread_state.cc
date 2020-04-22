@@ -28,12 +28,12 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/thread_state.hh"
+#include "ppu/thread_state.hh"
 
 #include "base/output.hh"
-#include "cpu/base.hh"
-#include "cpu/profile.hh"
-#include "cpu/quiesce_event.hh"
+#include "ppu/base.hh"
+#include "ppu/profile.hh"
+#include "ppu/quiesce_event.hh"
 #include "kern/kernel_stats.hh"
 #include "mem/fs_translating_port_proxy.hh"
 #include "mem/port.hh"
@@ -41,9 +41,9 @@
 #include "mem/se_translating_port_proxy.hh"
 #include "sim/full_system.hh"
 #include "sim/serialize.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
-ThreadState::ThreadState(BaseCPU *cpu, ThreadID _tid, Process *_process)
+ThreadState::ThreadState(PpuBaseCPU *cpu, ThreadID _tid, Process *_process)
     : numInst(0), numOp(0), numLoad(0), startNumLoad(0),
       _status(ThreadContext::Halted), baseCpu(cpu),
       _contextId(0), _threadId(_tid), lastActivate(0), lastSuspend(0),

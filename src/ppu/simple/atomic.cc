@@ -41,18 +41,18 @@
  * Authors: Steve Reinhardt
  */
 
-#include "cpu/simple/atomic.hh"
+#include "ppu/simple/atomic.hh"
 
 #include "arch/locked_mem.hh"
 #include "arch/mmapped_ipr.hh"
 #include "arch/utility.hh"
 #include "base/output.hh"
 #include "config/the_isa.hh"
-#include "cpu/exetrace.hh"
-#include "cpu/utils.hh"
-#include "debug/Drain.hh"
-#include "debug/ExecFaulting.hh"
-#include "debug/SimpleCPU.hh"
+#include "ppu/exetrace.hh"
+#include "ppu/utils.hh"
+#include "debug/PpuDrain.hh"
+#include "debug/PpuExecFaulting.hh"
+#include "debug/PpuSimpleCPU.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
 #include "mem/physical.hh"
@@ -113,14 +113,14 @@ AtomicSimpleCPU::drain()
         return DrainState::Drained;
 
     if (!isCpuDrained()) {
-        DPRINTF(Drain, "Requesting drain.\n");
+        DPRINTF(PpuDrain, "Requesting drain.\n");
         return DrainState::Draining;
     } else {
         if (tickEvent.scheduled())
             deschedule(tickEvent);
 
         activeThreads.clear();
-        DPRINTF(Drain, "Not executing microcode, no need to drain.\n");
+        DPRINTF(PpuDrain, "Not executing microcode, no need to drain.\n");
         return DrainState::Drained;
     }
 }
@@ -128,7 +128,7 @@ AtomicSimpleCPU::drain()
 void
 AtomicSimpleCPU::threadSnoop(PacketPtr pkt, ThreadID sender)
 {
-    DPRINTF(SimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
+    DPRINTF(PpuSimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
             pkt->cmdString());
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
@@ -150,7 +150,7 @@ AtomicSimpleCPU::drainResume()
     if (switchedOut())
         return;
 
-    DPRINTF(SimpleCPU, "Resume\n");
+    DPRINTF(PpuSimpleCPU, "Resume\n");
     verifyMemoryMode();
 
     assert(!threadContexts.empty());
@@ -182,11 +182,11 @@ AtomicSimpleCPU::tryCompleteDrain()
     if (drainState() != DrainState::Draining)
         return false;
 
-    DPRINTF(Drain, "tryCompleteDrain.\n");
+    DPRINTF(PpuDrain, "tryCompleteDrain.\n");
     if (!isCpuDrained())
         return false;
 
-    DPRINTF(Drain, "CPU done draining, processing drain event\n");
+    DPRINTF(PpuDrain, "CPU done draining, processing drain event\n");
     signalDrainDone();
 
     return true;
@@ -205,7 +205,7 @@ AtomicSimpleCPU::switchOut()
 
 
 void
-AtomicSimpleCPU::takeOverFrom(BaseCPU *oldCPU)
+AtomicSimpleCPU::takeOverFrom(PpuBaseCPU *oldCPU)
 {
     BaseSimpleCPU::takeOverFrom(oldCPU);
 
@@ -225,7 +225,7 @@ AtomicSimpleCPU::verifyMemoryMode() const
 void
 AtomicSimpleCPU::activateContext(ThreadID thread_num)
 {
-    DPRINTF(SimpleCPU, "ActivateContext %d\n", thread_num);
+    DPRINTF(PpuSimpleCPU, "ActivateContext %d\n", thread_num);
 
     assert(thread_num < numThreads);
 
@@ -244,14 +244,14 @@ AtomicSimpleCPU::activateContext(ThreadID thread_num)
         activeThreads.push_back(thread_num);
     }
 
-    BaseCPU::activateContext(thread_num);
+    PpuBaseCPU::activateContext(thread_num);
 }
 
 
 void
 AtomicSimpleCPU::suspendContext(ThreadID thread_num)
 {
-    DPRINTF(SimpleCPU, "SuspendContext %d\n", thread_num);
+    DPRINTF(PpuSimpleCPU, "SuspendContext %d\n", thread_num);
 
     assert(thread_num < numThreads);
     activeThreads.remove(thread_num);
@@ -271,7 +271,7 @@ AtomicSimpleCPU::suspendContext(ThreadID thread_num)
         }
     }
 
-    BaseCPU::suspendContext(thread_num);
+    PpuBaseCPU::suspendContext(thread_num);
 }
 
 Tick
@@ -283,7 +283,7 @@ AtomicSimpleCPU::sendPacket(MasterPort &port, const PacketPtr &pkt)
 Tick
 AtomicSimpleCPU::AtomicCPUDPort::recvAtomicSnoop(PacketPtr pkt)
 {
-    DPRINTF(SimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
+    DPRINTF(PpuSimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
             pkt->cmdString());
 
     // X86 ISA: Snooping an invalidation for monitor/mwait
@@ -300,7 +300,7 @@ AtomicSimpleCPU::AtomicCPUDPort::recvAtomicSnoop(PacketPtr pkt)
     // hence we must check if the incoming packets are writes and wakeup
     // the processor accordingly
     if (pkt->isInvalidate() || pkt->isWrite()) {
-        DPRINTF(SimpleCPU, "received invalidation for addr:%#x\n",
+        DPRINTF(PpuSimpleCPU, "received invalidation for addr:%#x\n",
                 pkt->getAddr());
         for (auto &t_info : cpu->threadInfo) {
             ThePpuISA::handleLockedSnoop(t_info->thread, pkt, cacheBlockMask);
@@ -313,7 +313,7 @@ AtomicSimpleCPU::AtomicCPUDPort::recvAtomicSnoop(PacketPtr pkt)
 void
 AtomicSimpleCPU::AtomicCPUDPort::recvFunctionalSnoop(PacketPtr pkt)
 {
-    DPRINTF(SimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
+    DPRINTF(PpuSimpleCPU, "received snoop pkt for addr:%#x %s\n", pkt->getAddr(),
             pkt->cmdString());
 
     // X86 ISA: Snooping an invalidation for monitor/mwait
@@ -326,7 +326,7 @@ AtomicSimpleCPU::AtomicCPUDPort::recvFunctionalSnoop(PacketPtr pkt)
 
     // if snoop invalidates, release any associated locks
     if (pkt->isInvalidate()) {
-        DPRINTF(SimpleCPU, "received invalidation for addr:%#x\n",
+        DPRINTF(PpuSimpleCPU, "received invalidation for addr:%#x\n",
                 pkt->getAddr());
         for (auto &t_info : cpu->threadInfo) {
             ThePpuISA::handleLockedSnoop(t_info->thread, pkt, cacheBlockMask);
@@ -632,7 +632,7 @@ AtomicSimpleCPU::amoMem(Addr addr, uint8_t* data, unsigned size,
 void
 AtomicSimpleCPU::tick()
 {
-    DPRINTF(SimpleCPU, "Tick\n");
+    DPRINTF(PpuSimpleCPU, "Tick\n");
 
     // Change thread if multi-threaded
     swapActiveThread();
@@ -654,7 +654,7 @@ AtomicSimpleCPU::tick()
 
     for (int i = 0; i < width || locked; ++i) {
         numCycles++;
-        updateCycleCounters(BaseCPU::CPU_STATE_ON);
+        updateCycleCounters(PpuBaseCPU::CPU_STATE_ON);
 
         if (!curStaticInst || !curStaticInst->isDelayedCommit()) {
             checkForInterrupts();
@@ -717,7 +717,7 @@ AtomicSimpleCPU::tick()
                     countInst();
                     ppCommit->notify(std::make_pair(thread, curStaticInst));
                 }
-                else if (traceData && !DTRACE(ExecFaulting)) {
+                else if (traceData && !DTRACE(PpuExecFaulting)) {
                     delete traceData;
                     traceData = NULL;
                 }
@@ -771,7 +771,7 @@ AtomicSimpleCPU::tick()
 void
 AtomicSimpleCPU::regProbePoints()
 {
-    BaseCPU::regProbePoints();
+    PpuBaseCPU::regProbePoints();
 
     ppCommit = new ProbePointArg<pair<SimpleThread*, const StaticInstPtr>>
                                 (getProbeManager(), "Commit");

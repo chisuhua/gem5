@@ -36,17 +36,21 @@
  * Multiperspective Perceptron Predictor with TAGE (by Daniel A. Jiménez)
  */
 
-#ifndef __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__
-#define __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__
+#ifndef __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__
+#define __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__
 
-#include "cpu/pred/loop_predictor.hh"
-#include "cpu/pred/multiperspective_perceptron.hh"
-#include "cpu/pred/statistical_corrector.hh"
-#include "cpu/pred/tage_base.hh"
+#include "ppu/pred/loop_predictor.hh"
+#include "ppu/pred/multiperspective_perceptron.hh"
+#include "ppu/pred/statistical_corrector.hh"
+#include "ppu/pred/tage_base.hh"
 #include "params/MPP_LoopPredictor.hh"
 #include "params/MPP_StatisticalCorrector.hh"
 #include "params/MPP_TAGE.hh"
 #include "params/MultiperspectivePerceptronTAGE.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class MPP_TAGE : public TAGEBase {
     std::vector<unsigned int> tunedHistoryLengths;
@@ -233,4 +237,4 @@ class MultiperspectivePerceptronTAGE : public MultiperspectivePerceptron
     void squash(ThreadID tid, void *bp_history) override;
 
 };
-#endif//__CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__
+#endif//__PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_HH__

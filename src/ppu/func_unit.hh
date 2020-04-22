@@ -28,15 +28,15 @@
  * Authors: Steve Raasch
  */
 
-#ifndef __CPU_FUNC_UNIT_HH__
-#define __CPU_FUNC_UNIT_HH__
+#ifndef __PPU_FUNC_UNIT_HH__
+#define __PPU_FUNC_UNIT_HH__
 
 #include <array>
 #include <bitset>
 #include <string>
 #include <vector>
 
-#include "cpu/op_class.hh"
+#include "ppu/op_class.hh"
 #include "params/FUDesc.hh"
 #include "params/OpDesc.hh"
 #include "sim/sim_object.hh"

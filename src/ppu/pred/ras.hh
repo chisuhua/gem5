@@ -28,8 +28,8 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_PRED_RAS_HH__
-#define __CPU_PRED_RAS_HH__
+#ifndef __PPU_PRED_RAS_HH__
+#define __PPU_PRED_RAS_HH__
 
 #include <vector>
 
@@ -99,4 +99,4 @@ class ReturnAddrStack
     unsigned tos;
 };
 
-#endif // __CPU_PRED_RAS_HH__
+#endif // __PPU_PRED_RAS_HH__

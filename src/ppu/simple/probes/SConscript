@@ -30,6 +30,6 @@
 
 Import('*')
 
-if 'AtomicSimpleCPU' in env['CPU_MODELS']:
+if 'AtomicSimplePPU' in env['CPU_MODELS']:
     SimObject('SimPoint.py')
-    Source('simpoint.cc')
+    Source('simpoint.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

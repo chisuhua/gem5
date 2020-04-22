@@ -40,14 +40,14 @@
 /**
  * @file
  *
- * The stats for MinorCPU separated from the CPU definition.
+ * The stats for MinorPPU separated from the CPU definition.
  */
 
-#ifndef __CPU_MINOR_STATS_HH__
-#define __CPU_MINOR_STATS_HH__
+#ifndef __PPU_MINOR_STATS_HH__
+#define __PPU_MINOR_STATS_HH__
 
 #include "base/statistics.hh"
-#include "cpu/base.hh"
+#include "ppu/base.hh"
 #include "sim/ticked_object.hh"
 
 namespace Minor
@@ -83,9 +83,9 @@ class MinorStats
     MinorStats();
 
   public:
-    void regStats(const std::string &name, BaseCPU &baseCpu);
+    void regStats(const std::string &name, PpuBaseCPU &baseCpu);
 };
 
 }
 
-#endif /* __CPU_MINOR_STATS_HH__ */
+#endif /* __PPU_MINOR_STATS_HH__ */

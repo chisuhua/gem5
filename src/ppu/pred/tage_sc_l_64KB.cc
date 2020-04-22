@@ -39,7 +39,7 @@
  * 64KB TAGE-SC-L branch predictor (devised by Andre Seznec)
  */
 
-#include "cpu/pred/tage_sc_l_64KB.hh"
+#include "ppu/pred/tage_sc_l_64KB.hh"
 
 TAGE_SC_L_64KB_StatisticalCorrector::TAGE_SC_L_64KB_StatisticalCorrector(
     TAGE_SC_L_64KB_StatisticalCorrectorParams *p)

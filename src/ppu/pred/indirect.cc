@@ -28,4 +28,4 @@
  * Authors: Mitch Hayenga
  */
 
-#include "cpu/pred/indirect.hh"
+#include "ppu/pred/indirect.hh"

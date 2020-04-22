@@ -28,15 +28,15 @@
  * Authors: Mitch Hayenga
  */
 
-#ifndef __CPU_PRED_INDIRECT_HH__
-#define __CPU_PRED_INDIRECT_HH__
+#ifndef __PPU_PRED_INDIRECT_HH__
+#define __PPU_PRED_INDIRECT_HH__
 
 #include <deque>
 
 #include "arch/isa_traits.hh"
 #include "config/the_isa.hh"
-#include "cpu/inst_seq.hh"
-#include "cpu/pred/indirect.hh"
+#include "ppu/inst_seq.hh"
+#include "ppu/pred/indirect.hh"
 #include "params/SimpleIndirectPredictor.hh"
 
 class SimpleIndirectPredictor : public IndirectPredictor
@@ -101,4 +101,4 @@ class SimpleIndirectPredictor : public IndirectPredictor
     std::vector<ThreadInfo> threadInfo;
 };
 
-#endif // __CPU_PRED_INDIRECT_HH__
+#endif // __PPU_PRED_INDIRECT_HH__

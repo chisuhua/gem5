@@ -1,0 +1,2222 @@
+diff -r isa/bitfields.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/bitfields.isa
+91,92c91,98
+< def bitfield VEX_V vex.v;
+< def bitfield VEX_L vex.l;
+---
+> def bitfield VEX_R vex.first.r;
+> def bitfield VEX_X vex.first.x;
+> def bitfield VEX_B vex.first.b;
+> def bitfield VEX_MAP vex.first.map_select;
+> def bitfield VEX_W vex.second.w;
+> def bitfield VEX_VVVV vex.second.vvvv;
+> def bitfield VEX_L vex.second.l;
+> def bitfield VEX_PP vex.second.pp;
+diff -r isa/decoder/decoder.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/decoder/decoder.isa
+51a52
+>         ##include "vex_opcodes.isa"
+diff -r isa/decoder/one_byte_opcodes.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/decoder/one_byte_opcodes.isa
+403,405c403,404
+<                             SyscallInst::int80('xc->syscall(&fault)',
+<                                                IsSyscall, IsNonSpeculative,
+<                                                IsSerializeAfter);
+---
+>                             SyscallInst::int80('xc->syscall(Rax)',
+>                                  IsSyscall, IsNonSpeculative, IsSerializeAfter);
+diff -r isa/decoder/two_byte_opcodes.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/decoder/two_byte_opcodes.isa
+136c136
+<                         0x1: Inst::RDTSCP();
+---
+>                         0x1: rdtscp();
+176c176
+<                         Rax = PseudoInst::initParam(xc->tcBase(), Rdi, Rsi);
+---
+>                         Rax = PseudoInst::initParam(xc->tcBase());
+231,233c231,233
+<                     0x62: m5togglesync({{
+<                         PseudoInst::togglesync(xc->tcBase());
+<                     }}, IsNonSpeculative, IsQuiesce);
+---
+>                     0x5c: m5_gpu({{
+>                             PseudoInst::gpu(xc->tcBase(), Rdi, Rsi);
+>                         }}, IsNonSpeculative, IsSerializeAfter);
+238,240c238,239
+<                 0: SyscallInst::syscall('xc->syscall(&fault)',
+<                                         IsSyscall, IsNonSpeculative,
+<                                         IsSerializeAfter);
+---
+>                 0: SyscallInst::syscall('xc->syscall(Rax)',
+>                         IsSyscall, IsNonSpeculative, IsSerializeAfter);
+363,364c362
+<                     0x0: CondInst::MOV(
+<                         {{isValidMiscReg(MISCREG_CR(MODRM_REG))}},Rd,Cd);
+---
+>                     0x0: MOV(Rd,Cd);
+366,367c364
+<                     0x2: CondInst::MOV(
+<                         {{isValidMiscReg(MISCREG_CR(MODRM_REG))}},Cd,Rd);
+---
+>                     0x2: MOV(Cd,Rd);
+386,388c383
+<                     //Non-temporal hint is ignored since we don't have
+<                     //proper support for it in the memory system.
+<                     0x3: MOVNTPS(Mq,Vq);
+---
+>                     0x3: WarnUnimpl::movntps_Mo_Vo();
+406,408c401
+<                     //Non-temporal hint is ignored since we don't have
+<                     //proper support for it in the memory system.
+<                     0x3: MOVNTPD(Mq,Vq);
+---
+>                     0x3: WarnUnimpl::movntpd_Mo_Vo();
+432,434c425,426
+<                 0: SyscallInst::sysenter('xc->syscall(&fault)',
+<                                          IsSyscall, IsNonSpeculative,
+<                                          IsSerializeAfter);
+---
+>                 0: SyscallInst::sysenter('xc->syscall(Rax)',
+>                         IsSyscall, IsNonSpeculative, IsSerializeAfter);
+477c469
+<                     0x3: RCPPS(Vo,Wo);
+---
+>                     0x3: WarnUnimpl::rcpps_Vo_Wo();
+487c479
+<                     0x3: RCPSS(Vd,Wd);
+---
+>                     0x3: WarnUnimpl::rcpss_Vd_Wd();
+763,769c755,758
+<                     // It isn't defined what to do in this case. We used to
+<                     // leave R[abcd]x unmodified, but setting them all to 0
+<                     // seems a little safer and more predictable.
+<                     Rax = 0;
+<                     Rbx = 0;
+<                     Rcx = 0;
+<                     Rdx = 0;
+---
+>                     Rax = Rax;
+>                     Rbx = Rbx;
+>                     Rcx = Rcx;
+>                     Rdx = Rdx;
+788,789c777
+<                                  {{/*Nothing*/}}, IsReadBarrier,
+<                                  IsSerializeAfter);
+---
+>                                  {{/*Nothing*/}}, IsReadBarrier);
+811,820c799,800
+<                     0x6: decode LEGACY_DECODEVAL {
+<                         0x0: Inst::UD2();
+<                         0x1: Inst::CLWB(Mb);
+<                         default: Inst::UD2();
+<                     }
+<                     0x7: decode LEGACY_DECODEVAL {
+<                         0x0: Inst::CLFLUSH(Mb);
+<                         0x1: Inst::CLFLUSHOPT(Mb);
+<                         default: Inst::CLFLUSH(Mb);
+<                     }
+---
+>                     0x6: Inst::UD2();
+>                     0x7: clflush();
+886,887d865
+<                         //Non-temporal hint is ignored since we don't have
+<                         //proper support for it in the memory system.
+988,990c966
+<                     //Non-temporal hint is ignored since we don't have
+<                     //proper support for it in the memory system.
+<                     0x7: MOVNTQ(Mq,Pq);
+---
+>                     0x7: WarnUnimpl::movntq_Mq_Pq();
+1007,1011c983
+<                     //MOVNTDQ should really use size o (octword), but
+<                     //because it is split in two, we use q (quadword).
+<                     //Non-temporal hint is ignored since we don't have
+<                     //proper support for it in the memory system.
+<                     0x7: MOVNTDQ(Mq,Vq);
+---
+>                     0x7: WarnUnimpl::movntdq_Mo_Vo();
+1070c1042
+<                     0x0: LDDQU(Vo,Mq);
+---
+>                     0x0: WarnUnimpl::lddqu_Vo_Mo();
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/decoder: vex_opcodes.isa
+diff -r isa/decoder/x87.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/decoder/x87.isa
+3,4d2
+< // Copyright (c) 2015 Advanced Micro Devices, Inc.
+< //
+41d38
+< //          Steve Reinhardt
+180c177
+<                 default: Inst::FILD(Md); // 32-bit int
+---
+>                 default: fild();
+203,205c200
+<                 // 'R' insists on having a size qualifier, so I picked 'q',
+<                 // but I don't think it has any effect
+<                 0x3: Inst::FUCOMI(Rq);
+---
+>                 0x3: fucomi();
+339c334
+<                 default: Inst::FILD(Mw); // 16-bit int
+---
+>                 default: fild();
+361,364c356,357
+<                 // 'R' insists on having a size qualifier, so I picked 'q',
+<                 // but I don't think it has any effect
+<                 0x3: Inst::FUCOMIP(Rq);
+<                 default: Inst::FILD(Mq); // 64-bit int
+---
+>                 0x3: fucomip();
+>                 default: fild();
+diff -r isa/formats/basic.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/basic.isa
+40a41,54
+> // Declarations for execute() methods.
+> def template BasicExecDeclare {{
+>         Fault execute(%(CPU_exec_context)s *, Trace::InstRecord *) const;
+> }};
+> 
+> // Definitions of execute methods that panic.
+> def template BasicExecPanic {{
+>         Fault execute(%(CPU_exec_context)s *, Trace::InstRecord *) const
+>         {
+>             panic("Execute method called when it shouldn't!");
+>             M5_DUMMY_RETURN
+>         }
+> }};
+> 
+51c65
+<             Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>             %(BasicExecDeclare)s
+66c80
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+Only in isa/formats: cond.isa
+diff -r isa/formats/cpuid.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/cpuid.isa
+71c71
+<     Fault %(class_name)s::execute(ExecContext *xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/formats/formats.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/formats.isa
+75,78d74
+< 
+< //Include a format which is like Inst, except it conditionally decodes to the
+< //specified instruction, or if the condition fails decodes to UD2.
+< ##include "cond.isa"
+diff -r isa/formats/monitor_mwait.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/monitor_mwait.isa
+47a48,55
+> // Declarations for execute() methods.
+> def template MwaitExecDeclare {{
+>     Fault execute(%(CPU_exec_context)s *, Trace::InstRecord *) const;
+>     Fault initiateAcc(%(CPU_exec_context)s *, Trace::InstRecord *) const;
+>     Fault completeAcc(PacketPtr, %(CPU_exec_context)s *,
+>                       Trace::InstRecord *) const;
+> }};
+> 
+54,56c62
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+<         Fault initiateAcc(ExecContext *, Trace::InstRecord *) const;
+<         Fault completeAcc(PacketPtr, ExecContext *, Trace::InstRecord *) const;
+---
+>         %(MwaitExecDeclare)s
+61c67
+<     Fault %(class_name)s::initiateAcc(ExecContext * xc,
+---
+>     Fault %(class_name)s::initiateAcc(CPU_EXEC_CONTEXT * xc,
+63a70
+>         uint64_t m = 0;          //mem
+66c73
+<         initiateMemRead(xc, traceData, xc->getAddrMonitor()->vAddr, s, f);
+---
+>         readMemTiming(xc, traceData, xc->getAddrMonitor()->vAddr, m, s, f);
+72c79
+<     Fault %(class_name)s::completeAcc(PacketPtr pkt, ExecContext *xc,
+---
+>     Fault %(class_name)s::completeAcc(PacketPtr pkt, CPU_EXEC_CONTEXT *xc,
+diff -r isa/formats/nop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/nop.isa
+75c75
+<     Fault %(class_name)s::execute(ExecContext *xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/formats/syscall.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/syscall.isa
+77c77
+<     Fault %(class_name)s::execute(ExecContext *xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/formats/unimp.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/unimp.isa
+65c65
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+96c96
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+125c125
+<     FailUnimplemented::execute(ExecContext *xc,
+---
+>     FailUnimplemented::execute(CPU_EXEC_CONTEXT *xc,
+134c134
+<     WarnUnimplemented::execute(ExecContext *xc,
+---
+>     WarnUnimplemented::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/formats/unknown.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/formats/unknown.isa
+60c60
+<             Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>             %(BasicExecDeclare)s
+77c77
+<         Fault Unknown::execute(ExecContext *xc,
+---
+>         Fault Unknown::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/includes.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/includes.isa
+52d51
+< #include <array>
+69c68
+< #include "base/logging.hh"
+---
+> #include "base/misc.hh"
+87c86
+< #include "base/logging.hh"
+---
+> #include "base/misc.hh"
+117a117
+> #include "base/bigint.hh"
+Binary files isa/insts/general_purpose/arithmetic/add_and_subtract.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/arithmetic/add_and_subtract.pyc differ
+Binary files isa/insts/general_purpose/arithmetic/increment_and_decrement.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/arithmetic/increment_and_decrement.pyc differ
+Binary files isa/insts/general_purpose/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/arithmetic/__init__.pyc differ
+Binary files isa/insts/general_purpose/arithmetic/multiply_and_divide.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/arithmetic/multiply_and_divide.pyc differ
+diff -r isa/insts/general_purpose/cache_and_memory_management.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/cache_and_memory_management.py
+61,95d60
+< def macroop CLFLUSH_M
+< {
+<     clflushopt t0, seg, sib, disp, dataSize=1
+<     mfence
+< };
+< 
+< def macroop CLFLUSH_P
+< {
+<     rdip t7
+<     clflushopt t0, seg, riprel, disp, dataSize=1
+<     mfence
+< };
+< 
+< def macroop CLFLUSHOPT_M
+< {
+<     clflushopt t0, seg, sib, disp, dataSize=1
+< };
+< 
+< def macroop CLFLUSHOPT_P
+< {
+<     rdip t7
+<     clflushopt t0, seg, riprel, disp, dataSize=1
+< };
+< 
+< def macroop CLWB_M
+< {
+<     clwb t1, seg, sib, disp, dataSize=1
+< };
+< 
+< def macroop CLWB_P
+< {
+<     rdip t7
+<     clwb t1, seg, riprel, disp, dataSize=1
+< };
+< 
+107a73,74
+> #       "GenFault ${new UnimpInstFault}"
+> #    class CLFLUSH(Inst):
+Binary files isa/insts/general_purpose/cache_and_memory_management.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/cache_and_memory_management.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/bit_scan.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/bit_scan.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/bit_test.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/bit_test.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/bounds.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/bounds.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/compare.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/compare.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/__init__.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/set_byte_on_condition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/set_byte_on_condition.pyc differ
+Binary files isa/insts/general_purpose/compare_and_test/test.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/compare_and_test/test.pyc differ
+diff -r isa/insts/general_purpose/control_transfer/call.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/call.py
+48c48
+<     stis t7, ss, [0, t0, rsp], "-env.dataSize"
+---
+>     st t7, ss, [0, t0, rsp], "-env.dataSize"
+61c61
+<     stis t1, ss, [0, t0, rsp], "-env.dataSize"
+---
+>     st t1, ss, [0, t0, rsp], "-env.dataSize"
+Binary files isa/insts/general_purpose/control_transfer/call.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/call.pyc differ
+Binary files isa/insts/general_purpose/control_transfer/conditional_jump.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/conditional_jump.pyc differ
+Binary files isa/insts/general_purpose/control_transfer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/__init__.pyc differ
+diff -r isa/insts/general_purpose/control_transfer/interrupts_and_exceptions.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/interrupts_and_exceptions.py
+40c40
+<     .serialize_after
+---
+>     .serializing
+45c45
+<     .serialize_after
+---
+>     .serializing
+139a140,146
+> 
+>     # gem5-gpu: Grab the old return stack pointer into t6, then pop the
+>     # old stack. Must save the stack pointer to ensure the thread knows
+>     # precisely when it needs to to notify the GPU. Do this before popping
+>     # the stack pointer!
+>     ld t6, ss, [1, t0, rsp], "3 * env.dataSize", dataSize=ssz
+> 
+207a215,228
+> 
+>     # Check if this was a GPU fault and if so, notify the GPU.
+>     rdval t5, "InstRegIndex(MISCREG_GPU_FAULT)"
+>     andi t0, t5, 2, flags=(EZF,)
+>     br label("notGPUFaultFallThrough"), flags=(CEZF,)
+>     # At this point, t6 *should* contain the old stack pointer from where the
+>     # fault was raised, no matter how the microcode reached this GPU check. If
+>     # t6 is equal to the GPU faulting RSP, notify the GPU of finished fault!
+>     rdval t5, "InstRegIndex(MISCREG_GPU_FAULT_RSP)"
+>     xor t5, t5, t6, flags=(EZF,)
+>     br label("notGPUFaultFallThrough"), flags=(nCEZF,)
+>     gpufaultfinish
+> 
+> notGPUFaultFallThrough:
+Binary files isa/insts/general_purpose/control_transfer/interrupts_and_exceptions.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/interrupts_and_exceptions.pyc differ
+Binary files isa/insts/general_purpose/control_transfer/jump.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/jump.pyc differ
+diff -r isa/insts/general_purpose/control_transfer/loop.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/loop.py
+40,41d39
+<     # Make the default data size of pops 64 bits in 64 bit mode
+<     .adjust_env oszIn64Override
+48,49d45
+<     # Make the default data size of pops 64 bits in 64 bit mode
+<     .adjust_env oszIn64Override
+56,57d51
+<     # Make the default data size of pops 64 bits in 64 bit mode
+<     .adjust_env oszIn64Override
+Binary files isa/insts/general_purpose/control_transfer/loop.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/loop.pyc differ
+Binary files isa/insts/general_purpose/control_transfer/xreturn.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/control_transfer/xreturn.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/ascii_adjust.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/ascii_adjust.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/bcd_adjust.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/bcd_adjust.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/endian_conversion.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/endian_conversion.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/extract_sign_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/extract_sign_mask.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/__init__.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/sign_extension.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/sign_extension.pyc differ
+Binary files isa/insts/general_purpose/data_conversion/translate.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_conversion/translate.pyc differ
+Binary files isa/insts/general_purpose/data_transfer/conditional_move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/conditional_move.pyc differ
+Binary files isa/insts/general_purpose/data_transfer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/__init__.pyc differ
+diff -r isa/insts/general_purpose/data_transfer/move.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/move.py
+177c177
+<     .serialize_after
+---
+>     .serializing
+183c183
+<     .serialize_after
+---
+>     .serializing
+189c189
+<     .serialize_after
+---
+>     .serializing
+336d335
+<     warn_once "MOVNTI: Ignoring non-temporal hint, modeling as cacheable!"
+341d339
+<     warn_once "MOVNTI_P: Ignoring non-temporal hint, modeling as cacheable!"
+Binary files isa/insts/general_purpose/data_transfer/move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/move.pyc differ
+diff -r isa/insts/general_purpose/data_transfer/stack_operations.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/stack_operations.py
+43c43
+<     ldis t1, ss, [1, t0, rsp], dataSize=ssz
+---
+>     ld t1, ss, [1, t0, rsp], dataSize=ssz
+52c52
+<     ldis t1, ss, [1, t0, rsp], dataSize=ssz
+---
+>     ld t1, ss, [1, t0, rsp], dataSize=ssz
+73c73
+<     stis reg, ss, [1, t0, rsp], "-env.stackSize", dataSize=ssz
+---
+>     st reg, ss, [1, t0, rsp], "-env.stackSize", dataSize=ssz
+82c82
+<     stis t1, ss, [1, t0, rsp], "-env.stackSize", dataSize=ssz
+---
+>     st t1, ss, [1, t0, rsp], "-env.stackSize", dataSize=ssz
+141c141
+<     ldis rbp, ss, [1, t0, t1], dataSize=ssz
+---
+>     ld rbp, ss, [1, t0, t1], dataSize=ssz
+159c159
+<     stis rbp, ss, [1, t0, rsp], "-env.dataSize"
+---
+>     st rbp, ss, [1, t0, rsp], "-env.dataSize"
+175,176c175,176
+<     ldis t5, ss, [dsz, t4, rbp]
+<     stis t5, ss, [1, t0, rsp], "-env.dataSize"
+---
+>     ld t5, ss, [dsz, t4, rbp]
+>     st t5, ss, [1, t0, rsp], "-env.dataSize"
+186c186
+<     stis t6, ss, [1, t0, rsp], "-env.dataSize"
+---
+>     st t6, ss, [1, t0, rsp], "-env.dataSize"
+Binary files isa/insts/general_purpose/data_transfer/stack_operations.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/stack_operations.pyc differ
+Binary files isa/insts/general_purpose/data_transfer/xchg.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/data_transfer/xchg.pyc differ
+Binary files isa/insts/general_purpose/flags/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/flags/__init__.pyc differ
+Binary files isa/insts/general_purpose/flags/load_and_store.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/flags/load_and_store.pyc differ
+Binary files isa/insts/general_purpose/flags/push_and_pop.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/flags/push_and_pop.pyc differ
+Binary files isa/insts/general_purpose/flags/set_and_clear.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/flags/set_and_clear.pyc differ
+Binary files isa/insts/general_purpose/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/__init__.pyc differ
+Binary files isa/insts/general_purpose/input_output/general_io.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/input_output/general_io.pyc differ
+Binary files isa/insts/general_purpose/input_output/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/input_output/__init__.pyc differ
+Binary files isa/insts/general_purpose/input_output/string_io.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/input_output/string_io.pyc differ
+Binary files isa/insts/general_purpose/load_effective_address.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/load_effective_address.pyc differ
+Binary files isa/insts/general_purpose/load_segment_registers.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/load_segment_registers.pyc differ
+Binary files isa/insts/general_purpose/logical.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/logical.pyc differ
+Binary files isa/insts/general_purpose/no_operation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/no_operation.pyc differ
+Binary files isa/insts/general_purpose/rotate_and_shift/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/rotate_and_shift/__init__.pyc differ
+Binary files isa/insts/general_purpose/rotate_and_shift/rotate.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/rotate_and_shift/rotate.pyc differ
+Binary files isa/insts/general_purpose/rotate_and_shift/shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/rotate_and_shift/shift.pyc differ
+diff -r isa/insts/general_purpose/semaphores.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/semaphores.py
+2d1
+< # Copyright (c) 2015 Advanced Micro Devices, Inc.
+130,132d128
+< # Despite the name, this microcode sequence implements both
+< # cmpxchg8b and cmpxchg16b, depending on the dynamic value
+< # of dataSize.
+135d130
+<     .adjust_env clampOsz
+138c133,134
+<     ldsplit%(l)s (t2, t3), seg, [1, t0, t1], disp=0
+---
+>     ldst%(l)s t2, seg, [1, t0, t1], 0
+>     ldst%(l)s t3, seg, [1, t0, t1], dsz
+154c150,151
+<     stsplit%(ul)s (t2, t3), seg, [1, t0, t1], disp=0
+---
+>     st%(ul)s t3, seg, [1, t0, t1], dsz
+>     st%(ul)s t2, seg, [1, t0, t1], 0
+Binary files isa/insts/general_purpose/semaphores.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/semaphores.pyc differ
+Binary files isa/insts/general_purpose/string/compare_strings.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/compare_strings.pyc differ
+Binary files isa/insts/general_purpose/string/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/__init__.pyc differ
+Binary files isa/insts/general_purpose/string/load_string.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/load_string.pyc differ
+Binary files isa/insts/general_purpose/string/move_string.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/move_string.pyc differ
+Binary files isa/insts/general_purpose/string/scan_string.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/scan_string.pyc differ
+Binary files isa/insts/general_purpose/string/store_string.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/string/store_string.pyc differ
+diff -r isa/insts/general_purpose/system_calls.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/system_calls.py
+46c46
+< 
+---
+>     
+99c99
+< 
+---
+>     
+Binary files isa/insts/general_purpose/system_calls.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/general_purpose/system_calls.pyc differ
+Binary files isa/insts/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/__init__.pyc differ
+diff -r isa/insts/romutil.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/romutil.py
+69c69
+<     #
+---
+>     # 
+77c77
+<     # we're going to a DPL that's less than or equal to the CPL.
+---
+>     # we're going to a DPL that's less than or equal to the CPL. 
+142c142
+< 
+---
+>     
+176c176
+< 
+---
+>     
+Binary files isa/insts/romutil.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/romutil.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/addition.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/division.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/division.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/horizontal_addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/horizontal_addition.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/horizontal_subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/horizontal_subtraction.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/multiplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/multiplication.pyc differ
+diff -r isa/insts/simd128/floating_point/arithmetic/reciprocal_estimation.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/reciprocal_estimation.py
+2,3d1
+< # Copyright (c) 2015 Advanced Micro Devices, Inc.
+< #
+39d36
+< #          Steve Reinhardt
+42,75c39,40
+< def macroop RCPSS_XMM_XMM {
+<     mrcp xmml, xmmlm, size=4, ext=Scalar
+< };
+< 
+< def macroop RCPSS_XMM_M {
+<     ldfp ufp1, seg, sib, disp, dataSize=8
+<     mrcp xmml, ufp1, size=4, ext=Scalar
+< };
+< 
+< def macroop RCPSS_XMM_P {
+<     rdip t7
+<     ldfp ufp1, seg, riprel, disp, dataSize=8
+<     mrcp xmml, ufp1, size=4, ext=Scalar
+< };
+< 
+< def macroop RCPPS_XMM_XMM {
+<     mrcp xmml, xmmlm, size=4, ext=0
+<     mrcp xmmh, xmmhm, size=4, ext=0
+< };
+< 
+< def macroop RCPPS_XMM_M {
+<     ldfp ufp1, seg, sib, "DISPLACEMENT", dataSize=8
+<     ldfp ufp2, seg, sib, "DISPLACEMENT + 8", dataSize=8
+<     mrcp xmml, ufp1, size=4, ext=0
+<     mrcp xmmh, ufp2, size=4, ext=0
+< };
+< 
+< def macroop RCPPS_XMM_P {
+<     rdip t7
+<     ldfp ufp1, seg, riprel, "DISPLACEMENT", dataSize=8
+<     ldfp ufp2, seg, riprel, "DISPLACEMENT + 8", dataSize=8
+<     mrcp xmml, ufp1, size=4, ext=0
+<     mrcp xmmh, ufp2, size=4, ext=0
+< };
+---
+> # RCPPS
+> # RCPSS
+Binary files isa/insts/simd128/floating_point/arithmetic/reciprocal_estimation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/reciprocal_estimation.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/reciprocal_square_root.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/reciprocal_square_root.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/simultaneous_addition_and_subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/simultaneous_addition_and_subtraction.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/square_root.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/square_root.pyc differ
+Binary files isa/insts/simd128/floating_point/arithmetic/subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/arithmetic/subtraction.pyc differ
+Binary files isa/insts/simd128/floating_point/compare/compare_and_write_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/compare/compare_and_write_mask.pyc differ
+Binary files isa/insts/simd128/floating_point/compare/compare_and_write_minimum_or_maximum.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/compare/compare_and_write_minimum_or_maximum.pyc differ
+Binary files isa/insts/simd128/floating_point/compare/compare_and_write_rflags.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/compare/compare_and_write_rflags.pyc differ
+Binary files isa/insts/simd128/floating_point/compare/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/compare/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_floating_point.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_floating_point.pyc differ
+Binary files isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_gpr_integer.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_gpr_integer.pyc differ
+Binary files isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_mmx_integer.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_mmx_integer.pyc differ
+Binary files isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_xmm_integer.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_conversion/convert_floating_point_to_xmm_integer.pyc differ
+Binary files isa/insts/simd128/floating_point/data_conversion/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_conversion/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/data_reordering/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_reordering/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/data_reordering/shuffle.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_reordering/shuffle.pyc differ
+Binary files isa/insts/simd128/floating_point/data_reordering/unpack_and_interleave.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_reordering/unpack_and_interleave.pyc differ
+Binary files isa/insts/simd128/floating_point/data_transfer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/data_transfer/move_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move_mask.pyc differ
+diff -r isa/insts/simd128/floating_point/data_transfer/move_non_temporal.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move_non_temporal.py
+2d1
+< # Copyright (c) 2015, 2018 Advanced Micro Devices, Inc.
+38d36
+< #          Steve Reinhardt
+41,75c39,40
+< # movntps is basically the same as movaps, excepting the caching hint and
+< # ordering constraints
+< # We are ignoring the non-temporal hint.
+< def macroop MOVNTPS_M_XMM {
+<     warn_once "MOVNTPS: Ignoring non-temporal hint, modeling as cacheable!"
+<     cda seg, sib, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmmh, seg, sib, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, sib, disp, dataSize=8
+< };
+< 
+< def macroop MOVNTPS_P_XMM {
+<     warn_once "MOVNTPS_P: Ignoring non-temporal hint, modeling as cacheable!"
+<     rdip t7
+<     cda seg, riprel, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmmh, seg, riprel, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, riprel, disp, dataSize=8
+< };
+< 
+< # movntpd is basically the same as movapd, excepting the caching hint and
+< # ordering constraints
+< # We are ignoring the non-temporal hint.
+< def macroop MOVNTPD_M_XMM {
+<     warn_once "MOVNTPD: Ignoring non-temporal hint, modeling as cacheable!"
+<     cda seg, sib, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, sib, "DISPLACEMENT", dataSize=8
+<     stfp xmmh, seg, sib, "DISPLACEMENT + 8", dataSize=8
+< };
+< 
+< def macroop MOVNTPD_P_XMM {
+<     warn_once "MOVNTPD_P: Ignoring non-temporal hint, modeling as cacheable!"
+<     rdip t7
+<     cda seg, riprel, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, riprel, "DISPLACEMENT", dataSize=8
+<     stfp xmmh, seg, riprel, "DISPLACEMENT + 8", dataSize=8
+< };
+---
+> # MOVNTPS
+> # MOVNTPD
+Binary files isa/insts/simd128/floating_point/data_transfer/move_non_temporal.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move_non_temporal.pyc differ
+diff -r isa/insts/simd128/floating_point/data_transfer/move.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move.py
+259c259
+<     lfpimm xmmh, 0
+---
+>     # Zero xmmh
+265c265
+<     lfpimm xmmh, 0
+---
+>     # Zero xmmh
+Binary files isa/insts/simd128/floating_point/data_transfer/move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move.pyc differ
+Binary files isa/insts/simd128/floating_point/data_transfer/move_with_duplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/data_transfer/move_with_duplication.pyc differ
+Binary files isa/insts/simd128/floating_point/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/logical/andp.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/logical/andp.pyc differ
+Binary files isa/insts/simd128/floating_point/logical/exclusive_or.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/logical/exclusive_or.pyc differ
+Binary files isa/insts/simd128/floating_point/logical/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/logical/__init__.pyc differ
+Binary files isa/insts/simd128/floating_point/logical/orp.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/floating_point/logical/orp.pyc differ
+Binary files isa/insts/simd128/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/__init__.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/addition.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/average.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/average.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/__init__.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/multiplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/multiplication.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/multiply_add.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/multiply_add.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/subtraction.pyc differ
+Binary files isa/insts/simd128/integer/arithmetic/sum_of_absolute_differences.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/arithmetic/sum_of_absolute_differences.pyc differ
+Binary files isa/insts/simd128/integer/compare/compare_and_write_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/compare/compare_and_write_mask.pyc differ
+Binary files isa/insts/simd128/integer/compare/compare_and_write_minimum_or_maximum.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/compare/compare_and_write_minimum_or_maximum.pyc differ
+Binary files isa/insts/simd128/integer/compare/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/compare/__init__.pyc differ
+Binary files isa/insts/simd128/integer/data_conversion/convert_gpr_integer_to_floating_point.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_conversion/convert_gpr_integer_to_floating_point.pyc differ
+Binary files isa/insts/simd128/integer/data_conversion/convert_integer_to_floating_point.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_conversion/convert_integer_to_floating_point.pyc differ
+Binary files isa/insts/simd128/integer/data_conversion/convert_mmx_integer_to_floating_point.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_conversion/convert_mmx_integer_to_floating_point.pyc differ
+Binary files isa/insts/simd128/integer/data_conversion/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_conversion/__init__.pyc differ
+Binary files isa/insts/simd128/integer/data_reordering/extract_and_insert.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_reordering/extract_and_insert.pyc differ
+Binary files isa/insts/simd128/integer/data_reordering/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_reordering/__init__.pyc differ
+Binary files isa/insts/simd128/integer/data_reordering/pack_with_saturation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_reordering/pack_with_saturation.pyc differ
+Binary files isa/insts/simd128/integer/data_reordering/shuffle.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_reordering/shuffle.pyc differ
+Binary files isa/insts/simd128/integer/data_reordering/unpack_and_interleave.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_reordering/unpack_and_interleave.pyc differ
+Binary files isa/insts/simd128/integer/data_transfer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/__init__.pyc differ
+Binary files isa/insts/simd128/integer/data_transfer/move_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/move_mask.pyc differ
+diff -r isa/insts/simd128/integer/data_transfer/move_non_temporal.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/move_non_temporal.py
+37d36
+< #          Pouya Fotouhi
+40,53c39
+< def macroop MOVNTDQ_M_XMM {
+<     warn_once "MOVNTDQ: Ignoring non-temporal hint, modeling as cacheable!"
+<     cda seg, sib, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, sib, "DISPLACEMENT", dataSize=8
+<     stfp xmmh, seg, sib, "DISPLACEMENT + 8", dataSize=8
+< };
+< 
+< def macroop MOVNTDQ_P_XMM {
+<     warn_once "MOVNTDQ_P: Ignoring non-temporal hint, modeling as cacheable!"
+<     rdip t7
+<     cda seg, riprel, "DISPLACEMENT + 8", dataSize=8
+<     stfp xmml, seg, riprel, "DISPLACEMENT", dataSize=8
+<     stfp xmmh, seg, riprel, "DISPLACEMENT + 8", dataSize=8
+< };
+---
+> # MOVNTDQ
+Binary files isa/insts/simd128/integer/data_transfer/move_non_temporal.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/move_non_temporal.pyc differ
+diff -r isa/insts/simd128/integer/data_transfer/move.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/move.py
+126,136d125
+< 
+< def macroop LDDQU_XMM_M {
+<     ldfp xmml, seg, sib, "DISPLACEMENT", dataSize=8
+<     ldfp xmmh, seg, sib, "DISPLACEMENT + 8", dataSize=8
+< };
+< 
+< def macroop LDDQU_XMM_P {
+<     rdip t7
+<     ldfp xmml, seg, sib, "DISPLACEMENT", dataSize=8
+<     ldfp xmmh, seg, sib, "DISPLACEMENT + 8", dataSize=8
+< };
+137a127
+> # LDDQU
+Binary files isa/insts/simd128/integer/data_transfer/move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/data_transfer/move.pyc differ
+Binary files isa/insts/simd128/integer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/__init__.pyc differ
+Binary files isa/insts/simd128/integer/logical/exclusive_or.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/logical/exclusive_or.pyc differ
+Binary files isa/insts/simd128/integer/logical/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/logical/__init__.pyc differ
+Binary files isa/insts/simd128/integer/logical/pand.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/logical/pand.pyc differ
+Binary files isa/insts/simd128/integer/logical/por.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/logical/por.pyc differ
+Binary files isa/insts/simd128/integer/save_and_restore_state/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/save_and_restore_state/__init__.pyc differ
+Binary files isa/insts/simd128/integer/save_and_restore_state/save_and_restore_control_and_status.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/save_and_restore_state/save_and_restore_control_and_status.pyc differ
+Binary files isa/insts/simd128/integer/save_and_restore_state/save_and_restore_state.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/save_and_restore_state/save_and_restore_state.pyc differ
+Binary files isa/insts/simd128/integer/shift/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/shift/__init__.pyc differ
+Binary files isa/insts/simd128/integer/shift/left_logical_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/shift/left_logical_shift.pyc differ
+Binary files isa/insts/simd128/integer/shift/right_arithmetic_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/shift/right_arithmetic_shift.pyc differ
+Binary files isa/insts/simd128/integer/shift/right_logical_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd128/integer/shift/right_logical_shift.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/accumulation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/accumulation.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/addition.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/__init__.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/multiplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/multiplication.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/reciprocal_estimation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/reciprocal_estimation.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/reciprocal_square_root.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/reciprocal_square_root.pyc differ
+Binary files isa/insts/simd64/floating_point/arithmetic/subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/arithmetic/subtraction.pyc differ
+Binary files isa/insts/simd64/floating_point/compare/compare_and_write_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/compare/compare_and_write_mask.pyc differ
+Binary files isa/insts/simd64/floating_point/compare/compare_and_write_minimum_or_maximum.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/compare/compare_and_write_minimum_or_maximum.pyc differ
+Binary files isa/insts/simd64/floating_point/compare/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/compare/__init__.pyc differ
+Binary files isa/insts/simd64/floating_point/data_conversion.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/data_conversion.pyc differ
+Binary files isa/insts/simd64/floating_point/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/floating_point/__init__.pyc differ
+Binary files isa/insts/simd64/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/__init__.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/addition.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/average.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/average.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/__init__.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/multiplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/multiplication.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/multiply_add.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/multiply_add.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/subtraction.pyc differ
+Binary files isa/insts/simd64/integer/arithmetic/sum_of_absolute_differences.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/arithmetic/sum_of_absolute_differences.pyc differ
+Binary files isa/insts/simd64/integer/compare/compare_and_write_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/compare/compare_and_write_mask.pyc differ
+Binary files isa/insts/simd64/integer/compare/compare_and_write_minimum_or_maximum.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/compare/compare_and_write_minimum_or_maximum.pyc differ
+Binary files isa/insts/simd64/integer/compare/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/compare/__init__.pyc differ
+Binary files isa/insts/simd64/integer/data_conversion.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_conversion.pyc differ
+Binary files isa/insts/simd64/integer/data_reordering/extract_and_insert.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_reordering/extract_and_insert.pyc differ
+Binary files isa/insts/simd64/integer/data_reordering/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_reordering/__init__.pyc differ
+Binary files isa/insts/simd64/integer/data_reordering/pack_with_saturation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_reordering/pack_with_saturation.pyc differ
+Binary files isa/insts/simd64/integer/data_reordering/shuffle_and_swap.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_reordering/shuffle_and_swap.pyc differ
+Binary files isa/insts/simd64/integer/data_reordering/unpack_and_interleave.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_reordering/unpack_and_interleave.pyc differ
+Binary files isa/insts/simd64/integer/data_transfer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/__init__.pyc differ
+Binary files isa/insts/simd64/integer/data_transfer/move_mask.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/move_mask.pyc differ
+diff -r isa/insts/simd64/integer/data_transfer/move_non_temporal.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/move_non_temporal.py
+37d36
+< #          Pouya Fotouhi
+40,49c39
+< def macroop MOVNTQ_M_MMX {
+<     warn_once "MOVNTQ: Ignoring non-temporal hint, modeling as cacheable!"
+<     stfp mmx, seg, sib, "DISPLACEMENT", dataSize=8
+< };
+< 
+< def macroop MOVNTQ_P_MMX {
+<     warn_once "MOVNTQ_P: Ignoring non-temporal hint, modeling as cacheable!"
+<     rdip t7
+<     stfp mmx, seg, riprel, "DISPLACEMENT", dataSize=8
+< };
+---
+> # MOVNTQ
+Binary files isa/insts/simd64/integer/data_transfer/move_non_temporal.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/move_non_temporal.pyc differ
+diff -r isa/insts/simd64/integer/data_transfer/move.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/move.py
+53c53
+<     mov2int reg, mmxm, size=dsz
+---
+>     mov2int reg, mmxm, size=dsz 
+Binary files isa/insts/simd64/integer/data_transfer/move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/data_transfer/move.pyc differ
+Binary files isa/insts/simd64/integer/exit_media_state.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/exit_media_state.pyc differ
+Binary files isa/insts/simd64/integer/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/__init__.pyc differ
+Binary files isa/insts/simd64/integer/logical/exclusive_or.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/logical/exclusive_or.pyc differ
+Binary files isa/insts/simd64/integer/logical/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/logical/__init__.pyc differ
+Binary files isa/insts/simd64/integer/logical/pand.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/logical/pand.pyc differ
+Binary files isa/insts/simd64/integer/logical/por.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/logical/por.pyc differ
+Binary files isa/insts/simd64/integer/save_and_restore_state.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/save_and_restore_state.pyc differ
+Binary files isa/insts/simd64/integer/shift/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/shift/__init__.pyc differ
+Binary files isa/insts/simd64/integer/shift/left_logical_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/shift/left_logical_shift.pyc differ
+Binary files isa/insts/simd64/integer/shift/right_arithmetic_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/shift/right_arithmetic_shift.pyc differ
+Binary files isa/insts/simd64/integer/shift/right_logical_shift.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/simd64/integer/shift/right_logical_shift.pyc differ
+Binary files isa/insts/system/control_registers.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/control_registers.pyc differ
+Binary files isa/insts/system/halt.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/halt.pyc differ
+Binary files isa/insts/system/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/__init__.pyc differ
+diff -r isa/insts/system/invlpg.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/invlpg.py
+43c43
+<     .serialize_after
+---
+>     .serializing
+48c48
+<     .serialize_after
+---
+>     .serializing
+Binary files isa/insts/system/invlpg.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/invlpg.pyc differ
+diff -r isa/insts/system/msrs.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/msrs.py
+53c53
+<     .serialize_after
+---
+>     .serializing
+63d62
+<     .serialize_before
+66,76c65,66
+<     srli rdx, t1, 32, dataSize=8
+< };
+< 
+< def macroop RDTSCP
+< {
+<     .serialize_before
+<     mfence
+<     rdtsc t1
+<     mov rax, rax, t1, dataSize=4
+<     srli rdx, t1, 32, dataSize=8
+<     rdval rcx, "InstRegIndex(MISCREG_TSC_AUX)", dataSize=4
+---
+>     srli t1, t1, 32, dataSize=8
+>     mov rdx, rdx, t1, dataSize=4
+Binary files isa/insts/system/msrs.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/msrs.pyc differ
+diff -r isa/insts/system/segmentation.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/segmentation.py
+42c42
+<     .serialize_after
+---
+>     .serializing
+55c55
+<     .serialize_after
+---
+>     .serializing
+74c74
+<     .serialize_after
+---
+>     .serializing
+88c88
+<     .serialize_after
+---
+>     .serializing
+103c103
+<     .serialize_after
+---
+>     .serializing
+116c116
+<     .serialize_after
+---
+>     .serializing
+135c135
+<     .serialize_after
+---
+>     .serializing
+149c149
+<     .serialize_after
+---
+>     .serializing
+164c164
+<     .serialize_after
+---
+>     .serializing
+181c181
+<     .serialize_after
+---
+>     .serializing
+199c199
+<     .serialize_after
+---
+>     .serializing
+218c218
+<     .serialize_after
+---
+>     .serializing
+235c235
+<     .serialize_after
+---
+>     .serializing
+253c253
+<     .serialize_after
+---
+>     .serializing
+Binary files isa/insts/system/segmentation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/segmentation.pyc differ
+Binary files isa/insts/system/undefined_operation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/system/undefined_operation.pyc differ
+Binary files isa/insts/x87/arithmetic/addition.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/addition.pyc differ
+Binary files isa/insts/x87/arithmetic/change_sign.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/change_sign.pyc differ
+Binary files isa/insts/x87/arithmetic/division.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/division.pyc differ
+Binary files isa/insts/x87/arithmetic/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/__init__.pyc differ
+Binary files isa/insts/x87/arithmetic/multiplication.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/multiplication.pyc differ
+Binary files isa/insts/x87/arithmetic/partial_remainder.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/partial_remainder.pyc differ
+Binary files isa/insts/x87/arithmetic/round.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/round.pyc differ
+Binary files isa/insts/x87/arithmetic/square_root.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/square_root.pyc differ
+Binary files isa/insts/x87/arithmetic/subtraction.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/arithmetic/subtraction.pyc differ
+Binary files isa/insts/x87/compare_and_test/classify.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/classify.pyc differ
+Binary files isa/insts/x87/compare_and_test/floating_point_ordered_compare.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/floating_point_ordered_compare.pyc differ
+diff -r isa/insts/x87/compare_and_test/floating_point_unordered_compare.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/floating_point_unordered_compare.py
+2,3d1
+< # Copyright (c) 2015 Advanced Micro Devices, Inc.
+< #
+39d36
+< #          Steve Reinhardt
+45,55c42,43
+< 
+< # fucomi
+< def macroop FUCOMI_R {
+<     compfp st(0), sti
+< };
+< 
+< # fucomi with stack pop (caused by spm=1)
+< def macroop FUCOMIP_R {
+<     compfp st(0), sti, spm=1
+< };
+< 
+---
+> # FUCOMI
+> # FUCOMIP
+Binary files isa/insts/x87/compare_and_test/floating_point_unordered_compare.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/floating_point_unordered_compare.pyc differ
+Binary files isa/insts/x87/compare_and_test/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/__init__.pyc differ
+Binary files isa/insts/x87/compare_and_test/integer_compare.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/integer_compare.pyc differ
+Binary files isa/insts/x87/compare_and_test/test.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/compare_and_test/test.pyc differ
+Binary files isa/insts/x87/control/clear_exceptions.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/clear_exceptions.pyc differ
+Binary files isa/insts/x87/control/initialize.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/initialize.pyc differ
+Binary files isa/insts/x87/control/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/__init__.pyc differ
+diff -r isa/insts/x87/control/save_and_restore_x87_control_word.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/save_and_restore_x87_control_word.py
+46c46
+<     ld t1, seg, riprel, disp, dataSize=2
+---
+>     ld t1, seg, sib, disp, dataSize=2
+60c60
+<     st t1, seg, riprel, disp, dataSize=2
+---
+>     st t1, seg, sib, disp, dataSize=2
+Binary files isa/insts/x87/control/save_and_restore_x87_control_word.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/save_and_restore_x87_control_word.pyc differ
+diff -r isa/insts/x87/control/save_and_restore_x87_environment.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/save_and_restore_x87_environment.py
+66,68d65
+<     srli t1, t1, 11, dataSize=2
+<     andi t1, t1, 0x7, dataSize=2
+<     wrval "InstRegIndex(MISCREG_X87_TOP)", t1
+Binary files isa/insts/x87/control/save_and_restore_x87_environment.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/save_and_restore_x87_environment.pyc differ
+Binary files isa/insts/x87/control/save_x87_status_word.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/save_x87_status_word.pyc differ
+Binary files isa/insts/x87/control/wait_for_exceptions.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/control/wait_for_exceptions.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/conditional_move.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/conditional_move.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_bcd.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_bcd.pyc differ
+diff -r isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_integer.py /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_integer.py
+2,3d1
+< # Copyright (c) 2015 Advanced Micro Devices, Inc.
+< #
+39d36
+< #          Steve Reinhardt
+42,54c39
+< # fild common case
+< def macroop FILD_M {
+<     ldifp87 ufp1, seg, sib, disp
+<     movfp st(-1), ufp1, spm=-1
+< };
+< 
+< # fild with RIP-relative addressing
+< def macroop FILD_P {
+<     rdip t7
+<     ldifp87 ufp1, seg, riprel, disp
+<     movfp st(-1), ufp1, spm=-1
+< };
+< 
+---
+> # FILD
+Binary files isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_integer.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/convert_and_load_or_store_integer.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/exchange.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/exchange.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/extract.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/extract.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/__init__.pyc differ
+Binary files isa/insts/x87/data_transfer_and_conversion/load_or_store_floating_point.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/data_transfer_and_conversion/load_or_store_floating_point.pyc differ
+Binary files isa/insts/x87/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/__init__.pyc differ
+Binary files isa/insts/x87/load_constants/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/load_constants/__init__.pyc differ
+Binary files isa/insts/x87/load_constants/load_0_1_or_pi.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/load_constants/load_0_1_or_pi.pyc differ
+Binary files isa/insts/x87/load_constants/load_logarithm.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/load_constants/load_logarithm.pyc differ
+Binary files isa/insts/x87/no_operation.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/no_operation.pyc differ
+Binary files isa/insts/x87/stack_management/clear_state.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/stack_management/clear_state.pyc differ
+Binary files isa/insts/x87/stack_management/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/stack_management/__init__.pyc differ
+Binary files isa/insts/x87/stack_management/stack_control.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/stack_management/stack_control.pyc differ
+Binary files isa/insts/x87/transcendental_functions/__init__.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/transcendental_functions/__init__.pyc differ
+Binary files isa/insts/x87/transcendental_functions/logarithmic_functions.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/transcendental_functions/logarithmic_functions.pyc differ
+Binary files isa/insts/x87/transcendental_functions/trigonometric_functions.pyc and /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/insts/x87/transcendental_functions/trigonometric_functions.pyc differ
+diff -r isa/macroop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/macroop.isa
+47c47
+<         Fault execute(ExecContext *, Trace::InstRecord *) const
+---
+>         Fault execute(%(CPU_exec_context)s *, Trace::InstRecord *) const
+64,69c64
+< 
+<             Fault
+<             execute(ExecContext *, Trace::InstRecord *) const
+<             {
+<                 panic("Tried to execute macroop directly!");
+<             }
+---
+>             %(MacroExecPanic)s
+147,150c142,143
+<         def serializeBefore(self):
+<             self.serialize_before = True
+<         def serializeAfter(self):
+<             self.serialize_after = True
+---
+>         def serializing(self):
+>             self.serializing = True
+163,164c156
+<                 "serialize_before" : self.serializeBefore,
+<                 "serialize_after" : self.serializeAfter,
+---
+>                 "serializing" : self.serializing,
+181,182c173
+<             self.serialize_before = False
+<             self.serialize_after = False
+---
+>             self.serializing = False
+213,219d203
+<                 if micropc == 0:
+<                     flags.append("IsFirstMicroop")
+< 
+<                     if self.serialize_before:
+<                         flags.append("IsSerializing")
+<                         flags.append("IsSerializeBefore")
+< 
+223c207
+<                     if self.serialize_after:
+---
+>                     if self.serializing:
+229d212
+<                         flags.append("IsUncondControl")
+232d214
+<                         flags.append("IsUncondControl")
+235c217,218
+< 
+---
+>                 if micropc == 0:
+>                     flags.append("IsFirstMicroop")
+338c321
+<         if not Name in macroopDict:
+---
+>         if not macroopDict.has_key(Name):
+diff -r isa/microasm.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microasm.isa
+183,187d182
+<     assembler.symbols["clampOsz"] = '''
+<     if (env.dataSize == 2)
+<         env.dataSize = 4;
+<     '''
+< 
+diff -r isa/microops/base.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/base.isa
+54c54
+< 
+---
+>  
+62c62,63
+<                 static ExtMachInst dummyExtMachInst;
+---
+>                 static const ExtMachInst dummyExtMachInst = \
+>                     X86ISA::NoopMachInst;
+diff -r isa/microops/debug.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/debug.isa
+45c45
+<     class MicroDebug : public X86ISA::X86MicroopBase
+---
+>     class MicroDebugBase : public X86ISA::X86MicroopBase
+48c48,51
+<         std::shared_ptr<GenericISA::M5DebugFault> fault;
+---
+>         typedef GenericISA::M5DebugFault::DebugFunc DebugFunc;
+>         DebugFunc func;
+>         std::string message;
+>         uint8_t cc;
+51,59c54,59
+<         MicroDebug(ExtMachInst _machInst, const char *mnem,
+<                 const char *instMnem, uint64_t setFlags,
+<                 GenericISA::M5DebugFault *_fault);
+< 
+<         Fault
+<         execute(ExecContext *xc, Trace::InstRecord *traceData) const
+<         {
+<             return fault;
+<         }
+---
+>         MicroDebugBase(ExtMachInst machInst, const char * mnem,
+>                 const char * instMnem, uint64_t setFlags,
+>                 DebugFunc _func, std::string _message, uint8_t _cc) :
+>             X86MicroopBase(machInst, mnem, instMnem, setFlags, No_OpClass),
+>                     func(_func), message(_message), cc(_cc)
+>         {}
+67c67
+<             response << "\"" << fault->message() << "\"";
+---
+>             response << "\"" << message << "\"";
+71a72
+> }};
+73c74,75
+<     class MicroDebugFlags : public MicroDebug
+---
+> def template MicroDebugDeclare {{
+>     class %(class_name)s : public %(base_class)s
+75,77d76
+<       protected:
+<         uint8_t cc;
+< 
+79,81c78,79
+<         MicroDebugFlags(ExtMachInst _machInst, const char *mnem,
+<                 const char *instMnem, uint64_t setFlags,
+<                 GenericISA::M5DebugFault *_fault, uint8_t _cc);
+---
+>         %(class_name)s(ExtMachInst _machInst, const char * instMnem,
+>                 uint64_t setFlags, std::string _message, uint8_t _cc);
+83c81
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+87,97c85
+< output decoder {{
+<     MicroDebug::MicroDebug(ExtMachInst _machInst, const char *mnem,
+<             const char *instMnem, uint64_t setFlags,
+<             GenericISA::M5DebugFault *_fault) :
+<         X86ISA::X86MicroopBase(_machInst, mnem, instMnem,
+<                                setFlags, No_OpClass),
+<         fault(_fault)
+<     {}
+< }};
+< 
+< def template MicroDebugFlagsExecute {{
+---
+> def template MicroDebugExecute {{
+99c87
+<         %(class_name)s::execute(ExecContext *xc,
+---
+>         %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+105c93,94
+<                 return %(base_class)s::execute(xc, traceData);
+---
+>                 return std::make_shared<GenericISA::M5DebugFault>(func,
+>                                                                   message);
+112c101
+< def template MicroDebugFlagsConstructor {{
+---
+> def template MicroDebugConstructor {{
+114,118c103,106
+<             ExtMachInst machInst, const char *mnem,
+<             const char *instMnem, uint64_t setFlags,
+<             GenericISA::M5DebugFault *_fault, uint8_t _cc) :
+<         %(base_class)s(machInst, mnem, instMnem, setFlags, _fault),
+<         cc(_cc)
+---
+>             ExtMachInst machInst, const char * instMnem, uint64_t setFlags,
+>             std::string _message, uint8_t _cc) :
+>         %(base_class)s(machInst, "%(func)s", instMnem,
+>                 setFlags, %(func_num)s, _message, _cc)
+125,133d112
+<     iop = InstObjParams("", "MicroDebugFlags", "MicroDebug",
+<             {"code": "",
+<              "cond_test": "checkCondition(ccFlagBits | cfofBits | \
+<                                               dfBit | ecfBit | ezfBit, cc)"})
+<     exec_output = MicroDebugFlagsExecute.subst(iop)
+<     decoder_output = MicroDebugFlagsConstructor.subst(iop)
+< }};
+< 
+< let {{
+135,137c114
+<         def __init__(self, name, fault, message, once, flags):
+<             self.name = name
+<             self.fault = fault
+---
+>         def __init__(self, message, flags=None):
+139,149c116,120
+<             self.once = once
+<             self.flags = flags
+<             if flags and not isinstance(flags, (list, tuple)):
+<                 raise Exception, "flags must be a list or tuple of flags"
+< 
+<             self.className = "MicroDebugFlags" if flags else "MicroDebug"
+< 
+<         def getAllocator(self, microFlags):
+<             if self.once:
+<                 fault_allocator_template = \
+<                     "new %(fault_type)s(%(token)s, %(message)s)"
+---
+>             if flags:
+>                 if not isinstance(flags, (list, tuple)):
+>                     raise Exception, "flags must be a list or tuple of flags"
+>                 self.cond = " | ".join(flags)
+>                 self.className += "Flags"
+151,157c122
+<                 fault_allocator_template = \
+<                     "new %(fault_type)s(%(message)s)"
+<             fault_allocator = fault_allocator_template % {
+<                 "fault_type": self.fault,
+<                 "token": "std::string(\"%s\")" % self.message,
+<                 "message": "\"%s\"" % self.message
+<             }
+---
+>                 self.cond = "0"
+159,163c124,159
+<             args = ["machInst", "\"%s\"" % self.name, "macrocodeBlock",
+<                 self.microFlagsText(microFlags), fault_allocator]
+< 
+<             if self.flags:
+<                 args.append(" | ".join(self.flags))
+---
+>         def getAllocator(self, microFlags):
+>             allocator = '''new %(class_name)s(machInst, macrocodeBlock,
+>                     %(flags)s, "%(message)s", %(cc)s)''' % {
+>                 "class_name" : self.className,
+>                 "flags" : self.microFlagsText(microFlags),
+>                 "message" : self.message,
+>                 "cc" : self.cond}
+>             return allocator
+> 
+>     exec_output = ""
+>     header_output = ""
+>     decoder_output = ""
+> 
+>     def buildDebugMicro(func, func_num):
+>         global exec_output, header_output, decoder_output
+> 
+>         iop = InstObjParams(func, "Micro%sFlags" % func.capitalize(),
+>                 "MicroDebugBase",
+>                 {"code": "",
+>                  "func": func,
+>                  "func_num": "GenericISA::M5DebugFault::%s" % func_num,
+>                  "cond_test": "checkCondition(ccFlagBits | cfofBits | \
+>                                               dfBit | ecfBit | ezfBit, cc)"})
+>         exec_output += MicroDebugExecute.subst(iop)
+>         header_output += MicroDebugDeclare.subst(iop)
+>         decoder_output += MicroDebugConstructor.subst(iop)
+> 
+>         iop = InstObjParams(func, "Micro%s" % func.capitalize(),
+>                 "MicroDebugBase",
+>                 {"code": "",
+>                  "func": func,
+>                  "func_num": "GenericISA::M5DebugFault::%s" % func_num,
+>                  "cond_test": "true"})
+>         exec_output += MicroDebugExecute.subst(iop)
+>         header_output += MicroDebugDeclare.subst(iop)
+>         decoder_output += MicroDebugConstructor.subst(iop)
+165c161,162
+<             return "new " + self.className + "(" + ", ".join(args) + ")"
+---
+>         class MicroDebugChild(MicroDebug):
+>             className = "Micro%s" % func.capitalize()
+167d163
+<     def buildDebugMicro(name, with_once=False):
+168a165
+>         microopClasses[func] = MicroDebugChild
+170,195c167,170
+<         fault_class = "GenericISA::M5" + name.capitalize() + "Fault"
+< 
+<         class MicroDebugChild(MicroDebug):
+<             def __init__(self, message, flags=None):
+<                 super(MicroDebugChild, self).__init__(
+<                         name, fault_class, message, False, flags)
+< 
+<         microopClasses[name] = MicroDebugChild
+< 
+<         if with_once:
+<             fault_once_class = \
+<                 "GenericISA::M5" + name.capitalize() + "OnceFault"
+<             name_once = name + "_once"
+< 
+<             class MicroDebugOnceChild(MicroDebug):
+<                 def __init__(self, message, flags=None):
+<                     super(MicroDebugOnceChild, self).__init__(
+<                             name_once, fault_once_class, message, True, flags)
+< 
+<             microopClasses[name_once] = MicroDebugOnceChild
+< 
+<     buildDebugMicro("panic")
+<     buildDebugMicro("fatal")
+<     buildDebugMicro("hack", True)
+<     buildDebugMicro("inform", True)
+<     buildDebugMicro("warn", True)
+---
+>     buildDebugMicro("panic", "PanicFunc")
+>     buildDebugMicro("fatal", "FatalFunc")
+>     buildDebugMicro("warn", "WarnFunc")
+>     buildDebugMicro("warn_once", "WarnOnceFunc")
+diff -r isa/microops/fpop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/fpop.isa
+3,4d2
+< // Copyright (c) 2015 Advanced Micro Devices, Inc.
+< //
+49c47
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+88c86
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+383c381
+<             RegVal new_fsw = FSW;
+---
+>             MiscReg new_fsw(FSW);
+389c387
+<             const int d = src2_exp - src1_exp;
+---
+>             const int d(src2_exp - src1_exp);
+391c389
+<                 const int64_t q = std::trunc(FpSrcReg2 / FpSrcReg1);
+---
+>                 const int64_t q(std::trunc(FpSrcReg2 / FpSrcReg1));
+398,400c396,398
+<                 const int n = 42;
+<                 const int64_t qq = std::trunc(
+<                     FpSrcReg2 / std::ldexp(FpSrcReg1, d - n));
+---
+>                 const int n(42);
+>                 const int64_t qq(std::trunc(
+>                     FpSrcReg2 / std::ldexp(FpSrcReg1, d - n)));
+403a402,403
+>             DPRINTF(X86, "src1: %lf, src2: %lf, dest: %lf, FSW: 0x%x\\n",
+>                     FpSrcReg1, FpSrcReg2, FpDestReg, new_fsw);
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops: gpu.isa
+diff -r isa/microops/ldstop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/ldstop.isa
+2d1
+< // Copyright (c) 2015 Advanced Micro Devices, Inc.
+51c50
+<     Fault %(class_name)s::execute(ExecContext *xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+84c83
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+91c90
+<     Fault %(class_name)s::execute(ExecContext *xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+120c119
+<     Fault %(class_name)s::initiateAcc(ExecContext * xc,
+---
+>     Fault %(class_name)s::initiateAcc(CPU_EXEC_CONTEXT * xc,
+131,132c130
+<         fault = initiateMemRead(xc, traceData, EA,
+<                                 %(memDataSize)s, memFlags);
+---
+>         fault = readMemTiming(xc, traceData, EA, Mem, dataSize, memFlags);
+139,140c137,139
+<     Fault %(class_name)s::completeAcc(PacketPtr pkt, ExecContext * xc,
+<                                       Trace::InstRecord * traceData) const
+---
+>     Fault %(class_name)s::completeAcc(PacketPtr pkt,
+>             CPU_EXEC_CONTEXT * xc,
+>             Trace::InstRecord * traceData) const
+147c146
+<         getMem(pkt, Mem, dataSize, traceData);
+---
+>         Mem = getMem(pkt, dataSize, traceData);
+163c162
+<     Fault %(class_name)s::execute(ExecContext * xc,
+---
+>     Fault %(class_name)s::execute(CPU_EXEC_CONTEXT * xc,
+176c175,176
+<         if (fault == NoFault) {
+---
+>         if(fault == NoFault)
+>         {
+178,179c178,180
+<                                    memFlags, NULL);
+<             if (fault == NoFault) {
+---
+>                     memFlags, NULL);
+>             if(fault == NoFault)
+>             {
+189c190
+<     Fault %(class_name)s::initiateAcc(ExecContext * xc,
+---
+>     Fault %(class_name)s::initiateAcc(CPU_EXEC_CONTEXT * xc,
+202c203,204
+<         if (fault == NoFault) {
+---
+>         if(fault == NoFault)
+>         {
+204c206
+<                                    memFlags, NULL);
+---
+>                     memFlags, NULL);
+212c214
+<             ExecContext * xc, Trace::InstRecord * traceData) const
+---
+>             CPU_EXEC_CONTEXT * xc, Trace::InstRecord * traceData) const
+221a224,235
+> // Common templates
+> 
+> //This delcares the initiateAcc function in memory operations
+> def template InitiateAccDeclare {{
+>     Fault initiateAcc(%(CPU_exec_context)s *, Trace::InstRecord *) const;
+> }};
+> 
+> //This declares the completeAcc function in memory operations
+> def template CompleteAccDeclare {{
+>     Fault completeAcc(PacketPtr, %(CPU_exec_context)s *, Trace::InstRecord *) const;
+> }};
+> 
+234,238c248
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+<         Fault initiateAcc(ExecContext *, Trace::InstRecord *) const;
+<         Fault completeAcc(PacketPtr, ExecContext *, Trace::InstRecord *) const;
+<     };
+< }};
+---
+>         %(BasicExecDeclare)s
+240,252c250
+< // LdStSplitOp is a load or store that uses a pair of regs as the
+< // source or destination.  Used for cmpxchg{8,16}b.
+< def template MicroLdStSplitOpDeclare {{
+<     class %(class_name)s : public %(base_class)s
+<     {
+<       public:
+<         %(class_name)s(ExtMachInst _machInst,
+<                 const char * instMnem, uint64_t setFlags,
+<                 uint8_t _scale, InstRegIndex _index, InstRegIndex _base,
+<                 uint64_t _disp, InstRegIndex _segment,
+<                 InstRegIndex _dataLow, InstRegIndex _dataHi,
+<                 uint8_t _dataSize, uint8_t _addressSize,
+<                 Request::FlagsType _memFlags);
+---
+>         %(InitiateAccDeclare)s
+254,256c252
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+<         Fault initiateAcc(ExecContext *, Trace::InstRecord *) const;
+<         Fault completeAcc(PacketPtr, ExecContext *, Trace::InstRecord *) const;
+---
+>         %(CompleteAccDeclare)s
+277,293d272
+< def template MicroLdStSplitOpConstructor {{
+<     %(class_name)s::%(class_name)s(
+<             ExtMachInst machInst, const char * instMnem, uint64_t setFlags,
+<             uint8_t _scale, InstRegIndex _index, InstRegIndex _base,
+<             uint64_t _disp, InstRegIndex _segment,
+<             InstRegIndex _dataLow, InstRegIndex _dataHi,
+<             uint8_t _dataSize, uint8_t _addressSize,
+<             Request::FlagsType _memFlags) :
+<         %(base_class)s(machInst, "%(mnemonic)s", instMnem, setFlags,
+<                 _scale, _index, _base,
+<                 _disp, _segment, _dataLow, _dataHi,
+<                 _dataSize, _addressSize, _memFlags, %(op_class)s)
+<     {
+<         %(constructor)s;
+<     }
+< }};
+< 
+297,298c276
+<                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec,
+<                 implicitStack, uncacheable):
+---
+>                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec):
+314,320c292,293
+<             if uncacheable:
+<                 self.instFlags += " | (Request::UNCACHEABLE)"
+<             # For implicit stack operations, we should use *not* use the
+<             # alternative addressing mode for loads/stores if the prefix is set
+<             if not implicitStack:
+<                 self.memFlags += " | (machInst.legacy.addr ? " + \
+<                                  "(AddrSizeFlagBit << FlagShift) : 0)"
+---
+>             self.memFlags += " | (machInst.legacy.addr ? " + \
+>                              "(AddrSizeFlagBit << FlagShift) : 0)"
+339,340c312
+<                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec,
+<                 implicitStack, uncacheable):
+---
+>                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec):
+356,362c328,329
+<             if uncacheable:
+<                 self.instFlags += " | (Request::UNCACHEABLE)"
+<             # For implicit stack operations, we should use *not* use the
+<             # alternative addressing mode for loads/stores if the prefix is set
+<             if not implicitStack:
+<                 self.memFlags += " | (machInst.legacy.addr ? " + \
+<                                  "(AddrSizeFlagBit << FlagShift) : 0)"
+---
+>             self.memFlags += " | (machInst.legacy.addr ? " + \
+>                              "(AddrSizeFlagBit << FlagShift) : 0)"
+386,414d352
+< 
+<     class LdStSplitOp(LdStOp):
+<         def __init__(self, data, segment, addr, disp,
+<                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec,
+<                 implicitStack, uncacheable):
+<             super(LdStSplitOp, self).__init__(0, segment, addr, disp,
+<                 dataSize, addressSize, baseFlags, atCPL0, prefetch, nonSpec,
+<                 implicitStack, uncacheable)
+<             (self.dataLow, self.dataHi) = data
+< 
+<         def getAllocator(self, microFlags):
+<             allocString = '''(StaticInstPtr)(new %(class_name)s(machInst,
+<                         macrocodeBlock, %(flags)s, %(scale)s, %(index)s,
+<                         %(base)s, %(disp)s, %(segment)s,
+<                         %(dataLow)s, %(dataHi)s,
+<                         %(dataSize)s, %(addressSize)s, %(memFlags)s))
+<             '''
+<             allocator = allocString % {
+<                 "class_name" : self.className,
+<                 "flags" : self.microFlagsText(microFlags) + self.instFlags,
+<                 "scale" : self.scale, "index" : self.index,
+<                 "base" : self.base,
+<                 "disp" : self.disp,
+<                 "segment" : self.segment,
+<                 "dataLow" : self.dataLow, "dataHi" : self.dataHi,
+<                 "dataSize" : self.dataSize, "addressSize" : self.addressSize,
+<                 "memFlags" : self.memFlags}
+<             return allocator
+< 
+425,428c363,365
+<     segmentEAExpr = \
+<         'bits(scale * Index + Base + disp, addressSize * 8 - 1, 0);'
+< 
+<     calculateEA = 'EA = SegBase + ' + segmentEAExpr
+---
+>     calculateEA = '''
+>     EA = SegBase + bits(scale * Index + Base + disp, addressSize * 8 - 1, 0);
+>     '''
+431,432c368
+<                           mem_flags="0", big=True, nonSpec=False,
+<                           implicitStack=False):
+---
+>                           mem_flags="0", big=True):
+442,444c378
+<                               { "code": code,
+<                                 "ea_code": calculateEA,
+<                                 "memDataSize": "dataSize" })]
+---
+>                 {"code": code, "ea_code": calculateEA})]
+447,449c381
+<                                    { "code": bigCode,
+<                                      "ea_code": calculateEA,
+<                                      "memDataSize": "dataSize" })]
+---
+>                      {"code": bigCode, "ea_code": calculateEA})]
+457,464d388
+<         if implicitStack:
+<             # For instructions that implicitly access the stack, the address
+<             # size is the same as the stack segment pointer size, not the
+<             # address size if specified by the instruction prefix
+<             addressSize = "env.stackSize"
+<         else:
+<             addressSize = "env.addressSize"
+< 
+471,473c395,396
+<                     addressSize=addressSize,
+<                     atCPL0=False, prefetch=False, nonSpec=nonSpec,
+<                     implicitStack=implicitStack, uncacheable=False):
+---
+>                     addressSize="env.addressSize",
+>                     atCPL0=False, prefetch=False, nonSpec=False):
+476c399
+<                         atCPL0, prefetch, nonSpec, implicitStack, uncacheable)
+---
+>                         atCPL0, prefetch, nonSpec)
+484,486d406
+<     defineMicroLoadOp('Ldis', 'Data = merge(Data, Mem, dataSize);',
+<                               'Data = Mem & mask(dataSize * 8);',
+<                                implicitStack=True)
+492,493c412
+<                       '(StoreCheck << FlagShift) | Request::LOCKED_RMW',
+<                       nonSpec=True)
+---
+>                       '(StoreCheck << FlagShift) | Request::LOCKED_RMW')
+511,576c430
+<     # Load integer from memory into x87 top-of-stack register.
+<     # Used to implement fild instruction.
+<     defineMicroLoadOp('Ldifp87', code='''
+<         switch (dataSize)
+<         {
+<           case 2:
+<             FpData_df = (int64_t)sext<16>(Mem);
+<             break;
+<           case 4:
+<             FpData_df = (int64_t)sext<32>(Mem);
+<             break;
+<           case 8:
+<             FpData_df = (int64_t)Mem;
+<             break;
+<           default:
+<             panic("Unhandled data size in LdIFp87.\\n");
+<         }
+<     ''', big = False)
+< 
+<     def defineMicroLoadSplitOp(mnemonic, code, mem_flags="0", nonSpec=False):
+<         global header_output
+<         global decoder_output
+<         global exec_output
+<         global microopClasses
+<         Name = mnemonic
+<         name = mnemonic.lower()
+< 
+<         iop = InstObjParams(name, Name, 'X86ISA::LdStSplitOp',
+<                             { "code": code,
+<                               "ea_code": calculateEA,
+<                               "memDataSize": "2 * dataSize" })
+< 
+<         header_output += MicroLdStSplitOpDeclare.subst(iop)
+<         decoder_output += MicroLdStSplitOpConstructor.subst(iop)
+<         exec_output += MicroLoadExecute.subst(iop)
+<         exec_output += MicroLoadInitiateAcc.subst(iop)
+<         exec_output += MicroLoadCompleteAcc.subst(iop)
+< 
+<         class LoadOp(LdStSplitOp):
+<             def __init__(self, data, segment, addr, disp = 0,
+<                     dataSize="env.dataSize",
+<                     addressSize="env.addressSize",
+<                     atCPL0=False, prefetch=False, nonSpec=nonSpec,
+<                     implicitStack=False, uncacheable=False):
+<                 super(LoadOp, self).__init__(data, segment, addr,
+<                         disp, dataSize, addressSize, mem_flags,
+<                         atCPL0, prefetch, nonSpec, implicitStack, uncacheable)
+<                 self.className = Name
+<                 self.mnemonic = name
+< 
+<         microopClasses[name] = LoadOp
+< 
+<     code = '''
+<         DataLow = Mem_u2qw[0];
+<         DataHi = Mem_u2qw[1];
+<     '''
+< 
+<     defineMicroLoadSplitOp('LdSplit', code,
+<                            '(StoreCheck << FlagShift)')
+< 
+<     defineMicroLoadSplitOp('LdSplitl', code,
+<                            '(StoreCheck << FlagShift) | Request::LOCKED_RMW',
+<                            nonSpec=True)
+< 
+<     def defineMicroStoreOp(mnemonic, code, completeCode="", mem_flags="0",
+<                            implicitStack=False):
+---
+>     def defineMicroStoreOp(mnemonic, code, completeCode="", mem_flags="0"):
+586,589c440,442
+<                             { "code": code,
+<                               "complete_code": completeCode,
+<                               "ea_code": calculateEA,
+<                               "memDataSize": "dataSize" })
+---
+>                 {"code": code,
+>                  "complete_code": completeCode,
+>                  "ea_code": calculateEA})
+596,603d448
+<         if implicitStack:
+<             # For instructions that implicitly access the stack, the address
+<             # size is the same as the stack segment pointer size, not the
+<             # address size if specified by the instruction prefix
+<             addressSize = "env.stackSize"
+<         else:
+<             addressSize = "env.addressSize"
+< 
+607,609c452,453
+<                     addressSize=addressSize,
+<                     atCPL0=False, nonSpec=False, implicitStack=implicitStack,
+<                     uncacheable=False):
+---
+>                     addressSize="env.addressSize",
+>                     atCPL0=False, nonSpec=False):
+612c456
+<                         nonSpec, implicitStack, uncacheable)
+---
+>                         nonSpec)
+619,620d462
+<     defineMicroStoreOp('Stis', 'Mem = pick(Data, 2, dataSize);',
+<                        implicitStack=True)
+642,691d483
+<     defineMicroStoreOp('Clflushopt', 'Mem = 0;',
+<                        mem_flags="Request::CLEAN | Request::INVALIDATE" +
+<                        " | Request::DST_POC")
+<     defineMicroStoreOp('Clwb', 'Mem = 0;',
+<                        mem_flags="Request::CLEAN | Request::DST_POC")
+< 
+<     def defineMicroStoreSplitOp(mnemonic, code,
+<                                 completeCode="", mem_flags="0"):
+<         global header_output
+<         global decoder_output
+<         global exec_output
+<         global microopClasses
+<         Name = mnemonic
+<         name = mnemonic.lower()
+< 
+<         iop = InstObjParams(name, Name, 'X86ISA::LdStSplitOp',
+<                             { "code": code,
+<                               "complete_code": completeCode,
+<                               "ea_code": calculateEA,
+<                               "memDataSize": "2 * dataSize" })
+< 
+<         header_output += MicroLdStSplitOpDeclare.subst(iop)
+<         decoder_output += MicroLdStSplitOpConstructor.subst(iop)
+<         exec_output += MicroStoreExecute.subst(iop)
+<         exec_output += MicroStoreInitiateAcc.subst(iop)
+<         exec_output += MicroStoreCompleteAcc.subst(iop)
+< 
+<         class StoreOp(LdStSplitOp):
+<             def __init__(self, data, segment, addr, disp = 0,
+<                     dataSize="env.dataSize",
+<                     addressSize="env.addressSize",
+<                     atCPL0=False, nonSpec=False, implicitStack=False,
+<                     uncacheable=False):
+<                 super(StoreOp, self).__init__(data, segment, addr, disp,
+<                         dataSize, addressSize, mem_flags, atCPL0, False,
+<                         nonSpec, implicitStack, uncacheable)
+<                 self.className = Name
+<                 self.mnemonic = name
+< 
+<         microopClasses[name] = StoreOp
+< 
+<     code = '''
+<         Mem_u2qw[0] = DataLow;
+<         Mem_u2qw[1] = DataHi;
+<     '''
+< 
+<     defineMicroStoreSplitOp('StSplit', code);
+< 
+<     defineMicroStoreSplitOp('StSplitul', code,
+<                             mem_flags='Request::LOCKED_RMW')
+694,696c486,489
+<                         { "code": "Data = merge(Data, EA, dataSize);",
+<                           "ea_code": "EA = " + segmentEAExpr,
+<                           "memDataSize": "dataSize" })
+---
+>             {"code": "Data = merge(Data, EA, dataSize);",
+>              "ea_code": '''
+>              EA = bits(scale * Index + Base + disp, addressSize * 8 - 1, 0);
+>              '''})
+705,706c498
+<                     dataSize, addressSize, "0",
+<                     False, False, False, False, False)
+---
+>                     dataSize, addressSize, "0", False, False, False)
+714,716c506,507
+<                         { "code": "xc->demapPage(EA, 0);",
+<                           "ea_code": calculateEA,
+<                           "memDataSize": "dataSize" })
+---
+>             {"code": "xc->demapPage(EA, 0);",
+>              "ea_code": calculateEA})
+727c518
+<                     False, False, False)
+---
+>                     False)
+739c530
+<                     atCPL0, False, False, False, False)
+---
+>                     atCPL0, False, False)
+744a536
+> 
+diff -r isa/microops/limmop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/limmop.isa
+45c45
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+74c74
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+98c98
+<                 dest(_dest.index()), imm(_imm), dataSize(_dataSize)
+---
+>                 dest(_dest.idx), imm(_imm), dataSize(_dataSize)
+diff -r isa/microops/mediaop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/mediaop.isa
+1,3c1
+< // Copyright (c) 2009 The Regents of The University of Michigan
+< // Copyright (c) 2015 Advanced Micro Devices, Inc.
+< //
+---
+> /// Copyright (c) 2009 The Regents of The University of Michigan
+32c30
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+60c58
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+74c72
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+157,161c155
+<             opt_args = []
+<             if self.op_class:
+<                 opt_args.append(self.op_class)
+<             iop = InstObjParams(name, Name + suffix, base, {"code" : code},
+<                                 opt_args)
+---
+>             iop = InstObjParams(name, Name + suffix, base, {"code" : code})
+175,176d168
+<             if not "op_class" in dict:
+<                 dict["op_class"] = None
+223c215
+<                 self.ext = ext
+---
+>                 self.ext = ext 
+246d237
+<         op_class = 'SimdMiscOp'
+248c239
+<             int items = sizeof(double) / srcSize;
+---
+>             int items = sizeof(FloatRegBits) / srcSize;
+268d258
+<         op_class = 'SimdMiscOp'
+270c260
+<             int items = sizeof(double) / destSize;
+---
+>             int items = sizeof(FloatRegBits) / destSize;
+290d279
+<         op_class = 'SimdMiscOp'
+292c281
+<             int items = sizeof(double) / srcSize;
+---
+>             int items = sizeof(FloatRegBits) / srcSize;
+304d292
+<         op_class = 'SimdMiscOp'
+323d310
+<         op_class = 'SimdMiscOp'
+328c315
+<             int items = sizeof(double) / size;
+---
+>             int items = sizeof(FloatRegBits) / size;
+345c332
+<                 if (lsel * size >= sizeof(double)) {
+---
+>                 if (lsel * size >= sizeof(FloatRegBits)) {
+366d352
+<         op_class = 'SimdMiscOp'
+370c356
+<             int items = (sizeof(double) / size) / 2;
+---
+>             int items = (sizeof(FloatRegBits) / size) / 2;
+393d378
+<         op_class = 'SimdMiscOp'
+396c381
+<             int items = (sizeof(double) / destSize);
+---
+>             int items = (sizeof(FloatRegBits) / destSize);
+463d447
+<         op_class = 'SimdAluOp'
+471d454
+<         op_class = 'SimdAluOp'
+479d461
+<         op_class = 'SimdAluOp'
+487d468
+<         op_class = 'SimdAluOp'
+493d473
+<         op_class = 'SimdFloatCmpOp'
+544d523
+<         op_class = 'SimdFloatCmpOp'
+595d573
+<         op_class = 'SimdCmpOp'
+634d611
+<         op_class = 'SimdCmpOp'
+673d649
+<         op_class = 'SimdFloatSqrtOp'
+718,753d693
+<     # compute approximate reciprocal --- single-precision only
+<     class Mrcp(MediaOp):
+<         def __init__(self, dest, src, \
+<                 size = None, destSize = None, srcSize = None, ext = None):
+<             super(Mrcp, self).__init__(dest, src,\
+<                     "InstRegIndex(0)", size, destSize, srcSize, ext)
+<         op_class = 'SimdFloatAluOp'
+<         code = '''
+<             union floatInt
+<             {
+<                 float f;
+<                 uint32_t i;
+<             };
+< 
+<             assert(srcSize == 4);  // ISA defines single-precision only
+<             assert(srcSize == destSize);
+<             const int size = 4;
+<             const int sizeBits = size * 8;
+<             int items = numItems(size);
+<             uint64_t result = FpDestReg_uqw;
+< 
+<             for (int i = 0; i < items; i++) {
+<                 int hiIndex = (i + 1) * sizeBits - 1;
+<                 int loIndex = (i + 0) * sizeBits;
+<                 uint64_t argBits = bits(FpSrcReg1_uqw, hiIndex, loIndex);
+< 
+<                 floatInt fi;
+<                 fi.i = argBits;
+<                 // This is more accuracy than HW provides, but oh well
+<                 fi.f = 1.0 / fi.f;
+<                 argBits = fi.i;
+<                 result = insertBits(result, hiIndex, loIndex, argBits);
+<             }
+<             FpDestReg_uqw = result;
+<         '''
+< 
+755d694
+<         op_class = 'SimdFloatAddOp'
+802d740
+<         op_class = 'SimdFloatAddOp'
+849d786
+<         op_class = 'SimdFloatMultOp'
+896d832
+<         op_class = 'SimdFloatDivOp'
+943d878
+<         op_class = 'SimdAddOp'
+957c892
+< 
+---
+>                 
+981d915
+<         op_class = 'SimdAddOp'
+995c929
+< 
+---
+>                 
+1023d956
+<         op_class = 'SimdMultOp'
+1058c991
+< 
+---
+>                 
+1070d1002
+<         op_class = 'SimdAddOp'
+1084c1016
+< 
+---
+>                 
+1091d1022
+<         op_class = 'SimdAddOp'
+1094c1025
+<             int items = sizeof(double) / srcSize;
+---
+>             int items = sizeof(FloatRegBits) / srcSize;
+1111d1041
+<         op_class = 'SimdShiftOp'
+1139d1068
+<         op_class = 'SimdShiftOp'
+1171d1099
+<         op_class = 'SimdShiftOp'
+1202d1129
+<         op_class = 'SimdFloatCvtOp'
+1259,1260c1186
+<                     int32_t i_arg = (int32_t)arg;
+<                     argBits = *((uint32_t*)&i_arg);
+---
+>                     argBits = (uint32_t)arg;
+1262,1263c1188
+<                     int64_t i_arg = (int64_t)arg;
+<                     argBits = *((uint64_t*)&i_arg);
+---
+>                     argBits = (uint64_t)arg;
+1277d1201
+<         op_class = 'SimdFloatCvtOp'
+1340d1263
+<         op_class = 'SimdFloatCvtOp'
+1405d1327
+<         op_class = 'SimdCvtOp'
+1445d1366
+<         op_class = 'SimdFloatCvtOp'
+1532d1452
+<         op_class = 'SimdFloatCvtOp'
+1587d1506
+<         op_class = 'FloatMiscOp'
+diff -r isa/microops/microops.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/microops.isa
+63a64,66
+> 
+> //Microops for interacting with the GPU
+> ##include "gpu.isa"
+diff -r isa/microops/regop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/regop.isa
+45c45
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+54c54
+<             RegVal result M5_VAR_USED;
+---
+>             IntReg result M5_VAR_USED;
+76c76
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+84c84
+<             RegVal result M5_VAR_USED;
+---
+>             IntReg result M5_VAR_USED;
+114c114
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+128c128
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+241c241
+<             allCode = "|".join((code, flag_code, cond_check, else_code,
+---
+>             allCode = "|".join((code, flag_code, cond_check, else_code, 
+549,553d548
+<         # Multiply two values Aa and Bb where Aa = A << p + a, then correct for
+<         # negative operands.
+<         #   Aa * Bb
+<         # = (A << p + a) * (B << p + b)
+<         # = (A * B) << 2p + (A * b + a * B) << p + a * b
+556,578c551,560
+< 
+<             int p = (dataSize * 8) / 2;
+<             uint64_t A = bits(psrc1, 2 * p - 1, p);
+<             uint64_t a = bits(psrc1, p - 1, 0);
+<             uint64_t B = bits<uint64_t>(op2, 2 * p - 1, p);
+<             uint64_t b = bits<uint64_t>(op2, p - 1, 0);
+< 
+<             uint64_t c1, c2; // Carry between place values.
+<             uint64_t ab = a * b, Ab = A * b, aB = a * B, AB = A * B;
+< 
+<             c1 = ab >> p;
+< 
+<             // Be careful to avoid overflow if p is large.
+<             if (p == 32) {
+<                 c2 = (c1 >> 1) + (Ab >> 1) + (aB >> 1);
+<                 c2 += ((c1 & 0x1) + (Ab & 0x1) + (aB & 0x1)) >> 1;
+<                 c2 >>= (p - 1);
+<             } else {
+<                 c2 = (c1 + Ab + aB) >> p;
+<             }
+< 
+<             uint64_t hi = AB + c2;
+< 
+---
+>             int halfSize = (dataSize * 8) / 2;
+>             uint64_t shifter = (ULL(1) << halfSize);
+>             uint64_t hiResult;
+>             uint64_t psrc1_h = psrc1 / shifter;
+>             uint64_t psrc1_l = psrc1 & mask(halfSize);
+>             uint64_t psrc2_h = (op2 / shifter) & mask(halfSize);
+>             uint64_t psrc2_l = op2 & mask(halfSize);
+>             hiResult = ((psrc1_l * psrc2_h + psrc1_h * psrc2_l +
+>                         ((psrc1_l * psrc2_l) / shifter)) /shifter) +
+>                        psrc1_h * psrc2_h;
+580c562
+<                 hi -= op2;
+---
+>                 hiResult -= op2;
+582,584c564,565
+<                 hi -= psrc1;
+< 
+<             ProdHi = hi;
+---
+>                 hiResult -= psrc1;
+>             ProdHi = hiResult;
+600,603d580
+<         # Multiply two values Aa and Bb where Aa = A << p + a.
+<         #   Aa * Bb
+<         # = (A << p + a) * (B << p + b)
+<         # = (A * B) << 2p + (A * b + a * B) << p + a * b
+606,627c583,591
+< 
+<             int p = (dataSize * 8) / 2;
+<             uint64_t A = bits(psrc1, 2 * p - 1, p);
+<             uint64_t a = bits(psrc1, p - 1, 0);
+<             uint64_t B = bits<uint64_t>(op2, 2 * p - 1, p);
+<             uint64_t b = bits<uint64_t>(op2, p - 1, 0);
+< 
+<             uint64_t c1, c2; // Carry between place values.
+<             uint64_t ab = a * b, Ab = A * b, aB = a * B, AB = A * B;
+< 
+<             c1 = ab >> p;
+< 
+<             // Be careful to avoid overflow if p is large.
+<             if (p == 32) {
+<                 c2 = (c1 >> 1) + (Ab >> 1) + (aB >> 1);
+<                 c2 += ((c1 & 0x1) + (Ab & 0x1) + (aB & 0x1)) >> 1;
+<                 c2 >>= (p - 1);
+<             } else {
+<                 c2 = (c1 + Ab + aB) >> p;
+<             }
+< 
+<             ProdHi = AB + c2;
+---
+>             int halfSize = (dataSize * 8) / 2;
+>             uint64_t shifter = (ULL(1) << halfSize);
+>             uint64_t psrc1_h = psrc1 / shifter;
+>             uint64_t psrc1_l = psrc1 & mask(halfSize);
+>             uint64_t psrc2_h = (op2 / shifter) & mask(halfSize);
+>             uint64_t psrc2_l = op2 & mask(halfSize);
+>             ProdHi = ((psrc1_l * psrc2_h + psrc1_h * psrc2_l +
+>                       ((psrc1_l * psrc2_l) / shifter)) / shifter) +
+>                      psrc1_h * psrc2_h;
+825c789
+<                 if ((ext & (CFBit | ECFBit)) &&
+---
+>                 if ((ext & (CFBit | ECFBit)) && 
+1057c1021
+<                 if ((ext & (CFBit | ECFBit)) &&
+---
+>                 if ((ext & (CFBit | ECFBit)) && 
+1223,1224c1187,1188
+<             RegVal newFlags = psrc1 ^ op2;
+<             RegVal userFlagMask = 0xDD5;
+---
+>             MiscReg newFlags = psrc1 ^ op2;
+>             MiscReg userFlagMask = 0xDD5;
+1271,1272c1235,1236
+<             RegVal flagMask = 0x3F7FDD5;
+<             RegVal flags = (nccFlagBits | ccFlagBits | cfofBits | dfBit |
+---
+>             MiscReg flagMask = 0x3F7FDD5;
+>             MiscReg flags = (nccFlagBits | ccFlagBits | cfofBits | dfBit |
+1281,1282c1245,1246
+<             RegVal flagMask = 0x3F7FDD5;
+<             RegVal flags = (nccFlagBits | ccFlagBits | cfofBits | dfBit |
+---
+>             MiscReg flagMask = 0x3F7FDD5;
+>             MiscReg flags = (nccFlagBits | ccFlagBits | cfofBits | dfBit |
+1297c1261
+<             RegVal val = psrc1;
+---
+>             IntReg val = psrc1;
+1307c1271
+<             RegVal val = psrc1;
+---
+>             IntReg val = psrc1;
+1393c1357,1360
+<                 RegVal newVal = psrc1;
+---
+>                 // There are *s in the line below so it doesn't confuse the
+>                 // parser. They may be unnecessary.
+>                 //Mis*cReg old*Val = pick(Cont*rolDest, 0, dat*aSize);
+>                 MiscReg newVal = psrc1;
+1427d1393
+<                     break;
+1529c1495
+<                 M5_FALLTHROUGH;
+---
+>                 // Fall through on purpose
+1627c1593,1594
+<                 replaceBits(target, 31, 0, desc.base);
+---
+>                 replaceBits(target, 23, 0, desc.baseLow);
+>                 replaceBits(target, 31, 24, desc.baseHigh);
+1702,1703c1669,1674
+<                     SegBaseDest = desc.base;
+<                     SegLimitDest = desc.limit;
+---
+>                     Addr base = desc.baseLow | (desc.baseHigh << 24);
+>                     Addr limit = desc.limitLow | (desc.limitHigh << 16);
+>                     if (desc.g)
+>                         limit = (limit << 12) | mask(12);
+>                     SegBaseDest = base;
+>                     SegLimitDest = limit;
+diff -r isa/microops/seqop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/seqop.isa
+66c66
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+71c71
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+diff -r isa/microops/specop.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/microops/specop.isa
+72c72
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+86c86
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+91c91
+<         Fault %(class_name)s::execute(ExecContext *xc,
+---
+>         Fault %(class_name)s::execute(CPU_EXEC_CONTEXT *xc,
+107c107,108
+<     MicroHalt::execute(ExecContext *xc, Trace::InstRecord * traceData) const
+---
+>     MicroHalt::execute(CPU_EXEC_CONTEXT *xc,
+>             Trace::InstRecord * traceData) const
+217c218
+<         Fault execute(ExecContext *, Trace::InstRecord *) const;
+---
+>         %(BasicExecDeclare)s
+diff -r isa/operands.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/operands.isa
+2d1
+< // Copyright (c) 2015 Advanced Micro Devices, Inc.
+53d51
+<     'u2qw' : 'std::array<uint64_t, 2>',
+101,102d98
+<         'DataLow':       foldInt('dataLow', 'foldOBit', 6),
+<         'DataHi':        foldInt('dataHi', 'foldOBit', 6),
+diff -r isa/specialize.isa /mnt/d/source/github/sim/gem5-gpu/gem5/src/arch/x86/isa/specialize.isa
+146,148c146
+<                     "printReg(out, InstRegIndex(%s), regSize);\n" %
+<                                                                      regString)
+< 
+---
+>                         "printReg(out, %s, regSize);\n" % regString)
+150d147
+< 
+154,156c151
+<                         "printReg(out, InstRegIndex(%s), regSize);\n" %
+<                                                                   InstRegIndex)
+< 
+---
+>                         "printReg(out, %s, regSize);\n" % InstRegIndex)
+158d152
+< 
+191,193c185
+<                         "printReg(out, InstRegIndex(%s), regSize);\n" %
+<                                                                  ModRMRegIndex)
+< 
+---
+>                         "printReg(out, %s, regSize);\n" % ModRMRegIndex)
+195d186
+< 
+207,209c198
+<                         "printReg(out, InstRegIndex(%s), regSize);\n" %
+<                                                                   ModRMRMIndex)
+< 
+---
+>                         "printReg(out, %s, regSize);\n" % ModRMRMIndex)
+211d199
+< 
+237,239c225
+<                         "printReg(out, InstRegIndex(%s), regSize);\n" %
+<                                                                   ModRMRMIndex)
+< 
+---
+>                         "printReg(out, %s, regSize);\n" % ModRMRMIndex)
+241d226
+< 

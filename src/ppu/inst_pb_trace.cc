@@ -37,17 +37,21 @@
  * Authors: Ali Saidi
  */
 
-#include "cpu/inst_pb_trace.hh"
+#include "ppu/inst_pb_trace.hh"
 
 #include "base/callback.hh"
 #include "base/output.hh"
 #include "config/the_isa.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
-#include "debug/ExecEnable.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuExecEnable.hh"
 #include "params/InstPBTrace.hh"
 #include "proto/inst.pb.h"
 #include "sim/core.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 namespace Trace {
 
@@ -124,7 +128,7 @@ InstPBTrace::getInstRecord(Tick when, ThreadContext *tc, const StaticInstPtr si,
                            ThePpuISA::PCState pc, const StaticInstPtr mi)
 {
     // Only record the trace if Exec debugging is enabled
-    if (!Debug::ExecEnable)
+    if (!Debug::PpuExecEnable)
         return NULL;
 
     return new InstPBTraceRecord(*this, when, tc, si, pc, mi);

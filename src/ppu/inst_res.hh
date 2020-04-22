@@ -37,8 +37,8 @@
  * Authors: Nathanael Premillieu
  */
 
-#ifndef __CPU_INST_RES_HH__
-#define __CPU_INST_RES_HH__
+#ifndef __PPU_INST_RES_HH__
+#define __PPU_INST_RES_HH__
 
 #include <type_traits>
 
@@ -203,4 +203,4 @@ class InstResult {
     /** @} */
 };
 
-#endif // __CPU_INST_RES_HH__
+#endif // __PPU_INST_RES_HH__

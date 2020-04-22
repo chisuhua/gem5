@@ -37,10 +37,10 @@
  * - 8KB version
  */
 
-#ifndef __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__
-#define __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__
+#ifndef __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__
+#define __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__
 
-#include "cpu/pred/multiperspective_perceptron.hh"
+#include "ppu/pred/multiperspective_perceptron.hh"
 #include "params/MultiperspectivePerceptron8KB.hh"
 
 class MultiperspectivePerceptron8KB : public MultiperspectivePerceptron {
@@ -50,4 +50,4 @@ class MultiperspectivePerceptron8KB : public MultiperspectivePerceptron {
             const MultiperspectivePerceptron8KBParams *p);
 };
 
-#endif // __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__
+#endif // __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_8KB_HH__

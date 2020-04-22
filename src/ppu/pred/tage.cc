@@ -38,14 +38,14 @@
  * Implementation of a TAGE branch predictor
  */
 
-#include "cpu/pred/tage.hh"
+#include "ppu/pred/tage.hh"
 
 #include "base/intmath.hh"
 #include "base/logging.hh"
 #include "base/random.hh"
 #include "base/trace.hh"
-#include "debug/Fetch.hh"
-#include "debug/Tage.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuTage.hh"
 
 TAGE::TAGE(const TAGEParams *params) : BPredUnit(params), tage(params->tage)
 {
@@ -72,7 +72,7 @@ TAGE::update(ThreadID tid, Addr branch_pc, bool taken, void* bp_history,
 
     int nrand = random_mt.random<int>() & 3;
     if (bi->tageBranchInfo->condBranch) {
-        DPRINTF(Tage, "Updating tables for branch:%lx; taken?:%d\n",
+        DPRINTF(PpuTage, "Updating tables for branch:%lx; taken?:%d\n",
                 branch_pc, taken);
         tage->updateStats(taken, bi->tageBranchInfo);
         tage->condBranchUpdate(tid, branch_pc, taken, tage_bi, nrand,
@@ -89,7 +89,7 @@ void
 TAGE::squash(ThreadID tid, void *bp_history)
 {
     TageBranchInfo *bi = static_cast<TageBranchInfo*>(bp_history);
-    DPRINTF(Tage, "Deleting branch info: %lx\n", bi->tageBranchInfo->branchPC);
+    DPRINTF(PpuTage, "Deleting branch info: %lx\n", bi->tageBranchInfo->branchPC);
     delete bi;
 }
 
@@ -108,7 +108,7 @@ TAGE::lookup(ThreadID tid, Addr branch_pc, void* &bp_history)
 
     TageBranchInfo *bi = static_cast<TageBranchInfo*>(bp_history);
 
-    DPRINTF(Tage, "Lookup branch: %lx; predict:%d\n", branch_pc, retval);
+    DPRINTF(PpuTage, "Lookup branch: %lx; predict:%d\n", branch_pc, retval);
 
     tage->updateHistories(tid, branch_pc, retval, bi->tageBranchInfo, true);
 
@@ -125,7 +125,7 @@ TAGE::btbUpdate(ThreadID tid, Addr branch_pc, void* &bp_history)
 void
 TAGE::uncondBranch(ThreadID tid, Addr br_pc, void* &bp_history)
 {
-    DPRINTF(Tage, "UnConditionalBranch: %lx\n", br_pc);
+    DPRINTF(PpuTage, "UnConditionalBranch: %lx\n", br_pc);
     predict(tid, br_pc, false, bp_history);
     TageBranchInfo *bi = static_cast<TageBranchInfo*>(bp_history);
     tage->updateHistories(tid, br_pc, true, bi->tageBranchInfo, true);

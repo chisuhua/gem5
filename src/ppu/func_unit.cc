@@ -28,7 +28,7 @@
  * Authors: Steve Raasch
  */
 
-#include "cpu/func_unit.hh"
+#include "ppu/func_unit.hh"
 
 #include <sstream>
 

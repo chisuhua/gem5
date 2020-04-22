@@ -28,7 +28,7 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/pred/ras.hh"
+#include "ppu/pred/ras.hh"
 
 void
 ReturnAddrStack::init(unsigned _numEntries)

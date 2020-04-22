@@ -33,7 +33,7 @@
 #ifndef __KERN_PPU_IDLE_EVENT_HH__
 #define __KERN_PPU_IDLE_EVENT_HH__
 
-#include "cpu/pc_event.hh"
+#include "ppu/pc_event.hh"
 
 class IdleStartEvent : public PCEvent
 {

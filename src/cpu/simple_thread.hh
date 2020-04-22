@@ -69,7 +69,12 @@
 #include "sim/full_system.hh"
 #include "sim/process.hh"
 #include "sim/serialize.hh"
+
+#ifdef BUILD_PPU
+#include "ppu_sim/system.hh"
+#else
 #include "sim/system.hh"
+#endif
 
 class BaseCPU;
 class CheckerCPU;

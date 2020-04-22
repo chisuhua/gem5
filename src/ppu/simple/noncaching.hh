@@ -37,10 +37,10 @@
  * Authors: Andreas Sandberg
  */
 
-#ifndef __CPU_SIMPLE_NONCACHING_HH__
-#define __CPU_SIMPLE_NONCACHING_HH__
+#ifndef __PPU_SIMPLE_NONCACHING_HH__
+#define __PPU_SIMPLE_NONCACHING_HH__
 
-#include "cpu/simple/atomic.hh"
+#include "ppu/simple/atomic.hh"
 #include "params/NonCachingSimpleCPU.hh"
 
 /**
@@ -58,4 +58,4 @@ class NonCachingSimpleCPU : public AtomicSimpleCPU
     Tick sendPacket(MasterPort &port, const PacketPtr &pkt) override;
 };
 
-#endif // __CPU_SIMPLE_NONCACHING_HH__
+#endif // __PPU_SIMPLE_NONCACHING_HH__

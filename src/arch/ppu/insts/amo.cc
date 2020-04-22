@@ -36,8 +36,8 @@
 
 #include "arch/ppu/insts/bitfields.hh"
 #include "arch/ppu/utility.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/static_inst.hh"
 
 using namespace std;
 

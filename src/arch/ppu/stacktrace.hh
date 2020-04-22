@@ -36,14 +36,14 @@
 #define __ARCH_PPU_STACKTRACE_HH__
 
 #include "base/trace.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 #include "debug/Stack.hh"
 
-class ThreadContext;
 class StackTrace;
 
 namespace PpuISA
 {
+class ThreadContext;
 
 class ProcessInfo
 {

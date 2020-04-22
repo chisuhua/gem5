@@ -50,7 +50,13 @@
 #include <string>
 
 #include "base/types.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/thread_context.hh"
+#else
 #include "cpu/thread_context.hh"
+#endif
+
 #include "sim/guest_abi.hh"
 #include "sim/process.hh"
 #include "sim/syscall_return.hh"

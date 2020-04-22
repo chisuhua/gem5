@@ -48,15 +48,19 @@
  * one that predicted when the prediction is incorrect.
  */
 
-#ifndef __CPU_PRED_TAGE
-#define __CPU_PRED_TAGE
+#ifndef __PPU_PRED_TAGE
+#define __PPU_PRED_TAGE
 
 #include <vector>
 
 #include "base/types.hh"
-#include "cpu/pred/bpred_unit.hh"
-#include "cpu/pred/tage_base.hh"
+#include "ppu/pred/bpred_unit.hh"
+#include "ppu/pred/tage_base.hh"
 #include "params/TAGE.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class TAGE: public BPredUnit
 {
@@ -92,4 +96,4 @@ class TAGE: public BPredUnit
     virtual void squash(ThreadID tid, void *bp_history) override;
 };
 
-#endif // __CPU_PRED_TAGE
+#endif // __PPU_PRED_TAGE

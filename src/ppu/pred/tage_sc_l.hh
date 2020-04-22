@@ -40,14 +40,18 @@
  * It consits of a TAGE + a statistical corrector (SC) + a loop predictor (L)
  */
 
-#ifndef __CPU_PRED_TAGE_SC_L
-#define __CPU_PRED_TAGE_SC_L
+#ifndef __PPU_PRED_TAGE_SC_L
+#define __PPU_PRED_TAGE_SC_L
 
-#include "cpu/pred/ltage.hh"
-#include "cpu/pred/statistical_corrector.hh"
+#include "ppu/pred/ltage.hh"
+#include "ppu/pred/statistical_corrector.hh"
 #include "params/TAGE_SC_L.hh"
 #include "params/TAGE_SC_L_LoopPredictor.hh"
 #include "params/TAGE_SC_L_TAGE.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class TAGE_SC_L_TAGE : public TAGEBase {
     const unsigned firstLongTagTable;
@@ -184,5 +188,5 @@ class TAGE_SC_L: public LTAGE
 
 };
 
-#endif // __CPU_PRED_TAGE_SC_L
+#endif // __PPU_PRED_TAGE_SC_L
 

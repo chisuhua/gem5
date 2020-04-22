@@ -58,7 +58,17 @@
 #include "cpu/pc_event.hh"
 
 class System;
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 class BaseRemoteGDB;
 class HardBreakpoint;
@@ -123,7 +133,17 @@ class BaseRemoteGDB
     /*
      * Interface to other parts of the simulator.
      */
-    BaseRemoteGDB(System *system, ThreadContext *context, int _port);
+    BaseRemoteGDB(System *system, ThreadContext *c, int _port):
+        connectEvent(nullptr), dataEvent(nullptr), _port(_port), fd(-1),
+        active(false), attached(false), sys(system), tc(c),
+        trapEvent(this), singleStepEvent(*this)
+    {
+        addDebuggers();
+        // debuggers.push_back(this);
+    }
+
+    void addDebuggers();
+
     virtual ~BaseRemoteGDB();
 
     std::string name();

@@ -45,17 +45,22 @@
  *  much on this structure.
  */
 
-#ifndef __CPU_MINOR_DYN_INST_HH__
-#define __CPU_MINOR_DYN_INST_HH__
+#ifndef __PPU_MINOR_DYN_INST_HH__
+#define __PPU_MINOR_DYN_INST_HH__
 
 #include <iostream>
 
 #include "base/refcnt.hh"
-#include "cpu/minor/buffers.hh"
-#include "cpu/inst_seq.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/timing_expr.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/inst_seq.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/timing_expr.hh"
 #include "sim/faults.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+
 
 namespace Minor
 {
@@ -292,4 +297,4 @@ std::ostream &operator <<(std::ostream &os, const MinorDynInst &inst);
 
 }
 
-#endif /* __CPU_MINOR_DYN_INST_HH__ */
+#endif /* __PPU_MINOR_DYN_INST_HH__ */

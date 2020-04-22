@@ -40,7 +40,7 @@
  * Authors: Steve Reinhardt
  */
 
-#include "cpu/reg_class.hh"
+#include "ppu/reg_class.hh"
 
 const char *RegId::regClassStrings[] = {
     "IntRegClass",

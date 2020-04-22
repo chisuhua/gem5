@@ -47,11 +47,11 @@
 #include "params/PpuTLB.hh"
 #include "sim/sim_object.hh"
 
-class ThreadContext;
 
 /* To maintain compatibility with other architectures, we'll
    simply create an ITLB and DTLB that will point to the real TLB */
 namespace PpuISA {
+class ThreadContext;
 
 class TLB : public BaseTLB
 {

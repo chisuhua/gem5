@@ -48,15 +48,20 @@
  * one that predicted when the prediction is incorrect.
  */
 
-#ifndef __CPU_PRED_TAGE_BASE
-#define __CPU_PRED_TAGE_BASE
+#ifndef __PPU_PRED_TAGE_BASE
+#define __PPU_PRED_TAGE_BASE
 
 #include <vector>
 
 #include "base/statistics.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 #include "params/TAGEBase.hh"
 #include "sim/sim_object.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+
 
 class TAGEBase : public SimObject
 {
@@ -502,4 +507,4 @@ class TAGEBase : public SimObject
     Stats::Vector tageAltMatchProvider;
 };
 
-#endif // __CPU_PRED_TAGE_BASE
+#endif // __PPU_PRED_TAGE_BASE

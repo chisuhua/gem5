@@ -38,12 +38,12 @@
  * Implementation of a TAGE branch predictor
  */
 
-#include "cpu/pred/tage_base.hh"
+#include "ppu/pred/tage_base.hh"
 
 #include "base/intmath.hh"
 #include "base/logging.hh"
-#include "debug/Fetch.hh"
-#include "debug/Tage.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuTage.hh"
 
 TAGEBase::TAGEBase(const TAGEBaseParams *p)
    : SimObject(p),
@@ -152,7 +152,7 @@ TAGEBase::initFoldedHistories(ThreadHistory & history)
             history.computeIndices[i].origLength, tagTableTagWidths[i]);
         history.computeTags[1][i].init(
             history.computeIndices[i].origLength, tagTableTagWidths[i]-1);
-        DPRINTF(Tage, "HistLength:%d, TTSize:%d, TTTWidth:%d\n",
+        DPRINTF(PpuTage, "HistLength:%d, TTSize:%d, TTTWidth:%d\n",
                 histLengths[i], logTagTableSizes[i], tagTableTagWidths[i]);
     }
 }
@@ -184,7 +184,7 @@ TAGEBase::btbUpdate(ThreadID tid, Addr branch_pc, BranchInfo* &bi)
 {
     if (speculativeHistUpdate) {
         ThreadHistory& tHist = threadHistory[tid];
-        DPRINTF(Tage, "BTB miss resets prediction: %lx\n", branch_pc);
+        DPRINTF(PpuTage, "BTB miss resets prediction: %lx\n", branch_pc);
         assert(tHist.gHist == &tHist.globalHistory[tHist.ptGhist]);
         tHist.gHist[0] = 0;
         for (int i = 1; i <= nHistoryTables; i++) {
@@ -308,7 +308,7 @@ TAGEBase::baseUpdate(Addr pc, bool taken, BranchInfo* bi)
     const bool hyst = inter & 1;
     btablePrediction[bi->bimodalIndex] = pred;
     btableHysteresis[bi->bimodalIndex >> logRatioBiModalHystEntries] = hyst;
-    DPRINTF(Tage, "Updating branch %lx, pred:%d, hyst:%d\n", pc, pred, hyst);
+    DPRINTF(PpuTage, "Updating branch %lx, pred:%d, hyst:%d\n", pc, pred, hyst);
 }
 
 // shifting the global history:  we manage the history in a big table in order
@@ -317,7 +317,7 @@ void
 TAGEBase::updateGHist(uint8_t * &h, bool dir, uint8_t * tab, int &pt)
 {
     if (pt == 0) {
-        DPRINTF(Tage, "Rolling over the histories\n");
+        DPRINTF(PpuTage, "Rolling over the histories\n");
          // Copy beginning of globalHistoryBuffer to end, such that
          // the last maxHist outcomes are still reachable
          // through pt[0 .. maxHist - 1].
@@ -421,7 +421,7 @@ TAGEBase::tagePredict(ThreadID tid, Addr branch_pc,
         //end TAGE prediction
 
         pred_taken = (bi->tagePred);
-        DPRINTF(Tage, "Predict for %lx: taken?:%d, tagePred:%d, altPred:%d\n",
+        DPRINTF(PpuTage, "Predict for %lx: taken?:%d, tagePred:%d, altPred:%d\n",
                 branch_pc, pred_taken, bi->tagePred, bi->altTaken);
     }
     bi->branchPC = branch_pc;
@@ -550,7 +550,7 @@ void
 TAGEBase::handleTAGEUpdate(Addr branch_pc, bool taken, BranchInfo* bi)
 {
     if (bi->hitBank > 0) {
-        DPRINTF(Tage, "Updating tag table entry (%d,%d) for branch %lx\n",
+        DPRINTF(PpuTage, "Updating tag table entry (%d,%d) for branch %lx\n",
                 bi->hitBank, bi->hitBankIndex, branch_pc);
         ctrUpdate(gtable[bi->hitBank][bi->hitBankIndex].ctr, taken,
                   tagTableCounterBits);
@@ -560,7 +560,7 @@ TAGEBase::handleTAGEUpdate(Addr branch_pc, bool taken, BranchInfo* bi)
             if (bi->altBank > 0) {
                 ctrUpdate(gtable[bi->altBank][bi->altBankIndex].ctr, taken,
                           tagTableCounterBits);
-                DPRINTF(Tage, "Updating tag table entry (%d,%d) for"
+                DPRINTF(PpuTage, "Updating tag table entry (%d,%d) for"
                         " branch %lx\n", bi->hitBank, bi->hitBankIndex,
                         branch_pc);
             }
@@ -613,7 +613,7 @@ TAGEBase::updateHistories(ThreadID tid, Addr branch_pc, bool taken,
         tHist.computeTags[0][i].update(tHist.gHist);
         tHist.computeTags[1][i].update(tHist.gHist);
     }
-    DPRINTF(Tage, "Updating global histories with branch:%lx; taken?:%d, "
+    DPRINTF(PpuTage, "Updating global histories with branch:%lx; taken?:%d, "
             "path Hist: %x; pointer:%d\n", branch_pc, taken, tHist.pathHist,
             tHist.ptGhist);
     assert(threadHistory[tid].gHist ==
@@ -630,7 +630,7 @@ TAGEBase::squash(ThreadID tid, bool taken, TAGEBase::BranchInfo *bi,
     }
 
     ThreadHistory& tHist = threadHistory[tid];
-    DPRINTF(Tage, "Restoring branch info: %lx; taken? %d; PathHistory:%x, "
+    DPRINTF(PpuTage, "Restoring branch info: %lx; taken? %d; PathHistory:%x, "
             "pointer:%d\n", bi->branchPC,taken, bi->pathHist, bi->ptGhist);
     tHist.pathHist = bi->pathHist;
     tHist.ptGhist = bi->ptGhist;

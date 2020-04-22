@@ -43,17 +43,17 @@
  *          Nathan Binkert
  */
 
-#ifndef __CPU_SIMPLE_BASE_HH__
-#define __CPU_SIMPLE_BASE_HH__
+#ifndef __PPU_SIMPLE_BASE_HH__
+#define __PPU_SIMPLE_BASE_HH__
 
 #include "base/statistics.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/checker/cpu.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/pc_event.hh"
-#include "cpu/simple_thread.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/base.hh"
+#include "ppu/checker/cpu.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/pc_event.hh"
+#include "ppu/simple_thread.hh"
+#include "ppu/static_inst.hh"
 #include "mem/packet.hh"
 #include "mem/port.hh"
 #include "mem/request.hh"
@@ -61,11 +61,21 @@
 #include "sim/full_system.hh"
 #include "sim/system.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
 // forward declarations
 class Checkpoint;
 class Process;
 class Processor;
-class ThreadContext;
+
 
 namespace ThePpuISA
 {
@@ -81,7 +91,7 @@ struct BaseSimpleCPUParams;
 class BPredUnit;
 class SimpleExecContext;
 
-class BaseSimpleCPU : public BaseCPU
+class BaseSimpleCPU : public PpuBaseCPU
 {
   protected:
     ThreadID curThread;
@@ -97,7 +107,7 @@ class BaseSimpleCPU : public BaseCPU
     void init() override;
   public:
     Trace::InstRecord *traceData;
-    CheckerCPU *checker;
+    PpuCheckerCPU *checker;
 
     std::vector<SimpleExecContext*> threadInfo;
     std::list<ThreadID> activeThreads;
@@ -179,4 +189,4 @@ class BaseSimpleCPU : public BaseCPU
 
 };
 
-#endif // __CPU_SIMPLE_BASE_HH__
+#endif // __PPU_SIMPLE_BASE_HH__

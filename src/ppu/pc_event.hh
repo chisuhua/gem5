@@ -37,7 +37,19 @@
 #include "base/logging.hh"
 #include "base/types.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
+
+
 class PCEventQueue;
 class System;
 class PCEventScope;

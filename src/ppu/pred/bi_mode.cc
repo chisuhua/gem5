@@ -32,7 +32,7 @@
  * Implementation of a bi-mode branch predictor
  */
 
-#include "cpu/pred/bi_mode.hh"
+#include "ppu/pred/bi_mode.hh"
 
 #include "base/bitfield.hh"
 #include "base/intmath.hh"

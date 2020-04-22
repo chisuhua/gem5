@@ -44,13 +44,13 @@
  *
  */
 
-#ifndef __CPU_MINOR_NEW_LSQ_HH__
-#define __CPU_MINOR_NEW_LSQ_HH__
+#ifndef __PPU_MINOR_NEW_LSQ_HH__
+#define __PPU_MINOR_NEW_LSQ_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/pipe_data.hh"
-#include "cpu/minor/trace.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/pipe_data.hh"
+#include "ppu/minor/trace.hh"
 
 namespace Minor
 {
@@ -62,7 +62,7 @@ class LSQ : public Named
 {
   protected:
     /** My owner(s) */
-    MinorCPU &cpu;
+    MinorPPU &cpu;
     Execute &execute;
 
   protected:
@@ -86,15 +86,15 @@ class LSQ : public Named
     };
 
     /** Exposable data port */
-    class DcachePort : public MinorCPU::MinorCPUPort
+    class DcachePort : public MinorPPU::MinorPPUPort
     {
       protected:
         /** My owner */
         LSQ &lsq;
 
       public:
-        DcachePort(std::string name, LSQ &lsq_, MinorCPU &cpu) :
-            MinorCPU::MinorCPUPort(name, cpu), lsq(lsq_)
+        DcachePort(std::string name, LSQ &lsq_, MinorPPU &cpu) :
+            MinorPPU::MinorPPUPort(name, cpu), lsq(lsq_)
         { }
 
       protected:
@@ -640,7 +640,7 @@ class LSQ : public Named
 
   public:
     LSQ(std::string name_, std::string dcache_port_name_,
-        MinorCPU &cpu_, Execute &execute_,
+        MinorPPU &cpu_, Execute &execute_,
         unsigned int max_accesses_in_memory_system, unsigned int line_width,
         unsigned int requests_queue_size, unsigned int transfers_queue_size,
         unsigned int store_buffer_size,
@@ -722,7 +722,7 @@ class LSQ : public Named
     void recvTimingSnoopReq(PacketPtr pkt);
 
     /** Return the raw-bindable port */
-    MinorCPU::MinorCPUPort &getDcachePort() { return dcachePort; }
+    MinorPPU::MinorPPUPort &getDcachePort() { return dcachePort; }
 
     void minorTrace() const;
 };
@@ -734,4 +734,4 @@ PacketPtr makePacketForRequest(const RequestPtr &request, bool isLoad,
     Packet::SenderState *sender_state = NULL, PacketDataPtr data = NULL);
 }
 
-#endif /* __CPU_MINOR_NEW_LSQ_HH__ */
+#endif /* __PPU_MINOR_NEW_LSQ_HH__ */

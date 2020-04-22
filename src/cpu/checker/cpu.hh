@@ -65,7 +65,20 @@
 class BaseTLB;
 template <class>
 class BaseDynInst;
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
+
+
 class Request;
 
 /**

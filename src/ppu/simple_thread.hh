@@ -42,8 +42,8 @@
  *          Nathan Binkert
  */
 
-#ifndef __CPU_SIMPLE_THREAD_HH__
-#define __CPU_SIMPLE_THREAD_HH__
+#ifndef __PPU_SIMPLE_THREAD_HH__
+#define __PPU_SIMPLE_THREAD_HH__
 
 #include <array>
 
@@ -55,13 +55,13 @@
 #include "arch/types.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/thread_context.hh"
-#include "cpu/thread_state.hh"
-#include "debug/CCRegs.hh"
-#include "debug/FloatRegs.hh"
-#include "debug/IntRegs.hh"
-#include "debug/VecPredRegs.hh"
-#include "debug/VecRegs.hh"
+#include "ppu/thread_context.hh"
+#include "ppu/thread_state.hh"
+#include "debug/PpuCCRegs.hh"
+#include "debug/PpuFloatRegs.hh"
+#include "debug/PpuIntRegs.hh"
+#include "debug/PpuVecPredRegs.hh"
+#include "debug/PpuVecRegs.hh"
 #include "mem/page_table.hh"
 #include "mem/request.hh"
 #include "sim/byteswap.hh"
@@ -69,10 +69,22 @@
 #include "sim/full_system.hh"
 #include "sim/process.hh"
 #include "sim/serialize.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
-class BaseCPU;
-class CheckerCPU;
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
+
+class PpuBaseCPU;
+class PpuCheckerCPU;
 
 class FunctionProfile;
 class ProfileNode;
@@ -81,6 +93,7 @@ namespace Kernel {
     class Statistics;
 }
 
+namespace PpuISA {
 /**
  * The SimpleThread object provides a combination of the ThreadState
  * object and the ThreadContext interface. It implements the
@@ -143,11 +156,11 @@ class SimpleThread : public ThreadState, public ThreadContext
 
     // constructor: initialize SimpleThread from given process structure
     // FS
-    SimpleThread(BaseCPU *_cpu, int _thread_num, System *_system,
+    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_system,
                  BaseTLB *_itb, BaseTLB *_dtb, ThePpuISA::ISA *_isa,
                  bool use_kernel_stats = true);
     // SE
-    SimpleThread(BaseCPU *_cpu, int _thread_num, System *_system,
+    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_system,
                  Process *_process, BaseTLB *_itb, BaseTLB *_dtb,
                  ThePpuISA::ISA *_isa);
 
@@ -215,7 +228,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         return comInstEventQueue.getCurTick();
     }
 
-    BaseCPU *getCpuPtr() override { return baseCpu; }
+    PpuBaseCPU *getCpuPtr() override { return baseCpu; }
 
     int cpuId() const override { return ThreadState::cpuId(); }
     uint32_t socketId() const override { return ThreadState::socketId(); }
@@ -228,7 +241,7 @@ class SimpleThread : public ThreadState, public ThreadContext
 
     BaseTLB *getDTBPtr() override { return dtb; }
 
-    CheckerCPU *getCheckerCpuPtr() override { return NULL; }
+    PpuCheckerCPU *getCheckerCpuPtr() override { return NULL; }
 
     BaseISA *getIsaPtr() override { return isa; }
 
@@ -311,7 +324,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenIntIndex(reg_idx);
         assert(flatIndex < ThePpuISA::NumIntRegs);
         uint64_t regVal(readIntRegFlat(flatIndex));
-        DPRINTF(IntRegs, "Reading int reg %d (%d) as %#x.\n",
+        DPRINTF(PpuIntRegs, "Reading int reg %d (%d) as %#x.\n",
                 reg_idx, flatIndex, regVal);
         return regVal;
     }
@@ -322,7 +335,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenFloatIndex(reg_idx);
         assert(flatIndex < ThePpuISA::NumFloatRegs);
         RegVal regVal(readFloatRegFlat(flatIndex));
-        DPRINTF(FloatRegs, "Reading float reg %d (%d) bits as %#x.\n",
+        DPRINTF(PpuFloatRegs, "Reading float reg %d (%d) bits as %#x.\n",
                 reg_idx, flatIndex, regVal);
         return regVal;
     }
@@ -333,7 +346,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         const VecRegContainer& regVal = readVecRegFlat(flatIndex);
-        DPRINTF(VecRegs, "Reading vector reg %d (%d) as %s.\n",
+        DPRINTF(PpuVecRegs, "Reading vector reg %d (%d) as %s.\n",
                 reg.index(), flatIndex, regVal.print());
         return regVal;
     }
@@ -344,7 +357,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         VecRegContainer& regVal = getWritableVecRegFlat(flatIndex);
-        DPRINTF(VecRegs, "Reading vector reg %d (%d) as %s for modify.\n",
+        DPRINTF(PpuVecRegs, "Reading vector reg %d (%d) as %s for modify.\n",
                 reg.index(), flatIndex, regVal.print());
         return regVal;
     }
@@ -359,7 +372,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         auto regVal = readVecLaneFlat<T>(flatIndex, reg.elemIndex());
-        DPRINTF(VecRegs, "Reading vector lane %d (%d)[%d] as %lx.\n",
+        DPRINTF(PpuVecRegs, "Reading vector lane %d (%d)[%d] as %lx.\n",
                 reg.index(), flatIndex, reg.elemIndex(), regVal);
         return regVal;
     }
@@ -400,7 +413,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         setVecLaneFlat(flatIndex, reg.elemIndex(), val);
-        DPRINTF(VecRegs, "Reading vector lane %d (%d)[%d] to %lx.\n",
+        DPRINTF(PpuVecRegs, "Reading vector lane %d (%d)[%d] to %lx.\n",
                 reg.index(), flatIndex, reg.elemIndex(), val);
     }
     virtual void
@@ -434,7 +447,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecElemIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         const VecElem& regVal = readVecElemFlat(flatIndex, reg.elemIndex());
-        DPRINTF(VecRegs, "Reading element %d of vector reg %d (%d) as"
+        DPRINTF(PpuVecRegs, "Reading element %d of vector reg %d (%d) as"
                 " %#x.\n", reg.elemIndex(), reg.index(), flatIndex, regVal);
         return regVal;
     }
@@ -445,7 +458,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecPredIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecPredRegs);
         const VecPredRegContainer& regVal = readVecPredRegFlat(flatIndex);
-        DPRINTF(VecPredRegs, "Reading predicate reg %d (%d) as %s.\n",
+        DPRINTF(PpuVecPredRegs, "Reading predicate reg %d (%d) as %s.\n",
                 reg.index(), flatIndex, regVal.print());
         return regVal;
     }
@@ -456,7 +469,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecPredIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecPredRegs);
         VecPredRegContainer& regVal = getWritableVecPredRegFlat(flatIndex);
-        DPRINTF(VecPredRegs,
+        DPRINTF(PpuVecPredRegs,
                 "Reading predicate reg %d (%d) as %s for modify.\n",
                 reg.index(), flatIndex, regVal.print());
         return regVal;
@@ -469,7 +482,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         assert(0 <= flatIndex);
         assert(flatIndex < ThePpuISA::NumCCRegs);
         uint64_t regVal(readCCRegFlat(flatIndex));
-        DPRINTF(CCRegs, "Reading CC reg %d (%d) as %#x.\n",
+        DPRINTF(PpuCCRegs, "Reading CC reg %d (%d) as %#x.\n",
                 reg_idx, flatIndex, regVal);
         return regVal;
     }
@@ -479,7 +492,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     {
         int flatIndex = isa->flattenIntIndex(reg_idx);
         assert(flatIndex < ThePpuISA::NumIntRegs);
-        DPRINTF(IntRegs, "Setting int reg %d (%d) to %#x.\n",
+        DPRINTF(PpuIntRegs, "Setting int reg %d (%d) to %#x.\n",
                 reg_idx, flatIndex, val);
         setIntRegFlat(flatIndex, val);
     }
@@ -493,7 +506,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         // when checkercpu enabled
         if (flatIndex < ThePpuISA::NumFloatRegs)
             setFloatRegFlat(flatIndex, val);
-        DPRINTF(FloatRegs, "Setting float reg %d (%d) bits to %#x.\n",
+        DPRINTF(PpuFloatRegs, "Setting float reg %d (%d) bits to %#x.\n",
                 reg_idx, flatIndex, val);
     }
 
@@ -503,7 +516,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         setVecRegFlat(flatIndex, val);
-        DPRINTF(VecRegs, "Setting vector reg %d (%d) to %s.\n",
+        DPRINTF(PpuVecRegs, "Setting vector reg %d (%d) to %s.\n",
                 reg.index(), flatIndex, val.print());
     }
 
@@ -513,7 +526,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecElemIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecRegs);
         setVecElemFlat(flatIndex, reg.elemIndex(), val);
-        DPRINTF(VecRegs, "Setting element %d of vector reg %d (%d) to"
+        DPRINTF(PpuVecRegs, "Setting element %d of vector reg %d (%d) to"
                 " %#x.\n", reg.elemIndex(), reg.index(), flatIndex, val);
     }
 
@@ -523,7 +536,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         int flatIndex = isa->flattenVecPredIndex(reg.index());
         assert(flatIndex < ThePpuISA::NumVecPredRegs);
         setVecPredRegFlat(flatIndex, val);
-        DPRINTF(VecPredRegs, "Setting predicate reg %d (%d) to %s.\n",
+        DPRINTF(PpuVecPredRegs, "Setting predicate reg %d (%d) to %s.\n",
                 reg.index(), flatIndex, val.print());
     }
 
@@ -532,7 +545,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     {
         int flatIndex = isa->flattenCCIndex(reg_idx);
         assert(flatIndex < ThePpuISA::NumCCRegs);
-        DPRINTF(CCRegs, "Setting CC reg %d (%d) to %#x.\n",
+        DPRINTF(PpuCCRegs, "Setting CC reg %d (%d) to %#x.\n",
                 reg_idx, flatIndex, val);
         setCCRegFlat(flatIndex, val);
     }
@@ -706,5 +719,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     void setCCRegFlat(RegIndex idx, RegVal val) override { ccRegs[idx] = val; }
 };
 
+};
 
-#endif // __CPU_CPU_EXEC_CONTEXT_HH__
+
+#endif // __PPU_CPU_EXEC_CONTEXT_HH__

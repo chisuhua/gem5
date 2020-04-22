@@ -48,7 +48,7 @@
 
 #include "arch/ppu/types.hh"
 #include "base/types.hh"
-#include "cpu/static_inst_fwd.hh"
+#include "ppu/static_inst_fwd.hh"
 
 namespace LittleEndianGuest {}
 

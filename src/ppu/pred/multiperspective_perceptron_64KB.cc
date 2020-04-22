@@ -37,7 +37,7 @@
  * - 64KB version
  */
 
-#include "cpu/pred/multiperspective_perceptron_64KB.hh"
+#include "ppu/pred/multiperspective_perceptron_64KB.hh"
 
 MultiperspectivePerceptron64KB::MultiperspectivePerceptron64KB(
         const MultiperspectivePerceptron64KBParams *p)

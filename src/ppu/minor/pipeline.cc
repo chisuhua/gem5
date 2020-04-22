@@ -37,24 +37,24 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/pipeline.hh"
+#include "ppu/minor/pipeline.hh"
 
 #include <algorithm>
 
-#include "cpu/minor/decode.hh"
-#include "cpu/minor/execute.hh"
-#include "cpu/minor/fetch1.hh"
-#include "cpu/minor/fetch2.hh"
-#include "debug/Drain.hh"
-#include "debug/MinorCPU.hh"
-#include "debug/MinorTrace.hh"
-#include "debug/Quiesce.hh"
+#include "ppu/minor/decode.hh"
+#include "ppu/minor/execute.hh"
+#include "ppu/minor/fetch1.hh"
+#include "ppu/minor/fetch2.hh"
+#include "debug/PpuDrain.hh"
+#include "debug/PpuMinorCPU.hh"
+#include "debug/PpuMinorTrace.hh"
+#include "debug/PpuQuiesce.hh"
 
 namespace Minor
 {
 
-Pipeline::Pipeline(MinorCPU &cpu_, MinorCPUParams &params) :
-    Ticked(cpu_, &(cpu_.BaseCPU::numCycles)),
+Pipeline::Pipeline(MinorPPU &cpu_, MinorPPUParams &params) :
+    Ticked(cpu_, &(cpu_.PpuBaseCPU::numCycles)),
     cpu(cpu_),
     allow_idling(params.enableIdling),
     f1ToF2(cpu.name() + ".f1ToF2", "lines",
@@ -139,7 +139,7 @@ Pipeline::evaluate()
     fetch2.evaluate();
     fetch1.evaluate();
 
-    if (DTRACE(MinorTrace))
+    if (DTRACE(PpuMinorTrace))
         minorTrace();
 
     /* Update the time buffers after the stages */
@@ -156,7 +156,7 @@ Pipeline::evaluate()
     if (allow_idling) {
         /* Become idle if we can but are not draining */
         if (!activityRecorder.active() && !needToSignalDrained) {
-            DPRINTF(Quiesce, "Suspending as the processor is idle\n");
+            DPRINTF(PpuQuiesce, "Suspending as the processor is idle\n");
             stop();
         }
 
@@ -173,9 +173,9 @@ Pipeline::evaluate()
 
     if (needToSignalDrained) /* Must be draining */
     {
-        DPRINTF(Drain, "Still draining\n");
+        DPRINTF(PpuDrain, "Still draining\n");
         if (isDrained()) {
-            DPRINTF(Drain, "Signalling end of draining\n");
+            DPRINTF(PpuDrain, "Signalling end of draining\n");
             cpu.signalDrainDone();
             needToSignalDrained = false;
             stop();
@@ -183,13 +183,13 @@ Pipeline::evaluate()
     }
 }
 
-MinorCPU::MinorCPUPort &
+MinorPPU::MinorPPUPort &
 Pipeline::getInstPort()
 {
     return fetch1.getIcachePort();
 }
 
-MinorCPU::MinorCPUPort &
+MinorPPU::MinorPPUPort &
 Pipeline::getDataPort()
 {
     return execute.getDcachePort();
@@ -204,7 +204,7 @@ Pipeline::wakeupFetch(ThreadID tid)
 bool
 Pipeline::drain()
 {
-    DPRINTF(MinorCPU, "Draining pipeline by halting inst fetches. "
+    DPRINTF(PpuMinorCPU, "Draining pipeline by halting inst fetches. "
         " Execution should drain naturally\n");
 
     execute.drain();
@@ -220,7 +220,7 @@ Pipeline::drain()
 void
 Pipeline::drainResume()
 {
-    DPRINTF(Drain, "Drain resume\n");
+    DPRINTF(PpuDrain, "Drain resume\n");
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         fetch1.wakeupFetch(tid);
@@ -247,7 +247,7 @@ Pipeline::isDrained()
         f1_to_f2_drained && f2_to_f1_drained &&
         f2_to_d_drained && d_to_e_drained;
 
-    DPRINTF(MinorCPU, "Pipeline undrained stages state:%s%s%s%s%s%s%s%s\n",
+    DPRINTF(PpuMinorCPU, "Pipeline undrained stages state:%s%s%s%s%s%s%s%s\n",
         (fetch1_drained ? "" : " Fetch1"),
         (fetch2_drained ? "" : " Fetch2"),
         (decode_drained ? "" : " Decode"),

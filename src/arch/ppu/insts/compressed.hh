@@ -35,7 +35,7 @@
 #include <string>
 
 #include "arch/ppu/insts/static_inst.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 
 namespace PpuISA
 {

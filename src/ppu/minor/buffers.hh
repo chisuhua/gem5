@@ -43,17 +43,17 @@
  * Classes for buffer, queue and FIFO behaviour.
  */
 
-#ifndef __CPU_MINOR_BUFFERS_HH__
-#define __CPU_MINOR_BUFFERS_HH__
+#ifndef __PPU_MINOR_BUFFERS_HH__
+#define __PPU_MINOR_BUFFERS_HH__
 
 #include <iostream>
 #include <queue>
 #include <sstream>
 
 #include "base/logging.hh"
-#include "cpu/activity.hh"
-#include "cpu/minor/trace.hh"
-#include "cpu/timebuf.hh"
+#include "ppu/activity.hh"
+#include "ppu/minor/trace.hh"
+#include "ppu/timebuf.hh"
 
 namespace Minor
 {
@@ -655,4 +655,4 @@ class InputBuffer : public Reservable
 
 }
 
-#endif /* __CPU_MINOR_BUFFERS_HH__ */
+#endif /* __PPU_MINOR_BUFFERS_HH__ */

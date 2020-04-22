@@ -35,8 +35,12 @@
 #include "arch/ppu/types.hh"
 #include "debug/Decode.hh"
 
+
 namespace PpuISA
 {
+
+// namespace Trace = ::Trace;
+
 
 static const MachInst LowerBitMask = (1 << sizeof(MachInst) * 4) - 1;
 static const MachInst UpperBitMask = LowerBitMask << sizeof(MachInst) * 4;

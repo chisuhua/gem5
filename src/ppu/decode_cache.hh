@@ -28,20 +28,24 @@
  * Authors: Gabe Black
  */
 
-#ifndef __CPU_DECODE_CACHE_HH__
-#define __CPU_DECODE_CACHE_HH__
+#ifndef __PPU_DECODE_CACHE_HH__
+#define __PPU_DECODE_CACHE_HH__
 
 #include <unordered_map>
 
 #include "arch/isa_traits.hh"
 #include "arch/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/static_inst_fwd.hh"
+#include "ppu/static_inst_fwd.hh"
 
 namespace ThePpuISA
 {
     class Decoder;
 }
+
+#ifdef BUILD_PPU
+using namespace ThePpuISA;
+#endif
 
 namespace DecodeCache
 {
@@ -128,4 +132,4 @@ class AddrMap
 
 } // namespace DecodeCache
 
-#endif // __CPU_DECODE_CACHE_HH__
+#endif // __PPU_DECODE_CACHE_HH__

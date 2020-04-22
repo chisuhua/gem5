@@ -49,12 +49,12 @@
  *  outside these classes (except for reservation!)
  */
 
-#ifndef __CPU_MINOR_PIPE_DATA_HH__
-#define __CPU_MINOR_PIPE_DATA_HH__
+#ifndef __PPU_MINOR_PIPE_DATA_HH__
+#define __PPU_MINOR_PIPE_DATA_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/dyn_inst.hh"
-#include "cpu/base.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/dyn_inst.hh"
+#include "ppu/base.hh"
 
 namespace Minor
 {
@@ -292,4 +292,4 @@ class ForwardInstData /* : public ReportIF, public BubbleIF */
 
 }
 
-#endif /* __CPU_MINOR_PIPE_DATA_HH__ */
+#endif /* __PPU_MINOR_PIPE_DATA_HH__ */

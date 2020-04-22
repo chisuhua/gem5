@@ -36,10 +36,10 @@
   * Multiperspective Perceptron Predictor (by Daniel A. Jiménez)
   */
 
-#include "cpu/pred/multiperspective_perceptron.hh"
+#include "ppu/pred/multiperspective_perceptron.hh"
 
 #include "base/random.hh"
-#include "debug/Branch.hh"
+#include "debug/PpuBranch.hh"
 
 int
 MultiperspectivePerceptron::xlat[] =
@@ -232,13 +232,13 @@ MultiperspectivePerceptron::computeBits(int num_filter_entries,
         }
     }
 
-    DPRINTF(Branch, "%d bits of metadata so far, %d left out of "
+    DPRINTF(PpuBranch, "%d bits of metadata so far, %d left out of "
             "%d total budget\n", totalbits, remaining, budgetbits);
-    DPRINTF(Branch, "table size is %d bits, %d entries for 5 bit, %d entries "
+    DPRINTF(PpuBranch, "table size is %d bits, %d entries for 5 bit, %d entries "
             "for 6 bit\n", table_size_bits,
             table_size_bits / (5 + (n_sign_bits - 1)),
             table_size_bits / (6 + (n_sign_bits - 1)));
-    DPRINTF(Branch, "%d total bits (%0.2fKB)\n", totalbits,
+    DPRINTF(PpuBranch, "%d total bits (%0.2fKB)\n", totalbits,
             totalbits / 8192.0);
 }
 

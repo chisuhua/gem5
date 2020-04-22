@@ -39,7 +39,7 @@
  * Statistical corrector base class
  */
 
- #include "cpu/pred/statistical_corrector.hh"
+ #include "ppu/pred/statistical_corrector.hh"
 
  #include "params/StatisticalCorrector.hh"
 

@@ -38,15 +38,17 @@
 #include "arch/ppu/faults.hh"
 #include "arch/ppu/registers.hh"
 #include "base/logging.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 #include "debug/Interrupt.hh"
 #include "params/PpuInterrupts.hh"
 #include "sim/sim_object.hh"
 
-class BaseCPU;
-class ThreadContext;
+class PpuBaseCPU;
 
 namespace PpuISA {
+
+class ThreadContext;
+
 
 /*
  * This is based on version 1.10 of the RISC-V privileged ISA reference,
@@ -55,7 +57,7 @@ namespace PpuISA {
 class Interrupts : public BaseInterrupts
 {
   private:
-    BaseCPU * cpu;
+    PpuBaseCPU * cpu;
 
     std::bitset<NumInterruptTypes> ip;
     std::bitset<NumInterruptTypes> ie;
@@ -71,7 +73,7 @@ class Interrupts : public BaseInterrupts
 
     Interrupts(Params * p) : BaseInterrupts(p), cpu(nullptr), ip(0), ie(0) {}
 
-    void setCPU(BaseCPU * _cpu) { cpu = _cpu; }
+    void setCPU(PpuBaseCPU * _cpu) { cpu = _cpu; }
 
     std::bitset<NumInterruptTypes>
     globalMask(ThreadContext *tc) const

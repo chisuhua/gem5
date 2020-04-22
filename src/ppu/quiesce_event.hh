@@ -28,12 +28,20 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_QUIESCE_EVENT_HH__
-#define __CPU_QUIESCE_EVENT_HH__
+#ifndef __PPU_QUIESCE_EVENT_HH__
+#define __PPU_QUIESCE_EVENT_HH__
 
 #include "sim/eventq.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 /** Event for timing out quiesce instruction */
 class EndQuiesceEvent : public Event
@@ -51,4 +59,4 @@ class EndQuiesceEvent : public Event
     virtual const char *description() const;
 };
 
-#endif // __CPU_QUIESCE_EVENT_HH__
+#endif // __PPU_QUIESCE_EVENT_HH__

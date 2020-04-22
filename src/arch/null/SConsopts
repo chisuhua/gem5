@@ -40,3 +40,4 @@
 Import('*')
 
 all_isa_list.append('null')
+all_ppu_isa_list.append('null')

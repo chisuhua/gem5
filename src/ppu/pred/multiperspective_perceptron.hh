@@ -36,14 +36,18 @@
  * Multiperspective Perceptron Predictor (by Daniel A. Jiménez)
  */
 
-#ifndef __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__
-#define __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__
+#ifndef __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__
+#define __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__
 
 #include <array>
 #include <vector>
 
-#include "cpu/pred/bpred_unit.hh"
+#include "ppu/pred/bpred_unit.hh"
 #include "params/MultiperspectivePerceptron.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class MultiperspectivePerceptron : public BPredUnit
 {
@@ -1032,4 +1036,4 @@ class MultiperspectivePerceptron : public BPredUnit
             Addr corrTarget = MaxAddr) override;
     void btbUpdate(ThreadID tid, Addr branch_addr, void* &bp_history) override;
 };
-#endif//__CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__
+#endif//__PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_HH__

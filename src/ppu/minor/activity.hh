@@ -44,10 +44,10 @@
  *  minorTrace.
  */
 
-#ifndef __CPU_MINOR_ACTIVITY_HH__
-#define __CPU_MINOR_ACTIVITY_HH__
+#ifndef __PPU_MINOR_ACTIVITY_HH__
+#define __PPU_MINOR_ACTIVITY_HH__
 
-#include "cpu/activity.hh"
+#include "ppu/activity.hh"
 
 namespace Minor
 {
@@ -69,4 +69,4 @@ class MinorActivityRecorder : public ActivityRecorder
 
 }
 
-#endif /* __CPU_MINOR_ACTIVITY_HH__ */
+#endif /* __PPU_MINOR_ACTIVITY_HH__ */

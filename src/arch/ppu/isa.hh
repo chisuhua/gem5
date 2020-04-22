@@ -46,16 +46,16 @@
 #include "arch/ppu/types.hh"
 #include "base/bitfield.hh"
 #include "base/logging.hh"
-#include "cpu/reg_class.hh"
+#include "ppu/reg_class.hh"
 #include "sim/sim_object.hh"
 
 struct PpuISAParams;
-class ThreadContext;
 class Checkpoint;
 class EventManager;
 
 namespace PpuISA
 {
+class ThreadContext;
 
 enum PrivilegeMode {
     PRV_U = 0,

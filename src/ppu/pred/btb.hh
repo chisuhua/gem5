@@ -28,8 +28,8 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_PRED_BTB_HH__
-#define __CPU_PRED_BTB_HH__
+#ifndef __PPU_PRED_BTB_HH__
+#define __PPU_PRED_BTB_HH__
 
 #include "arch/types.hh"
 #include "base/logging.hh"
@@ -130,4 +130,4 @@ class DefaultBTB
     unsigned log2NumThreads;
 };
 
-#endif // __CPU_PRED_BTB_HH__
+#endif // __PPU_PRED_BTB_HH__

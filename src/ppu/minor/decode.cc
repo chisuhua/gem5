@@ -37,17 +37,17 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/decode.hh"
+#include "ppu/minor/decode.hh"
 
-#include "cpu/minor/pipeline.hh"
-#include "debug/Decode.hh"
+#include "ppu/minor/pipeline.hh"
+#include "debug/PpuDecode.hh"
 
 namespace Minor
 {
 
 Decode::Decode(const std::string &name,
-    MinorCPU &cpu_,
-    MinorCPUParams &params,
+    MinorPPU &cpu_,
+    MinorPPUParams &params,
     Latch<ForwardInstData>::Output inp_,
     Latch<ForwardInstData>::Input out_,
     std::vector<InputBuffer<ForwardInstData>> &next_stage_input_buffer) :
@@ -107,7 +107,7 @@ Decode::popInput(ThreadID tid)
  *  (these are used as the 'FetchSeq' in tracing data) */
 static void
 dynInstAddTracing(MinorDynInstPtr inst, StaticInstPtr static_inst,
-    MinorCPU &cpu)
+    MinorPPU &cpu)
 {
     inst->traceData = cpu.getTracer()->getInstRecord(curTick(),
         cpu.getContext(inst->id.threadId),
@@ -161,7 +161,7 @@ Decode::evaluate()
                 MinorDynInstPtr output_inst = inst;
 
                 if (inst->isFault()) {
-                    DPRINTF(Decode, "Fault being passed: %d\n",
+                    DPRINTF(PpuDecode, "Fault being passed: %d\n",
                         inst->fault->name());
 
                     decode_info.inputIndex++;
@@ -194,7 +194,7 @@ Decode::evaluate()
                         output_inst->predictedTarget = inst->predictedTarget;
                     }
 
-                    DPRINTF(Decode, "Microop decomposition inputIndex:"
+                    DPRINTF(PpuDecode, "Microop decomposition inputIndex:"
                         " %d output_index: %d lastMicroop: %s microopPC:"
                         " %d.%d inst: %d\n",
                         decode_info.inputIndex, output_index,
@@ -217,7 +217,7 @@ Decode::evaluate()
                     }
                 } else {
                     /* Doesn't need decomposing, pass on instruction */
-                    DPRINTF(Decode, "Passing on inst: %s inputIndex:"
+                    DPRINTF(PpuDecode, "Passing on inst: %s inputIndex:"
                         " %d output_index: %d\n",
                         *output_inst, decode_info.inputIndex, output_index);
 
@@ -255,7 +255,7 @@ Decode::evaluate()
                 insts_in = NULL;
 
                 if (processMoreThanOneInput) {
-                    DPRINTF(Decode, "Wrapping\n");
+                    DPRINTF(PpuDecode, "Wrapping\n");
                     insts_in = getInput(tid);
                 }
             }

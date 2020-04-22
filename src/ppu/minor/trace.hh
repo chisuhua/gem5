@@ -47,29 +47,29 @@
  *  minorview.
  */
 
-#ifndef __CPU_MINOR_TRACE_HH__
-#define __CPU_MINOR_TRACE_HH__
+#ifndef __PPU_MINOR_TRACE_HH__
+#define __PPU_MINOR_TRACE_HH__
 
 #include <string>
 
 #include "base/trace.hh"
-#include "debug/MinorTrace.hh"
+#include "debug/PpuMinorTrace.hh"
 
 namespace Minor
 {
 
 /** DPRINTFN for MinorTrace reporting */
 #define MINORTRACE(...) \
-    DPRINTF(MinorTrace, "MinorTrace: " __VA_ARGS__)
+    DPRINTF(PpuMinorTrace, "MinorTrace: " __VA_ARGS__)
 
 /** DPRINTFN for MinorTrace MinorInst line reporting */
 #define MINORINST(sim_object, ...) \
-    DPRINTFS(MinorTrace, (sim_object), "MinorInst: " __VA_ARGS__)
+    DPRINTFS(PpuMinorTrace, (sim_object), "MinorInst: " __VA_ARGS__)
 
 /** DPRINTFN for MinorTrace MinorLine line reporting */
 #define MINORLINE(sim_object, ...) \
-    DPRINTFS(MinorTrace, (sim_object), "MinorLine: " __VA_ARGS__)
+    DPRINTFS(PpuMinorTrace, (sim_object), "MinorLine: " __VA_ARGS__)
 
 }
 
-#endif /* __CPU_MINOR_TRACE_HH__ */
+#endif /* __PPU_MINOR_TRACE_HH__ */

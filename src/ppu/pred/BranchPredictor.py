@@ -34,7 +34,7 @@ from m5.proxy import *
 class IndirectPredictor(SimObject):
     type = 'IndirectPredictor'
     cxx_class = 'IndirectPredictor'
-    cxx_header = "cpu/pred/indirect.hh"
+    cxx_header = "ppu/pred/indirect.hh"
     abstract = True
 
     numThreads = Param.Unsigned(Parent.numThreads, "Number of threads")
@@ -42,7 +42,7 @@ class IndirectPredictor(SimObject):
 class SimpleIndirectPredictor(IndirectPredictor):
     type = 'SimpleIndirectPredictor'
     cxx_class = 'SimpleIndirectPredictor'
-    cxx_header = "cpu/pred/simple_indirect.hh"
+    cxx_header = "ppu/pred/simple_indirect.hh"
 
     indirectHashGHR = Param.Bool(True, "Hash branch predictor GHR")
     indirectHashTargets = Param.Bool(True, "Hash path history targets")
@@ -57,7 +57,7 @@ class SimpleIndirectPredictor(IndirectPredictor):
 class BranchPredictor(SimObject):
     type = 'BranchPredictor'
     cxx_class = 'BPredUnit'
-    cxx_header = "cpu/pred/bpred_unit.hh"
+    cxx_header = "ppu/pred/bpred_unit.hh"
     abstract = True
 
     numThreads = Param.Unsigned(Parent.numThreads, "Number of threads")
@@ -72,7 +72,7 @@ class BranchPredictor(SimObject):
 class LocalBP(BranchPredictor):
     type = 'LocalBP'
     cxx_class = 'LocalBP'
-    cxx_header = "cpu/pred/2bit_local.hh"
+    cxx_header = "ppu/pred/2bit_local.hh"
 
     localPredictorSize = Param.Unsigned(2048, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
@@ -81,7 +81,7 @@ class LocalBP(BranchPredictor):
 class TournamentBP(BranchPredictor):
     type = 'TournamentBP'
     cxx_class = 'TournamentBP'
-    cxx_header = "cpu/pred/tournament.hh"
+    cxx_header = "ppu/pred/tournament.hh"
 
     localPredictorSize = Param.Unsigned(2048, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
@@ -95,7 +95,7 @@ class TournamentBP(BranchPredictor):
 class BiModeBP(BranchPredictor):
     type = 'BiModeBP'
     cxx_class = 'BiModeBP'
-    cxx_header = "cpu/pred/bi_mode.hh"
+    cxx_header = "ppu/pred/bi_mode.hh"
 
     globalPredictorSize = Param.Unsigned(8192, "Size of global predictor")
     globalCtrBits = Param.Unsigned(2, "Bits per counter")
@@ -105,7 +105,7 @@ class BiModeBP(BranchPredictor):
 class TAGEBase(SimObject):
     type = 'TAGEBase'
     cxx_class = 'TAGEBase'
-    cxx_header = "cpu/pred/tage_base.hh"
+    cxx_header = "ppu/pred/tage_base.hh"
 
     numThreads = Param.Unsigned(Parent.numThreads, "Number of threads")
     instShiftAmt = Param.Unsigned(Parent.instShiftAmt,
@@ -150,7 +150,7 @@ class TAGEBase(SimObject):
 class TAGE(BranchPredictor):
     type = 'TAGE'
     cxx_class = 'TAGE'
-    cxx_header = "cpu/pred/tage.hh"
+    cxx_header = "ppu/pred/tage.hh"
     tage = Param.TAGEBase(TAGEBase(), "Tage object")
 
 class LTAGE_TAGE(TAGEBase):
@@ -164,7 +164,7 @@ class LTAGE_TAGE(TAGEBase):
 class LoopPredictor(SimObject):
     type = 'LoopPredictor'
     cxx_class = 'LoopPredictor'
-    cxx_header = 'cpu/pred/loop_predictor.hh'
+    cxx_header = 'ppu/pred/loop_predictor.hh'
 
     logSizeLoopPred = Param.Unsigned(8, "Log size of the loop predictor")
     withLoopBits = Param.Unsigned(7, "Size of the WITHLOOP counter")
@@ -204,7 +204,7 @@ class LoopPredictor(SimObject):
 class TAGE_SC_L_TAGE(TAGEBase):
     type = 'TAGE_SC_L_TAGE'
     cxx_class = 'TAGE_SC_L_TAGE'
-    cxx_header = "cpu/pred/tage_sc_l.hh"
+    cxx_header = "ppu/pred/tage_sc_l.hh"
     abstract = True
     tagTableTagWidths = [0]
     numUseAltOnNa = 16
@@ -241,7 +241,7 @@ class TAGE_SC_L_TAGE(TAGEBase):
 class TAGE_SC_L_TAGE_64KB(TAGE_SC_L_TAGE):
     type = 'TAGE_SC_L_TAGE_64KB'
     cxx_class = 'TAGE_SC_L_TAGE_64KB'
-    cxx_header = "cpu/pred/tage_sc_l_64KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_64KB.hh"
     nHistoryTables = 36
 
     minHist = 6
@@ -271,7 +271,7 @@ class TAGE_SC_L_TAGE_64KB(TAGE_SC_L_TAGE):
 class TAGE_SC_L_TAGE_8KB(TAGE_SC_L_TAGE):
     type = 'TAGE_SC_L_TAGE_8KB'
     cxx_class = 'TAGE_SC_L_TAGE_8KB'
-    cxx_header = "cpu/pred/tage_sc_l_8KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_8KB.hh"
 
     nHistoryTables = 30
 
@@ -300,7 +300,7 @@ class TAGE_SC_L_TAGE_8KB(TAGE_SC_L_TAGE):
 class LTAGE(TAGE):
     type = 'LTAGE'
     cxx_class = 'LTAGE'
-    cxx_header = "cpu/pred/ltage.hh"
+    cxx_header = "ppu/pred/ltage.hh"
 
     tage = LTAGE_TAGE()
 
@@ -309,7 +309,7 @@ class LTAGE(TAGE):
 class TAGE_SC_L_LoopPredictor(LoopPredictor):
     type = 'TAGE_SC_L_LoopPredictor'
     cxx_class  = 'TAGE_SC_L_LoopPredictor'
-    cxx_header = "cpu/pred/tage_sc_l.hh"
+    cxx_header = "ppu/pred/tage_sc_l.hh"
     loopTableAgeBits = 4
     loopTableConfidenceBits = 4
     loopTableTagBits = 10
@@ -325,7 +325,7 @@ class TAGE_SC_L_LoopPredictor(LoopPredictor):
 class StatisticalCorrector(SimObject):
     type = 'StatisticalCorrector'
     cxx_class  = 'StatisticalCorrector'
-    cxx_header = "cpu/pred/statistical_corrector.hh"
+    cxx_header = "ppu/pred/statistical_corrector.hh"
     abstract = True
 
     # Statistical corrector parameters
@@ -388,7 +388,7 @@ class StatisticalCorrector(SimObject):
 class TAGE_SC_L(LTAGE):
     type = 'TAGE_SC_L'
     cxx_class = 'TAGE_SC_L'
-    cxx_header = "cpu/pred/tage_sc_l.hh"
+    cxx_header = "ppu/pred/tage_sc_l.hh"
     abstract = True
 
     statistical_corrector = Param.StatisticalCorrector(
@@ -403,7 +403,7 @@ class TAGE_SC_L_8KB_LoopPredictor(TAGE_SC_L_LoopPredictor):
 class TAGE_SC_L_64KB_StatisticalCorrector(StatisticalCorrector):
     type = 'TAGE_SC_L_64KB_StatisticalCorrector'
     cxx_class  = 'TAGE_SC_L_64KB_StatisticalCorrector'
-    cxx_header = "cpu/pred/tage_sc_l_64KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_64KB.hh"
 
     pnb = Param.Unsigned(3, "Num variation global branch GEHL lengths")
     pm = VectorParam.Int([25, 16, 9], "Variation global branch GEHL lengths")
@@ -449,7 +449,7 @@ class TAGE_SC_L_64KB_StatisticalCorrector(StatisticalCorrector):
 class TAGE_SC_L_8KB_StatisticalCorrector(StatisticalCorrector):
     type = 'TAGE_SC_L_8KB_StatisticalCorrector'
     cxx_class  = 'TAGE_SC_L_8KB_StatisticalCorrector'
-    cxx_header = "cpu/pred/tage_sc_l_8KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_8KB.hh"
     gnb = Param.Unsigned(2, "Num global branch GEHL lengths")
     gm = VectorParam.Int([6, 3], "Global branch GEHL lengths")
     logGnb = Param.Unsigned(7, "Log number of global branch GEHL entries")
@@ -476,7 +476,7 @@ class TAGE_SC_L_8KB_StatisticalCorrector(StatisticalCorrector):
 class TAGE_SC_L_64KB(TAGE_SC_L):
     type = 'TAGE_SC_L_64KB'
     cxx_class = 'TAGE_SC_L_64KB'
-    cxx_header = "cpu/pred/tage_sc_l_64KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_64KB.hh"
 
     tage = TAGE_SC_L_TAGE_64KB()
     loop_predictor = TAGE_SC_L_64KB_LoopPredictor()
@@ -487,7 +487,7 @@ class TAGE_SC_L_64KB(TAGE_SC_L):
 class TAGE_SC_L_8KB(TAGE_SC_L):
     type = 'TAGE_SC_L_8KB'
     cxx_class = 'TAGE_SC_L_8KB'
-    cxx_header = "cpu/pred/tage_sc_l_8KB.hh"
+    cxx_header = "ppu/pred/tage_sc_l_8KB.hh"
 
     tage = TAGE_SC_L_TAGE_8KB()
     loop_predictor = TAGE_SC_L_8KB_LoopPredictor()
@@ -496,7 +496,7 @@ class TAGE_SC_L_8KB(TAGE_SC_L):
 class MultiperspectivePerceptron(BranchPredictor):
     type = 'MultiperspectivePerceptron'
     cxx_class = 'MultiperspectivePerceptron'
-    cxx_header = 'cpu/pred/multiperspective_perceptron.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron.hh'
     abstract = True
 
     num_filter_entries = Param.Int("Number of filter entries")
@@ -559,7 +559,7 @@ class MultiperspectivePerceptron(BranchPredictor):
 class MultiperspectivePerceptron8KB(MultiperspectivePerceptron):
     type = 'MultiperspectivePerceptron8KB'
     cxx_class = 'MultiperspectivePerceptron8KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_8KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_8KB.hh'
     budgetbits = 8192 * 8 + 2048
     num_local_histories = 48
     num_filter_entries = 0
@@ -570,7 +570,7 @@ class MultiperspectivePerceptron8KB(MultiperspectivePerceptron):
 class MultiperspectivePerceptron64KB(MultiperspectivePerceptron):
     type = 'MultiperspectivePerceptron64KB'
     cxx_class = 'MultiperspectivePerceptron64KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_64KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_64KB.hh'
     budgetbits = 65536 * 8 + 2048
     num_local_histories = 510
     num_filter_entries = 18025
@@ -581,7 +581,7 @@ class MultiperspectivePerceptron64KB(MultiperspectivePerceptron):
 class MPP_TAGE(TAGEBase):
     type = 'MPP_TAGE'
     cxx_class = 'MPP_TAGE'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage.hh'
     nHistoryTables = 15
     pathHistBits = 27
     instShiftAmt = 0
@@ -602,7 +602,7 @@ class MPP_TAGE(TAGEBase):
 class MPP_LoopPredictor(LoopPredictor):
     type = 'MPP_LoopPredictor'
     cxx_class = 'MPP_LoopPredictor'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage.hh'
     useDirectionBit = True
     useHashing = True
     useSpeculation = False
@@ -619,7 +619,7 @@ class MPP_LoopPredictor(LoopPredictor):
 class MPP_StatisticalCorrector(StatisticalCorrector):
     type = 'MPP_StatisticalCorrector'
     cxx_class = 'MPP_StatisticalCorrector'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage.hh'
     abstract = True
 
     # Unused in this Statistical Corrector
@@ -655,7 +655,7 @@ class MPP_StatisticalCorrector(StatisticalCorrector):
 class MultiperspectivePerceptronTAGE(MultiperspectivePerceptron):
     type = 'MultiperspectivePerceptronTAGE'
     cxx_class = 'MultiperspectivePerceptronTAGE'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage.hh'
     abstract = True
     instShiftAmt = 4
 
@@ -676,7 +676,7 @@ class MultiperspectivePerceptronTAGE(MultiperspectivePerceptron):
 class MPP_StatisticalCorrector_64KB(MPP_StatisticalCorrector):
     type = 'MPP_StatisticalCorrector_64KB'
     cxx_class = 'MPP_StatisticalCorrector_64KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_64KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_64KB.hh'
 
     logBias = 8
 
@@ -700,7 +700,7 @@ class MPP_StatisticalCorrector_64KB(MPP_StatisticalCorrector):
 class MultiperspectivePerceptronTAGE64KB(MultiperspectivePerceptronTAGE):
     type = 'MultiperspectivePerceptronTAGE64KB'
     cxx_class = 'MultiperspectivePerceptronTAGE64KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_64KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_64KB.hh'
 
     budgetbits = 65536 * 8 + 2048
 
@@ -711,7 +711,7 @@ class MultiperspectivePerceptronTAGE64KB(MultiperspectivePerceptronTAGE):
 class MPP_TAGE_8KB(MPP_TAGE):
     type = 'MPP_TAGE_8KB'
     cxx_class = 'MPP_TAGE_8KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_8KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_8KB.hh'
     nHistoryTables = 10
     tagTableTagWidths = [0, 7, 7, 7, 8, 9, 10, 10, 11, 13, 13]
     logTagTableSizes = [12, 8, 8, 9, 9, 8, 8, 8, 7, 6, 7]
@@ -720,14 +720,14 @@ class MPP_TAGE_8KB(MPP_TAGE):
 class MPP_LoopPredictor_8KB(MPP_LoopPredictor):
     type = 'MPP_LoopPredictor_8KB'
     cxx_class = 'MPP_LoopPredictor_8KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_8KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_8KB.hh'
     loopTableIterBits = 10
     logSizeLoopPred = 4
 
 class MPP_StatisticalCorrector_8KB(MPP_StatisticalCorrector):
     type = 'MPP_StatisticalCorrector_8KB'
     cxx_class = 'MPP_StatisticalCorrector_8KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_8KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_8KB.hh'
 
     logBias = 7
 
@@ -744,7 +744,7 @@ class MPP_StatisticalCorrector_8KB(MPP_StatisticalCorrector):
 class MultiperspectivePerceptronTAGE8KB(MultiperspectivePerceptronTAGE):
     type = 'MultiperspectivePerceptronTAGE8KB'
     cxx_class = 'MultiperspectivePerceptronTAGE8KB'
-    cxx_header = 'cpu/pred/multiperspective_perceptron_tage_8KB.hh'
+    cxx_header = 'ppu/pred/multiperspective_perceptron_tage_8KB.hh'
 
     budgetbits = 8192 * 8 + 2048
 

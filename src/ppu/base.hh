@@ -43,8 +43,8 @@
  *          Rick Strong
  */
 
-#ifndef __CPU_BASE_HH__
-#define __CPU_BASE_HH__
+#ifndef __PPU_BASE_HH__
+#define __PPU_BASE_HH__
 
 #include <vector>
 
@@ -64,14 +64,21 @@
 #include "sim/insttracer.hh"
 #include "sim/probe/pmu.hh"
 #include "sim/probe/probe.hh"
-#include "sim/system.hh"
-#include "debug/Mwait.hh"
+#include "ppu_sim/system.hh"
+#include "debug/PpuMwait.hh"
+#include "cpu/base.hh"
 
-class BaseCPU;
-struct BaseCPUParams;
-class CheckerCPU;
+
+struct PpuBaseCPUParams;
+class PpuCheckerCPU;
+
+namespace PpuISA {
 class ThreadContext;
+}; // namespace PpuIsa
 
+class PpuBaseCPU;
+
+/*
 struct AddressMonitor
 {
     AddressMonitor();
@@ -84,17 +91,17 @@ struct AddressMonitor
     bool waiting;   // 0=normal, 1=mwaiting
     bool gotWakeup;
 };
-
-class CPUProgressEvent : public Event
+*/
+class PpuCPUProgressEvent : public Event
 {
   protected:
     Tick _interval;
     Counter lastNumInst;
-    BaseCPU *cpu;
+    PpuBaseCPU *cpu;
     bool _repeatEvent;
 
   public:
-    CPUProgressEvent(BaseCPU *_cpu, Tick ival = 0);
+    PpuCPUProgressEvent(PpuBaseCPU *_cpu, Tick ival = 0);
 
     void process();
 
@@ -106,7 +113,8 @@ class CPUProgressEvent : public Event
     virtual const char *description() const;
 };
 
-class BaseCPU : public ClockedObject
+// class PpuBaseCPU : public BaseCPU
+class PpuBaseCPU : public ClockedObject
 {
   protected:
 
@@ -116,7 +124,7 @@ class BaseCPU : public ClockedObject
 
     // every cpu has an id, put it in the base cpu
     // Set at initialization, only time a cpuId might change is during a
-    // takeover (which should be done from within the BaseCPU anyway,
+    // takeover (which should be done from within the PpuBaseCPU anyway,
     // therefore no setCpuId() method is provided
     int _cpuId;
 
@@ -307,11 +315,11 @@ class BaseCPU : public ClockedObject
     { return static_cast<ThreadID>(cid - threadContexts[0]->contextId()); }
 
   public:
-    typedef BaseCPUParams Params;
+    typedef PpuBaseCPUParams Params;
     const Params *params() const
     { return reinterpret_cast<const Params *>(_params); }
-    BaseCPU(Params *params, bool is_checker = false);
-    virtual ~BaseCPU();
+    PpuBaseCPU(Params *params, bool is_checker = false);
+    virtual ~PpuBaseCPU();
 
     void init() override;
     void startup() override;
@@ -346,7 +354,7 @@ class BaseCPU : public ClockedObject
      *
      * @param cpu CPU to initialize read state from.
      */
-    virtual void takeOverFrom(BaseCPU *cpu);
+    virtual void takeOverFrom(PpuBaseCPU *cpu);
 
     /**
      * Flush all TLBs in the CPU.
@@ -566,7 +574,7 @@ class BaseCPU : public ClockedObject
     void traceFunctionsInternal(Addr pc);
 
   private:
-    static std::vector<BaseCPU *> cpuList;   //!< Static global cpu list
+    static std::vector<PpuBaseCPU *> cpuList;   //!< Static global cpu list
 
   public:
     void traceFunctions(Addr pc)
@@ -630,6 +638,8 @@ class BaseCPU : public ClockedObject
     EventFunctionWrapper enterPwrGatingEvent;
 };
 
+
+
 #endif // THE_PPU_ISA == NULL_ISA
 
-#endif // __CPU_BASE_HH__
+#endif // __PPU_BASE_HH__

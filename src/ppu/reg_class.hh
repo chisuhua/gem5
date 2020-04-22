@@ -42,8 +42,8 @@
  *          Rekai Gonzalez
  */
 
-#ifndef __CPU__REG_CLASS_HH__
-#define __CPU__REG_CLASS_HH__
+#ifndef __PPU__REG_CLASS_HH__
+#define __PPU__REG_CLASS_HH__
 
 #include <cassert>
 #include <cstddef>
@@ -51,6 +51,10 @@
 #include "arch/generic/types.hh"
 #include "arch/registers.hh"
 #include "config/the_isa.hh"
+
+// namespace PpuISA
+// {
+
 
 /** Enumerate the classes of registers. */
 enum RegClass {
@@ -351,6 +355,8 @@ class PhysRegId : private RegId {
 
 using PhysRegIdPtr = PhysRegId*;
 
+// } // namespace PpuISA
+/*
 namespace std
 {
 template<>
@@ -378,5 +384,6 @@ struct hash<RegId>
     }
 };
 }
+*/
 
-#endif // __CPU__REG_CLASS_HH__
+#endif // __PPU__REG_CLASS_HH__

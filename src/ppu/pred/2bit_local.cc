@@ -28,12 +28,12 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/pred/2bit_local.hh"
+#include "ppu/pred/2bit_local.hh"
 
 #include "base/intmath.hh"
 #include "base/logging.hh"
 #include "base/trace.hh"
-#include "debug/Fetch.hh"
+#include "debug/PpuFetch.hh"
 
 LocalBP::LocalBP(const LocalBPParams *params)
     : BPredUnit(params),
@@ -51,14 +51,14 @@ LocalBP::LocalBP(const LocalBPParams *params)
         fatal("Invalid number of local predictor sets! Check localCtrBits.\n");
     }
 
-    DPRINTF(Fetch, "index mask: %#x\n", indexMask);
+    DPRINTF(PpuFetch, "index mask: %#x\n", indexMask);
 
-    DPRINTF(Fetch, "local predictor size: %i\n",
+    DPRINTF(PpuFetch, "local predictor size: %i\n",
             localPredictorSize);
 
-    DPRINTF(Fetch, "local counter bits: %i\n", localCtrBits);
+    DPRINTF(PpuFetch, "local counter bits: %i\n", localCtrBits);
 
-    DPRINTF(Fetch, "instruction shift amount: %i\n",
+    DPRINTF(PpuFetch, "instruction shift amount: %i\n",
             instShiftAmt);
 }
 
@@ -76,12 +76,12 @@ LocalBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
     bool taken;
     unsigned local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(Fetch, "Looking up index %#x\n",
+    DPRINTF(PpuFetch, "Looking up index %#x\n",
             local_predictor_idx);
 
     uint8_t counter_val = localCtrs[local_predictor_idx];
 
-    DPRINTF(Fetch, "prediction is %i.\n",
+    DPRINTF(PpuFetch, "prediction is %i.\n",
             (int)counter_val);
 
     taken = getPrediction(counter_val);
@@ -105,13 +105,13 @@ LocalBP::update(ThreadID tid, Addr branch_addr, bool taken, void *bp_history,
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(branch_addr);
 
-    DPRINTF(Fetch, "Looking up index %#x\n", local_predictor_idx);
+    DPRINTF(PpuFetch, "Looking up index %#x\n", local_predictor_idx);
 
     if (taken) {
-        DPRINTF(Fetch, "Branch updated as taken.\n");
+        DPRINTF(PpuFetch, "Branch updated as taken.\n");
         localCtrs[local_predictor_idx]++;
     } else {
-        DPRINTF(Fetch, "Branch updated as not taken.\n");
+        DPRINTF(PpuFetch, "Branch updated as not taken.\n");
         localCtrs[local_predictor_idx]--;
     }
 }

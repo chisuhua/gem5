@@ -37,7 +37,7 @@
  * Authors: Geoffrey Blake
  */
 
-#include "cpu/dummy_checker.hh"
+#include "ppu/dummy_checker.hh"
 
 #include "params/DummyChecker.hh"
 

@@ -40,12 +40,12 @@
  * Authors: Steve Reinhardt
  */
 
-#ifndef __CPU_SIMPLE_TIMING_HH__
-#define __CPU_SIMPLE_TIMING_HH__
+#ifndef __PPU_SIMPLE_TIMING_HH__
+#define __PPU_SIMPLE_TIMING_HH__
 
-#include "cpu/simple/base.hh"
-#include "cpu/simple/exec_context.hh"
-#include "cpu/translation.hh"
+#include "ppu/simple/base.hh"
+#include "ppu/simple/exec_context.hh"
+#include "ppu/translation.hh"
 #include "params/TimingSimpleCPU.hh"
 
 class TimingSimpleCPU : public BaseSimpleCPU
@@ -275,7 +275,7 @@ class TimingSimpleCPU : public BaseSimpleCPU
     void drainResume() override;
 
     void switchOut() override;
-    void takeOverFrom(BaseCPU *oldCPU) override;
+    void takeOverFrom(PpuBaseCPU *oldCPU) override;
 
     void verifyMemoryMode() const override;
 
@@ -366,4 +366,4 @@ class TimingSimpleCPU : public BaseSimpleCPU
     bool tryCompleteDrain();
 };
 
-#endif // __CPU_SIMPLE_TIMING_HH__
+#endif // __PPU_SIMPLE_TIMING_HH__

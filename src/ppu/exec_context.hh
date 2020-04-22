@@ -42,17 +42,21 @@
  *          Andreas Sandberg
  */
 
-#ifndef __CPU_EXEC_CONTEXT_HH__
-#define __CPU_EXEC_CONTEXT_HH__
+#ifndef __PPU_EXEC_CONTEXT_HH__
+#define __PPU_EXEC_CONTEXT_HH__
 
 #include "arch/registers.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/reg_class.hh"
-#include "cpu/static_inst_fwd.hh"
-#include "cpu/translation.hh"
+#include "ppu/base.hh"
+#include "ppu/reg_class.hh"
+#include "ppu/static_inst_fwd.hh"
+#include "ppu/translation.hh"
 #include "mem/request.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /**
  * The ExecContext is an abstract base class the provides the
@@ -342,4 +346,4 @@ class ExecContext {
     /** @} */
 };
 
-#endif // __CPU_EXEC_CONTEXT_HH__
+#endif // __PPU_EXEC_CONTEXT_HH__

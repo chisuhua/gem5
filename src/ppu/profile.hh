@@ -28,17 +28,25 @@
  * Authors: Nathan Binkert
  */
 
-#ifndef __CPU_PROFILE_HH__
-#define __CPU_PROFILE_HH__
+#ifndef __PPU_PROFILE_HH__
+#define __PPU_PROFILE_HH__
 
 #include <map>
 
 #include "arch/stacktrace.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
 
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 class ProfileNode
 {
@@ -89,4 +97,4 @@ FunctionProfile::consume(ThreadContext *tc, const StaticInstPtr &inst)
     return consume(trace.getstack());
 }
 
-#endif // __CPU_PROFILE_HH__
+#endif // __PPU_PROFILE_HH__

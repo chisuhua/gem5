@@ -40,7 +40,7 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/pred/tournament.hh"
+#include "ppu/pred/tournament.hh"
 
 #include "base/bitfield.hh"
 #include "base/intmath.hh"

@@ -30,85 +30,91 @@
 
 Import('*')
 
-DebugFlag('Activity')
-DebugFlag('Commit')
-DebugFlag('Context')
-DebugFlag('Decode')
-DebugFlag('DynInst')
-DebugFlag('ExecEnable',
+
+DebugFlag('PpuActivity')
+DebugFlag('PpuCommit')
+DebugFlag('PpuContext')
+DebugFlag('PpuDecode')
+DebugFlag('PpuDynInst')
+DebugFlag('PpuExecEnable',
         'Filter: Enable exec tracing (no tracing without this)')
-DebugFlag('ExecCPSeq', 'Format: Instruction sequence number')
-DebugFlag('ExecEffAddr', 'Format: Include effective address')
-DebugFlag('ExecFaulting', 'Trace faulting instructions')
-DebugFlag('ExecFetchSeq', 'Format: Fetch sequence number')
-DebugFlag('ExecOpClass', 'Format: Include operand class')
-DebugFlag('ExecRegDelta')
-DebugFlag('ExecResult', 'Format: Include results from execution')
-DebugFlag('ExecSymbol', 'Format: Try to include symbol names')
-DebugFlag('ExecThread', 'Format: Include thread ID in trace')
-DebugFlag('ExecMicro', 'Filter: Include microops')
-DebugFlag('ExecMacro', 'Filter: Include macroops')
-DebugFlag('ExecUser', 'Filter: Trace user mode instructions')
-DebugFlag('ExecKernel', 'Filter: Trace kernel mode instructions')
-DebugFlag('ExecAsid', 'Format: Include ASID in trace')
-DebugFlag('ExecFlags', 'Format: Include instruction flags in trace')
-DebugFlag('Fetch')
-DebugFlag('IntrControl')
-DebugFlag('O3PipeView')
-DebugFlag('PCEvent')
-DebugFlag('Quiesce')
-DebugFlag('Mwait')
+DebugFlag('PpuExecCPSeq', 'Format: Instruction sequence number')
+DebugFlag('PpuExecEffAddr', 'Format: Include effective address')
+DebugFlag('PpuExecFaulting', 'Trace faulting instructions')
+DebugFlag('PpuExecFetchSeq', 'Format: Fetch sequence number')
+DebugFlag('PpuExecOpClass', 'Format: Include operand class')
+DebugFlag('PpuExecRegDelta')
+DebugFlag('PpuExecResult', 'Format: Include results from execution')
+DebugFlag('PpuExecSymbol', 'Format: Try to include symbol names')
+DebugFlag('PpuExecThread', 'Format: Include thread ID in trace')
+DebugFlag('PpuExecMicro', 'Filter: Include microops')
+DebugFlag('PpuExecMacro', 'Filter: Include macroops')
+DebugFlag('PpuExecUser', 'Filter: Trace user mode instructions')
+DebugFlag('PpuExecKernel', 'Filter: Trace kernel mode instructions')
+DebugFlag('PpuExecAsid', 'Format: Include ASID in trace')
+DebugFlag('PpuExecFlags', 'Format: Include instruction flags in trace')
+DebugFlag('PpuFetch')
+DebugFlag('PpuIntrControl')
+DebugFlag('PpuO3PipeView')
+DebugFlag('PpuPCEvent')
+DebugFlag('PpuQuiesce')
+DebugFlag('PpuMwait')
 
-CompoundFlag('ExecAll', [ 'ExecEnable', 'ExecCPSeq', 'ExecEffAddr',
-    'ExecFaulting', 'ExecFetchSeq', 'ExecOpClass', 'ExecRegDelta',
-    'ExecResult', 'ExecSymbol', 'ExecThread',
-    'ExecMicro', 'ExecMacro', 'ExecUser', 'ExecKernel',
-    'ExecAsid', 'ExecFlags' ])
-CompoundFlag('Exec', [ 'ExecEnable', 'ExecOpClass', 'ExecThread',
-    'ExecEffAddr', 'ExecResult', 'ExecSymbol', 'ExecMicro', 'ExecMacro',
-    'ExecFaulting', 'ExecUser', 'ExecKernel' ])
-CompoundFlag('ExecNoTicks', [ 'Exec', 'FmtTicksOff' ])
+CompoundFlag('PpuExecAll', [ 'PpuExecEnable', 'PpuExecCPSeq', 'PpuExecEffAddr',
+    'PpuExecFaulting', 'PpuExecFetchSeq', 'PpuExecOpClass', 'PpuExecRegDelta',
+    'PpuExecResult', 'PpuExecSymbol', 'PpuExecThread',
+    'PpuExecMicro', 'PpuExecMacro', 'PpuExecUser', 'PpuExecKernel',
+    'PpuExecAsid', 'PpuExecFlags' ])
+CompoundFlag('PpuExec', [ 'PpuExecEnable', 'PpuExecOpClass', 'PpuExecThread',
+    'PpuExecEffAddr', 'PpuExecResult', 'PpuExecSymbol', 'PpuExecMicro', 'PpuExecMacro',
+    'PpuExecFaulting', 'PpuExecUser', 'PpuExecKernel' ])
+CompoundFlag('PpuExecNoTicks', [ 'PpuExec', 'FmtTicksOff' ])
 
-Source('pc_event.cc')
+
+
+Source('static_inst.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+
+
+#Source('pc_event.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
 if env['TARGET_ISA'] == 'null':
     SimObject('IntrControl.py')
-    Source('intr_control_noisa.cc')
+    Source('intr_control_noisa.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Return()
 
 # Only build the protocol buffer instructions tracer if we have protobuf support
 if env['HAVE_PROTOBUF'] and env['TARGET_ISA'] != 'x86':
     SimObject('InstPBTrace.py')
-    Source('inst_pb_trace.cc')
+    Source('inst_pb_trace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-SimObject('CheckerCPU.py')
+SimObject('PpuCheckerCPU.py')
+SimObject('PpuBaseCPU.py')
+#SimObject('CPUTracers.py')
+#SimObject('FuncUnit.py')
+#SimObject('IntrControl.py')
+#SimObject('TimingExpr.py')
 
-SimObject('BaseCPU.py')
-SimObject('CPUTracers.py')
-SimObject('FuncUnit.py')
-SimObject('IntrControl.py')
-SimObject('TimingExpr.py')
+#Source('activity.cc', append={'CXXFLAGS': '-DBUILD_PPU'} )
+Source('base.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('cpuevent.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('exetrace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('exec_context.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('func_unit.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('inteltrace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('intr_control.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('nativetrace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('profile.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('quiesce_event.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('reg_class.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('static_inst.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('simple_thread.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('thread_context.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('thread_state.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('timing_expr.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-Source('activity.cc')
-Source('base.cc')
-Source('cpuevent.cc')
-Source('exetrace.cc')
-Source('exec_context.cc')
-Source('func_unit.cc')
-Source('inteltrace.cc')
-Source('intr_control.cc')
-Source('nativetrace.cc')
-Source('profile.cc')
-Source('quiesce_event.cc')
-Source('reg_class.cc')
-Source('static_inst.cc')
-Source('simple_thread.cc')
-Source('thread_context.cc')
-Source('thread_state.cc')
-Source('timing_expr.cc')
-
-SimObject('DummyChecker.py')
-SimObject('StaticInstFlags.py')
-Source('checker/cpu.cc')
-Source('dummy_checker.cc')
-DebugFlag('Checker')
+#SimObject('DummyChecker.py')
+#SimObject('StaticInstFlags.py')
+#Source('checker/cpu.cc')
+#Source('dummy_checker.cc')
+#DebugFlag('PpuChecker')
+Return()

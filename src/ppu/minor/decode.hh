@@ -44,13 +44,13 @@
  *  passed to Execute.
  */
 
-#ifndef __CPU_MINOR_DECODE_HH__
-#define __CPU_MINOR_DECODE_HH__
+#ifndef __PPU_MINOR_DECODE_HH__
+#define __PPU_MINOR_DECODE_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/dyn_inst.hh"
-#include "cpu/minor/pipe_data.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/dyn_inst.hh"
+#include "ppu/minor/pipe_data.hh"
 
 namespace Minor
 {
@@ -63,7 +63,7 @@ class Decode : public Named
 {
   protected:
     /** Pointer back to the containing CPU */
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** Input port carrying macro instructions from Fetch2 */
     Latch<ForwardInstData>::Output inp;
@@ -139,8 +139,8 @@ class Decode : public Named
     ThreadID getScheduledThread();
   public:
     Decode(const std::string &name,
-        MinorCPU &cpu_,
-        MinorCPUParams &params,
+        MinorPPU &cpu_,
+        MinorPPUParams &params,
         Latch<ForwardInstData>::Output inp_,
         Latch<ForwardInstData>::Input out_,
         std::vector<InputBuffer<ForwardInstData>> &next_stage_input_buffer);
@@ -160,4 +160,4 @@ class Decode : public Named
 
 }
 
-#endif /* __CPU_MINOR_DECODE_HH__ */
+#endif /* __PPU_MINOR_DECODE_HH__ */

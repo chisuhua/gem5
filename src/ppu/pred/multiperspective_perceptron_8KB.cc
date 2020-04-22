@@ -37,7 +37,7 @@
  * - 8KB version
  */
 
-#include "cpu/pred/multiperspective_perceptron_8KB.hh"
+#include "ppu/pred/multiperspective_perceptron_8KB.hh"
 
 MultiperspectivePerceptron8KB::MultiperspectivePerceptron8KB(
         const MultiperspectivePerceptron8KBParams *p)

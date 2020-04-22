@@ -29,9 +29,9 @@
 
 Import('*')
 
-if env['TARGET_ISA'] == 'ppu':
-    Source('amo.cc')
-    Source('compressed.cc')
-    Source('mem.cc')
-    Source('standard.cc')
-    Source('static_inst.cc')
+if env['TARGET_PPU_ISA'] == 'ppu':
+    Source('amo.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('compressed.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('mem.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('standard.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('static_inst.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

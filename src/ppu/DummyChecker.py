@@ -36,8 +36,8 @@
 # Authors: Geoffrey Blake
 
 from m5.params import *
-from m5.objects.CheckerCPU import CheckerCPU
+from m5.objects.PpuCheckerCPU import PpuCheckerCPU
 
-class DummyChecker(CheckerCPU):
+class DummyChecker(PpuCheckerCPU):
     type = 'DummyChecker'
-    cxx_header = 'cpu/dummy_checker.hh'
+    cxx_header = 'ppu/dummy_checker.hh'

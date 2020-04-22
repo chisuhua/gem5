@@ -38,14 +38,14 @@
  * Implementation of a L-TAGE branch predictor
  */
 
-#include "cpu/pred/ltage.hh"
+#include "ppu/pred/ltage.hh"
 
 #include "base/intmath.hh"
 #include "base/logging.hh"
 #include "base/random.hh"
 #include "base/trace.hh"
-#include "debug/Fetch.hh"
-#include "debug/LTage.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuLTage.hh"
 
 LTAGE::LTAGE(const LTAGEParams *params)
   : TAGE(params), loopPredictor(params->loop_predictor)
@@ -75,7 +75,7 @@ LTAGE::predict(ThreadID tid, Addr branch_pc, bool cond_branch, void* &b)
         if (bi->lpBranchInfo->loopPredUsed) {
             bi->tageBranchInfo->provider = LOOP;
         }
-        DPRINTF(LTage, "Predict for %lx: taken?:%d, loopTaken?:%d, "
+        DPRINTF(PpuLTage, "Predict for %lx: taken?:%d, loopTaken?:%d, "
                 "loopValid?:%d, loopUseCounter:%d, tagePred:%d, altPred:%d\n",
                 branch_pc, pred_taken, bi->lpBranchInfo->loopPred,
                 bi->lpBranchInfo->loopPredValid,
@@ -115,7 +115,7 @@ LTAGE::update(ThreadID tid, Addr branch_pc, bool taken, void* bp_history,
 
     int nrand = random_mt.random<int>() & 3;
     if (bi->tageBranchInfo->condBranch) {
-        DPRINTF(LTage, "Updating tables for branch:%lx; taken?:%d\n",
+        DPRINTF(PpuLTage, "Updating tables for branch:%lx; taken?:%d\n",
                 branch_pc, taken);
         tage->updateStats(taken, bi->tageBranchInfo);
 

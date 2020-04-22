@@ -40,14 +40,14 @@
 #include "arch/ppu/linux/linux.hh"
 #include "base/loader/object_file.hh"
 #include "base/trace.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 #include "debug/SyscallVerbose.hh"
 #include "kern/linux/linux.hh"
 #include "sim/eventq.hh"
 #include "sim/process.hh"
 #include "sim/syscall_desc.hh"
 #include "sim/syscall_emul.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 using namespace std;
 using namespace PpuISA;

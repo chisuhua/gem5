@@ -36,7 +36,7 @@
  * Multiperspective Perceptron Predictor with TAGE (by Daniel A. Jiménez)
  */
 
-#include "cpu/pred/multiperspective_perceptron_tage.hh"
+#include "ppu/pred/multiperspective_perceptron_tage.hh"
 
 #include "base/random.hh"
 

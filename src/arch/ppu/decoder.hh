@@ -38,7 +38,7 @@
 #include "arch/ppu/types.hh"
 #include "base/logging.hh"
 #include "base/types.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 #include "debug/Decode.hh"
 
 namespace PpuISA

@@ -29,7 +29,7 @@
  *          Steve Reinhardt
  */
 
-#include "cpu/pc_event.hh"
+#include "ppu/pc_event.hh"
 
 #include <algorithm>
 #include <string>
@@ -37,9 +37,9 @@
 
 #include "base/debug.hh"
 #include "base/trace.hh"
-#include "debug/PCEvent.hh"
+#include "debug/PpuPCEvent.hh"
 #include "sim/core.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 using namespace std;
 
@@ -57,7 +57,7 @@ PCEventQueue::remove(PCEvent *event)
     iterator i = range.first;
     while (i != range.second && i != pcMap.end()) {
         if (*i == event) {
-            DPRINTF(PCEvent, "PC based event removed at %#x: %s\n",
+            DPRINTF(PpuPCEvent, "PC based event removed at %#x: %s\n",
                     event->pc(), event->descr());
             i = pcMap.erase(i);
             ++removed;
@@ -75,7 +75,7 @@ PCEventQueue::schedule(PCEvent *event)
     pcMap.push_back(event);
     sort(pcMap.begin(), pcMap.end(), MapCompare());
 
-    DPRINTF(PCEvent, "PC based event scheduled for %#x: %s\n",
+    DPRINTF(PpuPCEvent, "PC based event scheduled for %#x: %s\n",
             event->pc(), event->descr());
 
     return true;
@@ -89,7 +89,7 @@ PCEventQueue::doService(Addr pc, ThreadContext *tc)
     int serviced = 0;
     range_t range = equal_range(pc);
     for (iterator i = range.first; i != range.second; ++i) {
-        DPRINTF(PCEvent, "PC based event serviced at %#x: %s\n",
+        DPRINTF(PpuPCEvent, "PC based event serviced at %#x: %s\n",
                 (*i)->pc(), (*i)->descr());
 
         (*i)->process(tc);

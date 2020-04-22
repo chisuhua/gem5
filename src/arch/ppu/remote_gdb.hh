@@ -42,10 +42,10 @@
 #include "base/remote_gdb.hh"
 
 class System;
-class ThreadContext;
 
 namespace PpuISA
 {
+class ThreadContext;
 
 class RemoteGDB : public BaseRemoteGDB
 {

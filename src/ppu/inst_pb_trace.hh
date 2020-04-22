@@ -37,18 +37,26 @@
  * Authors: Ali Saidi
  */
 
-#ifndef __CPU_INST_PB_TRACE_HH__
-#define __CPU_INST_PB_TRACE_HH__
+#ifndef __PPU_INST_PB_TRACE_HH__
+#define __PPU_INST_PB_TRACE_HH__
 
 #include "arch/types.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
-#include "cpu/static_inst_fwd.hh"
+#include "ppu/static_inst_fwd.hh"
 #include "params/InstPBTrace.hh"
 #include "proto/protoio.hh"
 #include "sim/insttracer.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 namespace ProtoMessage {
 class Inst;
@@ -135,4 +143,4 @@ class InstPBTrace : public InstTracer
     friend class InstPBTraceRecord;
 };
 } // namespace Trace
-#endif // __CPU_INST_PB_TRACE_HH__
+#endif // __PPU_INST_PB_TRACE_HH__

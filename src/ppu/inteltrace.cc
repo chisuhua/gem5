@@ -31,13 +31,13 @@
  *          Steve Raasch
  */
 
-#include "cpu/inteltrace.hh"
+#include "ppu/inteltrace.hh"
 
 #include <iomanip>
 
 #include "config/the_isa.hh"
-#include "cpu/exetrace.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/exetrace.hh"
+#include "ppu/static_inst.hh"
 
 using namespace std;
 using namespace ThePpuISA;

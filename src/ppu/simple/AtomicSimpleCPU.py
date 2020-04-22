@@ -48,7 +48,7 @@ class AtomicSimpleCPU(BaseSimpleCPU):
     memory mode."""
 
     type = 'AtomicSimpleCPU'
-    cxx_header = "cpu/simple/atomic.hh"
+    cxx_header = "ppu/simple/atomic.hh"
 
     @classmethod
     def memory_mode(cls):

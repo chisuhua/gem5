@@ -48,7 +48,7 @@ class NonCachingSimpleCPU(AtomicSimpleCPU):
     """
 
     type = 'NonCachingSimpleCPU'
-    cxx_header = "cpu/simple/noncaching.hh"
+    cxx_header = "ppu/simple/noncaching.hh"
 
     @classmethod
     def memory_mode(cls):

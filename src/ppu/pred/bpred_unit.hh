@@ -44,21 +44,25 @@
  *          Nilay Vaish
  */
 
-#ifndef __CPU_PRED_BPRED_UNIT_HH__
-#define __CPU_PRED_BPRED_UNIT_HH__
+#ifndef __PPU_PRED_BPRED_UNIT_HH__
+#define __PPU_PRED_BPRED_UNIT_HH__
 
 #include <deque>
 
 #include "base/statistics.hh"
 #include "base/types.hh"
-#include "cpu/pred/btb.hh"
-#include "cpu/pred/indirect.hh"
-#include "cpu/pred/ras.hh"
-#include "cpu/inst_seq.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/pred/btb.hh"
+#include "ppu/pred/indirect.hh"
+#include "ppu/pred/ras.hh"
+#include "ppu/inst_seq.hh"
+#include "ppu/static_inst.hh"
 #include "params/BranchPredictor.hh"
 #include "sim/probe/pmu.hh"
 #include "sim/sim_object.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /**
  * Basically a wrapper class to hold both the branch predictor
@@ -348,4 +352,4 @@ class BPredUnit : public SimObject
     /** @} */
 };
 
-#endif // __CPU_PRED_BPRED_UNIT_HH__
+#endif // __PPU_PRED_BPRED_UNIT_HH__

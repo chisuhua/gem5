@@ -28,11 +28,11 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/quiesce_event.hh"
+#include "ppu/quiesce_event.hh"
 
-#include "cpu/base.hh"
-#include "cpu/thread_context.hh"
-#include "debug/Quiesce.hh"
+#include "ppu/base.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuQuiesce.hh"
 
 EndQuiesceEvent::EndQuiesceEvent(ThreadContext *_tc)
     : tc(_tc)
@@ -42,7 +42,7 @@ EndQuiesceEvent::EndQuiesceEvent(ThreadContext *_tc)
 void
 EndQuiesceEvent::process()
 {
-    DPRINTF(Quiesce, "activating %s\n", tc->getCpuPtr()->name());
+    DPRINTF(PpuQuiesce, "activating %s\n", tc->getCpuPtr()->name());
     tc->activate();
 }
 

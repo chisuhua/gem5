@@ -33,8 +33,23 @@
 #include "params/BaseInterrupts.hh"
 #include "sim/sim_object.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+
 class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+class PpuBaseCPU;
+// using BaseCPU = PpuBaseCPU;
+#define BaseCPU PpuBaseCPU
+#else
 class BaseCPU;
+#endif
+
 
 class BaseInterrupts : public SimObject
 {
@@ -94,5 +109,10 @@ class BaseInterrupts : public SimObject
         panic("Interrupts::clearAll unimplemented!\n");
     }
 };
+
+#ifdef BUILD_PPU
+#undef BaseCPU
+#endif
+
 
 #endif // __ARCH_GENERIC_INTERRUPTS_HH__

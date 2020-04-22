@@ -37,7 +37,7 @@
  * 64 KB version
  */
 
-#include "cpu/pred/multiperspective_perceptron_tage_64KB.hh"
+#include "ppu/pred/multiperspective_perceptron_tage_64KB.hh"
 
 MPP_StatisticalCorrector_64KB::MPP_StatisticalCorrector_64KB(
     const MPP_StatisticalCorrector_64KBParams *p)

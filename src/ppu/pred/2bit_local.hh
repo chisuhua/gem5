@@ -41,14 +41,14 @@
  *          Timothy M. Jones
  */
 
-#ifndef __CPU_PRED_2BIT_LOCAL_PRED_HH__
-#define __CPU_PRED_2BIT_LOCAL_PRED_HH__
+#ifndef __PPU_PRED_2BIT_LOCAL_PRED_HH__
+#define __PPU_PRED_2BIT_LOCAL_PRED_HH__
 
 #include <vector>
 
 #include "base/sat_counter.hh"
 #include "base/types.hh"
-#include "cpu/pred/bpred_unit.hh"
+#include "ppu/pred/bpred_unit.hh"
 #include "params/LocalBP.hh"
 
 /**
@@ -125,4 +125,4 @@ class LocalBP : public BPredUnit
     const unsigned indexMask;
 };
 
-#endif // __CPU_PRED_2BIT_LOCAL_PRED_HH__
+#endif // __PPU_PRED_2BIT_LOCAL_PRED_HH__

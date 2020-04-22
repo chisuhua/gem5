@@ -50,16 +50,16 @@
  *  ExecContext bears the exec_context interface for Minor.
  */
 
-#ifndef __CPU_MINOR_EXEC_CONTEXT_HH__
-#define __CPU_MINOR_EXEC_CONTEXT_HH__
+#ifndef __PPU_MINOR_EXEC_CONTEXT_HH__
+#define __PPU_MINOR_EXEC_CONTEXT_HH__
 
-#include "cpu/exec_context.hh"
-#include "cpu/minor/execute.hh"
-#include "cpu/minor/pipeline.hh"
-#include "cpu/base.hh"
-#include "cpu/simple_thread.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/minor/execute.hh"
+#include "ppu/minor/pipeline.hh"
+#include "ppu/base.hh"
+#include "ppu/simple_thread.hh"
 #include "mem/request.hh"
-#include "debug/MinorExecute.hh"
+#include "debug/PpuMinorExecute.hh"
 
 namespace Minor
 {
@@ -68,13 +68,13 @@ namespace Minor
 class Execute;
 
 /** ExecContext bears the exec_context interface for Minor.  This nicely
- *  separates that interface from other classes such as Pipeline, MinorCPU
+ *  separates that interface from other classes such as Pipeline, MinorPPU
  *  and DynMinorInst and makes it easier to see what state is accessed by it.
  */
 class ExecContext : public ::ExecContext
 {
   public:
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** ThreadState object, provides all the architectural state. */
     SimpleThread &thread;
@@ -86,7 +86,7 @@ class ExecContext : public ::ExecContext
     MinorDynInstPtr inst;
 
     ExecContext (
-        MinorCPU &cpu_,
+        MinorPPU &cpu_,
         SimpleThread &thread_, Execute &execute_,
         MinorDynInstPtr inst_) :
         cpu(cpu_),
@@ -94,7 +94,7 @@ class ExecContext : public ::ExecContext
         execute(execute_),
         inst(inst_)
     {
-        DPRINTF(MinorExecute, "ExecContext setting PC: %s\n", inst->pc);
+        DPRINTF(PpuMinorExecute, "ExecContext setting PC: %s\n", inst->pc);
         pcState(inst->pc);
         setPredicate(inst->readPredicate());
         setMemAccPredicate(inst->readMemAccPredicate());
@@ -438,7 +438,7 @@ class ExecContext : public ::ExecContext
         thread.getDTBPtr()->demapPage(vaddr, asn);
     }
 
-    BaseCPU *getCpuPtr() { return &cpu; }
+    PpuBaseCPU *getCpuPtr() { return &cpu; }
 
   public:
     // monitor/mwait funtions
@@ -457,4 +457,4 @@ class ExecContext : public ::ExecContext
 
 }
 
-#endif /* __CPU_MINOR_EXEC_CONTEXT_HH__ */
+#endif /* __PPU_MINOR_EXEC_CONTEXT_HH__ */

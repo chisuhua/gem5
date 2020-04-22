@@ -33,16 +33,16 @@ from m5.objects.InstTracer import InstTracer
 class ExeTracer(InstTracer):
     type = 'ExeTracer'
     cxx_class = 'Trace::ExeTracer'
-    cxx_header = "cpu/exetrace.hh"
+    cxx_header = "ppu/exetrace.hh"
 
 class IntelTrace(InstTracer):
     type = 'IntelTrace'
     cxx_class = 'Trace::IntelTrace'
-    cxx_header = "cpu/inteltrace.hh"
+    cxx_header = "ppu/inteltrace.hh"
 
 class NativeTrace(ExeTracer):
     abstract = True
     type = 'NativeTrace'
     cxx_class = 'Trace::NativeTrace'
-    cxx_header = 'cpu/nativetrace.hh'
+    cxx_header = 'ppu/nativetrace.hh'
 

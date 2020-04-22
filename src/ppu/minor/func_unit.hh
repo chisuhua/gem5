@@ -43,18 +43,23 @@
  *  Execute function unit descriptions and pipeline implementations.
  */
 
-#ifndef __CPU_MINOR_FUNC_UNIT_HH__
-#define __CPU_MINOR_FUNC_UNIT_HH__
+#ifndef __PPU_MINOR_FUNC_UNIT_HH__
+#define __PPU_MINOR_FUNC_UNIT_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/dyn_inst.hh"
-#include "cpu/func_unit.hh"
-#include "cpu/timing_expr.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/dyn_inst.hh"
+#include "ppu/func_unit.hh"
+#include "ppu/timing_expr.hh"
 #include "params/MinorFU.hh"
 #include "params/MinorFUPool.hh"
 #include "params/MinorOpClass.hh"
 #include "params/MinorOpClassSet.hh"
 #include "sim/clocked_object.hh"
+
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /** Boxing for MinorOpClass to get around a build problem with C++11 but
  *  also allow for future additions to op class checking */
@@ -265,4 +270,4 @@ class FUPipeline : public FUPipelineBase, public FuncUnit
 
 }
 
-#endif /* __CPU_MINOR_FUNC_UNIT_HH__ */
+#endif /* __PPU_MINOR_FUNC_UNIT_HH__ */

@@ -32,8 +32,14 @@
 
 #include "arch/decoder.hh"
 #include "arch/types.hh"
+
 #include "config/the_isa.hh"
+#ifdef BUILD_PPU
+#include "ppu/static_inst.hh"
+#else
 #include "cpu/static_inst.hh"
+#endif
+
 
 namespace GenericISA
 {

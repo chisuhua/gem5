@@ -28,12 +28,12 @@
  * Authors: Mitch Hayenga
  */
 
-#ifndef __CPU_PRED_INDIRECT_BASE_HH__
-#define __CPU_PRED_INDIRECT_BASE_HH__
+#ifndef __PPU_PRED_INDIRECT_BASE_HH__
+#define __PPU_PRED_INDIRECT_BASE_HH__
 
 #include "arch/isa_traits.hh"
 #include "config/the_isa.hh"
-#include "cpu/inst_seq.hh"
+#include "ppu/inst_seq.hh"
 #include "params/IndirectPredictor.hh"
 #include "sim/sim_object.hh"
 
@@ -65,4 +65,4 @@ class IndirectPredictor : public SimObject
                                            bool actually_taken) = 0;
 };
 
-#endif // __CPU_PRED_INDIRECT_BASE_HH__
+#endif // __PPU_PRED_INDIRECT_BASE_HH__

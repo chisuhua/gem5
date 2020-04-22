@@ -33,7 +33,7 @@
 #include "arch/ppu/idle_event.hh"
 
 #include "arch/ppu/kernel_stats.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 
 using namespace PpuISA;
 

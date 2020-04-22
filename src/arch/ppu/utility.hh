@@ -55,9 +55,9 @@
 
 #include "arch/ppu/registers.hh"
 #include "base/types.hh"
-#include "cpu/reg_class.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/reg_class.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
 
 namespace PpuISA
 {

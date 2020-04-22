@@ -37,14 +37,18 @@
  * 8 KB version
  */
 
-#ifndef __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__
-#define __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__
+#ifndef __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__
+#define __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__
 
-#include "cpu/pred/multiperspective_perceptron_tage.hh"
+#include "ppu/pred/multiperspective_perceptron_tage.hh"
 #include "params/MPP_LoopPredictor_8KB.hh"
 #include "params/MPP_StatisticalCorrector_8KB.hh"
 #include "params/MPP_TAGE_8KB.hh"
 #include "params/MultiperspectivePerceptronTAGE8KB.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class MPP_TAGE_8KB : public MPP_TAGE {
   public:
@@ -81,4 +85,4 @@ class MultiperspectivePerceptronTAGE8KB :
             const MultiperspectivePerceptronTAGE8KBParams *p);
 };
 
-#endif // __CPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__
+#endif // __PPU_PRED_MULTIPERSPECTIVE_PERCEPTRON_TAGE_8KB_HH__

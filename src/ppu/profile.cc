@@ -28,7 +28,7 @@
  * Authors: Nathan Binkert
  */
 
-#include "cpu/profile.hh"
+#include "ppu/profile.hh"
 
 #include <string>
 
@@ -37,8 +37,8 @@
 #include "base/loader/symtab.hh"
 #include "base/statistics.hh"
 #include "base/trace.hh"
-#include "cpu/base.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/base.hh"
+#include "ppu/thread_context.hh"
 
 using namespace std;
 

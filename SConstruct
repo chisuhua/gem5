@@ -905,8 +905,10 @@ main = conf.Finish()
 # Define the universe of supported ISAs
 all_isa_list = [ ]
 all_gpu_isa_list = [ ]
+all_ppu_isa_list = [ ]
 Export('all_isa_list')
 Export('all_gpu_isa_list')
+Export('all_ppu_isa_list')
 
 class CpuModel(object):
     '''The CpuModel class encapsulates everything the ISA parser needs to
@@ -962,10 +964,12 @@ for bdir in [ base_dir ] + extras_dir_list:
 
 all_isa_list.sort()
 all_gpu_isa_list.sort()
+all_ppu_isa_list.sort()
 
 sticky_vars.AddVariables(
     EnumVariable('TARGET_ISA', 'Target ISA', 'alpha', all_isa_list),
     EnumVariable('TARGET_GPU_ISA', 'Target GPU ISA', 'hsail', all_gpu_isa_list),
+    EnumVariable('TARGET_PPU_ISA', 'Target PPU ISA', 'ppu', all_ppu_isa_list),
     ListVariable('CPU_MODELS', 'CPU models',
                  sorted(n for n,m in CpuModel.dict.iteritems() if m.default),
                  sorted(CpuModel.dict.keys())),
@@ -1001,7 +1005,7 @@ sticky_vars.AddVariables(
 # These variables get exported to #defines in config/*.hh (see src/SConscript).
 export_vars += ['USE_FENV', 'SS_COMPATIBLE_FP', 'TARGET_ISA', 'TARGET_GPU_ISA',
                 'CP_ANNOTATE', 'USE_POSIX_CLOCK', 'USE_KVM', 'USE_TUNTAP',
-                'PROTOCOL', 'HAVE_PROTOBUF', 'HAVE_VALGRIND',
+                'PROTOCOL', 'HAVE_PROTOBUF', 'HAVE_VALGRIND', 'TARGET_PPU_ISA',
                 'HAVE_PERF_ATTR_EXCLUDE_HOST', 'USE_PNG',
                 'NUMBER_BITS_PER_SET', 'USE_HDF5']
 
@@ -1018,7 +1022,14 @@ export_vars += ['USE_FENV', 'SS_COMPATIBLE_FP', 'TARGET_ISA', 'TARGET_GPU_ISA',
 def build_config_file(target, source, env):
     (variable, value) = [s.get_contents() for s in source]
     f = file(str(target[0]), 'w')
-    print('#define', variable, value, file=f)
+    if variable == "USE_KVM":
+        print('#ifdef BUILD_PPU', file=f)
+        print('#define', variable, 0, file=f)
+        print('#else', file=f)
+        print('#define', variable, value, file=f)
+        print('#endif', file=f)
+    else:
+        print('#define', variable, value, file=f)
     f.close()
     return None
 
@@ -1126,7 +1137,14 @@ def build_switching_header(target, source, env):
     dp = os.path.relpath(os.path.realpath(dp),
                          os.path.realpath(env['BUILDDIR']))
     with open(path, 'w') as hdr:
-        print('#include "%s/%s/%s"' % (dp, subdir, fp), file=hdr)
+        if env['BUILD_PPU']:
+            print('#ifdef BUILD_PPU', file=hdr)
+            print('#include "%s/%s/%s"' % (dp, "ppu", fp), file=hdr)
+            print('#else', file=hdr)
+            print('#include "%s/%s/%s"' % (dp, subdir, fp), file=hdr)
+            print('#endif', file=hdr)
+	else:
+            print('#include "%s/%s/%s"' % (dp, subdir, fp), file=hdr)
 
 switching_header_action = MakeAction(build_switching_header,
                                      Transform('GENERATE'))
@@ -1249,8 +1267,8 @@ for variant_path in variant_paths:
     if env['BUILD_GPU']:
         env.Append(CPPDEFINES=['BUILD_GPU'])
 
-    if env['BUILD_PPU']:
-        env.Append(CPPDEFINES=['BUILD_PPU'])
+    #if env['BUILD_PPU']:
+    #    env.Append(CPPDEFINES=['BUILD_PPU'])
 
     # Warn about missing optional functionality
     if env['USE_KVM']:

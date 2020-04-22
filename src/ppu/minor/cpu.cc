@@ -37,18 +37,18 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/cpu.hh"
+#include "ppu/minor/cpu.hh"
 
 #include "arch/utility.hh"
-#include "cpu/minor/dyn_inst.hh"
-#include "cpu/minor/fetch1.hh"
-#include "cpu/minor/pipeline.hh"
-#include "debug/Drain.hh"
-#include "debug/MinorCPU.hh"
-#include "debug/Quiesce.hh"
+#include "ppu/minor/dyn_inst.hh"
+#include "ppu/minor/fetch1.hh"
+#include "ppu/minor/pipeline.hh"
+#include "debug/PpuDrain.hh"
+#include "debug/PpuMinorCPU.hh"
+#include "debug/PpuQuiesce.hh"
 
-MinorCPU::MinorCPU(MinorCPUParams *params) :
-    BaseCPU(params),
+MinorPPU::MinorPPU(MinorPPUParams *params) :
+    PpuBaseCPU(params),
     threadPolicy(params->threadPolicy)
 {
     /* This is only written for one thread at the moment */
@@ -81,7 +81,7 @@ MinorCPU::MinorCPU(MinorCPUParams *params) :
     activityRecorder = pipeline->getActivityRecorder();
 }
 
-MinorCPU::~MinorCPU()
+MinorPPU::~MinorPPU()
 {
     delete pipeline;
 
@@ -91,9 +91,9 @@ MinorCPU::~MinorCPU()
 }
 
 void
-MinorCPU::init()
+MinorPPU::init()
 {
-    BaseCPU::init();
+    PpuBaseCPU::init();
 
     if (!params()->switched_out &&
         system->getMemoryMode() != Enums::timing)
@@ -110,43 +110,43 @@ MinorCPU::init()
     }
 }
 
-/** Stats interface from SimObject (by way of BaseCPU) */
+/** Stats interface from SimObject (by way of PpuBaseCPU) */
 void
-MinorCPU::regStats()
+MinorPPU::regStats()
 {
-    BaseCPU::regStats();
+    PpuBaseCPU::regStats();
     stats.regStats(name(), *this);
     pipeline->regStats();
 }
 
 void
-MinorCPU::serializeThread(CheckpointOut &cp, ThreadID thread_id) const
+MinorPPU::serializeThread(CheckpointOut &cp, ThreadID thread_id) const
 {
     threads[thread_id]->serialize(cp);
 }
 
 void
-MinorCPU::unserializeThread(CheckpointIn &cp, ThreadID thread_id)
+MinorPPU::unserializeThread(CheckpointIn &cp, ThreadID thread_id)
 {
     threads[thread_id]->unserialize(cp);
 }
 
 void
-MinorCPU::serialize(CheckpointOut &cp) const
+MinorPPU::serialize(CheckpointOut &cp) const
 {
     pipeline->serialize(cp);
-    BaseCPU::serialize(cp);
+    PpuBaseCPU::serialize(cp);
 }
 
 void
-MinorCPU::unserialize(CheckpointIn &cp)
+MinorPPU::unserialize(CheckpointIn &cp)
 {
     pipeline->unserialize(cp);
-    BaseCPU::unserialize(cp);
+    PpuBaseCPU::unserialize(cp);
 }
 
 Addr
-MinorCPU::dbg_vtophys(Addr addr)
+MinorPPU::dbg_vtophys(Addr addr)
 {
     /* Note that this gives you the translation for thread 0 */
     panic("No implementation for vtophy\n");
@@ -155,9 +155,9 @@ MinorCPU::dbg_vtophys(Addr addr)
 }
 
 void
-MinorCPU::wakeup(ThreadID tid)
+MinorPPU::wakeup(ThreadID tid)
 {
-    DPRINTF(Drain, "[tid:%d] MinorCPU wakeup\n", tid);
+    DPRINTF(PpuDrain, "[tid:%d] MinorPPU wakeup\n", tid);
     assert(tid < numThreads);
 
     if (threads[tid]->status() == ThreadContext::Suspended) {
@@ -166,11 +166,11 @@ MinorCPU::wakeup(ThreadID tid)
 }
 
 void
-MinorCPU::startup()
+MinorPPU::startup()
 {
-    DPRINTF(MinorCPU, "MinorCPU startup\n");
+    DPRINTF(PpuMinorCPU, "MinorPPU startup\n");
 
-    BaseCPU::startup();
+    PpuBaseCPU::startup();
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         threads[tid]->startup();
@@ -179,38 +179,38 @@ MinorCPU::startup()
 }
 
 DrainState
-MinorCPU::drain()
+MinorPPU::drain()
 {
     // Deschedule any power gating event (if any)
     deschedulePowerGatingEvent();
 
     if (switchedOut()) {
-        DPRINTF(Drain, "Minor CPU switched out, draining not needed.\n");
+        DPRINTF(PpuDrain, "Minor CPU switched out, draining not needed.\n");
         return DrainState::Drained;
     }
 
-    DPRINTF(Drain, "MinorCPU drain\n");
+    DPRINTF(PpuDrain, "MinorPPU drain\n");
 
     /* Need to suspend all threads and wait for Execute to idle.
      * Tell Fetch1 not to fetch */
     if (pipeline->drain()) {
-        DPRINTF(Drain, "MinorCPU drained\n");
+        DPRINTF(PpuDrain, "MinorPPU drained\n");
         return DrainState::Drained;
     } else {
-        DPRINTF(Drain, "MinorCPU not finished draining\n");
+        DPRINTF(PpuDrain, "MinorPPU not finished draining\n");
         return DrainState::Draining;
     }
 }
 
 void
-MinorCPU::signalDrainDone()
+MinorPPU::signalDrainDone()
 {
-    DPRINTF(Drain, "MinorCPU drain done\n");
+    DPRINTF(PpuDrain, "MinorPPU drain done\n");
     Drainable::signalDrainDone();
 }
 
 void
-MinorCPU::drainResume()
+MinorPPU::drainResume()
 {
     /* When taking over from another cpu make sure lastStopped
      * is reset since it might have not been defined previously
@@ -218,11 +218,11 @@ MinorCPU::drainResume()
     pipeline->resetLastStopped();
 
     if (switchedOut()) {
-        DPRINTF(Drain, "drainResume while switched out.  Ignoring\n");
+        DPRINTF(PpuDrain, "drainResume while switched out.  Ignoring\n");
         return;
     }
 
-    DPRINTF(Drain, "MinorCPU drainResume\n");
+    DPRINTF(PpuDrain, "MinorPPU drainResume\n");
 
     if (!system->isTimingMode()) {
         fatal("The Minor CPU requires the memory system to be in "
@@ -240,39 +240,39 @@ MinorCPU::drainResume()
 }
 
 void
-MinorCPU::memWriteback()
+MinorPPU::memWriteback()
 {
-    DPRINTF(Drain, "MinorCPU memWriteback\n");
+    DPRINTF(PpuDrain, "MinorPPU memWriteback\n");
 }
 
 void
-MinorCPU::switchOut()
+MinorPPU::switchOut()
 {
-    DPRINTF(MinorCPU, "MinorCPU switchOut\n");
+    DPRINTF(PpuMinorCPU, "MinorPPU switchOut\n");
 
     assert(!switchedOut());
-    BaseCPU::switchOut();
+    PpuBaseCPU::switchOut();
 
     /* Check that the CPU is drained? */
     activityRecorder->reset();
 }
 
 void
-MinorCPU::takeOverFrom(BaseCPU *old_cpu)
+MinorPPU::takeOverFrom(PpuBaseCPU *old_cpu)
 {
-    DPRINTF(MinorCPU, "MinorCPU takeOverFrom\n");
+    DPRINTF(PpuMinorCPU, "MinorPPU takeOverFrom\n");
 
-    BaseCPU::takeOverFrom(old_cpu);
+    PpuBaseCPU::takeOverFrom(old_cpu);
 }
 
 void
-MinorCPU::activateContext(ThreadID thread_id)
+MinorPPU::activateContext(ThreadID thread_id)
 {
-    DPRINTF(MinorCPU, "ActivateContext thread: %d\n", thread_id);
+    DPRINTF(PpuMinorCPU, "ActivateContext thread: %d\n", thread_id);
 
     /* Do some cycle accounting.  lastStopped is reset to stop the
      *  wakeup call on the pipeline from adding the quiesce period
-     *  to BaseCPU::numCycles */
+     *  to PpuBaseCPU::numCycles */
     stats.quiesceCycles += pipeline->cyclesSinceLastStopped();
     pipeline->resetLastStopped();
 
@@ -281,49 +281,49 @@ MinorCPU::activateContext(ThreadID thread_id)
     wakeupOnEvent(Minor::Pipeline::CPUStageId);
     pipeline->wakeupFetch(thread_id);
 
-    BaseCPU::activateContext(thread_id);
+    PpuBaseCPU::activateContext(thread_id);
 }
 
 void
-MinorCPU::suspendContext(ThreadID thread_id)
+MinorPPU::suspendContext(ThreadID thread_id)
 {
-    DPRINTF(MinorCPU, "SuspendContext %d\n", thread_id);
+    DPRINTF(PpuMinorCPU, "SuspendContext %d\n", thread_id);
 
     threads[thread_id]->suspend();
 
-    BaseCPU::suspendContext(thread_id);
+    PpuBaseCPU::suspendContext(thread_id);
 }
 
 void
-MinorCPU::wakeupOnEvent(unsigned int stage_id)
+MinorPPU::wakeupOnEvent(unsigned int stage_id)
 {
-    DPRINTF(Quiesce, "Event wakeup from stage %d\n", stage_id);
+    DPRINTF(PpuQuiesce, "Event wakeup from stage %d\n", stage_id);
 
     /* Mark that some activity has taken place and start the pipeline */
     activityRecorder->activateStage(stage_id);
     pipeline->start();
 }
 
-MinorCPU *
-MinorCPUParams::create()
+MinorPPU *
+MinorPPUParams::create()
 {
-    return new MinorCPU(this);
+    return new MinorPPU(this);
 }
 
 Port &
-MinorCPU::getInstPort()
+MinorPPU::getInstPort()
 {
     return pipeline->getInstPort();
 }
 
 Port &
-MinorCPU::getDataPort()
+MinorPPU::getDataPort()
 {
     return pipeline->getDataPort();
 }
 
 Counter
-MinorCPU::totalInsts() const
+MinorPPU::totalInsts() const
 {
     Counter ret = 0;
 
@@ -334,7 +334,7 @@ MinorCPU::totalInsts() const
 }
 
 Counter
-MinorCPU::totalOps() const
+MinorPPU::totalOps() const
 {
     Counter ret = 0;
 

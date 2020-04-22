@@ -37,7 +37,7 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/timing_expr.hh"
+#include "ppu/timing_expr.hh"
 
 #include "base/intmath.hh"
 

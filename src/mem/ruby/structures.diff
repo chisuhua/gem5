@@ -1,0 +1,883 @@
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: AbstractReplacementPolicy.cc
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: AbstractReplacementPolicy.hh
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/BankedArray.cc structures/BankedArray.cc
+32d31
+< #include "base/intmath.hh"
+34c33,35
+< #include "mem/ruby/system/System.hh"
+---
+> 
+> #include "base/intmath.hh"
+> #include "mem/ruby/system/RubySystem.hh"
+76c77
+<     if(busyBanks[bank].endAccess >= curTick()) {
+---
+>     if (busyBanks[bank].endAccess >= curTick()) {
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/BankedArray.hh structures/BankedArray.hh
+38c38
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/system/RubySystem.hh"
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/CacheMemory.cc structures/CacheMemory.cc
+29a30,31
+> #include "mem/ruby/structures/CacheMemory.hh"
+> 
+30a33
+> #include "base/logging.hh"
+35,37c38,40
+< #include "mem/protocol/AccessPermission.hh"
+< #include "mem/ruby/structures/CacheMemory.hh"
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/protocol/AccessPermission.hh"
+> #include "mem/ruby/system/RubySystem.hh"
+> #include "mem/ruby/system/WeightedLRUPolicy.hh"
+65d67
+<     m_replacementPolicy_ptr->setCache(this);
+68a71,73
+>     m_block_size = p->block_size;  // may be 0 at this point. Updated in init()
+>     m_use_occupancy = dynamic_cast<WeightedLRUPolicy*>(
+>                                     m_replacementPolicy_ptr) ? true : false;
+74,75c79,82
+<     m_cache_num_sets = (m_cache_size / m_cache_assoc) /
+<         RubySystem::getBlockSizeBytes();
+---
+>     if (m_block_size == 0) {
+>         m_block_size = RubySystem::getBlockSizeBytes();
+>     }
+>     m_cache_num_sets = (m_cache_size / m_cache_assoc) / m_block_size;
+80c87,91
+<     m_cache.resize(m_cache_num_sets);
+---
+>     m_cache.resize(m_cache_num_sets,
+>                     std::vector<AbstractCacheEntry*>(m_cache_assoc, nullptr));
+>     replacement_data.resize(m_cache_num_sets,
+>                                std::vector<ReplData>(m_cache_assoc, nullptr));
+>     // instantiate all the replacement_data here
+82,84c93,95
+<         m_cache[i].resize(m_cache_assoc);
+<         for (int j = 0; j < m_cache_assoc; j++) {
+<             m_cache[i][j] = NULL;
+---
+>         for ( int j = 0; j < m_cache_assoc; j++) {
+>             replacement_data[i][j] =
+>                                 m_replacementPolicy_ptr->instantiateEntry();
+91c102
+<     if (m_replacementPolicy_ptr != NULL)
+---
+>     if (m_replacementPolicy_ptr)
+116c127
+<     m5::hash_map<Addr, int>::const_iterator it = m_tag_index.find(tag);
+---
+>     auto it = m_tag_index.find(tag);
+132c143
+<     m5::hash_map<Addr, int>::const_iterator it = m_tag_index.find(tag);
+---
+>     auto it = m_tag_index.find(tag);
+166c177
+<     DPRINTF(RubyCache, "address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "address: %#x\n", address);
+172c183,184
+<         m_replacementPolicy_ptr->touch(cacheSet, loc, curTick());
+---
+>         m_replacementPolicy_ptr->touch(replacement_data[cacheSet][loc]);
+>         m_cache[cacheSet][loc]->setLastAccess(curTick());
+193c205
+<     DPRINTF(RubyCache, "address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "address: %#x\n", address);
+200c212,213
+<         m_replacementPolicy_ptr->touch(cacheSet, loc, curTick());
+---
+>         m_replacementPolicy_ptr->touch(replacement_data[cacheSet][loc]);
+>         m_cache[cacheSet][loc]->setLastAccess(curTick());
+221c234
+<         DPRINTF(RubyCache, "No tag match for address: %s\n", address);
+---
+>         DPRINTF(RubyCache, "No tag match for address: %#x\n", address);
+224c237
+<     DPRINTF(RubyCache, "address: %s found\n", address);
+---
+>     DPRINTF(RubyCache, "address: %#x found\n", address);
+254c267
+< CacheMemory::allocate(Addr address, AbstractCacheEntry* entry, bool touch)
+---
+> CacheMemory::allocate(Addr address, AbstractCacheEntry *entry)
+259c272
+<     DPRINTF(RubyCache, "address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "address: %#x\n", address);
+265a279,285
+>             if (set[i] && (set[i] != entry)) {
+>                 warn_once("This protocol contains a cache entry handling bug: "
+>                     "Entries in the cache should never be NotPresent! If\n"
+>                     "this entry (%#x) is not tracked elsewhere, it will memory "
+>                     "leak here. Fix your protocol to eliminate these!",
+>                     address);
+>             }
+273,277c293,297
+< 
+<             if (touch) {
+<                 m_replacementPolicy_ptr->touch(cacheSet, i, curTick());
+<             }
+< 
+---
+>             set[i]->setPosition(cacheSet, i);
+>             // Call reset function here to set initial value for different
+>             // replacement policies.
+>             m_replacementPolicy_ptr->reset(replacement_data[cacheSet][i]);
+>             set[i]->setLastAccess(curTick());
+289c309
+<     DPRINTF(RubyCache, "address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "address: %#x\n", address);
+292a313
+>         m_replacementPolicy_ptr->invalidate(replacement_data[cacheSet][loc]);
+307,308c328,337
+<     return m_cache[cacheSet][m_replacementPolicy_ptr->getVictim(cacheSet)]->
+<         m_Address;
+---
+>     std::vector<ReplaceableEntry*> candidates;
+>     for (int i = 0; i < m_cache_assoc; i++) {
+>         // Pass the value of replacement_data to the cache entry so that we
+>         // can use it in the getVictim() function.
+>         m_cache[cacheSet][i]->replacementData = replacement_data[cacheSet][i];
+>         candidates.push_back(static_cast<ReplaceableEntry*>(
+>                                                        m_cache[cacheSet][i]));
+>     }
+>     return m_cache[cacheSet][m_replacementPolicy_ptr->
+>                         getVictim(candidates)->getWay()]->m_Address;
+318c347
+<     if(loc == -1) return NULL;
+---
+>     if (loc == -1) return NULL;
+329c358
+<     if(loc == -1) return NULL;
+---
+>     if (loc == -1) return NULL;
+340,341c369,402
+<     if(loc != -1)
+<         m_replacementPolicy_ptr->touch(cacheSet, loc, curTick());
+---
+>     if (loc != -1) {
+>         m_replacementPolicy_ptr->touch(replacement_data[cacheSet][loc]);
+>         m_cache[cacheSet][loc]->setLastAccess(curTick());
+>     }
+> }
+> 
+> void
+> CacheMemory::setMRU(const AbstractCacheEntry *e)
+> {
+>     uint32_t cacheSet = e->getSet();
+>     uint32_t loc = e->getWay();
+>     m_replacementPolicy_ptr->touch(replacement_data[cacheSet][loc]);
+>     m_cache[cacheSet][loc]->setLastAccess(curTick());
+> }
+> 
+> void
+> CacheMemory::setMRU(Addr address, int occupancy)
+> {
+>     int64_t cacheSet = addressToCacheSet(address);
+>     int loc = findTagInSet(cacheSet, address);
+> 
+>     if (loc != -1) {
+>         // m_use_occupancy can decide whether we are using WeightedLRU
+>         // replacement policy. Depending on different replacement policies,
+>         // use different touch() function.
+>         if (m_use_occupancy) {
+>             static_cast<WeightedLRUPolicy*>(m_replacementPolicy_ptr)->touch(
+>                 replacement_data[cacheSet][loc], occupancy);
+>         } else {
+>             m_replacementPolicy_ptr->
+>                 touch(replacement_data[cacheSet][loc]);
+>         }
+>         m_cache[cacheSet][loc]->setLastAccess(curTick());
+>     }
+363a425,439
+> 
+> int
+> CacheMemory::getReplacementWeight(int64_t set, int64_t loc)
+> {
+>     assert(set < m_cache_num_sets);
+>     assert(loc < m_cache_assoc);
+>     int ret = 0;
+>     if (m_cache[set][loc] != NULL) {
+>         ret = m_cache[set][loc]->getNumValidBlocks();
+>         assert(ret >= 0);
+>     }
+> 
+>     return ret;
+> }
+> 
+386a463,464
+>                     Tick lastAccessTick;
+>                     lastAccessTick = m_cache[i][j]->getLastAccess();
+388,389c466
+<                                   0, request_type,
+<                                   m_replacementPolicy_ptr->getLastAccess(i, j),
+---
+>                                   0, request_type, lastAccessTick,
+430c507
+<     DPRINTF(RubyCache, "Setting Lock for addr: %x to %d\n", address, context);
+---
+>     DPRINTF(RubyCache, "Setting Lock for addr: %#x to %d\n", address, context);
+441c518
+<     DPRINTF(RubyCache, "Clear Lock for addr: %x\n", address);
+---
+>     DPRINTF(RubyCache, "Clear Lock for addr: %#x\n", address);
+456c533
+<     DPRINTF(RubyCache, "Testing Lock for addr: %llx cur %d con %d\n",
+---
+>     DPRINTF(RubyCache, "Testing Lock for addr: %#llx cur %d con %d\n",
+463a541,542
+>     SimObject::regStats();
+> 
+595c674
+<                     "Tag array stall on addr %s in set %d\n",
+---
+>                     "Tag array stall on addr %#x in set %d\n",
+604c683
+<                     "Data array stall on addr %s in set %d\n",
+---
+>                     "Data array stall on addr %#x in set %d\n",
+610,611c689
+<         assert(false);
+<         return true;
+---
+>         panic("Unrecognized cache resource type.");
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/CacheMemory.hh structures/CacheMemory.hh
+33a34
+> #include <unordered_map>
+36d36
+< #include "base/hashmap.hh"
+38,40c38,39
+< #include "mem/protocol/CacheRequestType.hh"
+< #include "mem/protocol/CacheResourceType.hh"
+< #include "mem/protocol/RubyRequest.hh"
+---
+> #include "mem/cache/replacement_policies/base.hh"
+> #include "mem/cache/replacement_policies/replaceable_entry.hh"
+41a41,43
+> #include "mem/ruby/protocol/CacheRequestType.hh"
+> #include "mem/ruby/protocol/CacheResourceType.hh"
+> #include "mem/ruby/protocol/RubyRequest.hh"
+44d45
+< #include "mem/ruby/structures/AbstractReplacementPolicy.hh"
+53a55
+>     typedef std::shared_ptr<ReplacementData> ReplData;
+77,82c79
+<     AbstractCacheEntry* allocate(Addr address,
+<                                  AbstractCacheEntry* new_entry, bool touch);
+<     AbstractCacheEntry* allocate(Addr address, AbstractCacheEntry* new_entry)
+<     {
+<         return allocate(address, new_entry, true);
+<     }
+---
+>     AbstractCacheEntry* allocate(Addr address, AbstractCacheEntry* new_entry);
+85c82
+<         allocate(address, new_entry, true);
+---
+>         allocate(address, new_entry);
+108a106,108
+>     void setMRU(Addr addr, int occupancy);
+>     int getReplacementWeight(int64_t set, int64_t loc);
+>     void setMRU(const AbstractCacheEntry *e);
+118a119
+>     // TODO hack from gpgpu
+120d120
+< 
+148a149
+>     int getCacheAssoc() const { return m_cache_assoc; }
+171c172
+<     m5::hash_map<Addr, int> m_tag_index;
+---
+>     std::unordered_map<Addr, int> m_tag_index;
+174c175,179
+<     AbstractReplacementPolicy *m_replacementPolicy_ptr;
+---
+>     /**
+>      * We use BaseReplacementPolicy from Classic system here, hence we can use
+>      * different replacement policies from Classic system in Ruby system.
+>      */
+>     BaseReplacementPolicy *m_replacementPolicy_ptr;
+184a190,206
+>     int m_block_size;
+> 
+>     /**
+>      * We store all the ReplacementData in a 2-dimensional array. By doing
+>      * this, we can use all replacement policies from Classic system. Ruby
+>      * cache will deallocate cache entry every time we evict the cache block
+>      * so we cannot store the ReplacementData inside the cache entry.
+>      * Instantiate ReplacementData for multiple times will break replacement
+>      * policy like TreePLRU.
+>      */
+>     std::vector<std::vector<ReplData> > replacement_data;
+> 
+>     /**
+>      * Set to true when using WeightedLRU replacement policy, otherwise, set to
+>      * false.
+>      */
+>     bool m_use_occupancy;
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/DirectoryMemory.cc structures/DirectoryMemory.cc
+1a2,13
+>  * Copyright (c) 2017 ARM Limited
+>  * All rights reserved.
+>  *
+>  * The license below extends only to copyright in the software and shall
+>  * not be construed as granting a license to any other intellectual
+>  * property including but not limited to intellectual property relating
+>  * to a hardware implementation of the functionality of the software
+>  * licensed hereunder.  You may use the software subject to the license
+>  * terms below provided that you ensure that this notice is replicated
+>  * unmodified and in its entirety in all distributions of the software,
+>  * modified or unmodified, in source code or in binary form.
+>  *
+2a15
+>  * Copyright (c) 2017 Google Inc.
+26a40,41
+>  *
+>  * Authors: Lena Olson
+28a44,46
+> #include "mem/ruby/structures/DirectoryMemory.hh"
+> 
+> #include "base/addr_range.hh"
+31d48
+< #include "debug/RubyDirectoryMemory.hh"
+34,35c51,52
+< #include "mem/ruby/structures/DirectoryMemory.hh"
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/system/RubySystem.hh"
+> #include "sim/system.hh"
+39,47d55
+< int DirectoryMemory::m_num_directories = 0;
+< int DirectoryMemory::m_num_directories_bits = 0;
+< uint64_t DirectoryMemory::m_total_size_bytes = 0;
+< int DirectoryMemory::m_numa_high_bit = 0;
+< 
+< int DirectoryMemory::m_num_dev_directories = 0;
+< Addr DirectoryMemory::m_device_segment_base = 0;
+< int DirectoryMemory::m_num_dev_directories_bits = 0;
+< 
+49c57
+<     : SimObject(p)
+---
+>     : SimObject(p), addrRanges(p->addr_ranges.begin(), p->addr_ranges.end())
+51,52c59,62
+<     m_version = p->version;
+<     m_size_bytes = p->size;
+---
+>     m_size_bytes = 0;
+>     for (const auto &r: addrRanges) {
+>         m_size_bytes += r.size();
+>     }
+55,56d64
+<     m_numa_high_bit = p->numa_high_bit;
+<     m_device_directory = p->device_directory;
+63c71
+<     m_entries = new AbstractEntry*[m_num_entries];
+---
+>     m_entries = new AbstractCacheEntry*[m_num_entries];
+66,80d73
+< 
+<     if (m_device_directory) {
+<         m_num_dev_directories++;
+<         m_num_dev_directories_bits = ceilLog2(m_num_dev_directories);
+<     } else {
+<         m_num_directories++;
+<         m_num_directories_bits = ceilLog2(m_num_directories);
+<         m_device_segment_base += m_size_bytes;
+<     }
+<     m_total_size_bytes += m_size_bytes;
+< 
+<     if (m_numa_high_bit == 0) {
+<         m_numa_high_bit = RubySystem::getMemorySizeBits() - 1;
+<     }
+<     assert(m_numa_high_bit != 0);
+94,116d86
+< #define DEV_DIR_BITS 8
+< 
+< uint64_t
+< DirectoryMemory::mapAddressToDirectoryVersion(Addr address)
+< {
+<     uint64_t ret;
+<     if (m_num_dev_directories > 0) {
+<         Addr addr = address;
+<         if (addr >= m_device_segment_base) {
+<             Addr relative_addr;
+<             relative_addr = addr - m_device_segment_base;
+<             ret = shiftLowOrderBits(relative_addr, m_numa_high_bit - m_num_dev_directories_bits + 1) % m_num_dev_directories;
+<             ret += m_num_directories;
+<         } else {
+<             ret = shiftLowOrderBits(address, m_numa_high_bit - m_num_directories_bits + 1) % m_num_directories;
+<         }
+<     } else {
+<         ret = shiftLowOrderBits(address, m_numa_high_bit - m_num_directories_bits + 1) % m_num_directories;
+<     }
+< 
+<     return ret;
+< }
+< 
+120,121c90,95
+<     bool ret = (mapAddressToDirectoryVersion(address) == m_version);
+<     return ret;
+---
+>     for (const auto& r: addrRanges) {
+>         if (r.contains(address)) {
+>             return true;
+>         }
+>     }
+>     return false;
+127,154c101,105
+<     uint64_t ret;
+<     if (m_num_dev_directories > 0) {
+<         if (address >= m_device_segment_base) {
+<             Addr relative_address;
+<             relative_address = address - m_device_segment_base;
+<             if (m_num_dev_directories_bits > 0) {
+<                 ret = bitRemove(relative_address,
+<                           m_numa_high_bit - m_num_dev_directories_bits + 1,
+<                           m_numa_high_bit);
+<             } else {
+<                 ret = relative_address;
+<             }
+<         } else {
+<             if (m_num_directories_bits > 0) {
+<                 ret = bitRemove(address,
+<                                 m_numa_high_bit - m_num_directories_bits + 1,
+<                                 m_numa_high_bit);
+<             } else {
+<                 ret = address;
+<             }
+<         }
+<     } else {
+<         if (m_num_directories_bits > 0) {
+<             ret = bitRemove(address,
+<                             m_numa_high_bit - m_num_directories_bits + 1,
+<                             m_numa_high_bit);
+<         } else {
+<             ret = address;
+---
+>     uint64_t ret = 0;
+>     for (const auto& r: addrRanges) {
+>         if (r.contains(address)) {
+>             ret += r.getOffset(address);
+>             break;
+155a107
+>         ret += r.size();
+157,160c109
+< 
+<     ret >>= (RubySystem::getBlockSizeBits());
+<     DPRINTF(RubyDirectoryMemory, "%#x, %u\n", address, ret);
+<     return ret;
+---
+>     return ret >> RubySystem::getBlockSizeBits();
+163c112
+< AbstractEntry*
+---
+> AbstractCacheEntry*
+167c116
+<     DPRINTF(RubyCache, "Looking up address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "Looking up address: %#x\n", address);
+174,175c123,124
+< AbstractEntry*
+< DirectoryMemory::allocate(Addr address, AbstractEntry *entry)
+---
+> AbstractCacheEntry*
+> DirectoryMemory::allocate(Addr address, AbstractCacheEntry *entry)
+179c128
+<     DPRINTF(RubyCache, "Looking up address: %s\n", address);
+---
+>     DPRINTF(RubyCache, "Looking up address: %#x\n", address);
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/DirectoryMemory.hh structures/DirectoryMemory.hh
+1a2,13
+>  * Copyright (c) 2017 ARM Limited
+>  * All rights reserved.
+>  *
+>  * The license below extends only to copyright in the software and shall
+>  * not be construed as granting a license to any other intellectual
+>  * property including but not limited to intellectual property relating
+>  * to a hardware implementation of the functionality of the software
+>  * licensed hereunder.  You may use the software subject to the license
+>  * terms below provided that you ensure that this notice is replicated
+>  * unmodified and in its entirety in all distributions of the software,
+>  * modified or unmodified, in source code or in binary form.
+>  *
+35c47
+< #include "mem/protocol/DirectoryRequestType.hh"
+---
+> #include "base/addr_range.hh"
+37c49,50
+< #include "mem/ruby/slicc_interface/AbstractEntry.hh"
+---
+> #include "mem/ruby/protocol/DirectoryRequestType.hh"
+> #include "mem/ruby/slicc_interface/AbstractCacheEntry.hh"
+49a63,73
+>     /**
+>      * Return the index in the directory based on an address
+>      *
+>      * This function transforms an address which belongs to a not
+>      * necessarily continuous vector of address ranges into a flat
+>      * address that we use to index in the directory
+>      *
+>      * @param an input address
+>      * @return the corresponding index in the directory
+>      *
+>      */
+51d74
+<     static uint64_t mapAddressToDirectoryVersion(Addr address);
+56,57c79,80
+<     AbstractEntry *lookup(Addr address);
+<     AbstractEntry *allocate(Addr address, AbstractEntry* new_entry);
+---
+>     AbstractCacheEntry *lookup(Addr address);
+>     AbstractCacheEntry *allocate(Addr address, AbstractCacheEntry* new_entry);
+69c92
+<     AbstractEntry **m_entries;
+---
+>     AbstractCacheEntry **m_entries;
+74a98,99
+> 
+>     // TODO below copied from gem5-gpu
+85a111,117
+>     // TODO end copied
+> 
+>     /**
+>      * The address range for which the directory responds. Normally
+>      * this is all possible memory addresses.
+>      */
+>     const AddrRangeList addrRanges;
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/DirectoryMemory.py structures/DirectoryMemory.py
+0a1,12
+> # Copyright (c) 2017 ARM Limited
+> # All rights reserved.
+> #
+> # The license below extends only to copyright in the software and shall
+> # not be construed as granting a license to any other intellectual
+> # property including but not limited to intellectual property relating
+> # to a hardware implementation of the functionality of the software
+> # licensed hereunder.  You may use the software subject to the license
+> # terms below provided that you ensure that this notice is replicated
+> # unmodified and in its entirety in all distributions of the software,
+> # modified or unmodified, in source code or in binary form.
+> #
+38,43c50,51
+<     version = Param.Int(0, "")
+<     size = Param.MemorySize("1GB", "capacity in bytes")
+<     # the default value of the numa high bit is specified in the command line
+<     # option and must be passed into the directory memory sim object
+<     numa_high_bit = Param.Int("numa high bit")
+<     device_directory = Param.Bool(False, "this directory is for a device")
+---
+>     addr_ranges = VectorParam.AddrRange(
+>         Parent.addr_ranges, "Address range this directory responds to")
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: LRUPolicy.cc
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: LRUPolicy.hh
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: LRUReplacementPolicy.py
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: MemoryNode.cc
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: MemoryNode.hh
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/PerfectCacheMemory.hh structures/PerfectCacheMemory.hh
+32,33c32,33
+< #include "base/hashmap.hh"
+< #include "mem/protocol/AccessPermission.hh"
+---
+> #include <unordered_map>
+> 
+34a35
+> #include "mem/ruby/protocol/AccessPermission.hh"
+90c91
+<     m5::hash_map<Addr, PerfectCacheLineState<ENTRY> > m_map;
+---
+>     std::unordered_map<Addr, PerfectCacheLineState<ENTRY> > m_map;
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/PersistentTable.cc structures/PersistentTable.cc
+33,39d32
+< // randomize so that handoffs are not locality-aware
+< #if 0
+< int persistent_randomize[] = {0, 4, 8, 12, 1, 5, 9, 13, 2, 6,
+<                               10, 14, 3, 7, 11, 15};
+< int persistent_randomize[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+<                               10, 11, 12, 13, 14, 15};
+< #endif
+54,61d46
+< #if 0
+<     if (locker == m_chip_ptr->getID())
+<         cout << "Chip " << m_chip_ptr->getID() << ": " << llocker
+<              << " requesting lock for " << address << endl;
+< 
+<     MachineID locker = (MachineID) persistent_randomize[llocker];
+< #endif
+< 
+88,95d72
+< #if 0
+<     if (unlocker == m_chip_ptr->getID())
+<         cout << "Chip " << m_chip_ptr->getID() << ": " << uunlocker
+<              << " requesting unlock for " << address << endl;
+< 
+<     MachineID unlocker = (MachineID) persistent_randomize[uunlocker];
+< #endif
+< 
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/PersistentTable.hh structures/PersistentTable.hh
+32a33
+> #include <unordered_map>
+34,35d34
+< #include "base/hashmap.hh"
+< #include "mem/protocol/AccessType.hh"
+38a38
+> #include "mem/ruby/protocol/AccessType.hh"
+80c80
+<     typedef m5::hash_map<Addr, PersistentTableEntry> AddressMap;
+---
+>     typedef std::unordered_map<Addr, PersistentTableEntry> AddressMap;
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/Prefetcher.cc structures/Prefetcher.cc
+28a29,31
+> #include "mem/ruby/structures/Prefetcher.hh"
+> 
+> #include "base/bitfield.hh"
+31,32c34
+< #include "mem/ruby/structures/Prefetcher.hh"
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/system/RubySystem.hh"
+88a91,92
+>     SimObject::regStats();
+> 
+138c142
+<     DPRINTF(RubyPrefetcher, "Observed miss for %s\n", address);
+---
+>     DPRINTF(RubyPrefetcher, "Observed miss for %#x\n", address);
+207c211
+<     DPRINTF(RubyPrefetcher, "Observed partial hit for %s\n", address);
+---
+>     DPRINTF(RubyPrefetcher, "Observed partial hit for %#x\n", address);
+215c219
+<     DPRINTF(RubyPrefetcher, "Observed hit for %s\n", address);
+---
+>     DPRINTF(RubyPrefetcher, "Observed hit for %#x\n", address);
+253c257
+<     DPRINTF(RubyPrefetcher, "Requesting prefetch for %s\n", line_addr);
+---
+>     DPRINTF(RubyPrefetcher, "Requesting prefetch for %#x\n", line_addr);
+317c321
+<         DPRINTF(RubyPrefetcher, "Requesting prefetch for %s\n", line_addr);
+---
+>         DPRINTF(RubyPrefetcher, "Requesting prefetch for %#x\n", line_addr);
+475c479
+<     return maskLowOrderBits(addr, m_page_shift);
+---
+>     return mbits<Addr>(addr, 63, m_page_shift);
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/Prefetcher.hh structures/Prefetcher.hh
+41c41
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/system/RubySystem.hh"
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: PseudoLRUPolicy.cc
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: PseudoLRUPolicy.hh
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: PseudoLRUReplacementPolicy.py
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: ReplacementPolicy.py
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/RubyCache.py structures/RubyCache.py
+32c32
+< from PseudoLRUReplacementPolicy import PseudoLRUReplacementPolicy
+---
+> from m5.objects.ReplacementPolicies import *
+41,42c41
+<     replacement_policy = Param.ReplacementPolicy(PseudoLRUReplacementPolicy(),
+<                          "")
+---
+>     replacement_policy = Param.BaseReplacementPolicy(TreePLRURP(), "")
+44a44
+>     block_size = Param.MemorySize("0B", "block size in bytes. 0 means default RubyBlockSize")
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: RubyMemoryControl.cc
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: RubyMemoryControl.hh
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/: RubyMemoryControl.py
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/RubyPrefetcher.py structures/RubyPrefetcher.py
+30d29
+< from System import System
+32a32,33
+> 
+> from m5.objects.System import System
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/SConscript structures/SConscript
+38,41d37
+< SimObject('LRUReplacementPolicy.py')
+< SimObject('PseudoLRUReplacementPolicy.py')
+< SimObject('ReplacementPolicy.py')
+< SimObject('RubyMemoryControl.py')
+45d40
+< Source('AbstractReplacementPolicy.cc')
+48,49d42
+< Source('LRUPolicy.cc')
+< Source('PseudoLRUPolicy.cc')
+51,52d43
+< Source('RubyMemoryControl.cc')
+< Source('MemoryNode.cc')
+Only in structures/: structures
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/TBETable.hh structures/TBETable.hh
+32a33
+> #include <unordered_map>
+34d34
+< #include "base/hashmap.hh"
+50c50
+<     areNSlotsAvailable(int n) const
+---
+>     areNSlotsAvailable(int n, Tick current_time) const
+55c55
+<     ENTRY* lookup(Addr address);
+---
+>     ENTRY *lookup(Addr address);
+66c66
+<     m5::hash_map<Addr, ENTRY> m_map;
+---
+>     std::unordered_map<Addr, ENTRY> m_map;
+113c113
+<   if(m_map.find(address) != m_map.end()) return &(m_map.find(address)->second);
+---
+>   if (m_map.find(address) != m_map.end()) return &(m_map.find(address)->second);
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/TimerTable.cc structures/TimerTable.cc
+30c30,31
+< #include "mem/ruby/system/System.hh"
+---
+> 
+> #include "mem/ruby/system/RubySystem.hh"
+36,37d36
+<     m_clockobj_ptr = NULL;
+< 
+43c42
+< TimerTable::isReady() const
+---
+> TimerTable::isReady(Tick curTime) const
+52c51
+<     return (m_clockobj_ptr->curCycle() >= m_next_time);
+---
+>     return (curTime >= m_next_time);
+56c55
+< TimerTable::readyAddress() const
+---
+> TimerTable::nextAddress() const
+58,59d56
+<     assert(isReady());
+< 
+68c65
+< TimerTable::set(Addr address, Cycles relative_latency)
+---
+> TimerTable::set(Addr address, Tick ready_time)
+71d67
+<     assert(relative_latency > 0);
+74d69
+<     Cycles ready_time = m_clockobj_ptr->curCycle() + relative_latency;
+77,78c72
+<     m_consumer_ptr->
+<         scheduleEventAbsolute(m_clockobj_ptr->clockPeriod() * ready_time);
+---
+>     m_consumer_ptr->scheduleEventAbsolute(ready_time);
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/TimerTable.hh structures/TimerTable.hh
+52,57d51
+<     void setClockObj(ClockedObject* obj)
+<     {
+<         assert(m_clockobj_ptr == NULL);
+<         m_clockobj_ptr = obj;
+<     }
+< 
+64,65c58,59
+<     bool isReady() const;
+<     Addr readyAddress() const;
+---
+>     bool isReady(Tick curTime) const;
+>     Addr nextAddress() const;
+67,70c61
+<     void set(Addr address, Cycles relative_latency);
+<     void set(Addr address, uint64_t relative_latency)
+<     { set(address, Cycles(relative_latency)); }
+< 
+---
+>     void set(Addr address, Tick ready_time);
+85c76
+<     typedef std::map<Addr, Cycles> AddressMap;
+---
+>     typedef std::map<Addr, Tick> AddressMap;
+88c79
+<     mutable Cycles m_next_time; // Only valid if m_next_valid is true
+---
+>     mutable Tick m_next_time; // Only valid if m_next_valid is true
+91,92d81
+<     //! Object used for querying time.
+<     ClockedObject* m_clockobj_ptr;
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/WireBuffer.cc structures/WireBuffer.cc
+31a32,33
+> #include "mem/ruby/structures/WireBuffer.hh"
+> 
+37,38c39
+< #include "mem/ruby/structures/WireBuffer.hh"
+< #include "mem/ruby/system/System.hh"
+---
+> #include "mem/ruby/system/RubySystem.hh"
+60d60
+<     m_ruby_system = p->ruby_system;
+73c73
+< WireBuffer::enqueue(MsgPtr message, Cycles latency)
+---
+> WireBuffer::enqueue(MsgPtr message, Tick current_time, Tick delta)
+76,77c76
+<     Cycles current_time = m_ruby_system->curCycle();
+<     Cycles arrival_time = current_time + latency;
+---
+>     Tick arrival_time = current_time + delta;
+85c84
+<             scheduleEventAbsolute(m_ruby_system->clockPeriod() * arrival_time);
+---
+>             scheduleEventAbsolute(arrival_time);
+92c91
+< WireBuffer::dequeue()
+---
+> WireBuffer::dequeue(Tick current_time)
+94c93
+<     assert(isReady());
+---
+>     assert(isReady(current_time));
+109c108
+< WireBuffer::recycle()
+---
+> WireBuffer::recycle(Tick current_time, Tick recycle_latency)
+115c114
+<     assert(isReady());
+---
+>     assert(isReady(current_time));
+119c118,120
+<     node->setLastEnqueueTime(m_ruby_system->curCycle() + Cycles(1));
+---
+>     Tick future_time = current_time + recycle_latency;
+>     node->setLastEnqueueTime(future_time);
+> 
+124c125
+<         scheduleEventAbsolute(m_ruby_system->curCycle() + Cycles(1));
+---
+>         scheduleEventAbsolute(future_time);
+128c129
+< WireBuffer::isReady()
+---
+> WireBuffer::isReady(Tick current_time)
+131,132c132
+<             (m_message_queue.front()->getLastEnqueueTime() <=
+<                     m_ruby_system->curCycle()));
+---
+>             (m_message_queue.front()->getLastEnqueueTime() <= current_time));
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/structures/WireBuffer.hh structures/WireBuffer.hh
+75,76c75,76
+<     void enqueue(MsgPtr message, Cycles latency);
+<     void dequeue();
+---
+>     void enqueue(MsgPtr message, Tick current_time, Tick delta);
+>     void dequeue(Tick current_time);
+78,80c78,81
+<     void recycle();
+<     bool isReady();
+<     bool areNSlotsAvailable(int n) { return true; };  // infinite queue length
+---
+>     void recycle(Tick current_time, Tick recycle_latency);
+>     bool isReady(Tick current_time);
+>     // infinite queue length
+>     bool areNSlotsAvailable(int n, Tick current_time) { return true; };
+96,98d96
+< 
+<     RubySystem * m_ruby_system;
+< 

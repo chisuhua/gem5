@@ -96,8 +96,15 @@
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/base.hh"
+#include "ppu/thread_context.hh"
+#else
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
+#endif
+
 #include "mem/page_table.hh"
 #include "params/Process.hh"
 #include "sim/emul_driver.hh"

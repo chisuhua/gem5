@@ -28,11 +28,11 @@
  * Authors: Gabe Black
  */
 
-#include "cpu/nativetrace.hh"
+#include "ppu/nativetrace.hh"
 
 #include "base/socket.hh"
-#include "cpu/static_inst.hh"
-#include "debug/GDBMisc.hh"
+#include "ppu/static_inst.hh"
+#include "debug/PpuGDBMisc.hh"
 #include "params/NativeTrace.hh"
 
 using namespace std;
@@ -48,7 +48,7 @@ NativeTrace::NativeTrace(const Params *p)
     int port = 8000;
     while (!native_listener.listen(port, true))
     {
-        DPRINTF(GDBMisc, "Can't bind port %d\n", port);
+        DPRINTF(PpuGDBMisc, "Can't bind port %d\n", port);
         port++;
     }
     ccprintf(cerr, "Listening for native process on port %d\n", port);

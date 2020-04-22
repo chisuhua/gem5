@@ -47,7 +47,15 @@
 #include "mem/request.hh"
 #include "sim/sim_object.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 class BaseTLB : public SimObject
 {

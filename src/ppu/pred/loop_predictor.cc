@@ -34,10 +34,10 @@
  * from André Seznec's code.
  */
 
-#include "cpu/pred/loop_predictor.hh"
+#include "ppu/pred/loop_predictor.hh"
 
 #include "base/random.hh"
-#include "debug/LTage.hh"
+#include "debug/PpuLTage.hh"
 #include "params/LoopPredictor.hh"
 
 LoopPredictor::LoopPredictor(LoopPredictorParams *p)
@@ -188,7 +188,7 @@ LoopPredictor::loopUpdate(Addr pc, bool taken, BranchInfo* bi, bool tage_pred)
                 ltable[idx].currentIter = 0;
                 return;
             } else if (bi->loopPred != tage_pred || optionalAgeInc()) {
-                DPRINTF(LTage, "Loop Prediction success:%lx\n",pc);
+                DPRINTF(PpuLTage, "Loop Prediction success:%lx\n",pc);
                 unsignedCtrUpdate(ltable[idx].age, true, loopTableAgeBits);
             }
         }
@@ -208,7 +208,7 @@ LoopPredictor::loopUpdate(Addr pc, bool taken, BranchInfo* bi, bool tage_pred)
 
         if (taken != (useDirectionBit ? ltable[idx].dir : true)) {
             if (ltable[idx].currentIter == ltable[idx].numIter) {
-                DPRINTF(LTage, "Loop End predicted successfully:%lx\n", pc);
+                DPRINTF(PpuLTage, "Loop End predicted successfully:%lx\n", pc);
                 unsignedCtrUpdate(ltable[idx].confidence, true,
                                   loopTableConfidenceBits);
                 //just do not predict when the loop count is 1 or 2
@@ -220,7 +220,7 @@ LoopPredictor::loopUpdate(Addr pc, bool taken, BranchInfo* bi, bool tage_pred)
                     ltable[idx].confidence = 0;
                 }
             } else {
-                DPRINTF(LTage, "Loop End predicted incorrectly:%lx\n", pc);
+                DPRINTF(PpuLTage, "Loop End predicted incorrectly:%lx\n", pc);
                 if (ltable[idx].numIter == 0) {
                     // first complete nest;
                     ltable[idx].confidence = 0;
@@ -246,7 +246,7 @@ LoopPredictor::loopUpdate(Addr pc, bool taken, BranchInfo* bi, bool tage_pred)
                 int loop_hit = (nrand + i) & ((1 << logLoopTableAssoc) - 1);
                 idx = finallindex(bi->loopIndex, bi->loopIndexB, loop_hit);
                 if (ltable[idx].age == 0) {
-                    DPRINTF(LTage,
+                    DPRINTF(PpuLTage,
                             "Allocating loop pred entry for branch %lx\n",
                             pc);
                     ltable[idx].dir = !taken; // ignored if no useDirectionBit

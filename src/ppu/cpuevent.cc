@@ -28,7 +28,7 @@
  * Authors: Ali Saidi
  */
 
-#include "cpu/cpuevent.hh"
+#include "ppu/cpuevent.hh"
 
 /** Static list of all CpuEvent objects so we can modify their thread
  * contexts as needed. */

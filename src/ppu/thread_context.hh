@@ -41,8 +41,8 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_THREAD_CONTEXT_HH__
-#define __CPU_THREAD_CONTEXT_HH__
+#ifndef __PPU_THREAD_CONTEXT_HH__
+#define __PPU_THREAD_CONTEXT_HH__
 
 #include <iostream>
 #include <string>
@@ -52,8 +52,8 @@
 #include "arch/types.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/pc_event.hh"
-#include "cpu/reg_class.hh"
+#include "ppu/pc_event.hh"
+#include "ppu/reg_class.hh"
 
 // @todo: Figure out a more architecture independent way to obtain the ITB and
 // DTB pointers.
@@ -62,9 +62,10 @@ namespace ThePpuISA
     class ISA;
     class Decoder;
 }
-class BaseCPU;
+
+class PpuBaseCPU;
 class BaseTLB;
-class CheckerCPU;
+class PpuCheckerCPU;
 class Checkpoint;
 class EndQuiesceEvent;
 class PortProxy;
@@ -73,6 +74,15 @@ class System;
 namespace Kernel {
     class Statistics;
 }
+/*
+namespace {
+class ThreadContext;
+using ThreadContext_ = ThreadContext;
+}
+*/
+
+namespace PpuISA
+{
 
 /**
  * ThreadContext is the external interface to all thread state for
@@ -90,6 +100,7 @@ namespace Kernel {
  * interface; the ExecContext is a more implicit interface that must
  * be implemented so that the ISA can access whatever state it needs.
  */
+// class ThreadContext : public ThreadContext_
 class ThreadContext : public PCEventScope
 {
   protected:
@@ -122,7 +133,7 @@ class ThreadContext : public PCEventScope
 
     virtual ~ThreadContext() { };
 
-    virtual BaseCPU *getCpuPtr() = 0;
+    virtual PpuBaseCPU *getCpuPtr() = 0;
 
     virtual int cpuId() const = 0;
 
@@ -140,7 +151,7 @@ class ThreadContext : public PCEventScope
 
     virtual BaseTLB *getDTBPtr() = 0;
 
-    virtual CheckerCPU *getCheckerCpuPtr() = 0;
+    virtual PpuCheckerCPU *getCheckerCpuPtr() = 0;
 
     virtual BaseISA *getIsaPtr() = 0;
 
@@ -387,5 +398,7 @@ void unserialize(ThreadContext &tc, CheckpointIn &cp);
  * @param old_tc Source ThreadContext.
  */
 void takeOverFrom(ThreadContext &new_tc, ThreadContext &old_tc);
+
+} // namespace PpuISA
 
 #endif

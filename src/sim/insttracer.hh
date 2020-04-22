@@ -47,11 +47,28 @@
 #include "arch/generic/vec_pred_reg.hh"
 #include "arch/generic/vec_reg.hh"
 #include "base/types.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/inst_seq.hh"
+#include "ppu/static_inst.hh"
+using namespace ThePpuISA;
+#else
 #include "cpu/inst_seq.hh"
 #include "cpu/static_inst.hh"
+#endif
+
 #include "sim/sim_object.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
 
 namespace Trace {
 

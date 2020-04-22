@@ -37,7 +37,7 @@
  * Authors: Andreas Sandberg
  */
 
-#include "cpu/simple/noncaching.hh"
+#include "ppu/simple/noncaching.hh"
 
 NonCachingSimpleCPU::NonCachingSimpleCPU(NonCachingSimpleCPUParams *p)
     : AtomicSimpleCPU(p)

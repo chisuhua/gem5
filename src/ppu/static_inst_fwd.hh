@@ -28,12 +28,16 @@
  * Authors: Gabe Black
  */
 
-#ifndef __CPU_STATIC_INST_FWD_HH__
-#define __CPU_STATIC_INST_FWD_HH__
+#ifndef __PPU_STATIC_INST_FWD_HH__
+#define __PPU_STATIC_INST_FWD_HH__
 
 #include "base/refcnt.hh"
 
+namespace PpuISA
+{
+
 class StaticInst;
 typedef RefCountingPtr<StaticInst> StaticInstPtr;
+} // namespace PpuISA
 
-#endif // __CPU_STATIC_INST_FWD_HH__
+#endif // __PPU_STATIC_INST_FWD_HH__

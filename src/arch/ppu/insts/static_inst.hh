@@ -36,8 +36,8 @@
 #include <string>
 
 #include "arch/ppu/types.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/static_inst.hh"
 #include "mem/packet.hh"
 
 namespace PpuISA

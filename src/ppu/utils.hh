@@ -37,8 +37,8 @@
  * Authors: Andrew Bardsley
  */
 
-#ifndef __CPU_UTILS_HH__
-#define __CPU_UTILS_HH__
+#ifndef __PPU_UTILS_HH__
+#define __PPU_UTILS_HH__
 
 #include "base/types.hh"
 
@@ -93,4 +93,4 @@ isAnyActiveElement(const std::vector<bool>::const_iterator& it_start,
     return (it_tmp != it_end);
 }
 
-#endif // __CPU_UTILS_HH__
+#endif // __PPU_UTILS_HH__

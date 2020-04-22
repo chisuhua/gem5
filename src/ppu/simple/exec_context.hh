@@ -42,18 +42,18 @@
  *          Mitch Hayenga
  */
 
-#ifndef __CPU_SIMPLE_EXEC_CONTEXT_HH__
-#define __CPU_SIMPLE_EXEC_CONTEXT_HH__
+#ifndef __PPU_SIMPLE_EXEC_CONTEXT_HH__
+#define __PPU_SIMPLE_EXEC_CONTEXT_HH__
 
 #include "arch/registers.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/reg_class.hh"
-#include "cpu/simple/base.hh"
-#include "cpu/static_inst_fwd.hh"
-#include "cpu/translation.hh"
+#include "ppu/base.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/reg_class.hh"
+#include "ppu/simple/base.hh"
+#include "ppu/static_inst_fwd.hh"
+#include "ppu/translation.hh"
 #include "mem/request.hh"
 
 class BaseSimpleCPU;
@@ -569,4 +569,4 @@ class SimpleExecContext : public ExecContext {
     }
 };
 
-#endif // __CPU_EXEC_CONTEXT_HH__
+#endif // __PPU_EXEC_CONTEXT_HH__

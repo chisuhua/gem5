@@ -44,15 +44,15 @@
  *  instruction stream info. to Fetch1.
  */
 
-#ifndef __CPU_MINOR_EXECUTE_HH__
-#define __CPU_MINOR_EXECUTE_HH__
+#ifndef __PPU_MINOR_EXECUTE_HH__
+#define __PPU_MINOR_EXECUTE_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/func_unit.hh"
-#include "cpu/minor/lsq.hh"
-#include "cpu/minor/pipe_data.hh"
-#include "cpu/minor/scoreboard.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/func_unit.hh"
+#include "ppu/minor/lsq.hh"
+#include "ppu/minor/pipe_data.hh"
+#include "ppu/minor/scoreboard.hh"
 
 namespace Minor
 {
@@ -69,7 +69,7 @@ class Execute : public Named
     Latch<BranchData>::Input out;
 
     /** Pointer back to the containing CPU */
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** Number of instructions that can be issued per cycle */
     unsigned int issueLimit;
@@ -315,8 +315,8 @@ class Execute : public Named
 
   public:
     Execute(const std::string &name_,
-        MinorCPU &cpu_,
-        MinorCPUParams &params,
+        MinorPPU &cpu_,
+        MinorPPUParams &params,
         Latch<ForwardInstData>::Output inp_,
         Latch<BranchData>::Input out_);
 
@@ -325,7 +325,7 @@ class Execute : public Named
   public:
 
     /** Returns the DcachePort owned by this Execute to pass upwards */
-    MinorCPU::MinorCPUPort &getDcachePort();
+    MinorPPU::MinorPPUPort &getDcachePort();
 
     /** To allow ExecContext to find the LSQ */
     LSQ &getLSQ() { return lsq; }
@@ -354,4 +354,4 @@ class Execute : public Named
 
 }
 
-#endif /* __CPU_MINOR_EXECUTE_HH__ */
+#endif /* __PPU_MINOR_EXECUTE_HH__ */

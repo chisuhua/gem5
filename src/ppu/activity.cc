@@ -28,12 +28,12 @@
  * Authors: Kevin Lim
  */
 
-#include "cpu/activity.hh"
+#include "ppu/activity.hh"
 
 #include <string>
 
-#include "cpu/timebuf.hh"
-#include "debug/Activity.hh"
+#include "ppu/timebuf.hh"
+#include "debug/PpuActivity.hh"
 
 using namespace std;
 
@@ -65,7 +65,7 @@ ActivityRecorder::activity()
 
     ++activityCount;
 
-    DPRINTF(Activity, "Activity: %i\n", activityCount);
+    DPRINTF(PpuActivity, "Activity: %i\n", activityCount);
 }
 
 void
@@ -78,10 +78,10 @@ ActivityRecorder::advance()
 
         assert(activityCount >= 0);
 
-        DPRINTF(Activity, "Activity: %i\n", activityCount);
+        DPRINTF(PpuActivity, "Activity: %i\n", activityCount);
 
         if (activityCount == 0) {
-            DPRINTF(Activity, "No activity left!\n");
+            DPRINTF(PpuActivity, "No activity left!\n");
         }
     }
 
@@ -97,9 +97,9 @@ ActivityRecorder::activateStage(const int idx)
 
         stageActive[idx] = true;
 
-        DPRINTF(Activity, "Activity: %i\n", activityCount);
+        DPRINTF(PpuActivity, "Activity: %i\n", activityCount);
     } else {
-        DPRINTF(Activity, "Stage %i already active.\n", idx);
+        DPRINTF(PpuActivity, "Stage %i already active.\n", idx);
     }
 
 //    assert(activityCount < longestLatency + numStages + 1);
@@ -114,9 +114,9 @@ ActivityRecorder::deactivateStage(const int idx)
 
         stageActive[idx] = false;
 
-        DPRINTF(Activity, "Activity: %i\n", activityCount);
+        DPRINTF(PpuActivity, "Activity: %i\n", activityCount);
     } else {
-        DPRINTF(Activity, "Stage %i already inactive.\n", idx);
+        DPRINTF(PpuActivity, "Stage %i already inactive.\n", idx);
     }
 
     assert(activityCount >= 0);

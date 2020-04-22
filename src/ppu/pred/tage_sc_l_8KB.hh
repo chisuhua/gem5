@@ -39,13 +39,17 @@
  * 8KB TAGE-SC-L branch predictor (devised by Andre Seznec)
  */
 
-#ifndef __CPU_PRED_TAGE_SC_L_8KB
-#define __CPU_PRED_TAGE_SC_L_8KB
+#ifndef __PPU_PRED_TAGE_SC_L_8KB
+#define __PPU_PRED_TAGE_SC_L_8KB
 
-#include "cpu/pred/tage_sc_l.hh"
+#include "ppu/pred/tage_sc_l.hh"
 #include "params/TAGE_SC_L_8KB.hh"
 #include "params/TAGE_SC_L_8KB_StatisticalCorrector.hh"
 #include "params/TAGE_SC_L_TAGE_8KB.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class TAGE_SC_L_TAGE_8KB : public TAGE_SC_L_TAGE
 {
@@ -112,5 +116,5 @@ class TAGE_SC_L_8KB : public TAGE_SC_L
     TAGE_SC_L_8KB(const TAGE_SC_L_8KBParams *params);
 };
 
-#endif // __CPU_PRED_TAGE_SC_L_8KB
+#endif // __PPU_PRED_TAGE_SC_L_8KB
 

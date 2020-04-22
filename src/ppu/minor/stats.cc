@@ -37,7 +37,7 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/stats.hh"
+#include "ppu/minor/stats.hh"
 
 namespace Minor
 {
@@ -46,7 +46,7 @@ MinorStats::MinorStats()
 { }
 
 void
-MinorStats::regStats(const std::string &name, BaseCPU &baseCpu)
+MinorStats::regStats(const std::string &name, PpuBaseCPU &baseCpu)
 {
     numInsts
         .name(name + ".committedInsts")

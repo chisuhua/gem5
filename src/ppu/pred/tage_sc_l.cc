@@ -40,10 +40,10 @@
  * It consits of a TAGE + a statistical corrector (SC) + a loop predictor (L)
  */
 
-#include "cpu/pred/tage_sc_l.hh"
+#include "ppu/pred/tage_sc_l.hh"
 
 #include "base/random.hh"
-#include "debug/TageSCL.hh"
+#include "debug/PpuTageSCL.hh"
 
 bool
 TAGE_SC_L_LoopPredictor::calcConf(int index) const
@@ -280,7 +280,7 @@ TAGE_SC_L_TAGE::updateHistories(
     }
     updatePathAndGlobalHistory(tHist, brtype, taken, branch_pc, target);
 
-    DPRINTF(TageSCL, "Updating global histories with branch:%lx; taken?:%d, "
+    DPRINTF(PpuTageSCL, "Updating global histories with branch:%lx; taken?:%d, "
             "path Hist: %x; pointer:%d\n", branch_pc, taken, tHist.pathHist,
             tHist.ptGhist);
 }
@@ -435,7 +435,7 @@ TAGE_SC_L::update(ThreadID tid, Addr branch_pc, bool taken, void *bp_history,
 
     int nrand = random_mt.random<int>() & 3;
     if (tage_bi->condBranch) {
-        DPRINTF(TageSCL, "Updating tables for branch:%lx; taken?:%d\n",
+        DPRINTF(PpuTageSCL, "Updating tables for branch:%lx; taken?:%d\n",
                 branch_pc, taken);
         tage->updateStats(taken, bi->tageBranchInfo);
 

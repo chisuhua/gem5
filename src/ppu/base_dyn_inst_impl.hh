@@ -40,8 +40,8 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_BASE_DYN_INST_IMPL_HH__
-#define __CPU_BASE_DYN_INST_IMPL_HH__
+#ifndef __PPU_BASE_DYN_INST_IMPL_HH__
+#define __PPU_BASE_DYN_INST_IMPL_HH__
 
 #include <iostream>
 #include <set>
@@ -51,12 +51,16 @@
 #include "base/cprintf.hh"
 #include "base/trace.hh"
 #include "config/the_isa.hh"
-#include "cpu/base_dyn_inst.hh"
-#include "cpu/exetrace.hh"
-#include "debug/DynInst.hh"
-#include "debug/IQ.hh"
+#include "ppu/base_dyn_inst.hh"
+#include "ppu/exetrace.hh"
+#include "debug/PpuDynInst.hh"
+#include "debug/PpuIQ.hh"
 #include "mem/request.hh"
 #include "sim/faults.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 template <class Impl>
 BaseDynInst<Impl>::BaseDynInst(const StaticInstPtr &_staticInst,
@@ -128,7 +132,7 @@ BaseDynInst<Impl>::initVars()
         assert(cpu->instcount <= 1500);
     }
 
-    DPRINTF(DynInst,
+    DPRINTF(PpuDynInst,
         "DynInst: [sn:%lli] Instruction created. Instcount for %s = %i\n",
         seqNum, cpu->name(), cpu->instcount);
 #endif
@@ -155,7 +159,7 @@ BaseDynInst<Impl>::~BaseDynInst()
 #ifndef NDEBUG
     --cpu->instcount;
 
-    DPRINTF(DynInst,
+    DPRINTF(PpuDynInst,
         "DynInst: [sn:%lli] Instruction destroyed. Instcount for %s = %i\n",
         seqNum, cpu->name(), cpu->instcount);
 #endif
@@ -205,7 +209,7 @@ template <class Impl>
 void
 BaseDynInst<Impl>::markSrcRegReady()
 {
-    DPRINTF(IQ, "[sn:%lli] has %d ready out of %d sources. RTI %d)\n",
+    DPRINTF(PpuIQ, "[sn:%lli] has %d ready out of %d sources. RTI %d)\n",
             seqNum, readyRegs+1, numSrcRegs(), readyToIssue());
     if (++readyRegs == numSrcRegs()) {
         setCanIssue();
@@ -267,4 +271,4 @@ BaseDynInst<Impl>::setSquashed()
 
 
 
-#endif//__CPU_BASE_DYN_INST_IMPL_HH__
+#endif//__PPU_BASE_DYN_INST_IMPL_HH__

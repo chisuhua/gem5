@@ -38,7 +38,7 @@
  *          Curtis Dunham
  */
 
-#include "cpu/simple/probes/simpoint.hh"
+#include "ppu/simple/probes/simpoint.hh"
 
 #include "base/output.hh"
 

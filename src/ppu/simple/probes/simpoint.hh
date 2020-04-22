@@ -38,15 +38,19 @@
  *          Curtis Dunham
  */
 
-#ifndef __CPU_SIMPLE_PROBES_SIMPOINT_HH__
-#define __CPU_SIMPLE_PROBES_SIMPOINT_HH__
+#ifndef __PPU_SIMPLE_PROBES_SIMPOINT_HH__
+#define __PPU_SIMPLE_PROBES_SIMPOINT_HH__
 
 #include <unordered_map>
 
 #include "base/output.hh"
-#include "cpu/simple_thread.hh"
+#include "ppu/simple_thread.hh"
 #include "params/SimPoint.hh"
 #include "sim/probe/probe.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /**
  * Probe for SimPoints BBV generation
@@ -118,4 +122,4 @@ class SimPoint : public ProbeListenerObject
     uint64_t currentBBVInstCount;
 };
 
-#endif // __CPU_SIMPLE_PROBES_SIMPOINT_HH__
+#endif // __PPU_SIMPLE_PROBES_SIMPOINT_HH__

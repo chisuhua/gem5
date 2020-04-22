@@ -37,12 +37,12 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/scoreboard.hh"
+#include "ppu/minor/scoreboard.hh"
 
 #include "arch/registers.hh"
-#include "cpu/reg_class.hh"
-#include "debug/MinorScoreboard.hh"
-#include "debug/MinorTiming.hh"
+#include "ppu/reg_class.hh"
+#include "debug/PpuMinorScoreboard.hh"
+#include "debug/PpuMinorTiming.hh"
 
 namespace Minor
 {
@@ -139,7 +139,7 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
                 fuIndices[index] = inst->fuIndex;
             }
 
-            DPRINTF(MinorScoreboard, "Marking up inst: %s"
+            DPRINTF(PpuMinorScoreboard, "Marking up inst: %s"
                 " regIndex: %d final numResults: %d returnCycle: %d\n",
                 *inst, index, numResults[index], returnCycle[index]);
         } else {
@@ -173,7 +173,7 @@ Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
         }
     }
 
-    DPRINTF(MinorScoreboard, "Inst: %s depends on execSeqNum: %d\n",
+    DPRINTF(PpuMinorScoreboard, "Inst: %s depends on execSeqNum: %d\n",
         *inst, ret);
 
     return ret;
@@ -207,7 +207,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
                 fuIndices[index] = -1;
             }
 
-            DPRINTF(MinorScoreboard, "Clearing inst: %s"
+            DPRINTF(PpuMinorScoreboard, "Clearing inst: %s"
                 " regIndex: %d final numResults: %d\n",
                 *inst, index, numResults[index]);
         }
@@ -273,11 +273,11 @@ Scoreboard::canInstIssue(MinorDynInstPtr inst,
         src_index++;
     }
 
-    if (DTRACE(MinorTiming)) {
+    if (DTRACE(PpuMinorTiming)) {
         if (ret && num_srcs > num_relative_latencies &&
             num_relative_latencies != 0)
         {
-            DPRINTF(MinorTiming, "Warning, inst: %s timing extra decode has"
+            DPRINTF(PpuMinorTiming, "Warning, inst: %s timing extra decode has"
                 " more src. regs: %d than relative latencies: %d\n",
                 staticInst->disassemble(0), num_srcs, num_relative_latencies);
         }

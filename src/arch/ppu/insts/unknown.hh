@@ -38,8 +38,8 @@
 #include "arch/ppu/faults.hh"
 #include "arch/ppu/insts/bitfields.hh"
 #include "arch/ppu/insts/static_inst.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/static_inst.hh"
 
 namespace PpuISA
 {

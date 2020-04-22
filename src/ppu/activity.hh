@@ -28,11 +28,11 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_ACTIVITY_HH__
-#define __CPU_ACTIVITY_HH__
+#ifndef __PPU_ACTIVITY_HH__
+#define __PPU_ACTIVITY_HH__
 
 #include "base/trace.hh"
-#include "cpu/timebuf.hh"
+#include "ppu/timebuf.hh"
 
 /**
  * ActivityRecorder helper class that informs the CPU if it can switch
@@ -137,4 +137,4 @@ class ActivityRecorder
     bool *stageActive;
 };
 
-#endif // __CPU_ACTIVITY_HH__
+#endif // __PPU_ACTIVITY_HH__

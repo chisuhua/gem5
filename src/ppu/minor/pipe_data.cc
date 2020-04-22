@@ -37,7 +37,7 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/pipe_data.hh"
+#include "ppu/minor/pipe_data.hh"
 
 namespace Minor
 {

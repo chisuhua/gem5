@@ -1,4 +1,4 @@
-# Copyright (c) 2007 The Regents of The University of Michigan
+# Copyright (c) 2012 Mark D. Hill and David A. Wood
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,18 +24,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Nathan Binkert
+# Authors: Nilay Vaish
 
+from m5.SimObject import SimObject
+from System import System
 from m5.params import *
+from m5.proxy import *
 
-from m5.objects.BaseCPU import BaseCPU
+class Prefetcher(SimObject):
+    type = 'Prefetcher'
+    cxx_class = 'Prefetcher'
+    cxx_header = "mem/ruby/structures/Prefetcher.hh"
 
-class CheckerCPU(BaseCPU):
-    type = 'CheckerCPU'
-    abstract = True
-    cxx_header = "cpu/checker/cpu.hh"
-    exitOnError = Param.Bool(False, "Exit on an error")
-    updateOnError = Param.Bool(False,
-        "Update the checker with the main CPU's state on an error")
-    warnOnlyOnLoadError = Param.Bool(True,
-        "If a load result is incorrect, only print a warning and do not exit")
+    num_streams = Param.UInt32(4,
+        "Number of prefetch streams to be allocated")
+    pf_per_stream = Param.UInt32(1, "Number of prefetches per stream")
+    unit_filter  = Param.UInt32(8,
+        "Number of entries in the unit filter array")
+    nonunit_filter = Param.UInt32(8,
+        "Number of entries in the non-unit filter array")
+    train_misses = Param.UInt32(4, "")
+    num_startup_pfs = Param.UInt32(1, "")
+    cross_page = Param.Bool(False, """True if prefetched address can be on a
+            page different from the observed address""")
+    sys = Param.System(Parent.any, "System this prefetcher belongs to")

@@ -31,6 +31,7 @@
 #include "sim/arguments.hh"
 
 #include "arch/utility.hh"
+
 #include "config/the_isa.hh"
 
 Arguments::Data::~Data()

@@ -40,10 +40,10 @@
 #include "base/types.hh"
 
 class Packet;
-class ThreadContext;
 
 namespace PpuISA
 {
+class ThreadContext;
 
 inline Cycles handleIprRead(ThreadContext *, Packet *) { return Cycles(1); }
 inline Cycles handleIprWrite(ThreadContext *, Packet *) { return Cycles(1); }

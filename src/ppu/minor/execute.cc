@@ -37,31 +37,31 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/execute.hh"
+#include "ppu/minor/execute.hh"
 
 #include "arch/locked_mem.hh"
 #include "arch/registers.hh"
 #include "arch/utility.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/exec_context.hh"
-#include "cpu/minor/fetch1.hh"
-#include "cpu/minor/lsq.hh"
-#include "cpu/op_class.hh"
-#include "debug/Activity.hh"
-#include "debug/Branch.hh"
-#include "debug/Drain.hh"
-#include "debug/MinorExecute.hh"
-#include "debug/MinorInterrupt.hh"
-#include "debug/MinorMem.hh"
-#include "debug/MinorTrace.hh"
-#include "debug/PCEvent.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/exec_context.hh"
+#include "ppu/minor/fetch1.hh"
+#include "ppu/minor/lsq.hh"
+#include "ppu/op_class.hh"
+#include "debug/PpuActivity.hh"
+#include "debug/PpuBranch.hh"
+#include "debug/PpuDrain.hh"
+#include "debug/PpuMinorExecute.hh"
+#include "debug/PpuMinorInterrupt.hh"
+#include "debug/PpuMinorMem.hh"
+#include "debug/PpuMinorTrace.hh"
+#include "debug/PpuPCEvent.hh"
 
 namespace Minor
 {
 
 Execute::Execute(const std::string &name_,
-    MinorCPU &cpu_,
-    MinorCPUParams &params,
+    MinorPPU &cpu_,
+    MinorPPUParams &params,
     Latch<ForwardInstData>::Output inp_,
     Latch<BranchData>::Input out_) :
     Named(name_),
@@ -228,7 +228,7 @@ Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
          inst->staticInst->isSquashAfter() ||
          inst->staticInst->isIprAccess());
 
-    DPRINTF(Branch, "tryToBranch before: %s after: %s%s\n",
+    DPRINTF(PpuBranch, "tryToBranch before: %s after: %s%s\n",
         pc_before, target, (force_branch ? " (forcing)" : ""));
 
     /* Will we change the PC to something other than the next instruction? */
@@ -244,7 +244,7 @@ Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
         ThePpuISA::advancePC(target, inst->staticInst);
         thread->pcState(target);
 
-        DPRINTF(Branch, "Advancing current PC from: %s to: %s\n",
+        DPRINTF(PpuBranch, "Advancing current PC from: %s to: %s\n",
             pc_before, target);
     }
 
@@ -253,7 +253,7 @@ Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
         if (!must_branch) {
             /* No branch was taken, change stream to get us back to the
              *  intended PC value */
-            DPRINTF(Branch, "Predicted a branch from 0x%x to 0x%x but"
+            DPRINTF(PpuBranch, "Predicted a branch from 0x%x to 0x%x but"
                 " none happened inst: %s\n",
                 inst->pc.instAddr(), inst->predictedTarget.instAddr(), *inst);
 
@@ -263,14 +263,14 @@ Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
              *  carry on.
              *  Note that this information to the branch predictor might get
              *  overwritten by a "real" branch during this cycle */
-            DPRINTF(Branch, "Predicted a branch from 0x%x to 0x%x correctly"
+            DPRINTF(PpuBranch, "Predicted a branch from 0x%x to 0x%x correctly"
                 " inst: %s\n",
                 inst->pc.instAddr(), inst->predictedTarget.instAddr(), *inst);
 
             reason = BranchData::CorrectlyPredictedBranch;
         } else {
             /* Branch prediction got the wrong target */
-            DPRINTF(Branch, "Predicted a branch from 0x%x to 0x%x"
+            DPRINTF(PpuBranch, "Predicted a branch from 0x%x to 0x%x"
                     " but got the wrong target (actual: 0x%x) inst: %s\n",
                     inst->pc.instAddr(), inst->predictedTarget.instAddr(),
                     target.instAddr(), *inst);
@@ -279,7 +279,7 @@ Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
         }
     } else if (must_branch) {
         /* Unpredicted branch */
-        DPRINTF(Branch, "Unpredicted branch from 0x%x to 0x%x inst: %s\n",
+        DPRINTF(PpuBranch, "Unpredicted branch from 0x%x to 0x%x inst: %s\n",
             inst->pc.instAddr(), target.instAddr(), *inst);
 
         reason = BranchData::UnpredictedBranch;
@@ -313,7 +313,7 @@ Execute::updateBranchData(
                 : inst->id.predictionSeqNum),
             target, inst);
 
-        DPRINTF(Branch, "Branch data signalled: %s\n", branch);
+        DPRINTF(PpuBranch, "Branch data signalled: %s\n", branch);
     }
 }
 
@@ -339,11 +339,11 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
 
     if (inst->translationFault != NoFault) {
         /* Invoke memory faults. */
-        DPRINTF(MinorMem, "Completing fault from DTLB access: %s\n",
+        DPRINTF(PpuMinorMem, "Completing fault from DTLB access: %s\n",
             inst->translationFault->name());
 
         if (inst->staticInst->isPrefetch()) {
-            DPRINTF(MinorMem, "Not taking fault on prefetch: %s\n",
+            DPRINTF(PpuMinorMem, "Not taking fault on prefetch: %s\n",
                 inst->translationFault->name());
 
             /* Don't assign to fault */
@@ -354,24 +354,24 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
             fault->invoke(thread, inst->staticInst);
         }
     } else if (!packet) {
-        DPRINTF(MinorMem, "Completing failed request inst: %s\n",
+        DPRINTF(PpuMinorMem, "Completing failed request inst: %s\n",
             *inst);
         use_context_predicate = false;
         if (!context.readMemAccPredicate())
             inst->staticInst->completeAcc(nullptr, &context, inst->traceData);
     } else if (packet->isError()) {
-        DPRINTF(MinorMem, "Trying to commit error response: %s\n",
+        DPRINTF(PpuMinorMem, "Trying to commit error response: %s\n",
             *inst);
 
         fatal("Received error response packet for inst: %s\n", *inst);
     } else if (is_store || is_load || is_prefetch || is_atomic) {
         assert(packet);
 
-        DPRINTF(MinorMem, "Memory response inst: %s addr: 0x%x size: %d\n",
+        DPRINTF(PpuMinorMem, "Memory response inst: %s addr: 0x%x size: %d\n",
             *inst, packet->getAddr(), packet->getSize());
 
         if (is_load && packet->getSize() > 0) {
-            DPRINTF(MinorMem, "Memory data[0]: 0x%x\n",
+            DPRINTF(PpuMinorMem, "Memory data[0]: 0x%x\n",
                 static_cast<unsigned int>(packet->getConstPtr<uint8_t>()[0]));
         }
 
@@ -381,7 +381,7 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
 
         if (fault != NoFault) {
             /* Invoke fault created by instruction completion */
-            DPRINTF(MinorMem, "Fault in memory completeAcc: %s\n",
+            DPRINTF(PpuMinorMem, "Fault in memory completeAcc: %s\n",
                 fault->name());
             fault->invoke(thread, inst->staticInst);
         } else {
@@ -417,7 +417,7 @@ Execute::isInterrupted(ThreadID thread_id) const
 bool
 Execute::takeInterrupt(ThreadID thread_id, BranchData &branch)
 {
-    DPRINTF(MinorInterrupt, "Considering interrupt status from PC: %s\n",
+    DPRINTF(PpuMinorInterrupt, "Considering interrupt status from PC: %s\n",
         cpu.getContext(thread_id)->pcState());
 
     Fault interrupt = cpu.getInterruptController(thread_id)->getInterrupt
@@ -431,7 +431,7 @@ Execute::takeInterrupt(ThreadID thread_id, BranchData &branch)
 
         assert(!lsq.accessesInFlight());
 
-        DPRINTF(MinorInterrupt, "Invoking interrupt: %s to PC: %s\n",
+        DPRINTF(PpuMinorInterrupt, "Invoking interrupt: %s to PC: %s\n",
             interrupt->name(), cpu.getContext(thread_id)->pcState());
 
         /* Assume that an interrupt *must* cause a branch.  Assert this? */
@@ -464,7 +464,7 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         ExecContext context(cpu, *cpu.threads[inst->id.threadId],
             *this, inst);
 
-        DPRINTF(MinorExecute, "Initiating memRef inst: %s\n", *inst);
+        DPRINTF(PpuMinorExecute, "Initiating memRef inst: %s\n", *inst);
 
         Fault init_fault = inst->staticInst->initiateAcc(&context,
             inst->traceData);
@@ -482,14 +482,14 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
         }
 
         if (init_fault != NoFault) {
-            DPRINTF(MinorExecute, "Fault on memory inst: %s"
+            DPRINTF(PpuMinorExecute, "Fault on memory inst: %s"
                 " initiateAcc: %s\n", *inst, init_fault->name());
             fault = init_fault;
         } else {
             /* Only set this if the instruction passed its
              * predicate */
             if (!context.readMemAccPredicate()) {
-                DPRINTF(MinorMem, "No memory access for inst: %s\n", *inst);
+                DPRINTF(PpuMinorMem, "No memory access for inst: %s\n", *inst);
                 assert(context.readPredicate());
             }
             passed_predicate = context.readPredicate();
@@ -583,13 +583,13 @@ Execute::issue(ThreadID thread_id)
         } else if (cpu.getContext(thread_id)->status() ==
             ThreadContext::Suspended)
         {
-            DPRINTF(MinorExecute, "Discarding inst: %s from suspended"
+            DPRINTF(PpuMinorExecute, "Discarding inst: %s from suspended"
                 " thread\n", *inst);
 
             issued = true;
             discarded = true;
         } else if (inst->id.streamSeqNum != thread.streamSeqNum) {
-            DPRINTF(MinorExecute, "Discarding inst: %s as its stream"
+            DPRINTF(PpuMinorExecute, "Discarding inst: %s as its stream"
                 " state was unexpected, expected: %d\n",
                 *inst, thread.streamSeqNum);
             issued = true;
@@ -607,7 +607,7 @@ Execute::issue(ThreadID thread_id)
             do {
                 FUPipeline *fu = funcUnits[fu_index];
 
-                DPRINTF(MinorExecute, "Trying to issue inst: %s to FU: %d\n",
+                DPRINTF(PpuMinorExecute, "Trying to issue inst: %s to FU: %d\n",
                     *inst, fu_index);
 
                 /* Does the examined fu have the OpClass-related capability
@@ -630,7 +630,7 @@ Execute::issue(ThreadID thread_id)
                     scoreboard[thread_id].markupInstDests(inst, cpu.curCycle() +
                         Cycles(0), cpu.getContext(thread_id), false);
 
-                    DPRINTF(MinorExecute, "Issuing %s to %d\n", inst->id, noCostFUIndex);
+                    DPRINTF(PpuMinorExecute, "Issuing %s to %d\n", inst->id, noCostFUIndex);
                     inst->fuIndex = noCostFUIndex;
                     inst->extraCommitDelay = Cycles(0);
                     inst->extraCommitDelayExpr = NULL;
@@ -645,18 +645,18 @@ Execute::issue(ThreadID thread_id)
                 } else if (!fu_is_capable || fu->alreadyPushed()) {
                     /* Skip */
                     if (!fu_is_capable) {
-                        DPRINTF(MinorExecute, "Can't issue as FU: %d isn't"
+                        DPRINTF(PpuMinorExecute, "Can't issue as FU: %d isn't"
                             " capable\n", fu_index);
                     } else {
-                        DPRINTF(MinorExecute, "Can't issue as FU: %d is"
+                        DPRINTF(PpuMinorExecute, "Can't issue as FU: %d is"
                             " already busy\n", fu_index);
                     }
                 } else if (fu->stalled) {
-                    DPRINTF(MinorExecute, "Can't issue inst: %s into FU: %d,"
+                    DPRINTF(PpuMinorExecute, "Can't issue inst: %s into FU: %d,"
                         " it's stalled\n",
                         *inst, fu_index);
                 } else if (!fu->canInsert()) {
-                    DPRINTF(MinorExecute, "Can't issue inst: %s to busy FU"
+                    DPRINTF(PpuMinorExecute, "Can't issue inst: %s to busy FU"
                         " for another: %d cycles\n",
                         *inst, fu->cyclesBeforeInsert());
                 } else {
@@ -671,18 +671,18 @@ Execute::issue(ThreadID thread_id)
                         &(fu->cantForwardFromFUIndices);
 
                     if (timing && timing->suppress) {
-                        DPRINTF(MinorExecute, "Can't issue inst: %s as extra"
+                        DPRINTF(PpuMinorExecute, "Can't issue inst: %s as extra"
                             " decoding is suppressing it\n",
                             *inst);
                     } else if (!scoreboard[thread_id].canInstIssue(inst,
                         src_latencies, cant_forward_from_fu_indices,
                         cpu.curCycle(), cpu.getContext(thread_id)))
                     {
-                        DPRINTF(MinorExecute, "Can't issue inst: %s yet\n",
+                        DPRINTF(PpuMinorExecute, "Can't issue inst: %s yet\n",
                             *inst);
                     } else {
                         /* Can insert the instruction into this FU */
-                        DPRINTF(MinorExecute, "Issuing inst: %s"
+                        DPRINTF(PpuMinorExecute, "Issuing inst: %s"
                             " into FU %d\n", *inst,
                             fu_index);
 
@@ -723,7 +723,7 @@ Execute::issue(ThreadID thread_id)
                                 if (lsq.getLastMemBarrier(thread_id) >
                                     inst->instToWaitFor)
                                 {
-                                    DPRINTF(MinorExecute, "A barrier will"
+                                    DPRINTF(PpuMinorExecute, "A barrier will"
                                         " cause a delay in mem ref issue of"
                                         " inst: %s until after inst"
                                         " %d(exec)\n", *inst,
@@ -732,7 +732,7 @@ Execute::issue(ThreadID thread_id)
                                     inst->instToWaitFor =
                                         lsq.getLastMemBarrier(thread_id);
                                 } else {
-                                    DPRINTF(MinorExecute, "Memory ref inst:"
+                                    DPRINTF(PpuMinorExecute, "Memory ref inst:"
                                         " %s must wait for inst %d(exec)"
                                         " before issuing\n",
                                         *inst, inst->instToWaitFor);
@@ -742,7 +742,7 @@ Execute::issue(ThreadID thread_id)
                             }
                             /* Also queue this instruction in the memory ref
                              *  queue to ensure in-order issue to the LSQ */
-                            DPRINTF(MinorExecute, "Pushing mem inst: %s\n",
+                            DPRINTF(PpuMinorExecute, "Pushing mem inst: %s\n",
                                 *inst);
                             thread.inFUMemInsts->push(fu_inst);
                         }
@@ -774,20 +774,20 @@ Execute::issue(ThreadID thread_id)
             } while (fu_index != numFuncUnits && !issued);
 
             if (!issued)
-                DPRINTF(MinorExecute, "Didn't issue inst: %s\n", *inst);
+                DPRINTF(PpuMinorExecute, "Didn't issue inst: %s\n", *inst);
         }
 
         if (issued) {
             /* Generate MinorTrace's MinorInst lines.  Do this at commit
              *  to allow better instruction annotation? */
-            if (DTRACE(MinorTrace) && !inst->isBubble())
+            if (DTRACE(PpuMinorTrace) && !inst->isBubble())
                 inst->minorTraceInst(*this);
 
             /* Mark up barriers in the LSQ */
             if (!discarded && inst->isInst() &&
                 inst->staticInst->isMemBarrier())
             {
-                DPRINTF(MinorMem, "Issuing memory barrier inst: %s\n", *inst);
+                DPRINTF(PpuMinorMem, "Issuing memory barrier inst: %s\n", *inst);
                 lsq.issuedMemBarrierInst(inst);
             }
 
@@ -804,11 +804,11 @@ Execute::issue(ThreadID thread_id)
                 num_insts_issued++;
 
                 if (num_insts_issued == issueLimit)
-                    DPRINTF(MinorExecute, "Reached inst issue limit\n");
+                    DPRINTF(PpuMinorExecute, "Reached inst issue limit\n");
             }
 
             thread.inputIndex++;
-            DPRINTF(MinorExecute, "Stepping to next inst inputIndex: %d\n",
+            DPRINTF(PpuMinorExecute, "Stepping to next inst inputIndex: %d\n",
                 thread.inputIndex);
         }
 
@@ -820,7 +820,7 @@ Execute::issue(ThreadID thread_id)
             insts_in = NULL;
 
             if (processMoreThanOneInput) {
-                DPRINTF(MinorExecute, "Wrapping\n");
+                DPRINTF(PpuMinorExecute, "Wrapping\n");
                 insts_in = getInput(thread_id);
             }
         }
@@ -849,7 +849,7 @@ Execute::tryPCEvents(ThreadID thread_id)
     } while (oldPC != thread->instAddr());
 
     if (num_pc_event_checks > 1) {
-        DPRINTF(PCEvent, "Acting on PC Event to PC: %s\n",
+        DPRINTF(PpuPCEvent, "Acting on PC Event to PC: %s\n",
             thread->pcState());
     }
 
@@ -909,7 +909,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
     } else if (inst->isFault()) {
         ExecContext context(cpu, *cpu.threads[thread_id], *this, inst);
 
-        DPRINTF(MinorExecute, "Fault inst reached Execute: %s\n",
+        DPRINTF(PpuMinorExecute, "Fault inst reached Execute: %s\n",
             inst->fault->name());
 
         fault = inst->fault;
@@ -935,7 +935,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
 
         if (completed_mem_inst && fault != NoFault) {
             if (early_memory_issue) {
-                DPRINTF(MinorExecute, "Fault in early executing inst: %s\n",
+                DPRINTF(PpuMinorExecute, "Fault in early executing inst: %s\n",
                     fault->name());
                 /* Don't execute the fault, just stall the instruction
                  *  until it gets to the head of inFlightInsts */
@@ -944,7 +944,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
                  * the fault when we get to the end of the FU */
                 completed_inst = false;
             } else {
-                DPRINTF(MinorExecute, "Fault in execute: %s\n",
+                DPRINTF(PpuMinorExecute, "Fault in execute: %s\n",
                     fault->name());
                 fault->invoke(thread, NULL);
 
@@ -958,7 +958,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
     } else if (inst->isInst() && inst->staticInst->isMemBarrier() &&
         !lsq.canPushIntoStoreBuffer())
     {
-        DPRINTF(MinorExecute, "Can't commit data barrier inst: %s yet as"
+        DPRINTF(PpuMinorExecute, "Can't commit data barrier inst: %s yet as"
             " there isn't space in the store buffer\n", *inst);
 
         completed_inst = false;
@@ -970,7 +970,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
     } else {
         ExecContext context(cpu, *cpu.threads[thread_id], *this, inst);
 
-        DPRINTF(MinorExecute, "Committing inst: %s\n", *inst);
+        DPRINTF(PpuMinorExecute, "Committing inst: %s\n", *inst);
 
         fault = inst->staticInst->execute(&context,
             inst->traceData);
@@ -982,7 +982,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
         committed = true;
 
         if (fault != NoFault) {
-            DPRINTF(MinorExecute, "Fault in execute of inst: %s fault: %s\n",
+            DPRINTF(PpuMinorExecute, "Fault in execute of inst: %s fault: %s\n",
                 *inst, fault->name());
             fault->invoke(thread, inst->staticInst);
         }
@@ -1008,7 +1008,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
 
             assert(resume_pc.microPC() == 0);
 
-            DPRINTF(MinorInterrupt, "Suspending thread: %d from Execute"
+            DPRINTF(PpuMinorInterrupt, "Suspending thread: %d from Execute"
                 " inst: %s\n", thread_id, *inst);
 
             cpu.stats.numFetchSuspends++;
@@ -1066,7 +1066,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
     unsigned int num_mem_refs_committed = 0;
 
     if (only_commit_microops && !ex_info.inFlightInsts->empty()) {
-        DPRINTF(MinorInterrupt, "Only commit microops %s %d\n",
+        DPRINTF(PpuMinorInterrupt, "Only commit microops %s %d\n",
             *(ex_info.inFlightInsts->front().inst),
             ex_info.lastCommitWasEndOfMacroop);
     }
@@ -1079,7 +1079,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
         )
     {
         if (only_commit_microops) {
-            DPRINTF(MinorInterrupt, "Committing tail of insts before"
+            DPRINTF(PpuMinorInterrupt, "Committing tail of insts before"
                 " interrupt: %s\n",
                 *(ex_info.inFlightInsts->front().inst));
         }
@@ -1113,7 +1113,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
         LSQ::LSQRequestPtr mem_response =
             (inst->inLSQ ? lsq.findResponse(inst) : NULL);
 
-        DPRINTF(MinorExecute, "Trying to commit canCommitInsts: %d\n",
+        DPRINTF(PpuMinorExecute, "Trying to commit canCommitInsts: %d\n",
             can_commit_insts);
 
         /* Test for PC events after every instruction */
@@ -1130,12 +1130,12 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             discard_inst = inst->id.streamSeqNum !=
                            ex_info.streamSeqNum || discard;
 
-            DPRINTF(MinorExecute, "Trying to commit mem response: %s\n",
+            DPRINTF(PpuMinorExecute, "Trying to commit mem response: %s\n",
                 *inst);
 
             /* Complete or discard the response */
             if (discard_inst) {
-                DPRINTF(MinorExecute, "Discarding mem inst: %s as its"
+                DPRINTF(PpuMinorExecute, "Discarding mem inst: %s as its"
                     " stream state was unexpected, expected: %d\n",
                     *inst, ex_info.streamSeqNum);
 
@@ -1164,7 +1164,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
              *  issue below to handle them.
              */
             if (!ex_info.inFUMemInsts->empty() && lsq.canRequest()) {
-                DPRINTF(MinorExecute, "Trying to commit from mem FUs\n");
+                DPRINTF(PpuMinorExecute, "Trying to commit from mem FUs\n");
 
                 const MinorDynInstPtr head_mem_ref_inst =
                     ex_info.inFUMemInsts->front().inst;
@@ -1179,7 +1179,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                     ex_info.streamSeqNum == fu_inst->id.streamSeqNum &&
                     head_exec_seq_num > fu_inst->instToWaitFor)
                 {
-                    DPRINTF(MinorExecute, "Issuing mem ref early"
+                    DPRINTF(PpuMinorExecute, "Issuing mem ref early"
                         " inst: %s instToWaitFor: %d\n",
                         *(fu_inst), fu_inst->instToWaitFor);
 
@@ -1192,7 +1192,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
             /* Try and commit FU-less insts */
             if (!completed_inst && inst->isNoCostInst()) {
-                DPRINTF(MinorExecute, "Committing no cost inst: %s", *inst);
+                DPRINTF(PpuMinorExecute, "Committing no cost inst: %s", *inst);
 
                 try_to_commit = true;
                 completed_inst = true;
@@ -1201,7 +1201,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             /* Try to issue from the ends of FUs and the inFlightInsts
              *  queue */
             if (!completed_inst && !inst->inLSQ) {
-                DPRINTF(MinorExecute, "Trying to commit from FUs\n");
+                DPRINTF(PpuMinorExecute, "Trying to commit from FUs\n");
 
                 /* Try to commit from a functional unit */
                 /* Is the head inst of the expected inst's FU actually the
@@ -1241,7 +1241,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                      *  account for them later (commit_was_mem_issue gets
                      *  set) */
                     if (inst->extraCommitDelayExpr) {
-                        DPRINTF(MinorExecute, "Evaluating expression for"
+                        DPRINTF(PpuMinorExecute, "Evaluating expression for"
                             " extra commit delay inst: %s\n", *inst);
 
                         ThreadContext *thread = cpu.getContext(thread_id);
@@ -1252,13 +1252,13 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         uint64_t extra_delay = inst->extraCommitDelayExpr->
                             eval(context);
 
-                        DPRINTF(MinorExecute, "Extra commit delay expr"
+                        DPRINTF(PpuMinorExecute, "Extra commit delay expr"
                             " result: %d\n", extra_delay);
 
                         if (extra_delay < 128) {
                             inst->extraCommitDelay += Cycles(extra_delay);
                         } else {
-                            DPRINTF(MinorExecute, "Extra commit delay was"
+                            DPRINTF(PpuMinorExecute, "Extra commit delay was"
                                 " very long: %d\n", extra_delay);
                         }
                         inst->extraCommitDelayExpr = NULL;
@@ -1279,12 +1279,12 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                             inst->id.execSeqNum &&
                         lsq.getLastMemBarrier(thread_id) != 0)
                     {
-                        DPRINTF(MinorExecute, "Not committing inst: %s yet"
+                        DPRINTF(PpuMinorExecute, "Not committing inst: %s yet"
                             " as there are incomplete barriers in flight\n",
                             *inst);
                         completed_inst = false;
                     } else if (inst->minimumCommitCycle > now) {
-                        DPRINTF(MinorExecute, "Not committing inst: %s yet"
+                        DPRINTF(PpuMinorExecute, "Not committing inst: %s yet"
                             " as it wants to be stalled for %d more cycles\n",
                             *inst, inst->minimumCommitCycle - now);
                         completed_inst = false;
@@ -1304,13 +1304,13 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                      *  but had already been committed, it would have
                      *  unstalled the pipeline before here */
                     if (inst->fuIndex != noCostFUIndex) {
-                        DPRINTF(MinorExecute, "Unstalling %d for inst %s\n", inst->fuIndex, inst->id);
+                        DPRINTF(PpuMinorExecute, "Unstalling %d for inst %s\n", inst->fuIndex, inst->id);
                         funcUnits[inst->fuIndex]->stalled = false;
                     }
                 }
             }
         } else {
-            DPRINTF(MinorExecute, "No instructions to commit\n");
+            DPRINTF(PpuMinorExecute, "No instructions to commit\n");
             completed_inst = false;
         }
 
@@ -1320,7 +1320,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
         /* Instruction committed but was discarded due to streamSeqNum
          *  mismatch */
         if (discard_inst) {
-            DPRINTF(MinorExecute, "Discarding inst: %s as its stream"
+            DPRINTF(PpuMinorExecute, "Discarding inst: %s as its stream"
                 " state was unexpected, expected: %d\n",
                 *inst, ex_info.streamSeqNum);
 
@@ -1348,7 +1348,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
         if (completed_inst && !(issued_mem_ref && fault == NoFault)) {
             /* Note that this includes discarded insts */
-            DPRINTF(MinorExecute, "Completed inst: %s\n", *inst);
+            DPRINTF(PpuMinorExecute, "Completed inst: %s\n", *inst);
 
             /* Got to the end of a full instruction? */
             ex_info.lastCommitWasEndOfMacroop = inst->isFault() ||
@@ -1364,7 +1364,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
             /* Complete barriers in the LSQ/move to store buffer */
             if (inst->isInst() && inst->staticInst->isMemBarrier()) {
-                DPRINTF(MinorMem, "Completing memory barrier"
+                DPRINTF(PpuMinorMem, "Completing memory barrier"
                     " inst: %s committed: %d\n", *inst, committed_inst);
                 lsq.completeMemBarrierInst(inst, committed_inst);
             }
@@ -1378,14 +1378,14 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
             /* Don't show no cost instructions as having taken a commit
              *  slot */
-            if (DTRACE(MinorTrace) && !is_no_cost_inst)
+            if (DTRACE(PpuMinorTrace) && !is_no_cost_inst)
                 ex_info.instsBeingCommitted.insts[num_insts_committed] = inst;
 
             if (!is_no_cost_inst)
                 num_insts_committed++;
 
             if (num_insts_committed == commitLimit)
-                DPRINTF(MinorExecute, "Reached inst commit limit\n");
+                DPRINTF(PpuMinorExecute, "Reached inst commit limit\n");
 
             /* Re-set the time of the instruction if that's required for
              * tracing */
@@ -1399,7 +1399,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                 num_mem_refs_committed++;
 
             if (num_mem_refs_committed == memoryCommitLimit)
-                DPRINTF(MinorExecute, "Reached mem ref commit limit\n");
+                DPRINTF(PpuMinorExecute, "Reached mem ref commit limit\n");
         }
     }
 }
@@ -1435,7 +1435,7 @@ Execute::evaluate()
     } else if (!branch.isBubble()) {
         /* It's important that this is here to carry Fetch1 wakeups to Fetch1
          *  without overwriting them */
-        DPRINTF(MinorInterrupt, "Execute skipping a cycle to allow old"
+        DPRINTF(PpuMinorInterrupt, "Execute skipping a cycle to allow old"
             " branch to complete\n");
     } else {
         ThreadID commit_tid = getCommittingThread();
@@ -1443,7 +1443,7 @@ Execute::evaluate()
         if (commit_tid != InvalidThreadID) {
             ExecuteThreadInfo& commit_info = executeInfo[commit_tid];
 
-            DPRINTF(MinorExecute, "Attempting to commit [tid:%d]\n",
+            DPRINTF(PpuMinorExecute, "Attempting to commit [tid:%d]\n",
                     commit_tid);
             /* commit can set stalled flags observable to issue and so *must* be
              *  called first */
@@ -1466,7 +1466,7 @@ Execute::evaluate()
             } else {
                 /* Commit micro-ops only if interrupted.  Otherwise, commit
                  *  anything you like */
-                DPRINTF(MinorExecute, "Committing micro-ops for interrupt[tid:%d]\n",
+                DPRINTF(PpuMinorExecute, "Committing micro-ops for interrupt[tid:%d]\n",
                         commit_tid);
                 bool only_commit_microops = interrupted &&
                                             hasInterrupt(commit_tid);
@@ -1487,7 +1487,7 @@ Execute::evaluate()
         /* This will issue merrily even when interrupted in the sure and
          *  certain knowledge that the interrupt with change the stream */
         if (issue_tid != InvalidThreadID) {
-            DPRINTF(MinorExecute, "Attempting to issue [tid:%d]\n",
+            DPRINTF(PpuMinorExecute, "Attempting to issue [tid:%d]\n",
                     issue_tid);
             num_issued = issue(issue_tid);
         }
@@ -1563,7 +1563,7 @@ Execute::evaluate()
         }
     }
 
-    DPRINTF(Activity, "Need to tick num issued insts: %s%s%s%s%s%s\n",
+    DPRINTF(PpuActivity, "Need to tick num issued insts: %s%s%s%s%s%s\n",
        (num_issued != 0 ? " (issued some insts)" : ""),
        (becoming_stalled ? "(becoming stalled)" : "(not becoming stalled)"),
        (can_issue_next ? " (can issued next inst)" : ""),
@@ -1580,7 +1580,7 @@ Execute::evaluate()
        interrupted; /* There are pending interrupts */
 
     if (!need_to_tick) {
-        DPRINTF(Activity, "The next cycle might be skippable as there are no"
+        DPRINTF(PpuActivity, "The next cycle might be skippable as there are no"
             " advanceable FUs\n");
     }
 
@@ -1614,9 +1614,9 @@ Execute::checkInterrupts(BranchData& branch, bool& interrupted)
                 isInterrupted(tid);
             interrupted = interrupted || thread_interrupted;
         } else {
-            DPRINTF(MinorInterrupt, "No interrupt controller\n");
+            DPRINTF(PpuMinorInterrupt, "No interrupt controller\n");
         }
-        DPRINTF(MinorInterrupt, "[tid:%d] thread_interrupted?=%d isInbetweenInsts?=%d\n",
+        DPRINTF(PpuMinorInterrupt, "[tid:%d] thread_interrupted?=%d isInbetweenInsts?=%d\n",
                 tid, thread_interrupted, isInbetweenInsts(tid));
         /* Act on interrupts */
         if (thread_interrupted && isInbetweenInsts(tid)) {
@@ -1774,7 +1774,7 @@ Execute::getIssuingThread()
 void
 Execute::drainResume()
 {
-    DPRINTF(Drain, "MinorExecute drainResume\n");
+    DPRINTF(PpuDrain, "MinorExecute drainResume\n");
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         setDrainState(tid, NotDraining);
@@ -1810,14 +1810,14 @@ std::ostream &operator <<(std::ostream &os, Execute::DrainState state)
 void
 Execute::setDrainState(ThreadID thread_id, DrainState state)
 {
-    DPRINTF(Drain, "setDrainState[%d]: %s\n", thread_id, state);
+    DPRINTF(PpuDrain, "setDrainState[%d]: %s\n", thread_id, state);
     executeInfo[thread_id].drainState = state;
 }
 
 unsigned int
 Execute::drain()
 {
-    DPRINTF(Drain, "MinorExecute drain\n");
+    DPRINTF(PpuDrain, "MinorExecute drain\n");
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         if (executeInfo[tid].drainState == NotDraining) {
@@ -1879,7 +1879,7 @@ Execute::instIsHeadInst(MinorDynInstPtr inst)
     return ret;
 }
 
-MinorCPU::MinorCPUPort &
+MinorPPU::MinorPPUPort &
 Execute::getDcachePort()
 {
     return lsq.getDcachePort();

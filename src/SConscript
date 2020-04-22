@@ -653,10 +653,18 @@ def makeTheISA(source, target, env):
     code('};')
 
     code('''
-
+#ifdef BUILD_PPU
+#define THE_PPU_ISA PPU_ISA
+#define ThePpuISA PpuISA
+#define THE_PPU_ISA_STR "ppu"
+#define THE_ISA PPU_ISA
+#define TheISA PpuISA
+#define THE_ISA_STR "ppu"
+#else // BUILD_PPU
 #define THE_ISA ${{define(target_isa)}}
 #define TheISA ${{namespace(target_isa)}}
 #define THE_ISA_STR "${{target_isa}}"
+#endif // BUILD_PPU
 
 #endif // __CONFIG_THE_ISA_HH__''')
 
@@ -709,6 +717,7 @@ def makeTheGPUISA(source, target, env):
 
 env.Command('config/the_gpu_isa.hh', map(Value, all_gpu_isa_list),
             MakeAction(makeTheGPUISA, Transform("CFG ISA", 0)))
+
 
 ########################################################################
 #
@@ -1002,6 +1011,7 @@ for name,enum in sorted(all_enums.iteritems()):
                 MakeAction(createEnumDecls, Transform("ENUMDECL")))
     env.Depends(hh_file, depends + extra_deps)
 
+#isPpuParam = re.compile("_Ppu")
 # Generate SimObject Python bindings wrapper files
 if env['USE_PYTHON']:
     for name,simobj in sorted(sim_objects.iteritems()):
@@ -1012,7 +1022,12 @@ if env['USE_PYTHON']:
                     MakeAction(createSimObjectPyBindWrapper,
                                Transform("SO PyBind")))
         env.Depends(cc_file, depends + extra_deps)
-        Source(cc_file)
+
+        # FIXME for Minor CPU is used for PPU only when build with BUILD_PPU
+        if env['BUILD_PPU'] and re.search(r'(Ppu|PPU|Minor)', name):
+            Source(cc_file, append={'CXXFLAGS': '-DBUILD_PPU'})
+        else:
+            Source(cc_file)
 
 # Build all protocol buffers if we have got protoc and protobuf available
 if env['HAVE_PROTOC'] and env['HAVE_PROTOBUF']:

@@ -36,7 +36,7 @@
 
 #include "arch/ppu/insts/mem.hh"
 #include "arch/ppu/insts/static_inst.hh"
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 
 namespace PpuISA
 {
@@ -50,6 +50,8 @@ class MemFenceMicro : public PpuMicroInst
     { }
   protected:
     using PpuMicroInst::PpuMicroInst;
+
+    ~MemFenceMicro() {};
 
     Fault execute(ExecContext *, Trace::InstRecord *) const override;
     std::string generateDisassembly(

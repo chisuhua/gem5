@@ -41,7 +41,7 @@
  * Authors: Steve Reinhardt
  */
 
-#include "cpu/simple/base.hh"
+#include "ppu/simple/base.hh"
 
 #include "arch/stacktrace.hh"
 #include "arch/utility.hh"
@@ -55,20 +55,20 @@
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/checker/cpu.hh"
-#include "cpu/checker/thread_context.hh"
-#include "cpu/exetrace.hh"
-#include "cpu/pred/bpred_unit.hh"
-#include "cpu/profile.hh"
-#include "cpu/simple/exec_context.hh"
-#include "cpu/simple_thread.hh"
-#include "cpu/smt.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
-#include "debug/Decode.hh"
-#include "debug/Fetch.hh"
-#include "debug/Quiesce.hh"
+#include "ppu/base.hh"
+#include "ppu/checker/cpu.hh"
+#include "ppu/checker/thread_context.hh"
+#include "ppu/exetrace.hh"
+#include "ppu/pred/bpred_unit.hh"
+#include "ppu/profile.hh"
+#include "ppu/simple/exec_context.hh"
+#include "ppu/simple_thread.hh"
+#include "ppu/smt.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuDecode.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuQuiesce.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "params/BaseSimpleCPU.hh"
@@ -85,7 +85,7 @@ using namespace std;
 using namespace ThePpuISA;
 
 BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
-    : BaseCPU(p),
+    : PpuBaseCPU(p),
       curThread(0),
       branchPred(p->branchPred),
       traceData(NULL),
@@ -111,8 +111,8 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
         if (numThreads != 1)
             fatal("Checker currently does not support SMT");
 
-        BaseCPU *temp_checker = p->checker;
-        checker = dynamic_cast<CheckerCPU *>(temp_checker);
+        PpuBaseCPU *temp_checker = p->checker;
+        checker = dynamic_cast<PpuCheckerCPU *>(temp_checker);
         checker->setSystem(p->system);
         // Manipulate thread context
         ThreadContext *cpu_tc = threadContexts[0];
@@ -125,7 +125,7 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
 void
 BaseSimpleCPU::init()
 {
-    BaseCPU::init();
+    PpuBaseCPU::init();
 
     for (auto tc : threadContexts) {
         // Initialise the ThreadContext's memory proxies
@@ -208,7 +208,7 @@ BaseSimpleCPU::haltContext(ThreadID thread_num)
 {
     // for now, these are equivalent
     suspendContext(thread_num);
-    updateCycleCounters(BaseCPU::CPU_STATE_SLEEP);
+    updateCycleCounters(PpuBaseCPU::CPU_STATE_SLEEP);
 }
 
 
@@ -217,7 +217,7 @@ BaseSimpleCPU::regStats()
 {
     using namespace Stats;
 
-    BaseCPU::regStats();
+    PpuBaseCPU::regStats();
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
         SimpleExecContext& t_info = *threadInfo[tid];
@@ -436,7 +436,7 @@ BaseSimpleCPU::wakeup(ThreadID tid)
     getCpuAddrMonitor(tid)->gotWakeup = true;
 
     if (threadInfo[tid]->thread->status() == ThreadContext::Suspended) {
-        DPRINTF(Quiesce,"[tid:%d] Suspended Processor awoke\n", tid);
+        DPRINTF(PpuQuiesce,"[tid:%d] Suspended Processor awoke\n", tid);
         threadInfo[tid]->thread->activate();
     }
 }
@@ -471,7 +471,7 @@ BaseSimpleCPU::setupFetchRequest(const RequestPtr &req)
     Addr fetchPC = (instAddr & PCMask) + t_info.fetchOffset;
 
     // set up memory request for instruction fetch
-    DPRINTF(Fetch, "Fetch: Inst PC:%08p, Fetch PC:%08p\n", instAddr, fetchPC);
+    DPRINTF(PpuFetch, "Fetch: Inst PC:%08p, Fetch PC:%08p\n", instAddr, fetchPC);
 
     req->setVirt(0, fetchPC, sizeof(MachInst), Request::INST_FETCH,
                  instMasterId(), instAddr);
@@ -549,7 +549,7 @@ BaseSimpleCPU::preExecute()
         traceData = tracer->getInstRecord(curTick(), thread->getTC(),
                 curStaticInst, thread->pcState(), curMacroStaticInst);
 
-        DPRINTF(Decode,"Decode: Decoded %s instruction: %#x\n",
+        DPRINTF(PpuDecode,"Decode: Decoded %s instruction: %#x\n",
                 curStaticInst->getName(), curStaticInst->machInst);
 #endif // TRACING_ON
     }
@@ -701,7 +701,7 @@ BaseSimpleCPU::advancePC(const Fault &fault)
 void
 BaseSimpleCPU::startup()
 {
-    BaseCPU::startup();
+    PpuBaseCPU::startup();
     for (auto& t_info : threadInfo)
         t_info->thread->startup();
 }

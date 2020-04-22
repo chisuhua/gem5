@@ -40,7 +40,15 @@
 #include "params/ExeTracer.hh"
 #include "sim/insttracer.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 namespace Trace {
 

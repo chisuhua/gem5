@@ -38,7 +38,7 @@
 
 #include "arch/ppu/isa.hh"
 #include "arch/ppu/registers.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 #include "sim/faults.hh"
 
 namespace PpuISA

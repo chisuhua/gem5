@@ -42,13 +42,17 @@
  * http://www.jilp.org/cbp2016/code/AndreSeznecLimited.tar.gz
  */
 
-#ifndef __CPU_PRED_TAGE_SC_L_64KB
-#define __CPU_PRED_TAGE_SC_L_64KB
+#ifndef __PPU_PRED_TAGE_SC_L_64KB
+#define __PPU_PRED_TAGE_SC_L_64KB
 
-#include "cpu/pred/tage_sc_l.hh"
+#include "ppu/pred/tage_sc_l.hh"
 #include "params/TAGE_SC_L_64KB.hh"
 #include "params/TAGE_SC_L_64KB_StatisticalCorrector.hh"
 #include "params/TAGE_SC_L_TAGE_64KB.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 class TAGE_SC_L_TAGE_64KB : public TAGE_SC_L_TAGE {
     public:
@@ -131,5 +135,5 @@ class TAGE_SC_L_64KB : public TAGE_SC_L
     TAGE_SC_L_64KB(const TAGE_SC_L_64KBParams *params);
 };
 
-#endif // __CPU_PRED_TAGE_SC_L_64KB
+#endif // __PPU_PRED_TAGE_SC_L_64KB
 

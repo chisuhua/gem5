@@ -37,13 +37,13 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/func_unit.hh"
+#include "ppu/minor/func_unit.hh"
 
 #include <iomanip>
 #include <sstream>
 #include <typeinfo>
 
-#include "debug/MinorTiming.hh"
+#include "debug/PpuMinorTiming.hh"
 #include "enums/OpClass.hh"
 
 MinorOpClass *
@@ -135,7 +135,7 @@ FUPipeline::FUPipeline(const std::string &name, const MinorFU &description_,
     for (unsigned int i = 0; i < description.timings.size(); i++) {
         MinorFUTiming &timing = *(description.timings[i]);
 
-        if (DTRACE(MinorTiming)) {
+        if (DTRACE(PpuMinorTiming)) {
             std::ostringstream lats;
 
             unsigned int num_lats = timing.srcRegsRelativeLats.size();
@@ -148,7 +148,7 @@ FUPipeline::FUPipeline(const std::string &name, const MinorFU &description_,
                     lats << ',';
             }
 
-            DPRINTFS(MinorTiming, static_cast<Named *>(this),
+            DPRINTFS(PpuMinorTiming, static_cast<Named *>(this),
                 "Adding extra timing decode pattern %d to FU"
                 " mask: %016x match: %016x srcRegLatencies: %s\n",
                 i, timing.mask, timing.match, lats.str());
@@ -224,7 +224,7 @@ FUPipeline::findTiming(const StaticInstPtr &inst)
         if (timing.provides(inst->opClass()) &&
             (mach_inst & timing.mask) == timing.match)
         {
-            DPRINTFS(MinorTiming, static_cast<Named *>(this),
+            DPRINTFS(PpuMinorTiming, static_cast<Named *>(this),
                 "Found extra timing match (pattern %d '%s')"
                 " %s %16x (type %s)\n",
                 i, timing.description, inst->disassemble(0), mach_inst,
@@ -235,7 +235,7 @@ FUPipeline::findTiming(const StaticInstPtr &inst)
     }
 
     if (num_timings != 0) {
-        DPRINTFS(MinorTiming, static_cast<Named *>(this),
+        DPRINTFS(PpuMinorTiming, static_cast<Named *>(this),
             "No extra timing info. found for inst: %s"
             " mach_inst: %16x\n",
             inst->disassemble(0), mach_inst);

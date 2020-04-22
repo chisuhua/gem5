@@ -37,20 +37,20 @@
  * Authors: Geoffrey Blake
  */
 
-#ifndef __CPU_DUMMY_CHECKER_HH__
-#define __CPU_DUMMY_CHECKER_HH__
+#ifndef __PPU_DUMMY_CHECKER_HH__
+#define __PPU_DUMMY_CHECKER_HH__
 
-#include "cpu/checker/cpu.hh"
+#include "ppu/checker/cpu.hh"
 
 /**
  * Specific non-templated derived class used for SimObject configuration.
  */
-class DummyChecker : public CheckerCPU
+class DummyChecker : public PpuCheckerCPU
 {
   public:
     DummyChecker(Params *p)
-          : CheckerCPU(p)
+          : PpuCheckerCPU(p)
     { }
 };
 
-#endif // __CPU_DUMMY_CHECKER_HH__
+#endif // __PPU_DUMMY_CHECKER_HH__

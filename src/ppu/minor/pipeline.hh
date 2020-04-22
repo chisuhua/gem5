@@ -40,20 +40,20 @@
 /**
  * @file
  *
- *  The constructed pipeline.  Kept out of MinorCPU to keep the interface
+ *  The constructed pipeline.  Kept out of MinorPPU to keep the interface
  *  between the CPU and its grubby implementation details clean.
  */
 
-#ifndef __CPU_MINOR_PIPELINE_HH__
-#define __CPU_MINOR_PIPELINE_HH__
+#ifndef __PPU_MINOR_PIPELINE_HH__
+#define __PPU_MINOR_PIPELINE_HH__
 
-#include "cpu/minor/activity.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/decode.hh"
-#include "cpu/minor/execute.hh"
-#include "cpu/minor/fetch1.hh"
-#include "cpu/minor/fetch2.hh"
-#include "params/MinorCPU.hh"
+#include "ppu/minor/activity.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/decode.hh"
+#include "ppu/minor/execute.hh"
+#include "ppu/minor/fetch1.hh"
+#include "ppu/minor/fetch2.hh"
+#include "params/MinorPPU.hh"
 #include "sim/ticked_object.hh"
 
 namespace Minor
@@ -62,16 +62,16 @@ namespace Minor
 /**
  * @namespace Minor
  *
- * Minor contains all the definitions within the MinorCPU apart from the CPU
+ * Minor contains all the definitions within the MinorPPU apart from the CPU
  * class itself
  */
 
-/** The constructed pipeline.  Kept out of MinorCPU to keep the interface
+/** The constructed pipeline.  Kept out of MinorPPU to keep the interface
  *  between the CPU and its grubby implementation details clean. */
 class Pipeline : public Ticked
 {
   protected:
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** Allow cycles to be skipped when the pipeline is idle */
     bool allow_idling;
@@ -107,7 +107,7 @@ class Pipeline : public Ticked
     bool needToSignalDrained;
 
   public:
-    Pipeline(MinorCPU &cpu_, MinorCPUParams &params);
+    Pipeline(MinorPPU &cpu_, MinorPPUParams &params);
 
   public:
     /** Wake up the Fetch unit.  This is needed on thread activation esp.
@@ -131,13 +131,13 @@ class Pipeline : public Ticked
     /** Stats registering */
     void regStats();
 
-    /** Functions below here are BaseCPU operations passed on to pipeline
+    /** Functions below here are PpuBaseCPU operations passed on to pipeline
      *  stages */
 
     /** Return the IcachePort belonging to Fetch1 for the CPU */
-    MinorCPU::MinorCPUPort &getInstPort();
+    MinorPPU::MinorPPUPort &getInstPort();
     /** Return the DcachePort belonging to Execute for the CPU */
-    MinorCPU::MinorCPUPort &getDataPort();
+    MinorPPU::MinorPPUPort &getDataPort();
 
     /** To give the activity recorder to the CPU */
     MinorActivityRecorder *getActivityRecorder() { return &activityRecorder; }
@@ -145,4 +145,4 @@ class Pipeline : public Ticked
 
 }
 
-#endif /* __CPU_MINOR_PIPELINE_HH__ */
+#endif /* __PPU_MINOR_PIPELINE_HH__ */

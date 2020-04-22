@@ -40,11 +40,24 @@
 
 #include "base/loader/hex_file.hh"
 #include "base/loader/symtab.hh"
-#include "cpu/pc_event.hh"
+#include "ppu/pc_event.hh"
 #include "kern/system_events.hh"
 #include "params/PpuSystem.hh"
 #include "sim/sim_object.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
+
+
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+
 
 class PpuSystem : public System
 {

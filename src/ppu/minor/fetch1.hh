@@ -44,13 +44,13 @@
  *  them to Fetch2
  */
 
-#ifndef __CPU_MINOR_FETCH1_HH__
-#define __CPU_MINOR_FETCH1_HH__
+#ifndef __PPU_MINOR_FETCH1_HH__
+#define __PPU_MINOR_FETCH1_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/pipe_data.hh"
-#include "cpu/base.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/pipe_data.hh"
+#include "ppu/base.hh"
 #include "mem/packet.hh"
 
 namespace Minor
@@ -62,15 +62,15 @@ class Fetch1 : public Named
 {
   protected:
     /** Exposable fetch port */
-    class IcachePort : public MinorCPU::MinorCPUPort
+    class IcachePort : public MinorPPU::MinorPPUPort
     {
       protected:
         /** My owner */
         Fetch1 &fetch;
 
       public:
-        IcachePort(std::string name, Fetch1 &fetch_, MinorCPU &cpu) :
-            MinorCPU::MinorCPUPort(name, cpu), fetch(fetch_)
+        IcachePort(std::string name, Fetch1 &fetch_, MinorPPU &cpu) :
+            MinorPPU::MinorPPUPort(name, cpu), fetch(fetch_)
         { }
 
       protected:
@@ -189,7 +189,7 @@ class Fetch1 : public Named
     /** Construction-assigned data members */
 
     /** Pointer back to the containing CPU */
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** Input port carrying branch requests from Execute */
     Latch<BranchData>::Output inp;
@@ -383,8 +383,8 @@ class Fetch1 : public Named
 
   public:
     Fetch1(const std::string &name_,
-        MinorCPU &cpu_,
-        MinorCPUParams &params,
+        MinorPPU &cpu_,
+        MinorPPUParams &params,
         Latch<BranchData>::Output inp_,
         Latch<ForwardLineData>::Input out_,
         Latch<BranchData>::Output prediction_,
@@ -392,7 +392,7 @@ class Fetch1 : public Named
 
   public:
     /** Returns the IcachePort owned by this Fetch1 */
-    MinorCPU::MinorCPUPort &getIcachePort() { return icachePort; }
+    MinorPPU::MinorPPUPort &getIcachePort() { return icachePort; }
 
     /** Pass on input/buffer data to the output if you can */
     void evaluate();
@@ -409,4 +409,4 @@ class Fetch1 : public Named
 
 }
 
-#endif /* __CPU_MINOR_FETCH1_HH__ */
+#endif /* __PPU_MINOR_FETCH1_HH__ */

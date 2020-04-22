@@ -43,7 +43,7 @@
  *          Kevin Lim
  */
 
-#include "cpu/simple_thread.hh"
+#include "ppu/simple_thread.hh"
 
 #include <string>
 
@@ -56,24 +56,24 @@
 #include "base/output.hh"
 #include "base/trace.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/profile.hh"
-#include "cpu/quiesce_event.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/base.hh"
+#include "ppu/profile.hh"
+#include "ppu/quiesce_event.hh"
+#include "ppu/thread_context.hh"
 #include "mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
-#include "params/BaseCPU.hh"
+#include "params/PpuBaseCPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
 #include "sim/process.hh"
 #include "sim/serialize.hh"
 #include "sim/sim_exit.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 using namespace std;
 
 // constructor
-SimpleThread::SimpleThread(BaseCPU *_cpu, int _thread_num, System *_sys,
+SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
                            Process *_process, BaseTLB *_itb,
                            BaseTLB *_dtb, ThePpuISA::ISA *_isa)
     : ThreadState(_cpu, _thread_num, _process), isa(_isa),
@@ -85,7 +85,7 @@ SimpleThread::SimpleThread(BaseCPU *_cpu, int _thread_num, System *_sys,
     quiesceEvent = new EndQuiesceEvent(this);
 }
 
-SimpleThread::SimpleThread(BaseCPU *_cpu, int _thread_num, System *_sys,
+SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
                            BaseTLB *_itb, BaseTLB *_dtb,
                            ThePpuISA::ISA *_isa, bool use_kernel_stats)
     : ThreadState(_cpu, _thread_num, NULL), isa(_isa),

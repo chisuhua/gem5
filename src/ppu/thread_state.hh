@@ -28,14 +28,14 @@
  * Authors: Kevin Lim
  */
 
-#ifndef __CPU_THREAD_STATE_HH__
-#define __CPU_THREAD_STATE_HH__
+#ifndef __PPU_THREAD_STATE_HH__
+#define __PPU_THREAD_STATE_HH__
 
 #include "arch/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/profile.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/base.hh"
+#include "ppu/profile.hh"
+#include "ppu/thread_context.hh"
 #include "sim/process.hh"
 
 class EndQuiesceEvent;
@@ -50,6 +50,7 @@ class Checkpoint;
 class FSTranslatingPortProxy;
 class SETranslatingPortProxy;
 
+namespace PpuISA {
 /**
  *  Struct for holding general thread state that is needed across CPU
  *  models.  This includes things such as pointers to the process,
@@ -59,7 +60,7 @@ class SETranslatingPortProxy;
 struct ThreadState : public Serializable {
     typedef ThreadContext::Status Status;
 
-    ThreadState(BaseCPU *cpu, ThreadID _tid, Process *_process);
+    ThreadState(PpuBaseCPU *cpu, ThreadID _tid, Process *_process);
 
     virtual ~ThreadState();
 
@@ -163,7 +164,7 @@ struct ThreadState : public Serializable {
     ThreadContext::Status _status;
 
     // Pointer to the base CPU.
-    BaseCPU *baseCpu;
+    PpuBaseCPU *baseCpu;
 
     // system wide HW context id
     ContextID _contextId;
@@ -209,5 +210,6 @@ struct ThreadState : public Serializable {
     // application deadlock situations.
     unsigned storeCondFailures;
 };
+};
 
-#endif // __CPU_THREAD_STATE_HH__
+#endif // __PPU_THREAD_STATE_HH__

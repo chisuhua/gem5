@@ -28,10 +28,10 @@
  * Authors: Mitch Hayenga
  */
 
-#include "cpu/pred/simple_indirect.hh"
+#include "ppu/pred/simple_indirect.hh"
 
 #include "base/intmath.hh"
-#include "debug/Indirect.hh"
+#include "debug/PpuIndirect.hh"
 
 SimpleIndirectPredictor::SimpleIndirectPredictor(
         const SimpleIndirectPredictorParams * params)
@@ -97,16 +97,16 @@ SimpleIndirectPredictor::lookup(Addr br_addr, ThePpuISA::PCState& target,
 
     assert(set_index < numSets);
 
-    DPRINTF(Indirect, "Looking up %x (set:%d)\n", br_addr, set_index);
+    DPRINTF(PpuIndirect, "Looking up %x (set:%d)\n", br_addr, set_index);
     const auto &iset = targetCache[set_index];
     for (auto way = iset.begin(); way != iset.end(); ++way) {
         if (way->tag == tag) {
-            DPRINTF(Indirect, "Hit %x (target:%s)\n", br_addr, way->target);
+            DPRINTF(PpuIndirect, "Hit %x (target:%s)\n", br_addr, way->target);
             target = way->target;
             return true;
         }
     }
-    DPRINTF(Indirect, "Miss %x\n", br_addr);
+    DPRINTF(PpuIndirect, "Miss %x\n", br_addr);
     return false;
 }
 
@@ -114,7 +114,7 @@ void
 SimpleIndirectPredictor::recordIndirect(Addr br_addr, Addr tgt_addr,
     InstSeqNum seq_num, ThreadID tid)
 {
-    DPRINTF(Indirect, "Recording %x seq:%d\n", br_addr, seq_num);
+    DPRINTF(PpuIndirect, "Recording %x seq:%d\n", br_addr, seq_num);
     HistoryEntry entry(br_addr, tgt_addr, seq_num);
     threadInfo[tid].pathHist.push_back(entry);
 }
@@ -123,7 +123,7 @@ void
 SimpleIndirectPredictor::commit(InstSeqNum seq_num, ThreadID tid,
                           void * indirect_history)
 {
-    DPRINTF(Indirect, "Committing seq:%d\n", seq_num);
+    DPRINTF(PpuIndirect, "Committing seq:%d\n", seq_num);
     ThreadInfo &t_info = threadInfo[tid];
 
     // we do not need to recover the GHR, so delete the information
@@ -145,7 +145,7 @@ SimpleIndirectPredictor::commit(InstSeqNum seq_num, ThreadID tid,
 void
 SimpleIndirectPredictor::squash(InstSeqNum seq_num, ThreadID tid)
 {
-    DPRINTF(Indirect, "Squashing seq:%d\n", seq_num);
+    DPRINTF(PpuIndirect, "Squashing seq:%d\n", seq_num);
     ThreadInfo &t_info = threadInfo[tid];
     auto squash_itr = t_info.pathHist.begin();
     while (squash_itr != t_info.pathHist.end()) {
@@ -155,7 +155,7 @@ SimpleIndirectPredictor::squash(InstSeqNum seq_num, ThreadID tid)
         ++squash_itr;
     }
     if (squash_itr != t_info.pathHist.end()) {
-        DPRINTF(Indirect, "Squashing series starting with sn:%d\n",
+        DPRINTF(PpuIndirect, "Squashing series starting with sn:%d\n",
                 squash_itr->seqNum);
     }
     t_info.pathHist.erase(squash_itr, t_info.pathHist.end());
@@ -194,14 +194,14 @@ SimpleIndirectPredictor::recordTarget(
     auto &iset = targetCache[set_index];
     for (auto way = iset.begin(); way != iset.end(); ++way) {
         if (way->tag == tag) {
-            DPRINTF(Indirect, "Updating Target (seq: %d br:%x set:%d target:"
+            DPRINTF(PpuIndirect, "Updating Target (seq: %d br:%x set:%d target:"
                     "%s)\n", seq_num, hist_entry.pcAddr, set_index, target);
             way->target = target;
             return;
         }
     }
 
-    DPRINTF(Indirect, "Allocating Target (seq: %d br:%x set:%d target:%s)\n",
+    DPRINTF(PpuIndirect, "Allocating Target (seq: %d br:%x set:%d target:%s)\n",
             seq_num, hist_entry.pcAddr, set_index, target);
     // Did not find entry, random replacement
     auto &way = iset[rand() % numWays];

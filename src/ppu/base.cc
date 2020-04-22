@@ -45,7 +45,7 @@
  *          Rick Strong
  */
 
-#include "cpu/base.hh"
+#include "ppu/base.hh"
 
 #include <iostream>
 #include <sstream>
@@ -57,35 +57,40 @@
 #include "base/logging.hh"
 #include "base/output.hh"
 #include "base/trace.hh"
-#include "cpu/checker/cpu.hh"
-#include "cpu/cpuevent.hh"
-#include "cpu/profile.hh"
-#include "cpu/thread_context.hh"
-#include "debug/Mwait.hh"
-#include "debug/SyscallVerbose.hh"
-#include "debug/Thread.hh"
+#include "ppu/checker/cpu.hh"
+#include "ppu/cpuevent.hh"
+#include "ppu/profile.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuMwait.hh"
+#include "debug/PpuSyscallVerbose.hh"
+#include "debug/PpuThread.hh"
 #include "mem/page_table.hh"
-#include "params/BaseCPU.hh"
+#include "params/PpuBaseCPU.hh"
 #include "sim/clocked_object.hh"
 #include "sim/full_system.hh"
 #include "sim/process.hh"
 #include "sim/sim_events.hh"
 #include "sim/sim_exit.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 // Hack
 #include "sim/stat_control.hh"
 
 using namespace std;
 
-vector<BaseCPU *> BaseCPU::cpuList;
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+
+
+vector<PpuBaseCPU *> PpuBaseCPU::cpuList;
 
 // This variable reflects the max number of threads in any CPU.  Be
 // careful to only use it once all the CPUs that you care about have
 // been initialized
-int maxThreadsPerCPU = 1;
+int PpumaxThreadsPerCPU = 1;
 
-CPUProgressEvent::CPUProgressEvent(BaseCPU *_cpu, Tick ival)
+PpuCPUProgressEvent::PpuCPUProgressEvent(PpuBaseCPU *_cpu, Tick ival)
     : Event(Event::Progress_Event_Pri), _interval(ival), lastNumInst(0),
       cpu(_cpu), _repeatEvent(true)
 {
@@ -94,7 +99,7 @@ CPUProgressEvent::CPUProgressEvent(BaseCPU *_cpu, Tick ival)
 }
 
 void
-CPUProgressEvent::process()
+PpuCPUProgressEvent::process()
 {
     Counter temp = cpu->totalOps();
 
@@ -121,12 +126,12 @@ CPUProgressEvent::process()
 }
 
 const char *
-CPUProgressEvent::description() const
+PpuCPUProgressEvent::description() const
 {
     return "CPU Progress";
 }
 
-BaseCPU::BaseCPU(Params *p, bool is_checker)
+PpuBaseCPU::PpuBaseCPU(Params *p, bool is_checker)
     : ClockedObject(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
       _instMasterId(p->system->getMasterId(this, "inst")),
       _dataMasterId(p->system->getMasterId(this, "data")),
@@ -151,11 +156,11 @@ BaseCPU::BaseCPU(Params *p, bool is_checker)
     // add self to global list of CPUs
     cpuList.push_back(this);
 
-    DPRINTF(SyscallVerbose, "Constructing CPU with id %d, socket id %d\n",
+    DPRINTF(PpuSyscallVerbose, "Constructing CPU with id %d, socket id %d\n",
                 _cpuId, _socketId);
 
-    if (numThreads > maxThreadsPerCPU)
-        maxThreadsPerCPU = numThreads;
+    if (numThreads > PpumaxThreadsPerCPU)
+        PpumaxThreadsPerCPU = numThreads;
 
     functionTracingEnabled = false;
     if (p->function_trace) {
@@ -200,18 +205,18 @@ BaseCPU::BaseCPU(Params *p, bool is_checker)
 }
 
 void
-BaseCPU::enableFunctionTrace()
+PpuBaseCPU::enableFunctionTrace()
 {
     functionTracingEnabled = true;
 }
 
-BaseCPU::~BaseCPU()
+PpuBaseCPU::~PpuBaseCPU()
 {
     delete profileEvent;
 }
 
 void
-BaseCPU::armMonitor(ThreadID tid, Addr address)
+PpuBaseCPU::armMonitor(ThreadID tid, Addr address)
 {
     assert(tid < numThreads);
     AddressMonitor &monitor = addressMonitor[tid];
@@ -219,11 +224,11 @@ BaseCPU::armMonitor(ThreadID tid, Addr address)
     monitor.armed = true;
     monitor.vAddr = address;
     monitor.pAddr = 0x0;
-    DPRINTF(Mwait,"[tid:%d] Armed monitor (vAddr=0x%lx)\n", tid, address);
+    DPRINTF(PpuMwait,"[tid:%d] Armed monitor (vAddr=0x%lx)\n", tid, address);
 }
 
 bool
-BaseCPU::mwait(ThreadID tid, PacketPtr pkt)
+PpuBaseCPU::mwait(ThreadID tid, PacketPtr pkt)
 {
     assert(tid < numThreads);
     AddressMonitor &monitor = addressMonitor[tid];
@@ -236,7 +241,7 @@ BaseCPU::mwait(ThreadID tid, PacketPtr pkt)
         monitor.pAddr = pkt->getAddr() & mask;
         monitor.waiting = true;
 
-        DPRINTF(Mwait,"[tid:%d] mwait called (vAddr=0x%lx, "
+        DPRINTF(PpuMwait,"[tid:%d] mwait called (vAddr=0x%lx, "
                 "line's paddr=0x%lx)\n", tid, monitor.vAddr, monitor.pAddr);
         return true;
     } else {
@@ -246,7 +251,7 @@ BaseCPU::mwait(ThreadID tid, PacketPtr pkt)
 }
 
 void
-BaseCPU::mwaitAtomic(ThreadID tid, ThreadContext *tc, BaseTLB *dtb)
+PpuBaseCPU::mwaitAtomic(ThreadID tid, ThreadContext *tc, BaseTLB *dtb)
 {
     assert(tid < numThreads);
     AddressMonitor &monitor = addressMonitor[tid];
@@ -273,12 +278,12 @@ BaseCPU::mwaitAtomic(ThreadID tid, ThreadContext *tc, BaseTLB *dtb)
     monitor.pAddr = req->getPaddr() & mask;
     monitor.waiting = true;
 
-    DPRINTF(Mwait,"[tid:%d] mwait called (vAddr=0x%lx, line's paddr=0x%lx)\n",
+    DPRINTF(PpuMwait,"[tid:%d] mwait called (vAddr=0x%lx, line's paddr=0x%lx)\n",
             tid, monitor.vAddr, monitor.pAddr);
 }
 
 void
-BaseCPU::init()
+PpuBaseCPU::init()
 {
     // Set up instruction-count-based termination events, if any. This needs
     // to happen after threadContexts has been constructed.
@@ -321,7 +326,7 @@ BaseCPU::init()
 }
 
 void
-BaseCPU::startup()
+PpuBaseCPU::startup()
 {
     if (FullSystem) {
         if (!params()->switched_out && profileEvent)
@@ -329,7 +334,7 @@ BaseCPU::startup()
     }
 
     if (params()->progress_interval) {
-        new CPUProgressEvent(this, params()->progress_interval);
+        new PpuCPUProgressEvent(this, params()->progress_interval);
     }
 
     if (_switchedOut)
@@ -342,7 +347,7 @@ BaseCPU::startup()
 }
 
 ProbePoints::PMUUPtr
-BaseCPU::pmuProbePoint(const char *name)
+PpuBaseCPU::pmuProbePoint(const char *name)
 {
     ProbePoints::PMUUPtr ptr;
     ptr.reset(new ProbePoints::PMU(getProbeManager(), name));
@@ -351,7 +356,7 @@ BaseCPU::pmuProbePoint(const char *name)
 }
 
 void
-BaseCPU::regProbePoints()
+PpuBaseCPU::regProbePoints()
 {
     ppAllCycles = pmuProbePoint("Cycles");
     ppActiveCycles = pmuProbePoint("ActiveCycles");
@@ -367,7 +372,7 @@ BaseCPU::regProbePoints()
 }
 
 void
-BaseCPU::probeInstCommit(const StaticInstPtr &inst, Addr pc)
+PpuBaseCPU::probeInstCommit(const StaticInstPtr &inst, Addr pc)
 {
     if (!inst->isMicroop() || inst->isLastMicroop()) {
         ppRetiredInsts->notify(1);
@@ -385,7 +390,7 @@ BaseCPU::probeInstCommit(const StaticInstPtr &inst, Addr pc)
 }
 
 void
-BaseCPU::regStats()
+PpuBaseCPU::regStats()
 {
     ClockedObject::regStats();
 
@@ -418,7 +423,7 @@ BaseCPU::regStats()
 }
 
 Port &
-BaseCPU::getPort(const string &if_name, PortID idx)
+PpuBaseCPU::getPort(const string &if_name, PortID idx)
 {
     // Get the right port based on name. This applies to all the
     // subclasses of the base CPU and relies on their implementation
@@ -432,7 +437,7 @@ BaseCPU::getPort(const string &if_name, PortID idx)
 }
 
 void
-BaseCPU::registerThreadContexts()
+PpuBaseCPU::registerThreadContexts()
 {
     assert(system->multiThread || numThreads == 1);
 
@@ -452,7 +457,7 @@ BaseCPU::registerThreadContexts()
 }
 
 void
-BaseCPU::deschedulePowerGatingEvent()
+PpuBaseCPU::deschedulePowerGatingEvent()
 {
     if (enterPwrGatingEvent.scheduled()){
         deschedule(enterPwrGatingEvent);
@@ -460,7 +465,7 @@ BaseCPU::deschedulePowerGatingEvent()
 }
 
 void
-BaseCPU::schedulePowerGatingEvent()
+PpuBaseCPU::schedulePowerGatingEvent()
 {
     for (auto tc : threadContexts) {
         if (tc->status() == ThreadContext::Active)
@@ -477,7 +482,7 @@ BaseCPU::schedulePowerGatingEvent()
 }
 
 int
-BaseCPU::findContext(ThreadContext *tc)
+PpuBaseCPU::findContext(ThreadContext *tc)
 {
     ThreadID size = threadContexts.size();
     for (ThreadID tid = 0; tid < size; ++tid) {
@@ -488,9 +493,9 @@ BaseCPU::findContext(ThreadContext *tc)
 }
 
 void
-BaseCPU::activateContext(ThreadID thread_num)
+PpuBaseCPU::activateContext(ThreadID thread_num)
 {
-    DPRINTF(Thread, "activate contextId %d\n",
+    DPRINTF(PpuThread, "activate contextId %d\n",
             threadContexts[thread_num]->contextId());
     // Squash enter power gating event while cpu gets activated
     if (enterPwrGatingEvent.scheduled())
@@ -502,9 +507,9 @@ BaseCPU::activateContext(ThreadID thread_num)
 }
 
 void
-BaseCPU::suspendContext(ThreadID thread_num)
+PpuBaseCPU::suspendContext(ThreadID thread_num)
 {
-    DPRINTF(Thread, "suspend contextId %d\n",
+    DPRINTF(PpuThread, "suspend contextId %d\n",
             threadContexts[thread_num]->contextId());
     // Check if all threads are suspended
     for (auto t : threadContexts) {
@@ -528,19 +533,19 @@ BaseCPU::suspendContext(ThreadID thread_num)
 }
 
 void
-BaseCPU::haltContext(ThreadID thread_num)
+PpuBaseCPU::haltContext(ThreadID thread_num)
 {
-    updateCycleCounters(BaseCPU::CPU_STATE_SLEEP);
+    updateCycleCounters(PpuBaseCPU::CPU_STATE_SLEEP);
 }
 
 void
-BaseCPU::enterPwrGating(void)
+PpuBaseCPU::enterPwrGating(void)
 {
     ClockedObject::pwrState(Enums::PwrState::OFF);
 }
 
 void
-BaseCPU::switchOut()
+PpuBaseCPU::switchOut()
 {
     assert(!_switchedOut);
     _switchedOut = true;
@@ -556,7 +561,7 @@ BaseCPU::switchOut()
 }
 
 void
-BaseCPU::takeOverFrom(BaseCPU *oldCPU)
+PpuBaseCPU::takeOverFrom(PpuBaseCPU *oldCPU)
 {
     assert(threadContexts.size() == oldCPU->threadContexts.size());
     assert(_cpuId == oldCPU->cpuId());
@@ -588,7 +593,7 @@ BaseCPU::takeOverFrom(BaseCPU *oldCPU)
         /* This code no longer works since the zero register (e.g.,
          * r31 on Alpha) doesn't necessarily contain zero at this
          * point.
-           if (DTRACE(Context))
+           if (DTRACE(PpuContext))
             ThreadContext::compare(oldTC, newTC);
         */
 
@@ -605,10 +610,10 @@ BaseCPU::takeOverFrom(BaseCPU *oldCPU)
         newTC->getITBPtr()->takeOverFrom(oldTC->getITBPtr());
         newTC->getDTBPtr()->takeOverFrom(oldTC->getDTBPtr());
 
-        // Checker whether or not we have to transfer CheckerCPU
+        // Checker whether or not we have to transfer PpuCheckerCPU
         // objects over in the switch
-        CheckerCPU *oldChecker = oldTC->getCheckerCpuPtr();
-        CheckerCPU *newChecker = newTC->getCheckerCpuPtr();
+        PpuCheckerCPU *oldChecker = oldTC->getCheckerCpuPtr();
+        PpuCheckerCPU *newChecker = newTC->getCheckerCpuPtr();
         if (oldChecker && newChecker) {
             Port *old_checker_itb_port =
                 oldChecker->getITBPtr()->getTableWalkerPort();
@@ -653,11 +658,11 @@ BaseCPU::takeOverFrom(BaseCPU *oldCPU)
 }
 
 void
-BaseCPU::flushTLBs()
+PpuBaseCPU::flushTLBs()
 {
     for (ThreadID i = 0; i < threadContexts.size(); ++i) {
         ThreadContext &tc(*threadContexts[i]);
-        CheckerCPU *checker(tc.getCheckerCpuPtr());
+        PpuCheckerCPU *checker(tc.getCheckerCpuPtr());
 
         tc.getITBPtr()->flushAll();
         tc.getDTBPtr()->flushAll();
@@ -669,7 +674,7 @@ BaseCPU::flushTLBs()
 }
 
 void
-BaseCPU::processProfileEvent()
+PpuBaseCPU::processProfileEvent()
 {
     ThreadID size = threadContexts.size();
 
@@ -680,7 +685,7 @@ BaseCPU::processProfileEvent()
 }
 
 void
-BaseCPU::serialize(CheckpointOut &cp) const
+PpuBaseCPU::serialize(CheckpointOut &cp) const
 {
     SERIALIZE_SCALAR(instCnt);
 
@@ -701,7 +706,7 @@ BaseCPU::serialize(CheckpointOut &cp) const
 }
 
 void
-BaseCPU::unserialize(CheckpointIn &cp)
+PpuBaseCPU::unserialize(CheckpointIn &cp)
 {
     UNSERIALIZE_SCALAR(instCnt);
 
@@ -718,7 +723,7 @@ BaseCPU::unserialize(CheckpointIn &cp)
 }
 
 void
-BaseCPU::scheduleInstStop(ThreadID tid, Counter insts, const char *cause)
+PpuBaseCPU::scheduleInstStop(ThreadID tid, Counter insts, const char *cause)
 {
     const Tick now(getCurrentInstCount(tid));
     Event *event(new LocalSimLoopExitEvent(cause, 0));
@@ -727,11 +732,11 @@ BaseCPU::scheduleInstStop(ThreadID tid, Counter insts, const char *cause)
 }
 
 Tick
-BaseCPU::getCurrentInstCount(ThreadID tid)
+PpuBaseCPU::getCurrentInstCount(ThreadID tid)
 {
     return threadContexts[tid]->getCurrentInstCount();
 }
-
+/*
 AddressMonitor::AddressMonitor() {
     armed = false;
     waiting = false;
@@ -742,7 +747,7 @@ bool AddressMonitor::doMonitor(PacketPtr pkt) {
     assert(pkt->req->hasPaddr());
     if (armed && waiting) {
         if (pAddr == pkt->getAddr()) {
-            DPRINTF(Mwait,"pAddr=0x%lx invalidated: waking up core\n",
+            DPRINTF(PpuMwait,"pAddr=0x%lx invalidated: waking up core\n",
                     pkt->getAddr());
             waiting = false;
             return true;
@@ -750,10 +755,11 @@ bool AddressMonitor::doMonitor(PacketPtr pkt) {
     }
     return false;
 }
+*/
 
 
 void
-BaseCPU::traceFunctionsInternal(Addr pc)
+PpuBaseCPU::traceFunctionsInternal(Addr pc)
 {
     if (!debugSymbolTable)
         return;
@@ -780,7 +786,7 @@ BaseCPU::traceFunctionsInternal(Addr pc)
 }
 
 bool
-BaseCPU::waitForRemoteGDB() const
+PpuBaseCPU::waitForRemoteGDB() const
 {
     return params()->wait_for_remote_gdb;
 }

@@ -61,7 +61,7 @@ class OpClass(Enum):
 
 class OpDesc(SimObject):
     type = 'OpDesc'
-    cxx_header = "cpu/func_unit.hh"
+    cxx_header = "ppu/func_unit.hh"
     opClass = Param.OpClass("type of operation")
     opLat = Param.Cycles(1, "cycles until result is available")
     pipelined = Param.Bool(True, "set to true when the functional unit for"
@@ -69,6 +69,6 @@ class OpDesc(SimObject):
 
 class FUDesc(SimObject):
     type = 'FUDesc'
-    cxx_header = "cpu/func_unit.hh"
+    cxx_header = "ppu/func_unit.hh"
     count = Param.Int("number of these FU's available")
     opList = VectorParam.OpDesc("operation classes for this FU type")

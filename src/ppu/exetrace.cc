@@ -43,7 +43,7 @@
  *          Steve Raasch
  */
 
-#include "cpu/exetrace.hh"
+#include "ppu/exetrace.hh"
 
 #include <iomanip>
 #include <sstream>
@@ -52,11 +52,11 @@
 #include "arch/utility.hh"
 #include "base/loader/symtab.hh"
 #include "config/the_isa.hh"
-#include "cpu/base.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
-#include "debug/ExecAll.hh"
-#include "debug/FmtTicksOff.hh"
+#include "ppu/base.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuExecAll.hh"
+#include "debug/PpuFmtTicksOff.hh"
 #include "enums/OpClass.hh"
 
 using namespace std;
@@ -69,22 +69,22 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
 {
     std::stringstream outs;
 
-    if (!Debug::ExecUser || !Debug::ExecKernel) {
+    if (!Debug::PpuExecUser || !Debug::PpuExecKernel) {
         bool in_user_mode = ThePpuISA::inUserMode(thread);
-        if (in_user_mode && !Debug::ExecUser) return;
-        if (!in_user_mode && !Debug::ExecKernel) return;
+        if (in_user_mode && !Debug::PpuExecUser) return;
+        if (!in_user_mode && !Debug::PpuExecKernel) return;
     }
 
-    if (Debug::ExecAsid)
+    if (Debug::PpuExecAsid)
         outs << "A" << dec << ThePpuISA::getExecutingAsid(thread) << " ";
 
-    if (Debug::ExecThread)
+    if (Debug::PpuExecThread)
         outs << "T" << thread->threadId() << " : ";
 
     std::string sym_str;
     Addr sym_addr;
     Addr cur_pc = pc.instAddr();
-    if (debugSymbolTable && Debug::ExecSymbol &&
+    if (debugSymbolTable && Debug::PpuExecSymbol &&
             (!FullSystem || !inUserMode(thread)) &&
             debugSymbolTable->findNearestSymbol(cur_pc, sym_str, sym_addr)) {
         if (cur_pc != sym_addr)
@@ -112,15 +112,15 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
     if (ran) {
         outs << " : ";
 
-        if (Debug::ExecOpClass) {
+        if (Debug::PpuExecOpClass) {
             outs << Enums::OpClassStrings[inst->opClass()] << " : ";
         }
 
-        if (Debug::ExecResult && !predicate) {
+        if (Debug::PpuExecResult && !predicate) {
             outs << "Predicated False";
         }
 
-        if (Debug::ExecResult && data_status != DataInvalid) {
+        if (Debug::PpuExecResult && data_status != DataInvalid) {
             switch (data_status) {
               case DataVec:
                 {
@@ -155,16 +155,16 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
             }
         }
 
-        if (Debug::ExecEffAddr && getMemValid())
+        if (Debug::PpuExecEffAddr && getMemValid())
             outs << " A=0x" << hex << addr;
 
-        if (Debug::ExecFetchSeq && fetch_seq_valid)
+        if (Debug::PpuExecFetchSeq && fetch_seq_valid)
             outs << "  FetchSeq=" << dec << fetch_seq;
 
-        if (Debug::ExecCPSeq && cp_seq_valid)
+        if (Debug::PpuExecCPSeq && cp_seq_valid)
             outs << "  CPSeq=" << dec << cp_seq;
 
-        if (Debug::ExecFlags) {
+        if (Debug::PpuExecFlags) {
             outs << "  flags=(";
             inst->printFlags(outs, "|");
             outs << ")";
@@ -192,14 +192,14 @@ Trace::ExeTracerRecord::dump()
      * finishes. Macroops then behave like regular instructions and don't
      * complete/print when they fault.
      */
-    if (Debug::ExecMacro && staticInst->isMicroop() &&
-        ((Debug::ExecMicro &&
+    if (Debug::PpuExecMacro && staticInst->isMicroop() &&
+        ((Debug::PpuExecMicro &&
             macroStaticInst && staticInst->isFirstMicroop()) ||
-            (!Debug::ExecMicro &&
+            (!Debug::PpuExecMicro &&
              macroStaticInst && staticInst->isLastMicroop()))) {
         traceInst(macroStaticInst, false);
     }
-    if (Debug::ExecMicro || !staticInst->isMicroop()) {
+    if (Debug::PpuExecMicro || !staticInst->isMicroop()) {
         traceInst(staticInst, true);
     }
 }

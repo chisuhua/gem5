@@ -37,7 +37,7 @@
  * 8 KB version
  */
 
-#include "cpu/pred/multiperspective_perceptron_tage_8KB.hh"
+#include "ppu/pred/multiperspective_perceptron_tage_8KB.hh"
 
 MPP_TAGE_8KB*
 MPP_TAGE_8KBParams::create()

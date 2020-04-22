@@ -142,13 +142,15 @@
 #include "arch/ppu/registers.hh"
 #include "arch/ppu/system.hh"
 #include "arch/ppu/utility.hh"
-#include "cpu/thread_state.hh"
+#include "ppu/thread_state.hh"
 #include "debug/GDBAcc.hh"
 #include "mem/page_table.hh"
 #include "sim/full_system.hh"
 
 using namespace std;
-using namespace PpuISA;
+
+namespace PpuISA
+{
 
 RemoteGDB::RemoteGDB(System *_system, ThreadContext *tc, int _port)
     : BaseRemoteGDB(_system, tc, _port), regCache(this), regCache32(this)
@@ -264,3 +266,5 @@ RemoteGDB::gdbRegs()
     }
     // return &regCache;
 }
+
+} // PpuISA

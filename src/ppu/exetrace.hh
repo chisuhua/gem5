@@ -29,18 +29,27 @@
  *          Nathan Binkert
  */
 
-#ifndef __CPU_EXETRACE_HH__
-#define __CPU_EXETRACE_HH__
+#ifndef __PPU_EXETRACE_HH__
+#define __PPU_EXETRACE_HH__
 
 #include "base/trace.hh"
 #include "base/types.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/thread_context.hh"
-#include "debug/ExecEnable.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/thread_context.hh"
+#include "debug/PpuExecEnable.hh"
 #include "params/ExeTracer.hh"
 #include "sim/insttracer.hh"
 
+
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 namespace Trace {
 
@@ -71,7 +80,7 @@ class ExeTracer : public InstTracer
             const StaticInstPtr staticInst, ThePpuISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {
-        if (!Debug::ExecEnable)
+        if (!Debug::PpuExecEnable)
             return NULL;
 
         return new ExeTracerRecord(when, tc,
@@ -81,4 +90,4 @@ class ExeTracer : public InstTracer
 
 } // namespace Trace
 
-#endif // __CPU_EXETRACE_HH__
+#endif // __PPU_EXETRACE_HH__

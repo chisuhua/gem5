@@ -44,14 +44,14 @@
  *  instructions and passes them to Decode
  */
 
-#ifndef __CPU_MINOR_FETCH2_HH__
-#define __CPU_MINOR_FETCH2_HH__
+#ifndef __PPU_MINOR_FETCH2_HH__
+#define __PPU_MINOR_FETCH2_HH__
 
-#include "cpu/minor/buffers.hh"
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/pipe_data.hh"
-#include "cpu/pred/bpred_unit.hh"
-#include "params/MinorCPU.hh"
+#include "ppu/minor/buffers.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/pipe_data.hh"
+#include "ppu/pred/bpred_unit.hh"
+#include "params/MinorPPU.hh"
 
 namespace Minor
 {
@@ -62,7 +62,7 @@ class Fetch2 : public Named
 {
   protected:
     /** Pointer back to the containing CPU */
-    MinorCPU &cpu;
+    MinorPPU &cpu;
 
     /** Input port carrying lines from Fetch1 */
     Latch<ForwardLineData>::Output inp;
@@ -200,8 +200,8 @@ class Fetch2 : public Named
 
   public:
     Fetch2(const std::string &name,
-        MinorCPU &cpu_,
-        MinorCPUParams &params,
+        MinorPPU &cpu_,
+        MinorPPUParams &params,
         Latch<ForwardLineData>::Output inp_,
         Latch<BranchData>::Output branchInp_,
         Latch<BranchData>::Input predictionOut_,
@@ -224,4 +224,4 @@ class Fetch2 : public Named
 
 }
 
-#endif /* __CPU_MINOR_FETCH2_HH__ */
+#endif /* __PPU_MINOR_FETCH2_HH__ */

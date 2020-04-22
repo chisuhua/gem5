@@ -37,24 +37,24 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/fetch1.hh"
+#include "ppu/minor/fetch1.hh"
 
 #include <cstring>
 #include <iomanip>
 #include <sstream>
 
 #include "base/cast.hh"
-#include "cpu/minor/pipeline.hh"
-#include "debug/Drain.hh"
-#include "debug/Fetch.hh"
-#include "debug/MinorTrace.hh"
+#include "ppu/minor/pipeline.hh"
+#include "debug/PpuDrain.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuMinorTrace.hh"
 
 namespace Minor
 {
 
 Fetch1::Fetch1(const std::string &name_,
-    MinorCPU &cpu_,
-    MinorCPUParams &params,
+    MinorPPU &cpu_,
+    MinorPPUParams &params,
     Latch<BranchData>::Output inp_,
     Latch<ForwardLineData>::Input out_,
     Latch<BranchData>::Output prediction_,
@@ -80,13 +80,13 @@ Fetch1::Fetch1(const std::string &name_,
 {
     if (lineSnap == 0) {
         lineSnap = cpu.cacheLineSize();
-        DPRINTF(Fetch, "lineSnap set to cache line size of: %d\n",
+        DPRINTF(PpuFetch, "lineSnap set to cache line size of: %d\n",
             lineSnap);
     }
 
     if (maxLineWidth == 0) {
         maxLineWidth = cpu.cacheLineSize();
-        DPRINTF(Fetch, "maxLineWidth set to cache line size of: %d\n",
+        DPRINTF(PpuFetch, "maxLineWidth set to cache line size of: %d\n",
             maxLineWidth);
     }
 
@@ -164,7 +164,7 @@ Fetch1::fetchLine(ThreadID tid)
 
     FetchRequestPtr request = new FetchRequest(*this, request_id, thread.pc);
 
-    DPRINTF(Fetch, "Inserting fetch into the fetch queue "
+    DPRINTF(PpuFetch, "Inserting fetch into the fetch queue "
         "%s addr: 0x%x pc: %s line_offset: %d request_size: %d\n",
         request_id, aligned_pc, thread.pc, line_offset, request_size);
 
@@ -174,7 +174,7 @@ Fetch1::fetchLine(ThreadID tid)
         /* I've no idea why we need the PC, but give it */
         thread.pc.instAddr());
 
-    DPRINTF(Fetch, "Submitting ITLB request\n");
+    DPRINTF(PpuFetch, "Submitting ITLB request\n");
     numFetchesInITLB++;
 
     request->state = FetchRequest::InTranslation;
@@ -255,17 +255,17 @@ Fetch1::handleTLBResponse(FetchRequestPtr response)
     numFetchesInITLB--;
 
     if (response->fault != NoFault) {
-        DPRINTF(Fetch, "Fault in address ITLB translation: %s, "
+        DPRINTF(PpuFetch, "Fault in address ITLB translation: %s, "
             "paddr: 0x%x, vaddr: 0x%x\n",
             response->fault->name(),
             (response->request->hasPaddr() ?
                 response->request->getPaddr() : 0),
             response->request->getVaddr());
 
-        if (DTRACE(MinorTrace))
+        if (DTRACE(PpuMinorTrace))
             minorTraceResponseLine(name(), response);
     } else {
-        DPRINTF(Fetch, "Got ITLB response\n");
+        DPRINTF(PpuFetch, "Got ITLB response\n");
     }
 
     response->state = FetchRequest::Translated;
@@ -283,13 +283,13 @@ void
 Fetch1::tryToSendToTransfers(FetchRequestPtr request)
 {
     if (!requests.empty() && requests.front() != request) {
-        DPRINTF(Fetch, "Fetch not at front of requests queue, can't"
+        DPRINTF(PpuFetch, "Fetch not at front of requests queue, can't"
             " issue to memory\n");
         return;
     }
 
     if (request->state == FetchRequest::InTranslation) {
-        DPRINTF(Fetch, "Fetch still in translation, not issuing to"
+        DPRINTF(PpuFetch, "Fetch still in translation, not issuing to"
             " memory\n");
         return;
     }
@@ -314,7 +314,7 @@ Fetch1::tryToSendToTransfers(FetchRequestPtr request)
         if (tryToSend(request))
             moveFromRequestsToTransfers(request);
     } else {
-        DPRINTF(Fetch, "Not advancing line fetch\n");
+        DPRINTF(PpuFetch, "Not advancing line fetch\n");
     }
 }
 
@@ -342,13 +342,13 @@ Fetch1::tryToSend(FetchRequestPtr request)
 
         ret = true;
 
-        DPRINTF(Fetch, "Issued fetch request to memory: %s\n",
+        DPRINTF(PpuFetch, "Issued fetch request to memory: %s\n",
             request->id);
     } else {
         /* Needs to be resent, wait for that */
         icacheState = IcacheNeedsRetry;
 
-        DPRINTF(Fetch, "Line fetch needs to retry: %s\n",
+        DPRINTF(PpuFetch, "Line fetch needs to retry: %s\n",
             request->id);
     }
 
@@ -372,7 +372,7 @@ Fetch1::stepQueues()
     }
 
     if (icacheState != old_icache_state) {
-        DPRINTF(Fetch, "Step in state %s moving to state %s\n",
+        DPRINTF(PpuFetch, "Step in state %s moving to state %s\n",
             old_icache_state, icacheState);
     }
 }
@@ -416,7 +416,7 @@ Fetch1::minorTraceResponseLine(const std::string &name,
 bool
 Fetch1::recvTimingResp(PacketPtr response)
 {
-    DPRINTF(Fetch, "recvTimingResp %d\n", numFetchesInMemorySystem);
+    DPRINTF(PpuFetch, "recvTimingResp %d\n", numFetchesInMemorySystem);
 
     /* Only push the response if we didn't change stream?  No,  all responses
      *  should hit the responses queue.  It's the job of 'step' to throw them
@@ -431,11 +431,11 @@ Fetch1::recvTimingResp(PacketPtr response)
     numFetchesInMemorySystem--;
     fetch_request->state = FetchRequest::Complete;
 
-    if (DTRACE(MinorTrace))
+    if (DTRACE(PpuMinorTrace))
         minorTraceResponseLine(name(), fetch_request);
 
     if (response->isError()) {
-        DPRINTF(Fetch, "Received error response packet: %s\n",
+        DPRINTF(PpuFetch, "Received error response packet: %s\n",
             fetch_request->id);
     }
 
@@ -453,7 +453,7 @@ Fetch1::recvTimingResp(PacketPtr response)
 void
 Fetch1::recvReqRetry()
 {
-    DPRINTF(Fetch, "recvRetry\n");
+    DPRINTF(PpuFetch, "recvRetry\n");
     assert(icacheState == IcacheNeedsRetry);
     assert(!requests.empty());
 
@@ -497,20 +497,20 @@ Fetch1::changeStream(const BranchData &branch)
       case BranchData::SuspendThread:
         {
             if (thread.wakeupGuard) {
-                DPRINTF(Fetch, "Not suspending fetch due to guard: %s\n",
+                DPRINTF(PpuFetch, "Not suspending fetch due to guard: %s\n",
                                 branch);
             } else {
-                DPRINTF(Fetch, "Suspending fetch: %s\n", branch);
+                DPRINTF(PpuFetch, "Suspending fetch: %s\n", branch);
                 thread.state = FetchWaitingForPC;
             }
         }
         break;
       case BranchData::HaltFetch:
-        DPRINTF(Fetch, "Halting fetch\n");
+        DPRINTF(PpuFetch, "Halting fetch\n");
         thread.state = FetchHalted;
         break;
       default:
-        DPRINTF(Fetch, "Changing stream on branch: %s\n", branch);
+        DPRINTF(PpuFetch, "Changing stream on branch: %s\n", branch);
         thread.state = FetchRunning;
         break;
     }
@@ -522,7 +522,7 @@ Fetch1::updateExpectedSeqNums(const BranchData &branch)
 {
     Fetch1ThreadInfo &thread = fetchInfo[branch.threadId];
 
-    DPRINTF(Fetch, "Updating streamSeqNum from: %d to %d,"
+    DPRINTF(PpuFetch, "Updating streamSeqNum from: %d to %d,"
         " predictionSeqNum from: %d to %d\n",
         thread.streamSeqNum, branch.newStreamSeqNum,
         thread.predictionSeqNum, branch.newPredictionSeqNum);
@@ -558,7 +558,7 @@ Fetch1::processResponse(Fetch1::FetchRequestPtr response,
         /* Should probably try to flush the queues as well, but we
          * can't be sure that this fault will actually reach Execute, and we
          * can't (currently) selectively remove this stream from the queues */
-        DPRINTF(Fetch, "Stopping line fetch because of fault: %s\n",
+        DPRINTF(PpuFetch, "Stopping line fetch because of fault: %s\n",
             response->fault->name());
         thread.state = Fetch1::FetchWaitingForPC;
     } else {
@@ -591,13 +591,13 @@ Fetch1::evaluate()
          * to predicted changes of stream from Fetch2 */
         if (execute_branch.isStreamChange()) {
             if (thread.state == FetchHalted) {
-                DPRINTF(Fetch, "Halted, ignoring branch: %s\n", execute_branch);
+                DPRINTF(PpuFetch, "Halted, ignoring branch: %s\n", execute_branch);
             } else {
                 changeStream(execute_branch);
             }
 
             if (!fetch2_branch.isBubble()) {
-                DPRINTF(Fetch, "Ignoring simultaneous prediction: %s\n",
+                DPRINTF(PpuFetch, "Ignoring simultaneous prediction: %s\n",
                     fetch2_branch);
             }
 
@@ -609,7 +609,7 @@ Fetch1::evaluate()
              * as the one of the prediction.
              */
             if (fetch2_branch.newStreamSeqNum != thread.streamSeqNum) {
-                DPRINTF(Fetch, "Not changing stream on prediction: %s,"
+                DPRINTF(PpuFetch, "Not changing stream on prediction: %s,"
                     " streamSeqNum mismatch\n",
                     fetch2_branch);
             } else {
@@ -622,7 +622,7 @@ Fetch1::evaluate()
             execute_branch.isStreamChange()) {
 
             if (fetchInfo[execute_branch.threadId].state == FetchHalted) {
-                DPRINTF(Fetch, "Halted, ignoring branch: %s\n", execute_branch);
+                DPRINTF(PpuFetch, "Halted, ignoring branch: %s\n", execute_branch);
             } else {
                 changeStream(execute_branch);
             }
@@ -632,9 +632,9 @@ Fetch1::evaluate()
             fetch2_branch.isStreamChange()) {
 
             if (fetchInfo[fetch2_branch.threadId].state == FetchHalted) {
-                DPRINTF(Fetch, "Halted, ignoring branch: %s\n", fetch2_branch);
+                DPRINTF(PpuFetch, "Halted, ignoring branch: %s\n", fetch2_branch);
             } else if (fetch2_branch.newStreamSeqNum != fetchInfo[fetch2_branch.threadId].streamSeqNum) {
-                DPRINTF(Fetch, "Not changing stream on prediction: %s,"
+                DPRINTF(PpuFetch, "Not changing stream on prediction: %s,"
                     " streamSeqNum mismatch\n", fetch2_branch);
             } else {
                 changeStream(fetch2_branch);
@@ -646,14 +646,14 @@ Fetch1::evaluate()
         ThreadID fetch_tid = getScheduledThread();
 
         if (fetch_tid != InvalidThreadID) {
-            DPRINTF(Fetch, "Fetching from thread %d\n", fetch_tid);
+            DPRINTF(PpuFetch, "Fetching from thread %d\n", fetch_tid);
 
             /* Generate fetch to selected thread */
             fetchLine(fetch_tid);
             /* Take up a slot in the fetch queue */
             nextStageReserve[fetch_tid].reserve();
         } else {
-            DPRINTF(Fetch, "No active threads available to fetch from\n");
+            DPRINTF(PpuFetch, "No active threads available to fetch from\n");
         }
     }
 
@@ -672,14 +672,14 @@ Fetch1::evaluate()
         if (response->isDiscardable()) {
             nextStageReserve[response->id.threadId].freeReservation();
 
-            DPRINTF(Fetch, "Discarding translated fetch as it's for"
+            DPRINTF(PpuFetch, "Discarding translated fetch as it's for"
                 " an old stream\n");
 
             /* Wake up next cycle just in case there was some other
              *  action to do */
             cpu.wakeupOnEvent(Pipeline::Fetch1StageId);
         } else {
-            DPRINTF(Fetch, "Processing fetched line: %s\n",
+            DPRINTF(PpuFetch, "Processing fetched line: %s\n",
                 response->id);
 
             processResponse(response, line_out);
@@ -718,7 +718,7 @@ Fetch1::wakeupFetch(ThreadID tid)
     thread.pc = thread_ctx->pcState();
     thread.state = FetchRunning;
     thread.wakeupGuard = true;
-    DPRINTF(Fetch, "[tid:%d]: Changing stream wakeup %s\n",
+    DPRINTF(PpuFetch, "[tid:%d]: Changing stream wakeup %s\n",
             tid, thread_ctx->pcState());
 
     cpu.wakeupOnEvent(Pipeline::Fetch1StageId);
@@ -730,7 +730,7 @@ Fetch1::isDrained()
     bool drained = numInFlightFetches() == 0 && (*out.inputWire).isBubble();
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         Fetch1ThreadInfo &thread = fetchInfo[tid];
-        DPRINTF(Drain, "isDrained[tid:%d]: %s %s%s\n",
+        DPRINTF(PpuDrain, "isDrained[tid:%d]: %s %s%s\n",
                 tid,
                 thread.state == FetchHalted,
                 (numInFlightFetches() == 0 ? "" : "inFlightFetches "),

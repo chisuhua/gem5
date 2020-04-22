@@ -48,7 +48,7 @@
 #include "base/loader/object_file.hh"
 #include "base/logging.hh"
 #include "base/random.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 #include "debug/Stack.hh"
 #include "mem/page_table.hh"
 #include "params/Process.hh"
@@ -56,7 +56,7 @@
 #include "sim/process.hh"
 #include "sim/process_impl.hh"
 #include "sim/syscall_return.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
 
 using namespace std;
 using namespace PpuISA;

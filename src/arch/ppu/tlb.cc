@@ -46,7 +46,7 @@
 #include "base/inifile.hh"
 #include "base/str.hh"
 #include "base/trace.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/thread_context.hh"
 #include "debug/PpuTLB.hh"
 #include "debug/TLB.hh"
 #include "mem/page_table.hh"

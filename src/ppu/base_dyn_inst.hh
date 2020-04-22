@@ -43,8 +43,8 @@
  *          Timothy M. Jones
  */
 
-#ifndef __CPU_BASE_DYN_INST_HH__
-#define __CPU_BASE_DYN_INST_HH__
+#ifndef __PPU_BASE_DYN_INST_HH__
+#define __PPU_BASE_DYN_INST_HH__
 
 #include <array>
 #include <bitset>
@@ -56,18 +56,22 @@
 #include "arch/utility.hh"
 #include "base/trace.hh"
 #include "config/the_isa.hh"
-#include "cpu/checker/cpu.hh"
-#include "cpu/exec_context.hh"
-#include "cpu/exetrace.hh"
-#include "cpu/inst_res.hh"
-#include "cpu/inst_seq.hh"
-#include "cpu/op_class.hh"
-#include "cpu/static_inst.hh"
-#include "cpu/translation.hh"
+#include "ppu/checker/cpu.hh"
+#include "ppu/exec_context.hh"
+#include "ppu/exetrace.hh"
+#include "ppu/inst_res.hh"
+#include "ppu/inst_seq.hh"
+#include "ppu/op_class.hh"
+#include "ppu/static_inst.hh"
+#include "ppu/translation.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "sim/byteswap.hh"
-#include "sim/system.hh"
+#include "ppu_sim/system.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 /**
  * @file
@@ -156,7 +160,7 @@ class BaseDynInst : public ExecContext, public RefCounted
     /** Pointer to the Impl's CPU object. */
     ImplCPU *cpu;
 
-    BaseCPU *getCpuPtr() { return cpu; }
+    PpuBaseCPU *getCpuPtr() { return cpu; }
 
     /** Pointer to the thread state. */
     ImplState *thread;
@@ -1002,4 +1006,4 @@ BaseDynInst<Impl>::initiateMemAMO(Addr addr, unsigned size,
             std::move(amo_op));
 }
 
-#endif // __CPU_BASE_DYN_INST_HH__
+#endif // __PPU_BASE_DYN_INST_HH__

@@ -31,14 +31,14 @@ from __future__ import print_function
 from m5.defines import buildEnv
 from m5.params import *
 
-from m5.objects.BaseCPU import BaseCPU
+from m5.objects.PpuBaseCPU import PpuBaseCPU
 from m5.objects.DummyChecker import DummyChecker
 from m5.objects.BranchPredictor import *
 
-class BaseSimpleCPU(BaseCPU):
+class BaseSimpleCPU(PpuBaseCPU):
     type = 'BaseSimpleCPU'
     abstract = True
-    cxx_header = "cpu/simple/base.hh"
+    cxx_header = "ppu/simple/base.hh"
 
     def addCheckerCpu(self):
         if buildEnv['TARGET_ISA'] in ['arm']:

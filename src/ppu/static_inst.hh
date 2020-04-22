@@ -41,8 +41,8 @@
  * Authors: Steve Reinhardt
  */
 
-#ifndef __CPU_STATIC_INST_HH__
-#define __CPU_STATIC_INST_HH__
+#ifndef __PPU_STATIC_INST_HH__
+#define __PPU_STATIC_INST_HH__
 
 #include <bitset>
 #include <memory>
@@ -54,12 +54,16 @@
 #include "base/refcnt.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
-#include "cpu/op_class.hh"
-#include "cpu/reg_class.hh"
-#include "cpu/static_inst_fwd.hh"
-#include "cpu/thread_context.hh"
+#include "ppu/op_class.hh"
+#include "ppu/reg_class.hh"
+#include "ppu/static_inst_fwd.hh"
+#include "ppu/thread_context.hh"
 #include "enums/StaticInstFlags.hh"
 #include "sim/byteswap.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
 
 // forward declarations
 class Packet;
@@ -71,6 +75,10 @@ class SymbolTable;
 namespace Trace {
     class InstRecord;
 }
+
+namespace PpuISA
+{
+
 
 /**
  * Base, ISA-independent static instruction class.
@@ -268,7 +276,7 @@ class StaticInst : public RefCounted, public StaticInstFlags
     { }
 
   public:
-    virtual ~StaticInst();
+    virtual ~StaticInst() ;
 
     virtual Fault execute(ExecContext *xc,
                           Trace::InstRecord *traceData) const = 0;
@@ -360,5 +368,6 @@ class StaticInst : public RefCounted, public StaticInstFlags
      */
     virtual size_t asBytes(void *buf, size_t max_size) { return 0; }
 };
+} // namespace PpuISA
 
-#endif // __CPU_STATIC_INST_HH__
+#endif // __PPU_STATIC_INST_HH__

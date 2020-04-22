@@ -40,9 +40,11 @@
  * Authors: Nathan Binkert
  */
 
-#ifndef __CPU__OP_CLASS_HH__
-#define __CPU__OP_CLASS_HH__
+#ifndef __PPU__OP_CLASS_HH__
+#define __PPU__OP_CLASS_HH__
 
+// namespace PpuISA
+// {
 #include "enums/OpClass.hh"
 
 /*
@@ -105,5 +107,6 @@ static const OpClass FloatMemWriteOp = Enums::FloatMemWrite;
 static const OpClass IprAccessOp = Enums::IprAccess;
 static const OpClass InstPrefetchOp = Enums::InstPrefetch;
 static const OpClass Num_OpClasses = Enums::Num_OpClass;
+// } // namespace PpuISA
 
-#endif // __CPU__OP_CLASS_HH__
+#endif // __PPU__OP_CLASS_HH__

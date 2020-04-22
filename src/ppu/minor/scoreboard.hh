@@ -43,12 +43,12 @@
  *  A simple instruction scoreboard for tracking dependencies in Execute.
  */
 
-#ifndef __CPU_MINOR_SCOREBOARD_HH__
-#define __CPU_MINOR_SCOREBOARD_HH__
+#ifndef __PPU_MINOR_SCOREBOARD_HH__
+#define __PPU_MINOR_SCOREBOARD_HH__
 
-#include "cpu/minor/cpu.hh"
-#include "cpu/minor/dyn_inst.hh"
-#include "cpu/minor/trace.hh"
+#include "ppu/minor/cpu.hh"
+#include "ppu/minor/dyn_inst.hh"
+#include "ppu/minor/trace.hh"
 
 namespace Minor
 {
@@ -141,4 +141,4 @@ class Scoreboard : public Named
 
 }
 
-#endif /* __CPU_MINOR_SCOREBOARD_HH__ */
+#endif /* __PPU_MINOR_SCOREBOARD_HH__ */

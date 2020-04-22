@@ -32,12 +32,17 @@
  * Implementation of a bi-mode branch predictor
  */
 
-#ifndef __CPU_PRED_BI_MODE_PRED_HH__
-#define __CPU_PRED_BI_MODE_PRED_HH__
+#ifndef __PPU_PRED_BI_MODE_PRED_HH__
+#define __PPU_PRED_BI_MODE_PRED_HH__
 
 #include "base/sat_counter.hh"
-#include "cpu/pred/bpred_unit.hh"
+#include "ppu/pred/bpred_unit.hh"
 #include "params/BiModeBP.hh"
+
+#ifdef BUILD_PPU
+using namespace PpuISA;
+#endif
+
 
 /**
  * Implements a bi-mode branch predictor. The bi-mode predictor is a two-level
@@ -110,4 +115,4 @@ class BiModeBP : public BPredUnit
     unsigned notTakenThreshold;
 };
 
-#endif // __CPU_PRED_BI_MODE_PRED_HH__
+#endif // __PPU_PRED_BI_MODE_PRED_HH__

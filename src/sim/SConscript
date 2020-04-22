@@ -87,7 +87,10 @@ if env['TARGET_ISA'] != 'null':
     Source('process.cc')
     Source('fd_array.cc')
     Source('fd_entry.cc')
-    Source('pseudo_inst.cc')
+    if env['BUILD_PPU'] != 'null':
+        Source('pseudo_inst.cc', append={'CXXFLAGS': '-DBUILD_GPU'})
+    else:
+        Source('pseudo_inst.cc')
     Source('syscall_emul.cc')
     Source('syscall_desc.cc')
 
@@ -119,3 +122,7 @@ DebugFlag('VoltageDomain')
 DebugFlag('DVFS')
 
 CompoundFlag('SyscallAll', [ 'SyscallBase', 'SyscallVerbose'])
+
+DebugFlag('PpuSyscallVerbose')
+DebugFlag('PpuThread')
+DebugFlag('PpuDrain')

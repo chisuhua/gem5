@@ -37,24 +37,24 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/fetch2.hh"
+#include "ppu/minor/fetch2.hh"
 
 #include <string>
 
 #include "arch/decoder.hh"
 #include "arch/utility.hh"
-#include "cpu/minor/pipeline.hh"
-#include "cpu/pred/bpred_unit.hh"
-#include "debug/Branch.hh"
-#include "debug/Fetch.hh"
-#include "debug/MinorTrace.hh"
+#include "ppu/minor/pipeline.hh"
+#include "ppu/pred/bpred_unit.hh"
+#include "debug/PpuBranch.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuMinorTrace.hh"
 
 namespace Minor
 {
 
 Fetch2::Fetch2(const std::string &name,
-    MinorCPU &cpu_,
-    MinorCPUParams &params,
+    MinorPPU &cpu_,
+    MinorPPUParams &params,
     Latch<ForwardLineData>::Output inp_,
     Latch<BranchData>::Output branchInp_,
     Latch<BranchData>::Input predictionOut_,
@@ -115,7 +115,7 @@ Fetch2::popInput(ThreadID tid)
 void
 Fetch2::dumpAllInput(ThreadID tid)
 {
-    DPRINTF(Fetch, "Dumping whole input buffer\n");
+    DPRINTF(PpuFetch, "Dumping whole input buffer\n");
     while (!inputBuffer[tid].empty())
         popInput(tid);
 
@@ -150,7 +150,7 @@ Fetch2::updateBranchPrediction(const BranchData &branch)
         break;
       case BranchData::UnpredictedBranch:
         /* Unpredicted branch or barrier */
-        DPRINTF(Branch, "Unpredicted branch seen inst: %s\n", *inst);
+        DPRINTF(PpuBranch, "Unpredicted branch seen inst: %s\n", *inst);
         branchPredictor.squash(inst->id.fetchSeqNum,
             branch.target, true, inst->id.threadId);
         // Update after squashing to accomodate O3CPU
@@ -160,13 +160,13 @@ Fetch2::updateBranchPrediction(const BranchData &branch)
         break;
       case BranchData::CorrectlyPredictedBranch:
         /* Predicted taken, was taken */
-        DPRINTF(Branch, "Branch predicted correctly inst: %s\n", *inst);
+        DPRINTF(PpuBranch, "Branch predicted correctly inst: %s\n", *inst);
         branchPredictor.update(inst->id.fetchSeqNum,
             inst->id.threadId);
         break;
       case BranchData::BadlyPredictedBranch:
         /* Predicted taken, not taken */
-        DPRINTF(Branch, "Branch mis-predicted inst: %s\n", *inst);
+        DPRINTF(PpuBranch, "Branch mis-predicted inst: %s\n", *inst);
         branchPredictor.squash(inst->id.fetchSeqNum,
             branch.target /* Not used */, false, inst->id.threadId);
         // Update after squashing to accomodate O3CPU
@@ -176,7 +176,7 @@ Fetch2::updateBranchPrediction(const BranchData &branch)
         break;
       case BranchData::BadlyPredictedBranchTarget:
         /* Predicted taken, was taken but to a different target */
-        DPRINTF(Branch, "Branch mis-predicted target inst: %s target: %s\n",
+        DPRINTF(PpuBranch, "Branch mis-predicted target inst: %s target: %s\n",
             *inst, branch.target);
         branchPredictor.squash(inst->id.fetchSeqNum,
             branch.target, true, inst->id.threadId);
@@ -199,7 +199,7 @@ Fetch2::predictBranch(MinorDynInstPtr inst, BranchData &branch)
         /* Tried to predict */
         inst->triedToPredict = true;
 
-        DPRINTF(Branch, "Trying to predict for inst: %s\n", *inst);
+        DPRINTF(PpuBranch, "Trying to predict for inst: %s\n", *inst);
 
         if (branchPredictor.predict(inst->staticInst,
             inst->id.fetchSeqNum, inst_pc,
@@ -210,7 +210,7 @@ Fetch2::predictBranch(MinorDynInstPtr inst, BranchData &branch)
             branch.target = inst_pc;
         }
     } else {
-        DPRINTF(Branch, "Not attempting prediction for inst: %s\n", *inst);
+        DPRINTF(PpuBranch, "Not attempting prediction for inst: %s\n", *inst);
     }
 
     /* If we predict taken, set branch and update sequence numbers */
@@ -229,7 +229,7 @@ Fetch2::predictBranch(MinorDynInstPtr inst, BranchData &branch)
         thread.predictionSeqNum++;
         branch = new_branch;
 
-        DPRINTF(Branch, "Branch predicted taken inst: %s target: %s"
+        DPRINTF(PpuBranch, "Branch predicted taken inst: %s target: %s"
             " new predictionSeqNum: %d\n",
             *inst, inst->predictedTarget, thread.predictionSeqNum);
     }
@@ -255,7 +255,7 @@ Fetch2::evaluate()
     /* If a branch arrives, don't try and do anything about it.  Only
      *  react to your own predictions */
     if (branch_inp.isStreamChange()) {
-        DPRINTF(Fetch, "Dumping all input as a stream changing branch"
+        DPRINTF(PpuFetch, "Dumping all input as a stream changing branch"
             " has arrived\n");
         dumpAllInput(branch_inp.threadId);
         fetchInfo[branch_inp.threadId].havePC = false;
@@ -275,7 +275,7 @@ Fetch2::evaluate()
             thread.expectedStreamSeqNum == line_in->id.streamSeqNum &&
             thread.predictionSeqNum != line_in->id.predictionSeqNum)
         {
-            DPRINTF(Fetch, "Discarding line %s"
+            DPRINTF(PpuFetch, "Discarding line %s"
                 " due to predictionSeqNum mismatch (expected: %d)\n",
                 line_in->id, thread.predictionSeqNum);
 
@@ -283,7 +283,7 @@ Fetch2::evaluate()
             fetchInfo[tid].havePC = false;
 
             if (processMoreThanOneInput) {
-                DPRINTF(Fetch, "Wrapping\n");
+                DPRINTF(PpuFetch, "Wrapping\n");
                 line_in = getInput(tid);
             } else {
                 line_in = NULL;
@@ -292,7 +292,7 @@ Fetch2::evaluate()
     }
 
     ThreadID tid = getScheduledThread();
-    DPRINTF(Fetch, "Scheduled Thread: %d\n", tid);
+    DPRINTF(PpuFetch, "Scheduled Thread: %d\n", tid);
 
     assert(insts_out.isBubble());
     if (tid != InvalidThreadID) {
@@ -329,9 +329,9 @@ Fetch2::evaluate()
                 /* Set the inputIndex to be the MachInst-aligned offset
                  *  from lineBaseAddr of the new PC value */
                 fetch_info.inputIndex =
-                    (line_in->pc.instAddr() & BaseCPU::PCMask) -
+                    (line_in->pc.instAddr() & PpuBaseCPU::PCMask) -
                     line_in->lineBaseAddr;
-                DPRINTF(Fetch, "Setting new PC value: %s inputIndex: 0x%x"
+                DPRINTF(PpuFetch, "Setting new PC value: %s inputIndex: 0x%x"
                     " lineBaseAddr: 0x%x lineWidth: 0x%x\n",
                     line_in->pc, fetch_info.inputIndex, line_in->lineBaseAddr,
                     line_in->lineWidth);
@@ -347,7 +347,7 @@ Fetch2::evaluate()
             if (discard_line) {
                 /* Rest of line was from an older prediction in the same
                  *  stream */
-                DPRINTF(Fetch, "Discarding line %s (from inputIndex: %d)"
+                DPRINTF(PpuFetch, "Discarding line %s (from inputIndex: %d)"
                     " due to predictionSeqNum mismatch (expected: %d)\n",
                     line_in->id, fetch_info.inputIndex,
                     fetch_info.predictionSeqNum);
@@ -371,7 +371,7 @@ Fetch2::evaluate()
                  *  instructions to be generated. (Fetch2 makes no
                  *  immediate judgement about streamSeqNum) */
                 dyn_inst->fault = line_in->fault;
-                DPRINTF(Fetch, "Fault being passed output_index: "
+                DPRINTF(PpuFetch, "Fault being passed output_index: "
                     "%d: %s\n", output_index, dyn_inst->fault->name());
             } else {
                 uint8_t *line = line_in->line;
@@ -385,7 +385,7 @@ Fetch2::evaluate()
                     decoder->moreBytes(fetch_info.pc,
                         line_in->lineBaseAddr + fetch_info.inputIndex,
                         inst_word);
-                    DPRINTF(Fetch, "Offering MachInst to decoder addr: 0x%x\n",
+                    DPRINTF(PpuFetch, "Offering MachInst to decoder addr: 0x%x\n",
                             line_in->lineBaseAddr + fetch_info.inputIndex);
                 }
 
@@ -411,7 +411,7 @@ Fetch2::evaluate()
                     dyn_inst->staticInst = decoded_inst;
 
                     dyn_inst->pc = fetch_info.pc;
-                    DPRINTF(Fetch, "decoder inst %s\n", *dyn_inst);
+                    DPRINTF(PpuFetch, "decoder inst %s\n", *dyn_inst);
 
                     // Collect some basic inst class stats
                     if (decoded_inst->isLoad())
@@ -427,7 +427,7 @@ Fetch2::evaluate()
                     else if (decoded_inst->isInteger())
                         intInstructions++;
 
-                    DPRINTF(Fetch, "Instruction extracted from line %s"
+                    DPRINTF(PpuFetch, "Instruction extracted from line %s"
                         " lineWidth: %d output_index: %d inputIndex: %d"
                         " pc: %s inst: %s\n",
                         line_in->id,
@@ -460,7 +460,7 @@ Fetch2::evaluate()
                      *  necessary */
                     predictBranch(dyn_inst, prediction);
                 } else {
-                    DPRINTF(Fetch, "Inst not ready yet\n");
+                    DPRINTF(PpuFetch, "Inst not ready yet\n");
                 }
 
                 /* Step on the pointer into the line if there's no
@@ -468,7 +468,7 @@ Fetch2::evaluate()
                 if (decoder->needMoreBytes()) {
                     fetch_info.inputIndex += sizeof(ThePpuISA::MachInst);
 
-                DPRINTF(Fetch, "Updated inputIndex value PC: %s"
+                DPRINTF(PpuFetch, "Updated inputIndex value PC: %s"
                     " inputIndex: 0x%x lineBaseAddr: 0x%x lineWidth: 0x%x\n",
                     line_in->pc, fetch_info.inputIndex, line_in->lineBaseAddr,
                     line_in->lineWidth);
@@ -489,7 +489,7 @@ Fetch2::evaluate()
 
                 /* Output MinorTrace instruction info for
                  *  pre-microop decomposition macroops */
-                if (DTRACE(MinorTrace) && !dyn_inst->isFault() &&
+                if (DTRACE(PpuMinorTrace) && !dyn_inst->isFault() &&
                     dyn_inst->staticInst->isMacroop())
                 {
                     dyn_inst->minorTraceInst(*this);
@@ -505,7 +505,7 @@ Fetch2::evaluate()
                     line with a prediction in it */
                 line_in->isFault() /* A line which is just a fault */)
             {
-                DPRINTF(Fetch, "Discarding all input on branch/fault\n");
+                DPRINTF(PpuFetch, "Discarding all input on branch/fault\n");
                 dumpAllInput(tid);
                 fetch_info.havePC = false;
                 line_in = NULL;
@@ -524,7 +524,7 @@ Fetch2::evaluate()
             }
 
             if (!line_in && processMoreThanOneInput) {
-                DPRINTF(Fetch, "Wrapping\n");
+                DPRINTF(PpuFetch, "Wrapping\n");
                 line_in = getInput(tid);
             }
         }

@@ -28,14 +28,22 @@
  * Authors: Ali Saidi
  */
 
-#ifndef __CPU_CPUEVENT_HH__
-#define __CPU_CPUEVENT_HH__
+#ifndef __PPU_CPUEVENT_HH__
+#define __PPU_CPUEVENT_HH__
 
 #include <vector>
 
 #include "sim/eventq.hh"
 
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
 class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
 
 /**
  * This class creates a global list of events that need a pointer to a
@@ -88,5 +96,5 @@ class CpuEventWrapper : public CpuEvent
     void process() { (object->*F)(tc); }
 };
 
-#endif // __CPU_CPUEVENT_HH__
+#endif // __PPU_CPUEVENT_HH__
 

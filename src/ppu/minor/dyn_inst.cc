@@ -37,17 +37,17 @@
  * Authors: Andrew Bardsley
  */
 
-#include "cpu/minor/dyn_inst.hh"
+#include "ppu/minor/dyn_inst.hh"
 
 #include <iomanip>
 #include <sstream>
 
 #include "arch/isa.hh"
 #include "arch/registers.hh"
-#include "cpu/base.hh"
-#include "cpu/minor/trace.hh"
-#include "cpu/reg_class.hh"
-#include "debug/MinorExecute.hh"
+#include "ppu/base.hh"
+#include "ppu/minor/trace.hh"
+#include "ppu/reg_class.hh"
+#include "debug/PpuMinorExecute.hh"
 #include "enums/OpClass.hh"
 
 namespace Minor

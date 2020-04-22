@@ -46,7 +46,8 @@ from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
 from m5.SimObject import SimObject
-from m5.objects.BaseCPU import BaseCPU
+
+from m5.objects.PpuBaseCPU import PpuBaseCPU
 from m5.objects.DummyChecker import DummyChecker
 from m5.objects.BranchPredictor import *
 from m5.objects.TimingExpr import TimingExpr
@@ -58,7 +59,7 @@ class MinorOpClass(SimObject):
     future additions to OpClass checks"""
 
     type = 'MinorOpClass'
-    cxx_header = "cpu/minor/func_unit.hh"
+    cxx_header = "ppu/minor/func_unit.hh"
 
     opClass = Param.OpClass("op class to match")
 
@@ -66,14 +67,14 @@ class MinorOpClassSet(SimObject):
     """A set of matchable op classes"""
 
     type = 'MinorOpClassSet'
-    cxx_header = "cpu/minor/func_unit.hh"
+    cxx_header = "ppu/minor/func_unit.hh"
 
     opClasses = VectorParam.MinorOpClass([], "op classes to be matched."
         "  An empty list means any class")
 
 class MinorFUTiming(SimObject):
     type = 'MinorFUTiming'
-    cxx_header = "cpu/minor/func_unit.hh"
+    cxx_header = "ppu/minor/func_unit.hh"
 
     mask = Param.UInt64(0, "mask for testing ExtMachInst")
     match = Param.UInt64(0, "match value for testing ExtMachInst:"
@@ -106,7 +107,7 @@ def minorMakeOpClassSet(op_classes):
 
 class MinorFU(SimObject):
     type = 'MinorFU'
-    cxx_header = "cpu/minor/func_unit.hh"
+    cxx_header = "ppu/minor/func_unit.hh"
 
     opClasses = Param.MinorOpClassSet(MinorOpClassSet(), "type of operations"
         " allowed on this functional unit")
@@ -121,7 +122,7 @@ class MinorFU(SimObject):
 
 class MinorFUPool(SimObject):
     type = 'MinorFUPool'
-    cxx_header = "cpu/minor/func_unit.hh"
+    cxx_header = "ppu/minor/func_unit.hh"
 
     funcUnits = VectorParam.MinorFU("functional units")
 
@@ -185,9 +186,9 @@ class MinorDefaultFUPool(MinorFUPool):
 
 class ThreadPolicy(Enum): vals = ['SingleThreaded', 'RoundRobin', 'Random']
 
-class MinorCPU(BaseCPU):
-    type = 'MinorCPU'
-    cxx_header = "cpu/minor/cpu.hh"
+class MinorPPU(PpuBaseCPU):
+    type = 'MinorPPU'
+    cxx_header = "ppu/minor/cpu.hh"
 
     @classmethod
     def memory_mode(cls):
@@ -288,5 +289,5 @@ class MinorCPU(BaseCPU):
         numThreads = Parent.numThreads), "Branch Predictor")
 
     def addCheckerCpu(self):
-        print("Checker not yet supported by MinorCPU")
+        print("Checker not yet supported by MinorPPU")
         exit(1)

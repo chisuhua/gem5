@@ -29,7 +29,7 @@
  *          Ron Dreslinski
  */
 
-#include "cpu/intr_control.hh"
+#include "ppu/intr_control.hh"
 
 using namespace std;
 

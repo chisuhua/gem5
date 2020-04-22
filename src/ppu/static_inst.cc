@@ -29,15 +29,16 @@
  *          Nathan Binkert
  */
 
-#include "cpu/static_inst.hh"
+#include "ppu/static_inst.hh"
 
 #include <iostream>
 
 #include "sim/core.hh"
 
-namespace {
+namespace PpuISA {
 
 static ThePpuISA::ExtMachInst nopMachInst;
+
 
 class NopStaticInst : public StaticInst
 {
@@ -66,7 +67,7 @@ class NopStaticInst : public StaticInst
   private:
 };
 
-}
+// }
 
 StaticInstPtr StaticInst::nullStaticInstPtr;
 StaticInstPtr StaticInst::nopStaticInstPtr = new NopStaticInst;
@@ -143,4 +144,6 @@ StaticInst::printFlags(std::ostream &outs,
             printed_a_flag = true;
         }
     }
+}
+
 }

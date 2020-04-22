@@ -34,8 +34,8 @@
  * from André Seznec's code.
  */
 
-#ifndef __CPU_PRED_LOOP_PREDICTOR_HH__
-#define __CPU_PRED_LOOP_PREDICTOR_HH__
+#ifndef __PPU_PRED_LOOP_PREDICTOR_HH__
+#define __PPU_PRED_LOOP_PREDICTOR_HH__
 
 #include "base/statistics.hh"
 #include "base/types.hh"
@@ -262,4 +262,4 @@ class LoopPredictor : public SimObject
 
     size_t getSizeInBits() const;
 };
-#endif//__CPU_PRED_LOOP_PREDICTOR_HH__
+#endif//__PPU_PRED_LOOP_PREDICTOR_HH__

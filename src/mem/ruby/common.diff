@@ -1,0 +1,520 @@
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Address.cc common/Address.cc
+30d29
+< #include "mem/ruby/system/System.hh"
+32,45c31,32
+< Addr
+< bitSelect(Addr addr, unsigned int small, unsigned int big)
+< {
+<     assert(big >= small);
+< 
+<     if (big >= ADDRESS_WIDTH - 1) {
+<         return (addr >> small);
+<     } else {
+<         Addr mask = ~((Addr)~0 << (big + 1));
+<         // FIXME - this is slow to manipulate a 64-bit number using 32-bits
+<         Addr partial = (addr & mask);
+<         return (partial >> small);
+<     }
+< }
+---
+> #include "base/bitfield.hh"
+> #include "mem/ruby/system/RubySystem.hh"
+48c35
+< bitRemove(Addr addr, unsigned int small, unsigned int big)
+---
+> bitSelect(Addr addr, unsigned int small, unsigned int big)
+51,69c38
+< 
+<     if (small >= ADDRESS_WIDTH - 1) {
+<         return addr;
+<     } else if (big >= ADDRESS_WIDTH - 1) {
+<         Addr mask = (Addr)~0 >> small;
+<         return (addr & mask);
+<     } else if (small == 0) {
+<         Addr mask = (Addr)~0 << big;
+<         return (addr & mask);
+<     } else {
+<         Addr mask = ~((Addr)~0 << small);
+<         Addr lower_bits = addr & mask;
+<         mask = (Addr)~0 << (big + 1);
+<         Addr higher_bits = addr & mask;
+< 
+<         // Shift the valid high bits over the removed section
+<         higher_bits = higher_bits >> (big - small + 1);
+<         return (higher_bits | lower_bits);
+<     }
+---
+>     return bits<Addr>(addr, big, small);
+75,101c44
+<   Addr mask;
+< 
+<   if (number >= ADDRESS_WIDTH - 1) {
+<       mask = ~0;
+<   } else {
+<       mask = (Addr)~0 << number;
+<   }
+<   return (addr & mask);
+< }
+< 
+< Addr
+< maskHighOrderBits(Addr addr, unsigned int number)
+< {
+<     Addr mask;
+< 
+<     if (number >= ADDRESS_WIDTH - 1) {
+<         mask = ~0;
+<     } else {
+<         mask = (Addr)~0 >> number;
+<     }
+<     return (addr & mask);
+< }
+< 
+< Addr
+< shiftLowOrderBits(Addr addr, unsigned int number)
+< {
+<     return (addr >> number);
+---
+>     return mbits<Addr>(addr, 63, number);
+113c56
+<     return maskLowOrderBits(addr, RubySystem::getBlockSizeBits());
+---
+>     return mbits<Addr>(addr, 63, RubySystem::getBlockSizeBits());
+120,121c63,72
+<     return maskLowOrderBits(addr, RubySystem::getBlockSizeBits())
+<         + RubySystem::getBlockSizeBytes() * stride;
+---
+>     return makeLineAddress(addr) + RubySystem::getBlockSizeBytes() * stride;
+> }
+> 
+> std::string
+> printAddress(Addr addr)
+> {
+>     std::stringstream out;
+>     out << "[" << std::hex << "0x" << addr << "," << " line 0x"
+>        << makeLineAddress(addr) << std::dec << "]";
+>     return out.str();
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Address.hh common/Address.hh
+36d35
+< #include "base/hashmap.hh"
+39,40d37
+< const uint32_t ADDRESS_WIDTH = 64; // address width in bytes
+< 
+43d39
+< Addr bitRemove(Addr addr, unsigned int small, unsigned int big);
+45,46d40
+< Addr maskHighOrderBits(Addr addr, unsigned int number);
+< Addr shiftLowOrderBits(Addr addr, unsigned int number);
+49a44
+> std::string printAddress(Addr addr);
+Only in common: BoolVec.cc
+Only in common: BoolVec.hh
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Consumer.cc common/Consumer.cc
+44c44,46
+<         ConsumerEvent *evt = new ConsumerEvent(this);
+---
+>         auto *evt = new EventFunctionWrapper(
+>             [this]{ wakeup(); }, "Consumer Event", true);
+> 
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Consumer.hh common/Consumer.hh
+79,92d78
+< 
+<     class ConsumerEvent : public Event
+<     {
+<       public:
+<           ConsumerEvent(Consumer* _consumer)
+<               : Event(Default_Pri, AutoDelete), m_consumer_ptr(_consumer)
+<           {
+<           }
+< 
+<           void process() { m_consumer_ptr->wakeup(); }
+< 
+<       private:
+<           Consumer* m_consumer_ptr;
+<     };
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/DataBlock.cc common/DataBlock.cc
+30c30,32
+< #include "mem/ruby/system/System.hh"
+---
+> 
+> #include "mem/ruby/common/WriteMask.hh"
+> #include "mem/ruby/system/RubySystem.hh"
+59a62,80
+> DataBlock::copyPartial(const DataBlock &dblk, const WriteMask &mask)
+> {
+>     for (int i = 0; i < RubySystem::getBlockSizeBytes(); i++) {
+>         if (mask.getMask(i, 1)) {
+>             m_data[i] = dblk.m_data[i];
+>         }
+>     }
+> }
+> 
+> void
+> DataBlock::atomicPartial(const DataBlock &dblk, const WriteMask &mask)
+> {
+>     for (int i = 0; i < RubySystem::getBlockSizeBytes(); i++) {
+>         m_data[i] = dblk.m_data[i];
+>     }
+>     mask.performAtomic(m_data);
+> }
+> 
+> void
+76a98,103
+>     return &m_data[offset];
+> }
+> 
+> uint8_t*
+> DataBlock::getDataMod(int offset)
+> {
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/DataBlock.hh common/DataBlock.hh
+37a38,39
+> class WriteMask;
+> 
+60a63
+>     uint8_t *getDataMod(int offset);
+63c66,68
+<     void copyPartial(const DataBlock & dblk, int offset, int len);
+---
+>     void copyPartial(const DataBlock &dblk, int offset, int len);
+>     void copyPartial(const DataBlock &dblk, const WriteMask &mask);
+>     void atomicPartial(const DataBlock & dblk, const WriteMask & mask);
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Histogram.cc common/Histogram.cc
+28a29,30
+> #include "mem/ruby/common/Histogram.hh"
+> 
+33d34
+< #include "mem/ruby/common/Histogram.hh"
+Only in common: IntVec.cc
+Only in common: IntVec.hh
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/MachineID.hh common/MachineID.hh
+29,30c29,30
+< #ifndef __MEM_RUBY_SYSTEM_MACHINEID_HH__
+< #define __MEM_RUBY_SYSTEM_MACHINEID_HH__
+---
+> #ifndef __MEM_RUBY_COMMON_MACHINEID_HH__
+> #define __MEM_RUBY_COMMON_MACHINEID_HH__
+36c36
+< #include "mem/protocol/MachineType.hh"
+---
+> #include "mem/ruby/protocol/MachineType.hh"
+39a40,43
+>     MachineID() : type(MachineType_NULL), num(0) { }
+>     MachineID(MachineType mach_type, NodeID node_id)
+>         : type(mach_type), num(node_id) { }
+> 
+83c87
+< #endif // __MEM_RUBY_SYSTEM_MACHINEID_HH__
+---
+> #endif // __MEM_RUBY_COMMON_MACHINEID_HH__
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/NetDest.cc common/NetDest.cc
+29,30d28
+< #include <algorithm>
+< 
+31a30,31
+> 
+> #include <algorithm>
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/NetDest.hh common/NetDest.hh
+29,33d28
+< // NetDest specifies the network destination of a Message
+< // This is backward compatible with the Set class that was previously
+< // used to specify network destinations.
+< // NetDest supports both node networks and component networks
+< 
+42a38
+> // NetDest specifies the network destination of a Message
+Only in common: .NetDest.hh.swp
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/SConscript common/SConscript
+35a36,37
+> env.Append(CPPDEFINES={'NUMBER_BITS_PER_SET': env['NUMBER_BITS_PER_SET']})
+> 
+36a39
+> Source('BoolVec.cc')
+39a43
+> Source('IntVec.cc')
+41d44
+< Source('Set.cc')
+42a46
+> Source('WriteMask.cc')
+Only in /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/: Set.cc
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/Set.hh common/Set.hh
+34a35,36
+> #include <bitset>
+> #include <cassert>
+36d37
+< #include <limits>
+37a39
+> #include "base/logging.hh"
+40,52d41
+< /*
+<  * This defines the number of longs (32-bits on 32 bit machines,
+<  * 64-bit on 64-bit AMD machines) to use to hold the set...
+<  * the default is 4, allowing 128 or 256 different members
+<  * of the set.
+<  *
+<  * This should never need to be changed for correctness reasons,
+<  * though increasing it will increase performance for larger
+<  * set sizes at the cost of a (much) larger memory footprint
+<  *
+<  */
+< const int NUMBER_WORDS_PER_SET = 1;
+< 
+56,74c45,48
+<     int m_nSize;              // the number of bits in this set
+<     int m_nArrayLen;          // the number of 32-bit words that are
+<                               // held in the array
+< 
+<     // Changed 5/24/05 for static allocation of array
+<     // note that "long" corresponds to 32 bits on a 32-bit machine,
+<     // 64 bits if the -m64 parameter is passed to g++, which it is
+<     // for an AMD opteron under our configuration
+< 
+<     // an word array to hold the bits in the set
+<     unsigned long *m_p_nArray;
+<     unsigned long m_p_nArray_Static[NUMBER_WORDS_PER_SET];
+< 
+<     static const int LONG_BITS =
+<         std::numeric_limits<unsigned long>::digits + 1;
+<     static const int INDEX_SHIFT = LONG_BITS == 64 ? 6 : 5;
+<     static const int INDEX_MASK = (1 << INDEX_SHIFT) - 1;
+< 
+<     void clearExcess();
+---
+>     // Number of bits in use in this set.
+>     // can be defined in build_opts file (default=64).
+>     int m_nSize;
+>     std::bitset<NUMBER_BITS_PER_SET> bits;
+77,80c51,59
+<     Set();
+<     Set(int size);
+<     Set(const Set& obj);
+<     ~Set();
+---
+>     Set() : m_nSize(0) {}
+> 
+>     Set(int size) : m_nSize(size)
+>     {
+>         if (size > NUMBER_BITS_PER_SET)
+>             fatal("Number of bits(%d) < size specified(%d). "
+>                   "Increase the number of bits and recompile.\n",
+>                   NUMBER_BITS_PER_SET, size);
+>     }
+82c61,69
+<     Set& operator=(const Set& obj);
+---
+>     Set(const Set& obj) : m_nSize(obj.m_nSize), bits(obj.bits) {}
+>     ~Set() {}
+> 
+>     Set& operator=(const Set& obj)
+>     {
+>         m_nSize = obj.m_nSize;
+>         bits = obj.bits;
+>         return *this;
+>     }
+87,88c74
+<         m_p_nArray[index >> INDEX_SHIFT] |=
+<             (((unsigned long) 1) << (index & INDEX_MASK));
+---
+>         bits.set(index);
+91c77,86
+<     void addSet(const Set& set);
+---
+>     /*
+>      * This function should set all the bits in the current set that are
+>      * already set in the parameter set
+>      */
+>     void
+>     addSet(const Set& obj)
+>     {
+>         assert(m_nSize == obj.m_nSize);
+>         bits |= obj.bits;
+>     }
+92a88,90
+>     /*
+>      * This function clears bits that are =1 in the parameter set
+>      */
+96,97c94
+<         m_p_nArray[index >> INDEX_SHIFT] &=
+<             ~(((unsigned long)1) << (index & INDEX_MASK));
+---
+>         bits.reset(index);
+100,101c97,99
+<     void removeSet(const Set& set);
+< 
+---
+>     /*
+>      * This function clears bits that are =1 in the parameter set
+>      */
+103c101
+<     clear()
+---
+>     removeSet(const Set& obj)
+105,106c103,104
+<         for (int i = 0; i < m_nArrayLen; i++)
+<             m_p_nArray[i] = 0;
+---
+>         assert(m_nSize == obj.m_nSize);
+>         bits &= (~obj.bits);
+109,111c107,133
+<     void broadcast();
+<     int count() const;
+<     bool isEqual(const Set& set) const;
+---
+>     void clear() { bits.reset(); }
+> 
+>     /*
+>      * this function sets all bits in the set
+>      */
+>     void broadcast()
+>     {
+>         bits.set();
+>         for (int j = m_nSize; j < NUMBER_BITS_PER_SET; ++j) {
+>             bits.reset(j);
+>         }
+>     }
+> 
+>     /*
+>      * This function returns the population count of 1's in the set
+>      */
+>     int count() const { return bits.count(); }
+> 
+>     /*
+>      * This function checks for set equality
+>      */
+>     bool
+>     isEqual(const Set& obj) const
+>     {
+>         assert(m_nSize == obj.m_nSize);
+>         return bits == obj.bits;
+>     }
+114c136,143
+<     Set OR(const Set& orSet) const;
+---
+>     Set
+>     OR(const Set& obj) const
+>     {
+>         assert(m_nSize == obj.m_nSize);
+>         Set r(m_nSize);
+>         r.bits = bits | obj.bits;
+>         return r;
+>     };
+117c146,153
+<     Set AND(const Set& andSet) const;
+---
+>     Set
+>     AND(const Set& obj) const
+>     {
+>         assert(m_nSize == obj.m_nSize);
+>         Set r(m_nSize);
+>         r.bits = bits & obj.bits;
+>         return r;
+>     }
+121c157
+<     intersectionIsEmpty(const Set& other_set) const
+---
+>     intersectionIsEmpty(const Set& obj) const
+123,126c159,160
+<         for (int i = 0; i < m_nArrayLen; i++)
+<             if (m_p_nArray[i] & other_set.m_p_nArray[i])
+<                 return false;
+<         return true;
+---
+>         std::bitset<NUMBER_BITS_PER_SET> r = bits & obj.bits;
+>         return r.none();
+129,131c163,166
+<     bool isSuperset(const Set& test) const;
+<     bool isSubset(const Set& test) const { return test.isSuperset(*this); }
+< 
+---
+>     /*
+>      * Returns false if a bit is set in the parameter set that is NOT set
+>      * in this set
+>      */
+133c168
+<     isElement(NodeID element) const
+---
+>     isSuperset(const Set& test) const
+135,136c170,172
+<         return (m_p_nArray[element>>INDEX_SHIFT] &
+<             (((unsigned long)1) << (element & INDEX_MASK))) != 0;
+---
+>         assert(m_nSize == test.m_nSize);
+>         std::bitset<NUMBER_BITS_PER_SET> r = bits | test.bits;
+>         return (r == bits);
+139,140c175,177
+<     bool isBroadcast() const;
+<     bool isEmpty() const;
+---
+>     bool isSubset(const Set& test) const { return test.isSuperset(*this); }
+> 
+>     bool isElement(NodeID element) const { return bits.test(element); }
+142c179,186
+<     NodeID smallestElement() const;
+---
+>     /*
+>      * this function returns true iff all bits in use are set
+>      */
+>     bool
+>     isBroadcast() const
+>     {
+>         return (bits.count() == m_nSize);
+>     }
+144c188
+<     void setSize(int size);
+---
+>     bool isEmpty() const { return bits.none(); }
+146,147c190
+<     NodeID
+<     elementAt(int index) const
+---
+>     NodeID smallestElement() const
+149,152c192,197
+<         if (isElement(index))
+<             return (NodeID)true;
+<         else
+<             return 0;
+---
+>         for (int i = 0; i < m_nSize; ++i) {
+>             if (bits.test(i)) {
+>                 return i;
+>             }
+>         }
+>         panic("No smallest element of an empty set.");
+154a200,201
+>     bool elementAt(int index) const { return bits[index]; }
+> 
+157c204,218
+<     void print(std::ostream& out) const;
+---
+>     void
+>     setSize(int size)
+>     {
+>         if (size > NUMBER_BITS_PER_SET)
+>             fatal("Number of bits(%d) < size specified(%d). "
+>                   "Increase the number of bits and recompile.\n",
+>                   NUMBER_BITS_PER_SET, size);
+>         m_nSize = size;
+>         bits.reset();
+>     }
+> 
+>     void print(std::ostream& out) const
+>     {
+>         out << "[Set (" << m_nSize << "): " << bits << "]";
+>     }
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/SubBlock.cc common/SubBlock.cc
+29d28
+< #include "base/stl_helpers.hh"
+30a30,31
+> 
+> #include "base/stl_helpers.hh"
+diff -r /mnt/d/source/github/sim/gem5-gpu/gem5/src/mem/ruby/common/TypeDefines.hh common/TypeDefines.hh
+30,31c30,31
+< #ifndef TYPEDEFINES_H
+< #define TYPEDEFINES_H
+---
+> #ifndef __MEM_RUBY_COMMON_TYPEDEFINES_HH__
+> #define __MEM_RUBY_COMMON_TYPEDEFINES_HH__
+37c37
+< #endif
+---
+> #endif //__MEM_RUBY_COMMON_TYPEDEFINES_HH__
+Only in common: WriteMask.cc
+Only in common: WriteMask.hh

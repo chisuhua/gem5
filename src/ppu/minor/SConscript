@@ -43,31 +43,31 @@
 
 Import('*')
 
-if 'MinorCPU' in env['CPU_MODELS']:
-    SimObject('MinorCPU.py')
+if 'MinorPPU' in env['CPU_MODELS']:
+    SimObject('MinorPPU.py')
 
-    Source('activity.cc')
-    Source('cpu.cc')
-    Source('decode.cc')
-    Source('dyn_inst.cc')
-    Source('execute.cc')
-    Source('fetch1.cc')
-    Source('fetch2.cc')
-    Source('func_unit.cc')
-    Source('lsq.cc')
-    Source('pipe_data.cc')
-    Source('pipeline.cc')
-    Source('scoreboard.cc')
-    Source('stats.cc')
+    Source('activity.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('decode.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('dyn_inst.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('execute.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('fetch1.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('fetch2.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('func_unit.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('lsq.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('pipe_data.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('pipeline.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('scoreboard.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('stats.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-    DebugFlag('MinorCPU', 'Minor CPU-level events')
-    DebugFlag('MinorExecute', 'Minor Execute stage')
-    DebugFlag('MinorInterrupt', 'Minor interrupt handling')
-    DebugFlag('MinorMem', 'Minor memory accesses')
-    DebugFlag('MinorScoreboard', 'Minor Execute register scoreboard')
-    DebugFlag('MinorTrace', 'MinorTrace cycle-by-cycle state trace')
-    DebugFlag('MinorTiming', 'Extra timing for instructions')
+    DebugFlag('PpuMinorCPU', 'Minor CPU-level events')
+    DebugFlag('PpuMinorExecute', 'Minor Execute stage')
+    DebugFlag('PpuMinorInterrupt', 'Minor interrupt handling')
+    DebugFlag('PpuMinorMem', 'Minor memory accesses')
+    DebugFlag('PpuMinorScoreboard', 'Minor Execute register scoreboard')
+    DebugFlag('PpuMinorTrace', 'MinorTrace cycle-by-cycle state trace')
+    DebugFlag('PpuMinorTiming', 'Extra timing for instructions')
 
     CompoundFlag('Minor', [
-        'MinorCPU', 'MinorExecute', 'MinorInterrupt', 'MinorMem',
-        'MinorScoreboard'])
+        'PpuMinorCPU', 'PpuMinorExecute', 'PpuMinorInterrupt', 'PpuMinorMem',
+        'PpuMinorScoreboard'])
