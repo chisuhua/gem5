@@ -36,21 +36,22 @@ DebugFlag('PpuTage')
 DebugFlag('PpuLTage')
 DebugFlag('PpuTageSCL')
 
-Return()
 
 if env['TARGET_ISA'] == 'null':
     Return()
 
-SimObject('BranchPredictor.py')
+SimObject('PpuBranchPredictor.py')
 
 DebugFlag('PpuIndirect')
 Source('bpred_unit.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-Source('2bit_local.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-Source('btb.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-Source('simple_indirect.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-Source('indirect.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source('ras.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('indirect.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('simple_indirect.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source('tournament.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('btb.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Return()
+
+Source('2bit_local.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source ('bi_mode.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source('tage_base.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source('tage.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

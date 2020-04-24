@@ -49,7 +49,7 @@ from m5.SimObject import SimObject
 
 from m5.objects.PpuBaseCPU import PpuBaseCPU
 from m5.objects.DummyChecker import DummyChecker
-from m5.objects.BranchPredictor import *
+from m5.objects.PpuBranchPredictor import *
 from m5.objects.TimingExpr import TimingExpr
 
 from m5.objects.FuncUnit import OpClass
@@ -285,7 +285,7 @@ class MinorPPU(PpuBaseCPU):
     enableIdling = Param.Bool(True,
         "Enable cycle skipping when the processor is idle\n");
 
-    branchPred = Param.BranchPredictor(TournamentBP(
+    branchPred = Param.PpuBranchPredictor(PpuTournamentBP(
         numThreads = Parent.numThreads), "Branch Predictor")
 
     def addCheckerCpu(self):

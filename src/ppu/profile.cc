@@ -121,7 +121,7 @@ FunctionProfile::clear()
 }
 
 void
-FunctionProfile::dump(ThreadContext *tc, ostream &os) const
+FunctionProfile::dump(PpuThreadContext *tc, ostream &os) const
 {
     ccprintf(os, ">>>PC data\n");
     map<Addr, Counter>::const_iterator i, end = pc_count.end();

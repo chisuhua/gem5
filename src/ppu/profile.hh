@@ -38,15 +38,18 @@
 #include "config/the_isa.hh"
 #include "ppu/static_inst.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 class ProfileNode
 {
@@ -81,15 +84,15 @@ class FunctionProfile
     FunctionProfile(const SymbolTable *symtab);
     ~FunctionProfile();
 
-    ProfileNode *consume(ThreadContext *tc, const StaticInstPtr &inst);
+    ProfileNode *consume(PpuThreadContext *tc, const StaticInstPtr &inst);
     ProfileNode *consume(const std::vector<Addr> &stack);
     void clear();
-    void dump(ThreadContext *tc, std::ostream &out) const;
+    void dump(PpuThreadContext *tc, std::ostream &out) const;
     void sample(ProfileNode *node, Addr pc);
 };
 
 inline ProfileNode *
-FunctionProfile::consume(ThreadContext *tc, const StaticInstPtr &inst)
+FunctionProfile::consume(PpuThreadContext *tc, const StaticInstPtr &inst)
 {
     if (!trace.trace(tc, inst))
         return NULL;

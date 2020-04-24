@@ -47,13 +47,15 @@ from m5.proxy import *
 
 from m5.objects.DVFSHandler import *
 from m5.objects.SimpleMemory import *
+from m5.objects.System import *
 
-class MemoryMode(Enum): vals = ['invalid', 'atomic', 'timing',
-                                'atomic_noncaching']
+#class MemoryMode(Enum): vals = ['invalid', 'atomic', 'timing',
+#                                'atomic_noncaching']
 
-class System(SimObject):
-    type = 'System'
-    cxx_header = "sim/system.hh"
+#class PpuSOCSystem(SimObject):
+class PpuSOCSystem(System):
+    type = 'PpuSOCSystem'
+    cxx_header = "ppu_sim/system.hh"
     system_port = MasterPort("System port")
 
     cxx_exports = [

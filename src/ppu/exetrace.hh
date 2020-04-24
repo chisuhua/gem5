@@ -40,23 +40,25 @@
 #include "params/ExeTracer.hh"
 #include "sim/insttracer.hh"
 
-
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 namespace Trace {
 
 class ExeTracerRecord : public InstRecord
 {
   public:
-    ExeTracerRecord(Tick _when, ThreadContext *_thread,
+    ExeTracerRecord(Tick _when, PpuThreadContext *_thread,
                const StaticInstPtr _staticInst, ThePpuISA::PCState _pc,
                const StaticInstPtr _macroStaticInst = NULL)
         : InstRecord(_when, _thread, _staticInst, _pc, _macroStaticInst)
@@ -76,7 +78,7 @@ class ExeTracer : public InstTracer
     {}
 
     InstRecord *
-    getInstRecord(Tick when, ThreadContext *tc,
+    getInstRecord(Tick when, PpuThreadContext *tc,
             const StaticInstPtr staticInst, ThePpuISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {

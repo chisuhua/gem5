@@ -90,7 +90,7 @@ class MinorPPU : public PpuBaseCPU
     Minor::MinorActivityRecorder *activityRecorder;
 
     /** These are thread state-representing objects for this CPU.  If
-     *  you need a ThreadContext for *any* reason, use
+     *  you need a PpuThreadContext for *any* reason, use
      *  threads[threadId]->getTC() */
     std::vector<Minor::MinorThread *> threads;
 

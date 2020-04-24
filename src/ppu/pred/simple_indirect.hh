@@ -37,12 +37,12 @@
 #include "config/the_isa.hh"
 #include "ppu/inst_seq.hh"
 #include "ppu/pred/indirect.hh"
-#include "params/SimpleIndirectPredictor.hh"
+#include "params/SimplePpuIndirectPredictor.hh"
 
-class SimpleIndirectPredictor : public IndirectPredictor
+class SimplePpuIndirectPredictor : public PpuIndirectPredictor
 {
   public:
-    SimpleIndirectPredictor(const SimpleIndirectPredictorParams * params);
+    SimplePpuIndirectPredictor(const SimplePpuIndirectPredictorParams * params);
 
     bool lookup(Addr br_addr, ThePpuISA::PCState& br_target, ThreadID tid);
     void recordIndirect(Addr br_addr, Addr tgt_addr, InstSeqNum seq_num,

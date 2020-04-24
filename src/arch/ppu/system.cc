@@ -46,7 +46,7 @@
 using namespace LittleEndianGuest;
 
 PpuSystem::PpuSystem(Params *p)
-    : System(p),
+    : PpuSOCSystem(p),
       _isBareMetal(p->bare_metal),
       _resetVect(p->reset_vect),
       _rv32(p->rv32)
@@ -60,27 +60,30 @@ PpuSystem::~PpuSystem()
  * Return the reset vector.
  */
 Addr
-PpuSystem::resetVect(ThreadContext* tc)
+PpuSystem::resetVect(ThreadContext* tc_)
 {
-    return dynamic_cast<PpuSystem *>(tc->getSystemPtr())->resetVect();
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    return dynamic_cast<PpuSystem *>(tc->PpugetSystemPtr())->resetVect();
 }
 
 /**
  * Return the bare metal checker.
  */
 bool
-PpuSystem::isBareMetal(ThreadContext* tc)
+PpuSystem::isBareMetal(ThreadContext* tc_)
 {
-    return dynamic_cast<PpuSystem *>(tc->getSystemPtr())->isBareMetal();
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    return dynamic_cast<PpuSystem *>(tc->PpugetSystemPtr())->isBareMetal();
 }
 
 /**
  * Return true, if the architecture uses 32 bit address space
  */
 bool
-PpuSystem::rv32(ThreadContext* tc)
+PpuSystem::rv32(ThreadContext* tc_)
 {
-    return dynamic_cast<PpuSystem *>(tc->getSystemPtr())->rv32();
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    return dynamic_cast<PpuSystem *>(tc->PpugetSystemPtr())->rv32();
 }
 
 Addr

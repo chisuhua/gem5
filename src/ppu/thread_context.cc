@@ -56,7 +56,7 @@
 #include "sim/full_system.hh"
 
 void
-ThreadContext::compare(ThreadContext *one, ThreadContext *two)
+PpuThreadContext::compare(PpuThreadContext *one, PpuThreadContext *two)
 {
     DPRINTF(PpuContext, "Comparing thread contexts\n");
 
@@ -130,7 +130,7 @@ ThreadContext::compare(ThreadContext *one, ThreadContext *two)
 }
 
 void
-ThreadContext::quiesce()
+PpuThreadContext::quiesce()
 {
     if (!getCpuPtr()->params()->do_quiesce)
         return;
@@ -144,14 +144,14 @@ ThreadContext::quiesce()
 
 
 void
-ThreadContext::quiesceTick(Tick resume)
+PpuThreadContext::quiesceTick(Tick resume)
 {
-    PpuBaseCPU *cpu = getCpuPtr();
+    PpuBaseCPU *cpu = dynamic_cast<PpuBaseCPU*>(getCpuPtr());
 
     if (!cpu->params()->do_quiesce)
         return;
 
-    EndQuiesceEvent *quiesceEvent = getQuiesceEvent();
+    PpuEndQuiesceEvent *quiesceEvent = PpugetQuiesceEvent();
 
     cpu->reschedule(quiesceEvent, resume, true);
 
@@ -163,7 +163,7 @@ ThreadContext::quiesceTick(Tick resume)
 }
 
 void
-serialize(const ThreadContext &tc, CheckpointOut &cp)
+serialize(const PpuThreadContext &tc, CheckpointOut &cp)
 {
     using namespace ThePpuISA;
 
@@ -204,7 +204,7 @@ serialize(const ThreadContext &tc, CheckpointOut &cp)
 }
 
 void
-unserialize(ThreadContext &tc, CheckpointIn &cp)
+unserialize(PpuThreadContext &tc, CheckpointIn &cp)
 {
     using namespace ThePpuISA;
 
@@ -247,27 +247,27 @@ unserialize(ThreadContext &tc, CheckpointIn &cp)
 }
 
 void
-takeOverFrom(ThreadContext &ntc, ThreadContext &otc)
+takeOverFrom(PpuThreadContext &ntc, PpuThreadContext &otc)
 {
-    assert(ntc.getProcessPtr() == otc.getProcessPtr());
+    assert(ntc.PpugetProcessPtr() == otc.PpugetProcessPtr());
 
     ntc.setStatus(otc.status());
     ntc.copyArchRegs(&otc);
     ntc.setContextId(otc.contextId());
     ntc.setThreadId(otc.threadId());
 
-    if (FullSystem) {
-        assert(ntc.getSystemPtr() == otc.getSystemPtr());
+    if (PpuFullSystem) {
+        assert(ntc.PpugetSystemPtr() == otc.PpugetSystemPtr());
 
-        PpuBaseCPU *ncpu(ntc.getCpuPtr());
+        PpuBaseCPU *ncpu(dynamic_cast<PpuBaseCPU*>(ntc.getCpuPtr()));
         assert(ncpu);
-        EndQuiesceEvent *oqe(otc.getQuiesceEvent());
+        PpuEndQuiesceEvent *oqe(otc.PpugetQuiesceEvent());
         assert(oqe);
         assert(oqe->tc == &otc);
 
-        PpuBaseCPU *ocpu(otc.getCpuPtr());
+        PpuBaseCPU *ocpu(dynamic_cast<PpuBaseCPU*>(otc.getCpuPtr()));
         assert(ocpu);
-        EndQuiesceEvent *nqe(ntc.getQuiesceEvent());
+        PpuEndQuiesceEvent *nqe(ntc.PpugetQuiesceEvent());
         assert(nqe);
         assert(nqe->tc == &ntc);
 
@@ -277,5 +277,5 @@ takeOverFrom(ThreadContext &ntc, ThreadContext &otc)
         }
     }
 
-    otc.setStatus(ThreadContext::Halted);
+    otc.setStatus(PpuThreadContext::Halted);
 }

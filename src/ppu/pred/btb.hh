@@ -36,7 +36,7 @@
 #include "base/types.hh"
 #include "config/the_isa.hh"
 
-class DefaultBTB
+class PpuDefaultBTB
 {
   private:
     struct BTBEntry
@@ -65,7 +65,7 @@ class DefaultBTB
      *  @param tagBits Number of bits for each tag in the BTB.
      *  @param instShiftAmt Offset amount for instructions to ignore alignment.
      */
-    DefaultBTB(unsigned numEntries, unsigned tagBits,
+    PpuDefaultBTB(unsigned numEntries, unsigned tagBits,
                unsigned instShiftAmt, unsigned numThreads);
 
     void reset();

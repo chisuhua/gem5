@@ -35,11 +35,11 @@
 
 #include "ppu/pc_event.hh"
 
-class IdleStartEvent : public PCEvent
+class IdleStartEvent : public PpuPCEvent
 {
   public:
-    IdleStartEvent(PCEventScope *s, const std::string &desc, Addr addr)
-        : PCEvent(s, desc, addr)
+    IdleStartEvent(PpuPCEventScope *s, const std::string &desc, Addr addr)
+        : PpuPCEvent(s, desc, addr)
     {}
     virtual void process(ThreadContext *tc);
 };

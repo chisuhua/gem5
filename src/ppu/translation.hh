@@ -249,7 +249,7 @@ class DataTranslation : public BaseTLB::Translation
      * translation is complete if the state says so.
      */
     void
-    finish(const Fault &fault, const RequestPtr &req, ThreadContext *tc,
+    finish(const Fault &fault, const RequestPtr &req, PpuThreadContext *tc,
            BaseTLB::Mode mode)
     {
         assert(state);

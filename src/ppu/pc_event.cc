@@ -43,14 +43,14 @@
 
 using namespace std;
 
-PCEventQueue::PCEventQueue()
+PpuPCEventQueue::PpuPCEventQueue()
 {}
 
-PCEventQueue::~PCEventQueue()
+PpuPCEventQueue::~PpuPCEventQueue()
 {}
 
 bool
-PCEventQueue::remove(PCEvent *event)
+PpuPCEventQueue::remove(PpuPCEvent *event)
 {
     int removed = 0;
     range_t range = equal_range(event);
@@ -70,7 +70,7 @@ PCEventQueue::remove(PCEvent *event)
 }
 
 bool
-PCEventQueue::schedule(PCEvent *event)
+PpuPCEventQueue::schedule(PpuPCEvent *event)
 {
     pcMap.push_back(event);
     sort(pcMap.begin(), pcMap.end(), MapCompare());
@@ -82,7 +82,7 @@ PCEventQueue::schedule(PCEvent *event)
 }
 
 bool
-PCEventQueue::doService(Addr pc, ThreadContext *tc)
+PpuPCEventQueue::doService(Addr pc, PpuThreadContext *tc)
 {
     // Using the raw PC address will fail to break on Alpha PALcode addresses,
     // but that is a rare use case.
@@ -100,7 +100,7 @@ PCEventQueue::doService(Addr pc, ThreadContext *tc)
 }
 
 void
-PCEventQueue::dump() const
+PpuPCEventQueue::dump() const
 {
     const_iterator i = pcMap.begin();
     const_iterator e = pcMap.end();
@@ -110,20 +110,20 @@ PCEventQueue::dump() const
                 (*i)->descr());
 }
 
-PCEventQueue::range_t
-PCEventQueue::equal_range(Addr pc)
+PpuPCEventQueue::range_t
+PpuPCEventQueue::equal_range(Addr pc)
 {
     return std::equal_range(pcMap.begin(), pcMap.end(), pc, MapCompare());
 }
 
-BreakPCEvent::BreakPCEvent(PCEventScope *s, const std::string &desc, Addr addr,
+BreakPpuPCEvent::BreakPpuPCEvent(PpuPCEventScope *s, const std::string &desc, Addr addr,
                            bool del)
-    : PCEvent(s, desc, addr), remove(del)
+    : PpuPCEvent(s, desc, addr), remove(del)
 {
 }
 
 void
-BreakPCEvent::process(ThreadContext *tc)
+BreakPpuPCEvent::process(PpuThreadContext *tc)
 {
     StringWrap name("break_event");
     DPRINTFN("break event %s triggered\n", descr());
@@ -132,13 +132,13 @@ BreakPCEvent::process(ThreadContext *tc)
         delete this;
 }
 
-PanicPCEvent::PanicPCEvent(PCEventScope *s, const std::string &desc, Addr pc)
-    : PCEvent(s, desc, pc)
+PanicPpuPCEvent::PanicPpuPCEvent(PpuPCEventScope *s, const std::string &desc, Addr pc)
+    : PpuPCEvent(s, desc, pc)
 {
 }
 
 void
-PanicPCEvent::process(ThreadContext *tc)
+PanicPpuPCEvent::process(PpuThreadContext *tc)
 {
     StringWrap name("panic_event");
     panic(descr());

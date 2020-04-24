@@ -62,7 +62,7 @@
 using namespace PpuISA;
 #endif
 
-class TAGE: public BPredUnit
+class TAGE: public PpuBPredUnit
 {
   protected:
     TAGEBase *tage;

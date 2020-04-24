@@ -262,7 +262,7 @@ class Execute : public Named
 
     /** Try to act on PC-related events.  Returns true if any were
      *  executed */
-    bool tryPCEvents(ThreadID thread_id);
+    bool tryPpuPCEvents(ThreadID thread_id);
 
     /** Do the stats handling and instruction count and PC event events
      *  related to the new instruction/op counts */

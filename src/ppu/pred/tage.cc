@@ -47,7 +47,7 @@
 #include "debug/PpuFetch.hh"
 #include "debug/PpuTage.hh"
 
-TAGE::TAGE(const TAGEParams *params) : BPredUnit(params), tage(params->tage)
+TAGE::TAGE(const TAGEParams *params) : PpuBPredUnit(params), tage(params->tage)
 {
 }
 

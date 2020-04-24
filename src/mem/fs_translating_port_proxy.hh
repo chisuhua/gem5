@@ -61,6 +61,7 @@
 
 #include "mem/port_proxy.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -70,6 +71,8 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+class ThreadContext;
 
 /**
  * A TranslatingPortProxy in FS mode translates a virtual address to a

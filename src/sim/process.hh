@@ -61,6 +61,7 @@ class SyscallDesc;
 class SyscallReturn;
 class System;
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -70,6 +71,8 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+class ThreadContext;
 
 class Process : public SimObject
 {
@@ -181,25 +184,6 @@ class Process : public SimObject
 
 //    virtual void clone(PpuISA::ThreadContext *old_tc, PpuISA::ThreadContext *new_tc,
 //                       Process *new_p, RegVal flags);
-
-    // thread contexts associated with this process
-    std::vector<ContextID> contextIds;
-
-    // system object which owns this process
-    System *system;
-
-    Stats::Scalar numSyscalls;  // track how many system calls are executed
-
-    // flag for using architecture specific page table
-    bool useArchPT;
-    // running KVM requires special initialization
-    bool kvmInSE;
-    // flag for using the process as a thread which shares page tables
-    bool useForClone;
-
-    EmulationPageTable *pTable;
-
-    SETranslatingPortProxy initVirtMem; // memory proxy for initial image load
 
     // thread contexts associated with this process
     std::vector<ContextID> contextIds;

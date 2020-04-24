@@ -33,12 +33,13 @@
 #include "params/BaseInterrupts.hh"
 #include "sim/sim_object.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
 
-class ThreadContext;
+// class ThreadContext;
 
 #ifdef BUILD_PPU
 };
@@ -47,9 +48,11 @@ class PpuBaseCPU;
 // using BaseCPU = PpuBaseCPU;
 #define BaseCPU PpuBaseCPU
 #else
-class BaseCPU;
+#endif
 #endif
 
+class BaseCPU;
+class ThreadContext;
 
 class BaseInterrupts : public SimObject
 {

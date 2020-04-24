@@ -61,15 +61,18 @@
 #include "sim/full_system.hh"
 #include "sim/system.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 // forward declarations
 class Checkpoint;
@@ -88,14 +91,14 @@ namespace Trace {
 }
 
 struct BaseSimpleCPUParams;
-class BPredUnit;
+class PpuBPredUnit;
 class SimpleExecContext;
 
 class BaseSimpleCPU : public PpuBaseCPU
 {
   protected:
     ThreadID curThread;
-    BPredUnit *branchPred;
+    PpuBPredUnit *branchPred;
 
     void checkPcEventQueue();
     void swapActiveThread();

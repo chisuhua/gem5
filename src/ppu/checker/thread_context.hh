@@ -51,7 +51,7 @@
 #include "ppu/thread_context.hh"
 #include "debug/Checker.hh"
 
-class EndQuiesceEvent;
+class PpuEndQuiesceEvent;
 namespace Kernel {
     class Statistics;
 };
@@ -60,15 +60,15 @@ namespace TheISA {
 };
 
 /**
- * Derived ThreadContext class for use with the Checker.  The template
- * parameter is the ThreadContext class used by the specific CPU being
+ * Derived PpuThreadContext class for use with the Checker.  The template
+ * parameter is the PpuThreadContext class used by the specific CPU being
  * verified.  This CheckerThreadContext is then used by the main CPU
- * in place of its usual ThreadContext class.  It handles updating the
+ * in place of its usual PpuThreadContext class.  It handles updating the
  * checker's state any time state is updated externally through the
- * ThreadContext.
+ * PpuThreadContext.
  */
 template <class TC>
-class CheckerThreadContext : public ThreadContext
+class CheckerThreadContext : public PpuThreadContext
 {
   public:
     CheckerThreadContext(TC *actual_tc,
@@ -78,19 +78,19 @@ class CheckerThreadContext : public ThreadContext
     { }
 
   private:
-    /** The main CPU's ThreadContext, or class that implements the
-     * ThreadContext interface. */
+    /** The main CPU's PpuThreadContext, or class that implements the
+     * PpuThreadContext interface. */
     TC *actualTC;
     /** The checker's own SimpleThread. Will be updated any time
-     * anything uses this ThreadContext to externally update a
+     * anything uses this PpuThreadContext to externally update a
      * thread's state. */
     SimpleThread *checkerTC;
     /** Pointer to the checker CPU. */
     PpuCheckerCPU *checkerCPU;
 
   public:
-    bool schedule(PCEvent *e) override { return actualTC->schedule(e); }
-    bool remove(PCEvent *e) override { return actualTC->remove(e); }
+    bool schedule(PpuPCEvent *e) override { return actualTC->schedule(e); }
+    bool remove(PpuPCEvent *e) override { return actualTC->remove(e); }
 
     void
     scheduleInstCountEvent(Event *event, Tick count) override
@@ -137,7 +137,7 @@ class CheckerThreadContext : public ThreadContext
     BaseTLB *getDTBPtr() override { return actualTC->getDTBPtr(); }
 
     PpuCheckerCPU *
-    getCheckerCpuPtr() override
+    PpugetCheckerCpuPtr() override
     {
         return checkerCPU;
     }
@@ -150,7 +150,7 @@ class CheckerThreadContext : public ThreadContext
         return actualTC->getDecoderPtr();
     }
 
-    System *getSystemPtr() override { return actualTC->getSystemPtr(); }
+    PpuSOCSystem *getSystemPtr() override { return actualTC->getSystemPtr(); }
 
     ::Kernel::Statistics *
     getKernelStats() override
@@ -158,9 +158,9 @@ class CheckerThreadContext : public ThreadContext
         return actualTC->getKernelStats();
     }
 
-    Process *getProcessPtr() override { return actualTC->getProcessPtr(); }
+    PpuSOCProcess *PpugetProcessPtr() override { return actualTC->PpugetProcessPtr(); }
 
-    void setProcessPtr(Process *p) override { actualTC->setProcessPtr(p); }
+    void setProcessPtr(PpuSOCProcess *p) override { actualTC->setProcessPtr(p); }
 
     PortProxy &getPhysProxy() override { return actualTC->getPhysProxy(); }
 
@@ -171,13 +171,13 @@ class CheckerThreadContext : public ThreadContext
     }
 
     void
-    initMemProxies(ThreadContext *tc) override
+    initMemProxies(PpuThreadContext *tc) override
     {
         actualTC->initMemProxies(tc);
     }
 
     void
-    connectMemPorts(ThreadContext *tc)
+    connectMemPorts(PpuThreadContext *tc)
     {
         actualTC->connectMemPorts(tc);
     }
@@ -210,7 +210,7 @@ class CheckerThreadContext : public ThreadContext
     void dumpFuncProfile() override { actualTC->dumpFuncProfile(); }
 
     void
-    takeOverFrom(ThreadContext *oldContext) override
+    takeOverFrom(PpuThreadContext *oldContext) override
     {
         actualTC->takeOverFrom(oldContext);
         checkerTC->copyState(oldContext);
@@ -223,10 +223,10 @@ class CheckerThreadContext : public ThreadContext
         checkerTC->regStats(name);
     }
 
-    EndQuiesceEvent *
-    getQuiesceEvent() override
+    PpuEndQuiesceEvent *
+    PpugetQuiesceEvent() override
     {
-        return actualTC->getQuiesceEvent();
+        return actualTC->PpugetQuiesceEvent();
     }
 
     Tick readLastActivate() override { return actualTC->readLastActivate(); }
@@ -237,7 +237,7 @@ class CheckerThreadContext : public ThreadContext
 
     // @todo: Do I need this?
     void
-    copyArchRegs(ThreadContext *tc) override
+    copyArchRegs(PpuThreadContext *tc) override
     {
         actualTC->copyArchRegs(tc);
         checkerTC->copyArchRegs(tc);

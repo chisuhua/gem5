@@ -393,7 +393,7 @@ class ExecContext : public ::ExecContext
         thread.syscall(fault);
     }
 
-    ThreadContext *tcBase() override { return thread.getTC(); }
+    PpuThreadContext *tcBase() override { return thread.getTC(); }
 
     /* @todo, should make stCondFailures persistent somewhere */
     unsigned int readStCondFailures() const override { return 0; }
@@ -448,7 +448,7 @@ class ExecContext : public ::ExecContext
     bool mwait(PacketPtr pkt) override
     { return getCpuPtr()->mwait(inst->id.threadId, pkt); }
 
-    void mwaitAtomic(ThreadContext *tc) override
+    void mwaitAtomic(PpuThreadContext *tc) override
     { return getCpuPtr()->mwaitAtomic(inst->id.threadId, tc, thread.dtb); }
 
     AddressMonitor *getAddrMonitor() override

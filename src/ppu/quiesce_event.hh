@@ -33,24 +33,27 @@
 
 #include "sim/eventq.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 /** Event for timing out quiesce instruction */
-class EndQuiesceEvent : public Event
+class PpuEndQuiesceEvent : public Event
 {
   public:
     /** A pointer to the thread context that is quiesced */
-    ThreadContext *tc;
+    PpuThreadContext *tc;
 
-    EndQuiesceEvent(ThreadContext *_tc);
+    PpuEndQuiesceEvent(PpuThreadContext *_tc);
 
     /** Event process to occur at interrupt*/
     virtual void process();

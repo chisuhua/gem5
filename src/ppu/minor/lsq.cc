@@ -269,7 +269,7 @@ LSQ::clearMemBarrier(MinorDynInstPtr inst)
 
 void
 LSQ::SingleDataRequest::finish(const Fault &fault_, const RequestPtr &request_,
-                               ThreadContext *tc, BaseTLB::Mode mode)
+                               PpuThreadContext *tc, BaseTLB::Mode mode)
 {
     port.numAccessesInDTLB--;
 
@@ -300,7 +300,7 @@ LSQ::SingleDataRequest::finish(const Fault &fault_, const RequestPtr &request_,
 void
 LSQ::SingleDataRequest::startAddrTranslation()
 {
-    ThreadContext *thread = port.cpu.getContext(
+    PpuThreadContext *thread = port.cpu.getContext(
         inst->id.threadId);
 
     const auto &byte_enable = request->getByteEnable();
@@ -333,7 +333,7 @@ LSQ::SingleDataRequest::retireResponse(PacketPtr packet_)
 
 void
 LSQ::SplitDataRequest::finish(const Fault &fault_, const RequestPtr &request_,
-                              ThreadContext *tc, BaseTLB::Mode mode)
+                              PpuThreadContext *tc, BaseTLB::Mode mode)
 {
     port.numAccessesInDTLB--;
 
@@ -710,7 +710,7 @@ LSQ::SplitDataRequest::sendNextFragmentToTranslation()
 {
     unsigned int fragment_index = numTranslatedFragments;
 
-    ThreadContext *thread = port.cpu.getContext(
+    PpuThreadContext *thread = port.cpu.getContext(
         inst->id.threadId);
 
     DPRINTFS(PpuMinorMem, (&port), "Submitting DTLB request for fragment: %d\n",
@@ -1187,7 +1187,7 @@ LSQ::tryToSend(LSQRequestPtr request)
         assert(packet->findNextSenderState<LSQRequest>());
 
         if (request->request->isMmappedIpr()) {
-            ThreadContext *thread =
+            PpuThreadContext *thread =
                 cpu.getContext(cpu.contextToThread(
                                 request->request->contextId()));
 

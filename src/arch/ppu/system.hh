@@ -48,6 +48,7 @@
 
 
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -57,9 +58,12 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+
+class ThreadContext;
 
 
-class PpuSystem : public System
+class PpuSystem : public PpuSOCSystem
 {
   protected:
     // checker for bare metal application
@@ -108,7 +112,7 @@ class PpuSystem : public System
 
 #ifndef NDEBUG
   /** Event to halt the simulator if the console calls panic() */
-    BreakPCEvent *consolePanicEvent;
+    BreakPpuPCEvent *consolePanicEvent;
 #endif
 
   protected:

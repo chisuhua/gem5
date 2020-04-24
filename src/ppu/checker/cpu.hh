@@ -62,14 +62,17 @@
 #include "params/PpuCheckerCPU.hh"
 #include "sim/eventq.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 // class PpuBaseCPU;
 class BaseTLB;
@@ -89,9 +92,9 @@ class Request;
  * the value from the main CPU's execution is correct and simply
  * copies that value.  It provides a CheckerThreadContext (see
  * checker/thread_context.hh) that provides hooks for updating the
- * Checker's state through any ThreadContext accesses.  This allows the
+ * Checker's state through any PpuThreadContext accesses.  This allows the
  * checker to be able to correctly verify instructions, even with
- * external accesses to the ThreadContext that change state.
+ * external accesses to the PpuThreadContext that change state.
  */
 class PpuCheckerCPU : public PpuBaseCPU, public ExecContext
 {
@@ -108,7 +111,7 @@ class PpuCheckerCPU : public PpuBaseCPU, public ExecContext
     PpuCheckerCPU(Params *p);
     virtual ~PpuCheckerCPU();
 
-    void setSystem(System *system);
+    void setSystem(PpuSOCSystem *system);
 
     void setIcachePort(MasterPort *icache_port);
 
@@ -136,12 +139,12 @@ class PpuCheckerCPU : public PpuBaseCPU, public ExecContext
 
     std::vector<Process*> workload;
 
-    System *systemPtr;
+    PpuSOCSystem *systemPtr;
 
     MasterPort *icachePort;
     MasterPort *dcachePort;
 
-    ThreadContext *tc;
+    PpuThreadContext *tc;
 
     BaseTLB *itb;
     BaseTLB *dtb;
@@ -525,7 +528,7 @@ class PpuCheckerCPU : public PpuBaseCPU, public ExecContext
     // monitor/mwait funtions
     void armMonitor(Addr address) override { PpuBaseCPU::armMonitor(0, address); }
     bool mwait(PacketPtr pkt) override { return PpuBaseCPU::mwait(0, pkt); }
-    void mwaitAtomic(ThreadContext *tc) override
+    void mwaitAtomic(PpuThreadContext *tc) override
     { return PpuBaseCPU::mwaitAtomic(0, tc, thread->dtb); }
     AddressMonitor *getAddrMonitor() override
     { return PpuBaseCPU::getCpuAddrMonitor(0); }
@@ -604,7 +607,7 @@ class PpuCheckerCPU : public PpuBaseCPU, public ExecContext
 
     void dumpAndExit();
 
-    ThreadContext *tcBase() override { return tc; }
+    PpuThreadContext *tcBase() override { return tc; }
     SimpleThread *threadBase() { return thread; }
 
     InstResult unverifiedResult;

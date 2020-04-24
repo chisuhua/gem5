@@ -37,6 +37,7 @@
 #include "base/logging.hh"
 #include "base/types.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -47,6 +48,8 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+class ThreadContext;
 
 class PCEventQueue;
 class System;

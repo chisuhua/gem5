@@ -95,15 +95,18 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
     SimpleThread *thread;
 
     for (unsigned i = 0; i < numThreads; i++) {
-        if (FullSystem) {
+        if (PpuFullSystem) {
             thread = new SimpleThread(this, i, p->system,
                                       p->itb, p->dtb, p->isa[i]);
         } else {
+            panic("PPU BaseSimpleCPU don't support SE")
+            /*
             thread = new SimpleThread(this, i, p->system, p->workload[i],
                                       p->itb, p->dtb, p->isa[i]);
+                                      */
         }
         threadInfo.push_back(new SimpleExecContext(this, thread));
-        ThreadContext *tc = thread->getTC();
+        PpuThreadContext *tc = thread->getTC();
         threadContexts.push_back(tc);
     }
 
@@ -115,7 +118,7 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
         checker = dynamic_cast<PpuCheckerCPU *>(temp_checker);
         checker->setSystem(p->system);
         // Manipulate thread context
-        ThreadContext *cpu_tc = threadContexts[0];
+        PpuThreadContext *cpu_tc = threadContexts[0];
         threadContexts[0] = new CheckerThreadContext<ThreadContext>(cpu_tc, this->checker);
     } else {
         checker = NULL;
@@ -128,7 +131,7 @@ BaseSimpleCPU::init()
     PpuBaseCPU::init();
 
     for (auto tc : threadContexts) {
-        // Initialise the ThreadContext's memory proxies
+        // Initialise the PpuThreadContext's memory proxies
         tc->initMemProxies(tc);
     }
 }
@@ -435,7 +438,7 @@ BaseSimpleCPU::wakeup(ThreadID tid)
 {
     getCpuAddrMonitor(tid)->gotWakeup = true;
 
-    if (threadInfo[tid]->thread->status() == ThreadContext::Suspended) {
+    if (threadInfo[tid]->thread->status() == PpuThreadContext::Suspended) {
         DPRINTF(PpuQuiesce,"[tid:%d] Suspended Processor awoke\n", tid);
         threadInfo[tid]->thread->activate();
     }
@@ -446,7 +449,7 @@ BaseSimpleCPU::checkForInterrupts()
 {
     SimpleExecContext&t_info = *threadInfo[curThread];
     SimpleThread* thread = t_info.thread;
-    ThreadContext* tc = thread->getTC();
+    PpuThreadContext* tc = thread->getTC();
 
     if (checkInterrupts(tc)) {
         Fault interrupt = interrupts[curThread]->getInterrupt(tc);
@@ -579,7 +582,7 @@ BaseSimpleCPU::postExecute()
 
     ThePpuISA::PCState pc = threadContexts[curThread]->pcState();
     Addr instAddr = pc.instAddr();
-    if (FullSystem && thread->profile) {
+    if (PpuFullSystem && thread->profile) {
         bool usermode = ThePpuISA::inUserMode(threadContexts[curThread]);
         thread->profilePC = usermode ? 1 : instAddr;
         ProfileNode *node = thread->profile->consume(threadContexts[curThread],
@@ -645,7 +648,7 @@ BaseSimpleCPU::postExecute()
 
     t_info.statExecutedInstType[curStaticInst->opClass()]++;
 
-    if (FullSystem)
+    if (PpuFullSystem)
         traceFunctions(instAddr);
 
     if (traceData) {

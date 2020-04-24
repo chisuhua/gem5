@@ -72,9 +72,9 @@
 struct PpuBaseCPUParams;
 class PpuCheckerCPU;
 
-namespace PpuISA {
-class ThreadContext;
-}; // namespace PpuIsa
+// namespace PpuISA {
+class PpuThreadContext;
+// }; // namespace PpuIsa
 
 class PpuBaseCPU;
 
@@ -91,7 +91,6 @@ struct AddressMonitor
     bool waiting;   // 0=normal, 1=mwaiting
     bool gotWakeup;
 };
-*/
 class PpuCPUProgressEvent : public Event
 {
   protected:
@@ -112,9 +111,10 @@ class PpuCPUProgressEvent : public Event
 
     virtual const char *description() const;
 };
+*/
 
-// class PpuBaseCPU : public BaseCPU
-class PpuBaseCPU : public ClockedObject
+// class PpuBaseCPU : public ClockedObject
+class PpuBaseCPU : public BaseCPU
 {
   protected:
 
@@ -246,7 +246,7 @@ class PpuBaseCPU : public ClockedObject
     postInterrupt(ThreadID tid, int int_num, int index)
     {
         interrupts[tid]->post(int_num, index);
-        if (FullSystem)
+        if (PpuFullSystem)
             wakeup(tid);
     }
 
@@ -263,16 +263,16 @@ class PpuBaseCPU : public ClockedObject
     }
 
     bool
-    checkInterrupts(ThreadContext *tc) const
+    checkInterrupts(PpuThreadContext *tc) const
     {
-        return FullSystem && interrupts[tc->threadId()]->checkInterrupts(tc);
+        return PpuFullSystem && interrupts[tc->threadId()]->checkInterrupts(tc);
     }
 
     void processProfileEvent();
     EventFunctionWrapper * profileEvent;
 
   protected:
-    std::vector<ThreadContext *> threadContexts;
+    std::vector<PpuThreadContext *> threadContexts;
 
     Trace::InstTracer * tracer;
 
@@ -300,10 +300,12 @@ class PpuBaseCPU : public ClockedObject
     virtual void haltContext(ThreadID thread_num);
 
    /// Given a Thread Context pointer return the thread num
-   int findContext(ThreadContext *tc);
+   int findContext(PpuThreadContext *tc);
 
    /// Given a thread num get tho thread context for it
-   virtual ThreadContext *getContext(int tn) { return threadContexts[tn]; }
+   // virtual ThreadContext *getContext(int tn) { return threadContexts[tn]; }
+
+   virtual PpuThreadContext *getContext(int tn) { return threadContexts[tn]; }
 
    /// Get the number of thread contexts available
    unsigned numContexts() {
@@ -391,7 +393,7 @@ class PpuBaseCPU : public ClockedObject
      */
     ThreadID numThreads;
 
-    System *system;
+    PpuSOCSystem *system;
 
     /**
      * Get the cache line size of the system.
@@ -618,7 +620,7 @@ class PpuBaseCPU : public ClockedObject
   public:
     void armMonitor(ThreadID tid, Addr address);
     bool mwait(ThreadID tid, PacketPtr pkt);
-    void mwaitAtomic(ThreadID tid, ThreadContext *tc, BaseTLB *dtb);
+    void mwaitAtomic(ThreadID tid, PpuThreadContext *tc, BaseTLB *dtb);
     AddressMonitor *getCpuAddrMonitor(ThreadID tid)
     {
         assert(tid < numThreads);

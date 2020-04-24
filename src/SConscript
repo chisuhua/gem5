@@ -664,6 +664,9 @@ def makeTheISA(source, target, env):
 #define THE_ISA ${{define(target_isa)}}
 #define TheISA ${{namespace(target_isa)}}
 #define THE_ISA_STR "${{target_isa}}"
+#define THE_PPU_ISA PPU_ISA
+#define ThePpuISA PpuISA
+#define THE_PPU_ISA_STR "ppu"
 #endif // BUILD_PPU
 
 #endif // __CONFIG_THE_ISA_HH__''')

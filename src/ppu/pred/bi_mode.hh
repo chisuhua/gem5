@@ -58,7 +58,7 @@ using namespace PpuISA;
  * the branch's PC to choose between the two, destructive aliasing is reduced.
  */
 
-class BiModeBP : public BPredUnit
+class BiModeBP : public PpuBPredUnit
 {
   public:
     BiModeBP(const BiModeBPParams *params);

@@ -36,7 +36,7 @@
 #include "debug/PpuFetch.hh"
 
 LocalBP::LocalBP(const LocalBPParams *params)
-    : BPredUnit(params),
+    : PpuBPredUnit(params),
       localPredictorSize(params->localPredictorSize),
       localCtrBits(params->localCtrBits),
       localPredictorSets(localPredictorSize / localCtrBits),

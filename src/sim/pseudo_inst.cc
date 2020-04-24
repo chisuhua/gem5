@@ -175,10 +175,7 @@ m5exit(ThreadContext *tc, Tick delay)
     }
 }
 
-namespace PpuISA {
-class ThreadContext;
-}
-
+#if 0
 void
 m5exit(PpuISA::ThreadContext *tc, Tick delay)
 {
@@ -188,6 +185,7 @@ m5exit(PpuISA::ThreadContext *tc, Tick delay)
         exitSimLoop("m5_exit instruction encountered", 0, when, 0, true);
     }
 }
+#endif
 
 
 void

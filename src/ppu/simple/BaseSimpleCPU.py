@@ -33,7 +33,7 @@ from m5.params import *
 
 from m5.objects.PpuBaseCPU import PpuBaseCPU
 from m5.objects.DummyChecker import DummyChecker
-from m5.objects.BranchPredictor import *
+from m5.objects.PpuBranchPredictor import *
 
 class BaseSimpleCPU(PpuBaseCPU):
     type = 'BaseSimpleCPU'
@@ -51,4 +51,4 @@ class BaseSimpleCPU(PpuBaseCPU):
             print("ERROR: Checker only supported under ARM ISA!")
             exit(1)
 
-    branchPred = Param.BranchPredictor(NULL, "Branch Predictor")
+    branchPred = Param.PpuBranchPredictor(NULL, "Branch Predictor")

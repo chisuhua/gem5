@@ -41,8 +41,9 @@
 
 #include "base/intmath.hh"
 
+#if 0
 TimingExprEvalContext::TimingExprEvalContext(const StaticInstPtr &inst_,
-    ThreadContext *thread_,
+    PpuThreadContext *thread_,
     TimingExprLet *let_) :
     inst(inst_), thread(thread_), let(let_)
 {
@@ -55,6 +56,7 @@ TimingExprEvalContext::TimingExprEvalContext(const StaticInstPtr &inst_,
         resultAvailable.resize(num_defns, false);
     }
 }
+#endif
 
 uint64_t TimingExprSrcReg::eval(TimingExprEvalContext &context)
 {

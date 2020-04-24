@@ -38,13 +38,13 @@
 #include "config/the_isa.hh"
 
 /** Return address stack class, implements a simple RAS. */
-class ReturnAddrStack
+class PpuReturnAddrStack
 {
   public:
     /** Creates a return address stack, but init() must be called prior to
      *  use.
      */
-    ReturnAddrStack() {}
+    PpuReturnAddrStack() {}
 
     /** Initializes RAS with a specified number of entries.
      *  @param numEntries Number of entries in the RAS.

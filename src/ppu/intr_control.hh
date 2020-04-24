@@ -42,7 +42,7 @@
 class IntrControl : public SimObject
 {
   public:
-    System *sys;
+    PpuSOCSystem *sys;
     typedef IntrControlParams Params;
     IntrControl(const Params *p);
 

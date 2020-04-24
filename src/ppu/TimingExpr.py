@@ -42,7 +42,7 @@ from m5.SimObject import SimObject
 # a few operators.  This can be used to form expressions for the extra
 # delay required in variable execution time instructions.
 #
-# Expressions, in evaluation, will have access to the ThreadContext and
+# Expressions, in evaluation, will have access to the PpuThreadContext and
 # a StaticInst
 
 class TimingExpr(SimObject):

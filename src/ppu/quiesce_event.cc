@@ -34,20 +34,20 @@
 #include "ppu/thread_context.hh"
 #include "debug/PpuQuiesce.hh"
 
-EndQuiesceEvent::EndQuiesceEvent(ThreadContext *_tc)
+PpuEndQuiesceEvent::PpuEndQuiesceEvent(PpuThreadContext *_tc)
     : tc(_tc)
 {
 }
 
 void
-EndQuiesceEvent::process()
+PpuEndQuiesceEvent::process()
 {
     DPRINTF(PpuQuiesce, "activating %s\n", tc->getCpuPtr()->name());
     tc->activate();
 }
 
 const char*
-EndQuiesceEvent::description() const
+PpuEndQuiesceEvent::description() const
 {
     return "End Quiesce";
 }

@@ -33,9 +33,9 @@
 #include "base/intmath.hh"
 #include "debug/PpuIndirect.hh"
 
-SimpleIndirectPredictor::SimpleIndirectPredictor(
-        const SimpleIndirectPredictorParams * params)
-    : IndirectPredictor(params),
+SimplePpuIndirectPredictor::SimplePpuIndirectPredictor(
+        const SimplePpuIndirectPredictorParams * params)
+    : PpuIndirectPredictor(params),
       hashGHR(params->indirectHashGHR),
       hashTargets(params->indirectHashTargets),
       numSets(params->indirectSets),
@@ -61,7 +61,7 @@ SimpleIndirectPredictor::SimpleIndirectPredictor(
 }
 
 void
-SimpleIndirectPredictor::genIndirectInfo(ThreadID tid,
+SimplePpuIndirectPredictor::genIndirectInfo(ThreadID tid,
                                          void* & indirect_history)
 {
     // record the GHR as it was before this prediction
@@ -71,7 +71,7 @@ SimpleIndirectPredictor::genIndirectInfo(ThreadID tid,
 }
 
 void
-SimpleIndirectPredictor::updateDirectionInfo(
+SimplePpuIndirectPredictor::updateDirectionInfo(
     ThreadID tid, bool actually_taken)
 {
     threadInfo[tid].ghr <<= 1;
@@ -80,7 +80,7 @@ SimpleIndirectPredictor::updateDirectionInfo(
 }
 
 void
-SimpleIndirectPredictor::changeDirectionPrediction(ThreadID tid,
+SimplePpuIndirectPredictor::changeDirectionPrediction(ThreadID tid,
     void * indirect_history, bool actually_taken)
 {
     unsigned * previousGhr = static_cast<unsigned *>(indirect_history);
@@ -89,7 +89,7 @@ SimpleIndirectPredictor::changeDirectionPrediction(ThreadID tid,
 }
 
 bool
-SimpleIndirectPredictor::lookup(Addr br_addr, ThePpuISA::PCState& target,
+SimplePpuIndirectPredictor::lookup(Addr br_addr, ThePpuISA::PCState& target,
     ThreadID tid)
 {
     Addr set_index = getSetIndex(br_addr, threadInfo[tid].ghr, tid);
@@ -111,7 +111,7 @@ SimpleIndirectPredictor::lookup(Addr br_addr, ThePpuISA::PCState& target,
 }
 
 void
-SimpleIndirectPredictor::recordIndirect(Addr br_addr, Addr tgt_addr,
+SimplePpuIndirectPredictor::recordIndirect(Addr br_addr, Addr tgt_addr,
     InstSeqNum seq_num, ThreadID tid)
 {
     DPRINTF(PpuIndirect, "Recording %x seq:%d\n", br_addr, seq_num);
@@ -120,7 +120,7 @@ SimpleIndirectPredictor::recordIndirect(Addr br_addr, Addr tgt_addr,
 }
 
 void
-SimpleIndirectPredictor::commit(InstSeqNum seq_num, ThreadID tid,
+SimplePpuIndirectPredictor::commit(InstSeqNum seq_num, ThreadID tid,
                           void * indirect_history)
 {
     DPRINTF(PpuIndirect, "Committing seq:%d\n", seq_num);
@@ -143,7 +143,7 @@ SimpleIndirectPredictor::commit(InstSeqNum seq_num, ThreadID tid,
 }
 
 void
-SimpleIndirectPredictor::squash(InstSeqNum seq_num, ThreadID tid)
+SimplePpuIndirectPredictor::squash(InstSeqNum seq_num, ThreadID tid)
 {
     DPRINTF(PpuIndirect, "Squashing seq:%d\n", seq_num);
     ThreadInfo &t_info = threadInfo[tid];
@@ -162,7 +162,7 @@ SimpleIndirectPredictor::squash(InstSeqNum seq_num, ThreadID tid)
 }
 
 void
-SimpleIndirectPredictor::deleteIndirectInfo(ThreadID tid,
+SimplePpuIndirectPredictor::deleteIndirectInfo(ThreadID tid,
                                             void * indirect_history)
 {
     unsigned * previousGhr = static_cast<unsigned *>(indirect_history);
@@ -172,7 +172,7 @@ SimpleIndirectPredictor::deleteIndirectInfo(ThreadID tid,
 }
 
 void
-SimpleIndirectPredictor::recordTarget(
+SimplePpuIndirectPredictor::recordTarget(
     InstSeqNum seq_num, void * indirect_history, const ThePpuISA::PCState& target,
     ThreadID tid)
 {
@@ -211,7 +211,7 @@ SimpleIndirectPredictor::recordTarget(
 
 
 inline Addr
-SimpleIndirectPredictor::getSetIndex(Addr br_addr, unsigned ghr, ThreadID tid)
+SimplePpuIndirectPredictor::getSetIndex(Addr br_addr, unsigned ghr, ThreadID tid)
 {
     ThreadInfo &t_info = threadInfo[tid];
 
@@ -231,13 +231,13 @@ SimpleIndirectPredictor::getSetIndex(Addr br_addr, unsigned ghr, ThreadID tid)
 }
 
 inline Addr
-SimpleIndirectPredictor::getTag(Addr br_addr)
+SimplePpuIndirectPredictor::getTag(Addr br_addr)
 {
     return (br_addr >> instShift) & ((0x1<<tagBits)-1);
 }
 
-SimpleIndirectPredictor *
-SimpleIndirectPredictorParams::create()
+SimplePpuIndirectPredictor *
+SimplePpuIndirectPredictorParams::create()
 {
-    return new SimpleIndirectPredictor(this);
+    return new SimplePpuIndirectPredictor(this);
 }

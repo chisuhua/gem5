@@ -41,15 +41,18 @@
 #include "ppu/exetrace.hh"
 #include "ppu/static_inst.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 namespace Trace {
 
@@ -62,7 +65,7 @@ class NativeTraceRecord : public ExeTracerRecord
 
   public:
     NativeTraceRecord(NativeTrace * _parent,
-               Tick _when, ThreadContext *_thread,
+               Tick _when, PpuThreadContext *_thread,
                const StaticInstPtr _staticInst, ThePpuISA::PCState _pc,
                const StaticInstPtr _macroStaticInst = NULL)
         : ExeTracerRecord(_when, _thread, _staticInst, _pc, _macroStaticInst),
@@ -86,7 +89,7 @@ class NativeTrace : public ExeTracer
     virtual ~NativeTrace() {}
 
     NativeTraceRecord *
-    getInstRecord(Tick when, ThreadContext *tc,
+    getInstRecord(Tick when, PpuThreadContext *tc,
             const StaticInstPtr staticInst, ThePpuISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {

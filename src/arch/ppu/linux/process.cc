@@ -55,11 +55,11 @@ using namespace PpuISA;
 namespace
 {
 
-class PpuLinuxObjectFileLoader : public Process::Loader
+class PpuLinuxObjectFileLoader : public PpuSOCProcess::Loader
 {
   public:
-    Process *
-    load(ProcessParams *params, ObjectFile *obj_file) override
+    PpuSOCProcess *
+    load(PpuSOCProcessParams *params, ObjectFile *obj_file) override
     {
         auto arch = obj_file->getArch();
         auto opsys = obj_file->getOpSys();
@@ -88,10 +88,11 @@ PpuLinuxObjectFileLoader loader;
 
 /// Target uname() handler.
 static SyscallReturn
-unameFunc64(SyscallDesc *desc, int callnum, ThreadContext *tc)
+unameFunc64(SyscallDesc *desc, int callnum, ThreadContext *tc_)
 {
     int index = 0;
-    auto process = tc->getProcessPtr();
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    auto process = tc->PpugetProcessPtr();
     TypedBufferArg<Linux::utsname> name(process->getSyscallArg(tc, index));
 
     strcpy(name->sysname, "Linux");
@@ -109,7 +110,8 @@ static SyscallReturn
 unameFunc32(SyscallDesc *desc, int callnum, ThreadContext *tc)
 {
     int index = 0;
-    auto process = tc->getProcessPtr();
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    auto process = tc->PpugetProcessPtr();
     TypedBufferArg<Linux::utsname> name(process->getSyscallArg(tc, index));
 
     strcpy(name->sysname, "Linux");
@@ -786,7 +788,7 @@ std::map<int, SyscallDescABI<DefaultSyscallABI>>
     {2011, { "getmainvars" }}
 };
 
-PpuLinuxProcess64::PpuLinuxProcess64(ProcessParams * params,
+PpuLinuxProcess64::PpuLinuxProcess64(PpuSOCProcessParams * params,
     ObjectFile *objFile) : PpuProcess64(params, objFile)
 {}
 
@@ -803,7 +805,7 @@ PpuLinuxProcess64::syscall(ThreadContext *tc, Fault *fault)
     doSyscall(tc->readIntReg(SyscallNumReg), tc, fault);
 }
 
-PpuLinuxProcess32::PpuLinuxProcess32(ProcessParams * params,
+PpuLinuxProcess32::PpuLinuxProcess32(PpuSOCProcessParams * params,
     ObjectFile *objFile) : PpuProcess32(params, objFile)
 {}
 

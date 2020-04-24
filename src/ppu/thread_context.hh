@@ -54,6 +54,7 @@
 #include "config/the_isa.hh"
 #include "ppu/pc_event.hh"
 #include "ppu/reg_class.hh"
+#include "cpu/thread_context.hh"
 
 // @todo: Figure out a more architecture independent way to obtain the ITB and
 // DTB pointers.
@@ -67,41 +68,40 @@ class PpuBaseCPU;
 class BaseTLB;
 class PpuCheckerCPU;
 class Checkpoint;
-class EndQuiesceEvent;
+class PpuEndQuiesceEvent;
 class PortProxy;
 class Process;
-class System;
+class PpuSOCProcess;
+class PpuSOCSystem;
 namespace Kernel {
     class Statistics;
 }
 /*
 namespace {
-class ThreadContext;
-using ThreadContext_ = ThreadContext;
+class PpuThreadContext;
+using PpuThreadContext_ = PpuThreadContext;
 }
 */
 
-namespace PpuISA
-{
 
 /**
- * ThreadContext is the external interface to all thread state for
+ * PpuThreadContext is the external interface to all thread state for
  * anything outside of the CPU. It provides all accessor methods to
  * state that might be needed by external objects, ranging from
  * register values to things such as kernel stats. It is an abstract
- * base class; the CPU can create its own ThreadContext by
+ * base class; the CPU can create its own PpuThreadContext by
  * deriving from it.
  *
- * The ThreadContext is slightly different than the ExecContext.  The
- * ThreadContext provides access to an individual thread's state; an
+ * The PpuThreadContext is slightly different than the ExecContext.  The
+ * PpuThreadContext provides access to an individual thread's state; an
  * ExecContext provides ISA access to the CPU (meaning it is
  * implicitly multithreaded on SMT systems).  Additionally the
  * ThreadState is an abstract class that exactly defines the
  * interface; the ExecContext is a more implicit interface that must
  * be implemented so that the ISA can access whatever state it needs.
  */
-// class ThreadContext : public ThreadContext_
-class ThreadContext : public PCEventScope
+// class PpuThreadContext : public PpuPCEventScope
+class PpuThreadContext : public ThreadContext
 {
   protected:
     typedef ThePpuISA::MachInst MachInst;
@@ -110,7 +110,7 @@ class ThreadContext : public PCEventScope
     using VecPredRegContainer = ThePpuISA::VecPredRegContainer;
 
   public:
-
+/*
     enum Status
     {
         /// Running.  Instructions should be executed only when
@@ -130,10 +130,11 @@ class ThreadContext : public PCEventScope
         /// this state, the simulation will terminate.
         Halted
     };
+*/
+    virtual ~PpuThreadContext() { };
 
-    virtual ~ThreadContext() { };
-
-    virtual PpuBaseCPU *getCpuPtr() = 0;
+    // virtual PpuBaseCPU *getCpuPtr() = 0;
+    virtual BaseCPU *getCpuPtr() = 0;
 
     virtual int cpuId() const = 0;
 
@@ -151,13 +152,19 @@ class ThreadContext : public PCEventScope
 
     virtual BaseTLB *getDTBPtr() = 0;
 
-    virtual PpuCheckerCPU *getCheckerCpuPtr() = 0;
+    virtual PpuCheckerCPU *PpugetCheckerCpuPtr() = 0;
+    virtual CheckerCPU *getCheckerCpuPtr() = 0;
 
     virtual BaseISA *getIsaPtr() = 0;
 
     virtual ThePpuISA::Decoder *getDecoderPtr() = 0;
 
-    virtual System *getSystemPtr() = 0;
+    // FIXME schi
+    virtual System *getSystemPtr() {
+        panic("Please use PpugetSystemPtr instead\n");
+    };
+
+    virtual PpuSOCSystem *PpugetSystemPtr() = 0;
 
     virtual ::Kernel::Statistics *getKernelStats() = 0;
 
@@ -169,13 +176,24 @@ class ThreadContext : public PCEventScope
      * Initialise the physical and virtual port proxies and tie them to
      * the data port of the CPU.
      *
-     * tc ThreadContext for the virtual-to-physical translation
+     * tc PpuThreadContext for the virtual-to-physical translation
      */
-    virtual void initMemProxies(ThreadContext *tc) = 0;
+    virtual void initMemProxies(PpuThreadContext *tc) = 0;
 
-    virtual Process *getProcessPtr() = 0;
+    virtual void initMemProxies(ThreadContext *tc) {
+        initMemProxies(dynamic_cast<PpuThreadContext*>(tc));
+    };
 
-    virtual void setProcessPtr(Process *p) = 0;
+    virtual Process *getProcessPtr() {
+         panic("PpuThreadContext get PpugetProcessPtr");
+    }
+
+
+    virtual PpuSOCProcess *PpugetProcessPtr() = 0;
+
+    // virtual void setProcessPtr(Process *p) = 0;
+
+    virtual void setProcessPtr(PpuSOCProcess *p) = 0;
 
     virtual Status status() const = 0;
 
@@ -198,11 +216,20 @@ class ThreadContext : public PCEventScope
 
     virtual void dumpFuncProfile() = 0;
 
-    virtual void takeOverFrom(ThreadContext *old_context) = 0;
+    virtual void takeOverFrom(PpuThreadContext *old_context) = 0;
+
+    virtual void takeOverFrom(ThreadContext *old_context) {
+        takeOverFrom(dynamic_cast<PpuThreadContext*>(old_context));
+    }
 
     virtual void regStats(const std::string &name) = 0;
 
-    virtual EndQuiesceEvent *getQuiesceEvent() = 0;
+    // virtual EndQuiesceEvent *getQuiesceEvent() = 0;
+    virtual EndQuiesceEvent *getQuiesceEvent() {
+        panic("Ppu can't getQuiesceEvent\n");
+    }
+
+    virtual PpuEndQuiesceEvent *PpugetQuiesceEvent() = 0;
 
     virtual void scheduleInstCountEvent(Event *event, Tick count) = 0;
     virtual void descheduleInstCountEvent(Event *event) = 0;
@@ -216,7 +243,11 @@ class ThreadContext : public PCEventScope
     virtual void profileClear() = 0;
     virtual void profileSample() = 0;
 
-    virtual void copyArchRegs(ThreadContext *tc) = 0;
+    virtual void copyArchRegs(PpuThreadContext *tc) = 0;
+
+    virtual void copyArchRegs(ThreadContext *tc) {
+        copyArchRegs(dynamic_cast<PpuThreadContext*>(tc));
+    }
 
     virtual void clearArchRegs() = 0;
 
@@ -330,7 +361,7 @@ class ThreadContext : public PCEventScope
     virtual int exit() { return 1; };
 
     /** function to compare two thread contexts (for debugging) */
-    static void compare(ThreadContext *one, ThreadContext *two);
+    static void compare(PpuThreadContext *one, PpuThreadContext *two);
 
     /** @{ */
     /**
@@ -376,13 +407,13 @@ class ThreadContext : public PCEventScope
  * Thread context serialization helpers
  *
  * These helper functions provide a way to the data in a
- * ThreadContext. They are provided as separate helper function since
- * implementing them as members of the ThreadContext interface would
- * be confusing when the ThreadContext is exported via a proxy.
+ * PpuThreadContext. They are provided as separate helper function since
+ * implementing them as members of the PpuThreadContext interface would
+ * be confusing when the PpuThreadContext is exported via a proxy.
  */
 
-void serialize(const ThreadContext &tc, CheckpointOut &cp);
-void unserialize(ThreadContext &tc, CheckpointIn &cp);
+void serialize(const PpuThreadContext &tc, CheckpointOut &cp);
+void unserialize(PpuThreadContext &tc, CheckpointIn &cp);
 
 /** @} */
 
@@ -394,11 +425,10 @@ void unserialize(ThreadContext &tc, CheckpointIn &cp);
  * new thread context. The old thread context will have its quiesce
  * event descheduled if it is scheduled and its status set to halted.
  *
- * @param new_tc Destination ThreadContext.
- * @param old_tc Source ThreadContext.
+ * @param new_tc Destination PpuThreadContext.
+ * @param old_tc Source PpuThreadContext.
  */
-void takeOverFrom(ThreadContext &new_tc, ThreadContext &old_tc);
+void takeOverFrom(PpuThreadContext &new_tc, PpuThreadContext &old_tc);
 
-} // namespace PpuISA
 
 #endif

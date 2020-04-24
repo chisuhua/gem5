@@ -45,6 +45,7 @@
 
 #include <gem5/asm/generic/m5ops.h>
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -54,6 +55,8 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+class ThreadContext;
 
 #include "arch/pseudo_inst.hh"
 

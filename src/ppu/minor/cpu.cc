@@ -55,18 +55,21 @@ MinorPPU::MinorPPU(MinorPPUParams *params) :
     Minor::MinorThread *thread;
 
     for (ThreadID i = 0; i < numThreads; i++) {
-        if (FullSystem) {
+        if (PpuFullSystem) {
             thread = new Minor::MinorThread(this, i, params->system,
                     params->itb, params->dtb, params->isa[i]);
-            thread->setStatus(ThreadContext::Halted);
+            thread->setStatus(PpuThreadContext::Halted);
         } else {
+            panic("Don't support SE mode in MiniorCPU\n");
+            /*
             thread = new Minor::MinorThread(this, i, params->system,
                     params->workload[i], params->itb, params->dtb,
                     params->isa[i]);
+                    */
         }
 
         threads.push_back(thread);
-        ThreadContext *tc = thread->getTC();
+        PpuThreadContext *tc = thread->getTC();
         threadContexts.push_back(tc);
     }
 
@@ -102,9 +105,9 @@ MinorPPU::init()
             "'timing' mode.\n");
     }
 
-    /* Initialise the ThreadContext's memory proxies */
+    /* Initialise the PpuThreadContext's memory proxies */
     for (ThreadID thread_id = 0; thread_id < threads.size(); thread_id++) {
-        ThreadContext *tc = getContext(thread_id);
+        PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(getContext(thread_id));
 
         tc->initMemProxies(tc);
     }
@@ -160,7 +163,7 @@ MinorPPU::wakeup(ThreadID tid)
     DPRINTF(PpuDrain, "[tid:%d] MinorPPU wakeup\n", tid);
     assert(tid < numThreads);
 
-    if (threads[tid]->status() == ThreadContext::Suspended) {
+    if (threads[tid]->status() == PpuThreadContext::Suspended) {
         threads[tid]->activate();
     }
 }

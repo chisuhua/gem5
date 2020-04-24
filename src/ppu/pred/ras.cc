@@ -31,7 +31,7 @@
 #include "ppu/pred/ras.hh"
 
 void
-ReturnAddrStack::init(unsigned _numEntries)
+PpuReturnAddrStack::init(unsigned _numEntries)
 {
      numEntries  = _numEntries;
      addrStack.resize(numEntries);
@@ -39,7 +39,7 @@ ReturnAddrStack::init(unsigned _numEntries)
 }
 
 void
-ReturnAddrStack::reset()
+PpuReturnAddrStack::reset()
 {
     usedEntries = 0;
     tos = 0;
@@ -48,7 +48,7 @@ ReturnAddrStack::reset()
 }
 
 void
-ReturnAddrStack::push(const ThePpuISA::PCState &return_addr)
+PpuReturnAddrStack::push(const ThePpuISA::PCState &return_addr)
 {
     incrTos();
 
@@ -60,7 +60,7 @@ ReturnAddrStack::push(const ThePpuISA::PCState &return_addr)
 }
 
 void
-ReturnAddrStack::pop()
+PpuReturnAddrStack::pop()
 {
     if (usedEntries > 0) {
         --usedEntries;
@@ -70,7 +70,7 @@ ReturnAddrStack::pop()
 }
 
 void
-ReturnAddrStack::restore(unsigned top_entry_idx,
+PpuReturnAddrStack::restore(unsigned top_entry_idx,
                          const ThePpuISA::PCState &restored)
 {
     tos = top_entry_idx;

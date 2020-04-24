@@ -41,7 +41,6 @@
  *          Nathanael Premillieu
  *          Rekai Gonzalez
  */
-
 #ifndef __PPU__REG_CLASS_HH__
 #define __PPU__REG_CLASS_HH__
 

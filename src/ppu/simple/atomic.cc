@@ -158,7 +158,7 @@ AtomicSimpleCPU::drainResume()
     _status = BaseSimpleCPU::Idle;
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
-        if (threadInfo[tid]->thread->status() == ThreadContext::Active) {
+        if (threadInfo[tid]->thread->status() == PpuThreadContext::Active) {
             threadInfo[tid]->notIdleFraction = 1;
             activeThreads.push_back(tid);
             _status = BaseSimpleCPU::Running;

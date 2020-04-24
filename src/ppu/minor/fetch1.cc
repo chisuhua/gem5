@@ -133,7 +133,7 @@ Fetch1::getScheduledThread()
     }
 
     for (auto tid : priority_list) {
-        if (cpu.getContext(tid)->status() == ThreadContext::Active &&
+        if (cpu.getContext(tid)->status() == PpuThreadContext::Active &&
             !fetchInfo[tid].blocked &&
             fetchInfo[tid].state == FetchRunning) {
             threadPriority = tid;
@@ -238,7 +238,7 @@ Fetch1::FetchRequest::makePacket()
 
 void
 Fetch1::FetchRequest::finish(const Fault &fault_, const RequestPtr &request_,
-                             ThreadContext *tc, BaseTLB::Mode mode)
+                             PpuThreadContext *tc, BaseTLB::Mode mode)
 {
     fault = fault_;
 
@@ -713,7 +713,7 @@ Fetch1::evaluate()
 void
 Fetch1::wakeupFetch(ThreadID tid)
 {
-    ThreadContext *thread_ctx = cpu.getContext(tid);
+    PpuThreadContext *thread_ctx = dynamic_cast<PpuThreadContext*>(cpu.getContext(tid));
     Fetch1ThreadInfo &thread = fetchInfo[tid];
     thread.pc = thread_ctx->pcState();
     thread.state = FetchRunning;

@@ -59,7 +59,7 @@ if env['TARGET_PPU_ISA'] == 'ppu':
     Source('isa.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('interrupts.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('locked_mem.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('process.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    #Source('process.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('pagetable.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('remote_gdb.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('stacktrace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

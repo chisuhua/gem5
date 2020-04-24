@@ -30,13 +30,13 @@
 
 #include "ppu/cpuevent.hh"
 
-/** Static list of all CpuEvent objects so we can modify their thread
+/** Static list of all PpuCpuEvent objects so we can modify their thread
  * contexts as needed. */
-CpuEvent::CpuEventList CpuEvent::cpuEventList;
+PpuCpuEvent::PpuCpuEventList PpuCpuEvent::cpuEventList;
 
-CpuEvent::~CpuEvent()
+PpuCpuEvent::~PpuCpuEvent()
 {
-    CpuEventList::iterator i;
+    PpuCpuEventList::iterator i;
 
     // delete the event from the global list
     for (i = cpuEventList.begin(); i != cpuEventList.end(); ) {
@@ -48,9 +48,9 @@ CpuEvent::~CpuEvent()
 }
 
 void
-CpuEvent::replaceThreadContext(ThreadContext *oldTc, ThreadContext *newTc)
+PpuCpuEvent::replaceThreadContext(PpuThreadContext *oldTc, PpuThreadContext *newTc)
 {
-    CpuEventList::iterator i;
+    PpuCpuEventList::iterator i;
 
     // Update any events that have the old thread context with the new thread
     // context

@@ -36,9 +36,9 @@
 #include "ppu/base.hh"
 #include "ppu/profile.hh"
 #include "ppu/thread_context.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 
-class EndQuiesceEvent;
+class PpuEndQuiesceEvent;
 class FunctionProfile;
 class ProfileNode;
 namespace Kernel {
@@ -58,9 +58,9 @@ namespace PpuISA {
  *  to hold more thread-specific stats within it.
  */
 struct ThreadState : public Serializable {
-    typedef ThreadContext::Status Status;
+    typedef PpuThreadContext::Status Status;
 
-    ThreadState(PpuBaseCPU *cpu, ThreadID _tid, Process *_process);
+    ThreadState(PpuBaseCPU *cpu, ThreadID _tid, PpuSOCProcess *_process);
 
     virtual ~ThreadState();
 
@@ -88,13 +88,13 @@ struct ThreadState : public Serializable {
      * Initialise the physical and virtual port proxies and tie them to
      * the data port of the CPU.
      *
-     * @param tc ThreadContext for the virtual-to-physical translation
+     * @param tc PpuThreadContext for the virtual-to-physical translation
      */
-    void initMemProxies(ThreadContext *tc);
+    void initMemProxies(PpuThreadContext *tc);
 
     void dumpFuncProfile();
 
-    EndQuiesceEvent *getQuiesceEvent() { return quiesceEvent; }
+    PpuEndQuiesceEvent *PpugetQuiesceEvent() { return quiesceEvent; }
 
     void profileClear();
 
@@ -106,9 +106,9 @@ struct ThreadState : public Serializable {
 
     PortProxy &getVirtProxy();
 
-    Process *getProcessPtr() { return process; }
+    PpuSOCProcess *getProcessPtr() { return process; }
 
-    void setProcessPtr(Process *p)
+    void setProcessPtr(PpuSOCProcess *p)
     {
         process = p;
         /**
@@ -161,7 +161,7 @@ struct ThreadState : public Serializable {
     Counter startNumLoad;
 
   protected:
-    ThreadContext::Status _status;
+    PpuThreadContext::Status _status;
 
     // Pointer to the base CPU.
     PpuBaseCPU *baseCpu;
@@ -183,12 +183,12 @@ struct ThreadState : public Serializable {
     FunctionProfile *profile;
     ProfileNode *profileNode;
     Addr profilePC;
-    EndQuiesceEvent *quiesceEvent;
+    PpuEndQuiesceEvent *quiesceEvent;
 
     Kernel::Statistics *kernelStats;
 
   protected:
-    Process *process;
+    PpuSOCProcess *process;
 
     /** A port proxy outgoing only for functional accesses to physical
      * addresses.*/

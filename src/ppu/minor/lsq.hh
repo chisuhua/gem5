@@ -280,8 +280,13 @@ class LSQ : public Named
       protected:
         /** TLB interace */
         void finish(const Fault &fault_, const RequestPtr &request_,
-                    ThreadContext *tc, BaseTLB::Mode mode)
+                    PpuThreadContext *tc, BaseTLB::Mode mode)
         { }
+
+        /** TLB interace */
+        void finish(const Fault &fault_, const RequestPtr &request_,
+                    ThreadContext *tc, BaseTLB::Mode mode)
+        { finish(fault_, request_, dynamic_cast<PpuThreadContext*>(tc), mode); }
 
       public:
         /** Send single translation request */
@@ -341,7 +346,12 @@ class LSQ : public Named
       protected:
         /** TLB interace */
         void finish(const Fault &fault_, const RequestPtr &request_,
-                    ThreadContext *tc, BaseTLB::Mode mode);
+                    PpuThreadContext *tc, BaseTLB::Mode mode);
+
+        void finish(const Fault &fault_, const RequestPtr &request_,
+                    ThreadContext *tc, BaseTLB::Mode mode) {
+            finish(fault_, request_, dynamic_cast<PpuThreadContext*>(tc), mode);
+        };
 
         /** Has my only packet been sent to the memory system but has not
          *  yet been responded to */
@@ -414,7 +424,12 @@ class LSQ : public Named
       protected:
         /** TLB response interface */
         void finish(const Fault &fault_, const RequestPtr &request_,
-                    ThreadContext *tc, BaseTLB::Mode mode);
+                    PpuThreadContext *tc, BaseTLB::Mode mode);
+
+        void finish(const Fault &fault_, const RequestPtr &request_,
+                    ThreadContext *tc, BaseTLB::Mode mode) {
+            finish(fault_, request_, dynamic_cast<PpuThreadContext*>(tc), mode);
+        };
 
       public:
         SplitDataRequest(LSQ &port_, MinorDynInstPtr inst_,

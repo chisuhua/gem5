@@ -35,15 +35,18 @@
 
 #include "sim/eventq.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 /**
  * This class creates a global list of events that need a pointer to a
@@ -53,45 +56,45 @@ using namespace PpuISA;
  * events. This object MUST be dynamically allocated to avoid it being
  * deleted after a cpu switch happens.
  */
-class CpuEvent : public Event
+class PpuCpuEvent : public Event
 {
   protected:
     /** type of global list of cpu events. */
-    typedef std::vector<CpuEvent *> CpuEventList;
+    typedef std::vector<PpuCpuEvent *> PpuCpuEventList;
 
     /** Static list of cpu events that is searched every time a cpu switch
      * happens. */
-    static CpuEventList cpuEventList;
+    static PpuCpuEventList cpuEventList;
 
     /** The thread context that is switched to the new cpus. */
-    ThreadContext *tc;
+    PpuThreadContext *tc;
 
   public:
-    CpuEvent(ThreadContext *_tc, Priority p = Default_Pri)
+    PpuCpuEvent(PpuThreadContext *_tc, Priority p = Default_Pri)
         : Event(p), tc(_tc)
     { cpuEventList.push_back(this); }
 
     /** delete the cpu event from the global list. */
-    ~CpuEvent();
+    ~PpuCpuEvent();
 
     /** Update all events switching old tc to new tc.
      * @param oldTc the old thread context we are switching from
      * @param newTc the new thread context we are switching to.
      */
-    static void replaceThreadContext(ThreadContext *oldTc,
-                                     ThreadContext *newTc);
-    ThreadContext* getTC() { return tc; }
+    static void replaceThreadContext(PpuThreadContext *oldTc,
+                                     PpuThreadContext *newTc);
+    PpuThreadContext* getTC() { return tc; }
 };
 
-template <class T, void (T::* F)(ThreadContext *tc)>
-class CpuEventWrapper : public CpuEvent
+template <class T, void (T::* F)(PpuThreadContext *tc)>
+class PpuCpuEventWrapper : public PpuCpuEvent
 {
   private:
     T *object;
 
   public:
-    CpuEventWrapper(T *obj, ThreadContext *_tc, Priority p = Default_Pri)
-        : CpuEvent(_tc, p), object(obj)
+    PpuCpuEventWrapper(T *obj, PpuThreadContext *_tc, Priority p = Default_Pri)
+        : PpuCpuEvent(_tc, p), object(obj)
     { }
     void process() { (object->*F)(tc); }
 };

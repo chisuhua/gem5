@@ -41,9 +41,9 @@
 #include "arch/ppu/isa_traits.hh"
 #include "arch/ppu/utility.hh"
 
+class ThreadContext;
 
 namespace PpuISA {
-class ThreadContext;
 
 inline Addr
 vtophys(Addr vaddr)

@@ -42,7 +42,7 @@
  * a few operators.  This can be used to form expressions for the extra
  * delay required in variable execution time instructions.
  *
- * Expressions, in evaluation, will have access to the ThreadContext and
+ * Expressions, in evaluation, will have access to the PpuThreadContext and
  * a StaticInst.
  */
 
@@ -79,7 +79,7 @@ class TimingExprEvalContext
   public:
     /** Special visible context */
     const StaticInstPtr &inst;
-    ThreadContext *thread;
+    PpuThreadContext *thread;
 
     /** Context visible as sub expressions.  results will hold the results
      *  of (lazily) evaluating let's expressions.  resultAvailable elements
@@ -89,8 +89,9 @@ class TimingExprEvalContext
     std::vector<bool > resultAvailable;
 
     TimingExprEvalContext(const StaticInstPtr &inst_,
-        ThreadContext *thread_, TimingExprLet *let_);
+        PpuThreadContext *thread_, TimingExprLet *let_);
 };
+
 
 class TimingExpr : public SimObject
 {
@@ -218,5 +219,20 @@ class TimingExprIf : public TimingExpr
     uint64_t eval(TimingExprEvalContext &context);
 };
 // }
+// TODO schi move from cc to hh
+inline TimingExprEvalContext::TimingExprEvalContext(const StaticInstPtr &inst_,
+    PpuThreadContext *thread_,
+    TimingExprLet *let_) :
+    inst(inst_), thread(thread_), let(let_)
+{
+    /* Reserve space to hold the results of evaluating the
+     *  let expressions */
+    if (let) {
+        unsigned int num_defns = let->defns.size();
+
+        results.resize(num_defns, 0);
+        resultAvailable.resize(num_defns, false);
+    }
+}
 
 #endif

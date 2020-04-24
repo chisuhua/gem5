@@ -392,7 +392,7 @@ Checker<Impl>::verify(const DynInstPtr &completed_inst)
 
         // Take any faults here
         if (fault != NoFault) {
-            if (FullSystem) {
+            if (PpuFullSystem) {
                 fault->invoke(tc, curStaticInst);
                 willChangePC = true;
                 newPCState = thread->pcState();
@@ -403,7 +403,7 @@ Checker<Impl>::verify(const DynInstPtr &completed_inst)
            advancePC(fault);
         }
 
-        if (FullSystem) {
+        if (PpuFullSystem) {
             // @todo: Determine if these should happen only if the
             // instruction hasn't faulted.  In the SimpleCPU case this may
             // not be true, but in the O3 case this may be true.

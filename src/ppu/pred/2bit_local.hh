@@ -58,7 +58,7 @@
  * predictor state that needs to be recorded or updated; the update can be
  * determined solely by the branch being taken or not taken.
  */
-class LocalBP : public BPredUnit
+class LocalBP : public PpuBPredUnit
 {
   public:
     /**

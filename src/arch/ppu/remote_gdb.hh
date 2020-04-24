@@ -39,15 +39,15 @@
 #include <string>
 
 #include "arch/ppu/registers.hh"
-#include "base/remote_gdb.hh"
+#include "ppu_base/remote_gdb.hh"
 
-class System;
+class PpuSOCSystem;
+class ThreadContext;
 
 namespace PpuISA
 {
-class ThreadContext;
 
-class RemoteGDB : public BaseRemoteGDB
+class RemoteGDB : public PpuBaseRemoteGDB
 {
   protected:
     static const int ExplicitCSRs = 4;
@@ -58,9 +58,9 @@ class RemoteGDB : public BaseRemoteGDB
     // A breakpoint will be 2 bytes if it is compressed and 4 if not
     bool checkBpLen(size_t len) override { return len == 2 || len == 4; }
 
-    class PpuGdbRegCache : public BaseGdbRegCache
+    class PpuGdbRegCache : public PpuBaseGdbRegCache
     {
-      using BaseGdbRegCache::BaseGdbRegCache;
+      using PpuBaseGdbRegCache::PpuBaseGdbRegCache;
       private:
         struct {
             uint64_t gpr[NumIntArchRegs];
@@ -90,9 +90,9 @@ class RemoteGDB : public BaseRemoteGDB
     /**
      * 32 Bit architecture
      */
-    class Ppu32GdbRegCache : public BaseGdbRegCache
+    class Ppu32GdbRegCache : public PpuBaseGdbRegCache
     {
-      using BaseGdbRegCache::BaseGdbRegCache;
+      using PpuBaseGdbRegCache::PpuBaseGdbRegCache;
       private:
         struct {
             uint32_t gpr[NumIntArchRegs];
@@ -119,8 +119,8 @@ class RemoteGDB : public BaseRemoteGDB
     Ppu32GdbRegCache regCache32;
 
   public:
-    RemoteGDB(System *_system, ThreadContext *tc, int _port);
-    BaseGdbRegCache *gdbRegs() override;
+    RemoteGDB(PpuSOCSystem *_system, ThreadContext *tc, int _port);
+    PpuBaseGdbRegCache *gdbRegs() override;
 };
 
 } // namespace PpuISA

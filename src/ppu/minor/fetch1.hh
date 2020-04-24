@@ -164,7 +164,13 @@ class Fetch1 : public Named
          *  the request on to the ports' handleTLBResponse member
          *  function */
         void finish(const Fault &fault_, const RequestPtr &request_,
-                    ThreadContext *tc, BaseTLB::Mode mode);
+                    PpuThreadContext *tc, BaseTLB::Mode mode);
+
+        void finish(const Fault &fault_, const RequestPtr &request_,
+                    ThreadContext *tc, BaseTLB::Mode mode) {
+            finish(fault_, request_, dynamic_cast<PpuThreadContext*>(tc), mode);
+        };
+
 
       public:
         FetchRequest(Fetch1 &fetch_, InstId id_, ThePpuISA::PCState pc_) :

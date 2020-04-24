@@ -30,10 +30,12 @@
 
 Import('*')
 
-#SimObject('System.py')
+SimObject('PpuSOCSystem.py')
+#SimObject('PpuSOCProcess.py')
 #Source('arguments.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-#Source('system.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('system.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('process.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 #
-#DebugFlag('PpuLoader')
-#DebugFlag('PpuWorkItems')
+DebugFlag('PpuLoader')
+DebugFlag('PpuWorkItems')
 

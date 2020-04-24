@@ -56,7 +56,7 @@ PpuFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
     PCState pcState = tc->pcState();
 
-    if (FullSystem) {
+    if (PpuFullSystem) {
         PrivilegeMode pp = (PrivilegeMode)tc->readMiscReg(MISCREG_PRV);
         PrivilegeMode prv = PRV_M;
         STATUS status = tc->readMiscReg(MISCREG_STATUS);
@@ -139,10 +139,11 @@ PpuFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     tc->pcState(pcState);
 }
 
-void Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
+void Reset::invoke(ThreadContext *tc_, const StaticInstPtr &inst)
 {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
     // TODO copied from ppu-ccc
-    if (FullSystem)
+    if (PpuFullSystem)
     {
         tc->getCpuPtr()->clearInterrupts(tc->threadId());
         tc->clearArchRegs();
@@ -160,7 +161,7 @@ void Reset::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     }
 
     // Advance the PC to the implementation-defined reset vector
-    PCState pc = static_cast<PpuSystem *>(tc->getSystemPtr())->resetVect();
+    PCState pc = static_cast<PpuSystem *>(tc->PpugetSystemPtr())->resetVect();
     tc->pcState(pc);
 }
 
@@ -228,7 +229,8 @@ void
 SyscallFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
     // redirect se mode syscall faults
-    if (!FullSystem) {
+    if (!PpuFullSystem) {
+        panic("Ppu SyscallFault::invoke only support FullSystem\n");
         PpuFault::invoke(tc, inst);
         return;
     }

@@ -49,7 +49,7 @@ namespace Trace {
 class IntelTraceRecord : public InstRecord
 {
   public:
-    IntelTraceRecord(Tick _when, ThreadContext *_thread,
+    IntelTraceRecord(Tick _when, PpuThreadContext *_thread,
                const StaticInstPtr _staticInst, ThePpuISA::PCState _pc,
                const StaticInstPtr _macroStaticInst = NULL)
         : InstRecord(_when, _thread, _staticInst, _pc,
@@ -68,7 +68,7 @@ class IntelTrace : public InstTracer
     {}
 
     IntelTraceRecord *
-    getInstRecord(Tick when, ThreadContext *tc,
+    getInstRecord(Tick when, PpuThreadContext *tc,
             const StaticInstPtr staticInst, ThePpuISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {

@@ -56,7 +56,7 @@
 #include "ppu/pred/ras.hh"
 #include "ppu/inst_seq.hh"
 #include "ppu/static_inst.hh"
-#include "params/BranchPredictor.hh"
+#include "params/PpuBranchPredictor.hh"
 #include "sim/probe/pmu.hh"
 #include "sim/sim_object.hh"
 
@@ -68,14 +68,14 @@ using namespace PpuISA;
  * Basically a wrapper class to hold both the branch predictor
  * and the BTB.
  */
-class BPredUnit : public SimObject
+class PpuBPredUnit : public SimObject
 {
   public:
-      typedef BranchPredictorParams Params;
+      typedef PpuBranchPredictorParams Params;
     /**
      * @param params The params object, that has the size of the BP and BTB.
      */
-    BPredUnit(const Params *p);
+    PpuBPredUnit(const Params *p);
 
     /**
      * Registers statistics.
@@ -284,13 +284,13 @@ class BPredUnit : public SimObject
     std::vector<History> predHist;
 
     /** The BTB. */
-    DefaultBTB BTB;
+    PpuDefaultBTB BTB;
 
     /** The per-thread return address stack. */
-    std::vector<ReturnAddrStack> RAS;
+    std::vector<PpuReturnAddrStack> RAS;
 
     /** The indirect target predictor. */
-    IndirectPredictor * iPred;
+    PpuIndirectPredictor * iPred;
 
     /** Stat for number of BP lookups. */
     Stats::Scalar lookups;

@@ -67,12 +67,16 @@
 #include "sim/futex_map.hh"
 #include "sim/redirect_path.hh"
 #include "sim/se_signal.hh"
-#include "sim/sim_object.hh"
 
-class BaseRemoteGDB;
+// we need it to inherit system
+#include "sim/system.hh"
+// #include "sim/sim_object.hh"
+
+class PpuBaseRemoteGDB;
 class KvmVM;
 class ObjectFile;
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
@@ -82,13 +86,16 @@ class ThreadContext;
 };
 using namespace PpuISA;
 #endif
+#endif
+class ThreadContext;
 
 /*
 namespace PpuISA
 {
 */
 
-class System : public SimObject, public PCEventScope
+// class PpuSOCSystem : public SimObject, public PpuPCEventScope
+class PpuSOCSystem : public PpuPCEventScope, public System
 {
   private:
 
@@ -113,7 +120,7 @@ class System : public SimObject, public PCEventScope
         { panic("SystemPort does not expect retry!\n"); }
     };
 
-    std::list<PCEvent *> liveEvents;
+    std::list<PpuPCEvent *> liveEvents;
     SystemPort _systemPort;
 
   public:
@@ -214,8 +221,8 @@ class System : public SimObject, public PCEventScope
 
     using SimObject::schedule;
 
-    bool schedule(PCEvent *event) override;
-    bool remove(PCEvent *event) override;
+    bool schedule(PpuPCEvent *event) override;
+    bool remove(PpuPCEvent *event) override;
 
     unsigned numContexts() const { return threadContexts.size(); }
 
@@ -298,7 +305,7 @@ class System : public SimObject, public PCEventScope
     /**
      * Get the architecture.
      */
-    Arch getArch() const { return Arch::TheISA; }
+    Arch getArch() const { return Arch::ThePpuISA; }
 
     /**
      * Get the guest byte order.
@@ -307,7 +314,7 @@ class System : public SimObject, public PCEventScope
     getGuestByteOrder() const
     {
 #if THE_ISA != NULL_ISA
-        return TheISA::GuestByteOrder;
+        return ThePpuISA::GuestByteOrder;
 #else
         panic("The NULL ISA has no endianness.");
 #endif
@@ -316,12 +323,12 @@ class System : public SimObject, public PCEventScope
      /**
      * Get the page bytes for the ISA.
      */
-    Addr getPageBytes() const { return TheISA::PageBytes; }
+    Addr getPageBytes() const { return ThePpuISA::PageBytes; }
 
     /**
      * Get the number of bits worth of in-page address for the ISA.
      */
-    Addr getPageShift() const { return TheISA::PageShift; }
+    Addr getPageShift() const { return ThePpuISA::PageShift; }
 
     /**
      * The thermal model used for this system (if any).
@@ -575,7 +582,7 @@ class System : public SimObject, public PCEventScope
     /** @} */
 
   public:
-    std::vector<BaseRemoteGDB *> remoteGDB;
+    std::vector<PpuBaseRemoteGDB *> remoteGDB;
     bool breakpoint();
 
   public:
@@ -591,8 +598,8 @@ class System : public SimObject, public PCEventScope
     const AddrRange _m5opRange;
 
   public:
-    System(Params *p);
-    ~System();
+    PpuSOCSystem(Params *p);
+    ~PpuSOCSystem();
 
     void initState() override;
 
@@ -648,7 +655,7 @@ class System : public SimObject, public PCEventScope
     //
     ////////////////////////////////////////////
 
-    static std::vector<System *> systemList;
+    static std::vector<PpuSOCSystem *> systemList;
     static int numSystemsRunning;
 
     static void printSystems();
@@ -690,7 +697,7 @@ class System : public SimObject, public PCEventScope
     virtual void unserializeSymtab(CheckpointIn &cp) {}
 };
 
-void printSystems();
+void printPpuSOCSystems();
 // } // namespace PpuISA
 
 #endif // __SYSTEM_HH__

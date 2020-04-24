@@ -314,8 +314,8 @@ class ExecContext {
 
     /** @} */
 
-    /** Returns a pointer to the ThreadContext. */
-    virtual ThreadContext *tcBase() = 0;
+    /** Returns a pointer to the PpuThreadContext. */
+    virtual PpuThreadContext *tcBase() = 0;
 
     /**
      * @{
@@ -340,7 +340,7 @@ class ExecContext {
     virtual void demapPage(Addr vaddr, uint64_t asn) = 0;
     virtual void armMonitor(Addr address) = 0;
     virtual bool mwait(PacketPtr pkt) = 0;
-    virtual void mwaitAtomic(ThreadContext *tc) = 0;
+    virtual void mwaitAtomic(PpuThreadContext *tc) = 0;
     virtual AddressMonitor *getAddrMonitor() = 0;
 
     /** @} */

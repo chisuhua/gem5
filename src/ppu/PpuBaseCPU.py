@@ -59,6 +59,7 @@ from m5.objects.CPUTracers import ExeTracer
 from m5.objects.SubSystem import SubSystem
 from m5.objects.ClockDomain import *
 from m5.objects.Platform import Platform
+from m5.objects.BaseCPU import BaseCPU
 
 default_tracer = ExeTracer()
 
@@ -107,7 +108,8 @@ else:
             buildEnv['TARGET_PPU_ISA'])
     sys.exit(1)
 
-class PpuBaseCPU(ClockedObject):
+#class PpuBaseCPU(ClockedObject):
+class PpuBaseCPU(BaseCPU):
     type = 'PpuBaseCPU'
     abstract = True
     cxx_header = "ppu/base.hh"
@@ -145,7 +147,7 @@ class PpuBaseCPU(ClockedObject):
         self._ccObject.takeOverFrom(old_cpu._ccObject)
 
 
-    system = Param.System(Parent.any, "system object")
+    system = Param.PpuSOCSystem(Parent.any, "system object")
     cpu_id = Param.Int(-1, "CPU identifier")
     socket_id = Param.Unsigned(0, "Physical Socket identifier")
     numThreads = Param.Unsigned(1, "number of HW thread contexts")

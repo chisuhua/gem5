@@ -38,7 +38,7 @@
 #include "base/intmath.hh"
 
 BiModeBP::BiModeBP(const BiModeBPParams *params)
-    : BPredUnit(params),
+    : PpuBPredUnit(params),
       globalHistoryReg(params->numThreads, 0),
       globalHistoryBits(ceilLog2(params->globalPredictorSize)),
       choicePredictorSize(params->choicePredictorSize),

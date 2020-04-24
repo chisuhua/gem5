@@ -101,14 +101,14 @@ Scoreboard::findIndex(const RegId& reg, Index &scoreboard_index)
 
 /** Flatten a RegId, irrespective of what reg type it's pointing to */
 static RegId
-flattenRegIndex(const RegId& reg, ThreadContext *thread_context)
+flattenRegIndex(const RegId& reg, PpuThreadContext *thread_context)
 {
     return thread_context->flattenRegId(reg);
 }
 
 void
 Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
-    ThreadContext *thread_context, bool mark_unpredictable)
+    PpuThreadContext *thread_context, bool mark_unpredictable)
 {
     if (inst->isFault())
         return;
@@ -152,7 +152,7 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
 
 InstSeqNum
 Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
-    ThreadContext *thread_context)
+    PpuThreadContext *thread_context)
 {
     InstSeqNum ret = 0;
 
@@ -218,7 +218,7 @@ bool
 Scoreboard::canInstIssue(MinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
-    Cycles now, ThreadContext *thread_context)
+    Cycles now, PpuThreadContext *thread_context)
 {
     /* Always allow fault to be issued */
     if (inst->isFault())

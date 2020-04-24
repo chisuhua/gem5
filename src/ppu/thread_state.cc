@@ -43,9 +43,9 @@
 #include "sim/serialize.hh"
 #include "ppu_sim/system.hh"
 
-ThreadState::ThreadState(PpuBaseCPU *cpu, ThreadID _tid, Process *_process)
+ThreadState::ThreadState(PpuBaseCPU *cpu, ThreadID _tid, PpuSOCProcess *_process)
     : numInst(0), numOp(0), numLoad(0), startNumLoad(0),
-      _status(ThreadContext::Halted), baseCpu(cpu),
+      _status(PpuThreadContext::Halted), baseCpu(cpu),
       _contextId(0), _threadId(_tid), lastActivate(0), lastSuspend(0),
       profile(NULL), profileNode(NULL), profilePC(0), quiesceEvent(NULL),
       kernelStats(NULL), process(_process), physProxy(NULL), virtProxy(NULL),
@@ -68,7 +68,7 @@ ThreadState::serialize(CheckpointOut &cp) const
     // thread_num and cpu_id are deterministic from the config
     SERIALIZE_SCALAR(funcExeInst);
 
-    if (!FullSystem)
+    if (!PpuFullSystem)
         return;
 
     Tick quiesceEndTick = 0;
@@ -87,7 +87,7 @@ ThreadState::unserialize(CheckpointIn &cp)
     // thread_num and cpu_id are deterministic from the config
     UNSERIALIZE_SCALAR(funcExeInst);
 
-    if (!FullSystem)
+    if (!PpuFullSystem)
         return;
 
     Tick quiesceEndTick;
@@ -99,13 +99,13 @@ ThreadState::unserialize(CheckpointIn &cp)
 }
 
 void
-ThreadState::initMemProxies(ThreadContext *tc)
+ThreadState::initMemProxies(PpuThreadContext *tc)
 {
     // The port proxies only refer to the data port on the CPU side
     // and can safely be done at init() time even if the CPU is not
     // connected, i.e. when restoring from a checkpoint and later
     // switching the CPU in.
-    if (FullSystem) {
+    if (PpuFullSystem) {
         assert(physProxy == NULL);
         // This cannot be done in the constructor as the thread state
         // itself is created in the base cpu constructor and the
@@ -116,17 +116,20 @@ ThreadState::initMemProxies(ThreadContext *tc)
         assert(virtProxy == NULL);
         virtProxy = new FSTranslatingPortProxy(tc);
     } else {
+        panic("PPU don't suport SE ThreadState::initMemProxies\n");
+        /*
         assert(virtProxy == NULL);
         virtProxy = new SETranslatingPortProxy(baseCpu->getSendFunctional(),
                                            process,
                                            SETranslatingPortProxy::NextPage);
+                                           */
     }
 }
 
 PortProxy &
 ThreadState::getPhysProxy()
 {
-    assert(FullSystem);
+    assert(PpuFullSystem);
     assert(physProxy != NULL);
     return *physProxy;
 }

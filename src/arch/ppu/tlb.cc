@@ -52,7 +52,7 @@
 #include "mem/page_table.hh"
 #include "params/PpuTLB.hh"
 #include "sim/full_system.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 
 using namespace std;
 using namespace PpuISA;
@@ -284,14 +284,15 @@ TLB::regStats()
 }
 
 Fault
-TLB::translateInst(const RequestPtr &req, ThreadContext *tc)
+TLB::translateInst(const RequestPtr &req, ThreadContext *tc_)
 {
-    if (FullSystem) {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+    if (PpuFullSystem) {
         /**
          * check if we simulate a bare metal system
          * if so, we have no tlb, phys addr == virt addr
          */
-        if (static_cast<PpuSystem *>(tc->getSystemPtr())->isBareMetal())
+        if (static_cast<PpuSystem *>(tc->PpugetSystemPtr())->isBareMetal())
             req->setFlags(Request::PHYSICAL);
 
         if (req->getFlags() & Request::PHYSICAL) {
@@ -305,28 +306,32 @@ TLB::translateInst(const RequestPtr &req, ThreadContext *tc)
              * as we currently support bare metal only, we throw a panic,
              * if it is not a bare metal system
              */
-            panic("translateInst not implemented in RISC-V.\n");
+            panic("translateInst not implemented in PPU.\n");
         }
     } else {
-        Process * p = tc->getProcessPtr();
+        panic("TLB::translateInst only support FullSystem.\n");
+        /*
+        PpuSOCProcess * p = tc->PpugetProcessPtr();
 
         Fault fault = p->pTable->translate(req);
         if (fault != NoFault)
             return fault;
 
         return NoFault;
+        */
     }
 }
 
 Fault
-TLB::translateData(const RequestPtr &req, ThreadContext *tc, bool write)
+TLB::translateData(const RequestPtr &req, ThreadContext *tc_, bool write)
 {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
     if (FullSystem) {
         /**
          * check if we simulate a bare metal system
          * if so, we have no tlb, phys addr == virt addr
          */
-        if (static_cast<PpuSystem *>(tc->getSystemPtr())->isBareMetal())
+        if (static_cast<PpuSystem *>(tc->PpugetSystemPtr())->isBareMetal())
             req->setFlags(Request::PHYSICAL);
 
         if (req->getFlags() & Request::PHYSICAL) {
@@ -343,6 +348,8 @@ TLB::translateData(const RequestPtr &req, ThreadContext *tc, bool write)
             panic("translateData not implemented in RISC-V.\n");
         }
     } else {
+        panic("TLB::translateData only support FullSystem.\n");
+        /*
         // In the O3 CPU model, sometimes a memory access will be speculatively
         // executed along a branch that will end up not being taken where the
         // address is invalid.  In that case, return a fault rather than trying
@@ -354,13 +361,14 @@ TLB::translateData(const RequestPtr &req, ThreadContext *tc, bool write)
         if (req->getVaddr() + req->getSize() - 1 < req->getVaddr())
             return make_shared<GenericPageTableFault>(req->getVaddr());
 
-        Process * p = tc->getProcessPtr();
+        PpuSOCProcess * p = tc->PpugetProcessPtr();
 
         Fault fault = p->pTable->translate(req);
         if (fault != NoFault)
             return fault;
 
         return NoFault;
+        */
     }
 }
 

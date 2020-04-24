@@ -68,7 +68,7 @@ NonCachingSimpleCPU *
 NonCachingSimpleCPUParams::create()
 {
     numThreads = 1;
-    if (!FullSystem && workload.size() != 1)
+    if (!PpuFullSystem && workload.size() != 1)
         fatal("only one workload allowed");
     return new NonCachingSimpleCPU(this);
 }

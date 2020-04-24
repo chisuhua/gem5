@@ -29,42 +29,45 @@
  *          Steve Reinhardt
  */
 
-#ifndef __PC_EVENT_HH__
-#define __PC_EVENT_HH__
+#ifndef __PPU_PC_EVENT_HH__
+#define __PPU_PC_EVENT_HH__
 
 #include <vector>
 
 #include "base/logging.hh"
 #include "base/types.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 
 
-class PCEventQueue;
-class System;
-class PCEventScope;
+class PpuPCEventQueue;
+class PpuSOCSystem;
+class PpuPCEventScope;
 
-class PCEvent
+class PpuPCEvent
 {
   protected:
     std::string description;
-    PCEventScope *scope;
+    PpuPCEventScope *scope;
     Addr evpc;
 
   public:
-    PCEvent(PCEventScope *q, const std::string &desc, Addr pc);
+    PpuPCEvent(PpuPCEventScope *q, const std::string &desc, Addr pc);
 
-    virtual ~PCEvent() { if (scope) remove(); }
+    virtual ~PpuPCEvent() { if (scope) remove(); }
 
     // for DPRINTF
     virtual const std::string name() const { return description; }
@@ -73,38 +76,38 @@ class PCEvent
     Addr pc() const { return evpc; }
 
     bool remove();
-    virtual void process(ThreadContext *tc) = 0;
+    virtual void process(PpuThreadContext *tc) = 0;
 };
 
-class PCEventScope
+class PpuPCEventScope
 {
   public:
-    virtual bool remove(PCEvent *event) = 0;
-    virtual bool schedule(PCEvent *event) = 0;
+    virtual bool remove(PpuPCEvent *event) = 0;
+    virtual bool schedule(PpuPCEvent *event) = 0;
 };
 
-class PCEventQueue : public PCEventScope
+class PpuPCEventQueue : public PpuPCEventScope
 {
   protected:
     class MapCompare {
       public:
         bool
-        operator()(PCEvent * const &l, PCEvent * const &r) const
+        operator()(PpuPCEvent * const &l, PpuPCEvent * const &r) const
         {
             return l->pc() < r->pc();
         }
         bool
-        operator()(PCEvent * const &l, Addr pc) const
+        operator()(PpuPCEvent * const &l, Addr pc) const
         {
             return l->pc() < pc;
         }
         bool
-        operator()(Addr pc, PCEvent * const &r) const
+        operator()(Addr pc, PpuPCEvent * const &r) const
         {
             return pc < r->pc();
         }
     };
-    typedef std::vector<PCEvent *> Map;
+    typedef std::vector<PpuPCEvent *> Map;
 
   public:
     typedef Map::iterator iterator;
@@ -117,15 +120,15 @@ class PCEventQueue : public PCEventScope
   protected:
     Map pcMap;
 
-    bool doService(Addr pc, ThreadContext *tc);
+    bool doService(Addr pc, PpuThreadContext *tc);
 
   public:
-    PCEventQueue();
-    ~PCEventQueue();
+    PpuPCEventQueue();
+    ~PpuPCEventQueue();
 
-    bool remove(PCEvent *event) override;
-    bool schedule(PCEvent *event) override;
-    bool service(Addr pc, ThreadContext *tc)
+    bool remove(PpuPCEvent *event) override;
+    bool schedule(PpuPCEvent *event) override;
+    bool service(Addr pc, PpuThreadContext *tc)
     {
         if (pcMap.empty())
             return false;
@@ -134,21 +137,21 @@ class PCEventQueue : public PCEventScope
     }
 
     range_t equal_range(Addr pc);
-    range_t equal_range(PCEvent *event) { return equal_range(event->pc()); }
+    range_t equal_range(PpuPCEvent *event) { return equal_range(event->pc()); }
 
     void dump() const;
 };
 
 
 inline
-PCEvent::PCEvent(PCEventScope *s, const std::string &desc, Addr pc)
+PpuPCEvent::PpuPCEvent(PpuPCEventScope *s, const std::string &desc, Addr pc)
     : description(desc), scope(s), evpc(pc)
 {
     scope->schedule(this);
 }
 
 inline bool
-PCEvent::remove()
+PpuPCEvent::remove()
 {
     if (!scope)
         panic("cannot remove an uninitialized event;");
@@ -156,22 +159,22 @@ PCEvent::remove()
     return scope->remove(this);
 }
 
-class BreakPCEvent : public PCEvent
+class BreakPpuPCEvent : public PpuPCEvent
 {
   protected:
     bool remove;
 
   public:
-    BreakPCEvent(PCEventScope *s, const std::string &desc, Addr addr,
+    BreakPpuPCEvent(PpuPCEventScope *s, const std::string &desc, Addr addr,
                  bool del = false);
-    virtual void process(ThreadContext *tc);
+    virtual void process(PpuThreadContext *tc);
 };
 
-class PanicPCEvent : public PCEvent
+class PanicPpuPCEvent : public PpuPCEvent
 {
   public:
-    PanicPCEvent(PCEventScope *s, const std::string &desc, Addr pc);
-    virtual void process(ThreadContext *tc);
+    PanicPpuPCEvent(PpuPCEventScope *s, const std::string &desc, Addr pc);
+    virtual void process(PpuThreadContext *tc);
 };
 
 #endif // __PC_EVENT_HH__

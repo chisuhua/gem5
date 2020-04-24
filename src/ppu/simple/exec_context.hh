@@ -504,8 +504,8 @@ class SimpleExecContext : public ExecContext {
         thread->syscall(fault);
     }
 
-    /** Returns a pointer to the ThreadContext. */
-    ThreadContext *tcBase() override { return thread->getTC(); }
+    /** Returns a pointer to the PpuThreadContext. */
+    PpuThreadContext *tcBase() override { return thread->getTC(); }
 
     bool
     readPredicate() const override
@@ -557,7 +557,7 @@ class SimpleExecContext : public ExecContext {
     }
 
     void
-    mwaitAtomic(ThreadContext *tc) override
+    mwaitAtomic(PpuThreadContext *tc) override
     {
         cpu->mwaitAtomic(thread->threadId(), tc, thread->dtb);
     }

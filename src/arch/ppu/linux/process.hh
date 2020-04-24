@@ -46,7 +46,7 @@ class PpuLinuxProcess64 : public PpuProcess64
 {
   public:
     /// Constructor.
-    PpuLinuxProcess64(ProcessParams * params, ObjectFile *objFile);
+    PpuLinuxProcess64(PpuSOCProcessParams * params, ObjectFile *objFile);
 
     SyscallDesc* getDesc(int callnum) override;
 
@@ -66,7 +66,7 @@ class PpuLinuxProcess32 : public PpuProcess32
 {
   public:
     /// Constructor.
-    PpuLinuxProcess32(ProcessParams * params, ObjectFile *objFile);
+    PpuLinuxProcess32(PpuSOCProcessParams * params, ObjectFile *objFile);
 
     SyscallDesc* getDesc(int callnum) override;
 

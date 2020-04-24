@@ -51,7 +51,7 @@
 #include "ppu/thread_context.hh"
 #include "debug/Stack.hh"
 #include "mem/page_table.hh"
-#include "params/Process.hh"
+#include "params/PpuSOCProcess.hh"
 #include "sim/aux_vector.hh"
 #include "sim/process.hh"
 #include "sim/process_impl.hh"
@@ -61,15 +61,15 @@
 using namespace std;
 using namespace PpuISA;
 
-PpuProcess::PpuProcess(ProcessParams *params, ObjectFile *objFile) :
-        Process(params,
+PpuProcess::PpuProcess(PpuSOCProcessParams *params, ObjectFile *objFile) :
+        PpuSOCProcess(params,
                 new EmulationPageTable(params->name, params->pid, PageBytes),
                 objFile)
 {
     fatal_if(params->useArchPT, "Arch page tables not implemented.");
 }
 
-PpuProcess64::PpuProcess64(ProcessParams *params, ObjectFile *objFile) :
+PpuProcess64::PpuProcess64(PpuSOCProcessParams *params, ObjectFile *objFile) :
         PpuProcess(params, objFile)
 {
     const Addr stack_base = 0x7FFFFFFFFFFFFFFFL;
@@ -81,7 +81,7 @@ PpuProcess64::PpuProcess64(ProcessParams *params, ObjectFile *objFile) :
             next_thread_stack_base, mmap_end);
 }
 
-PpuProcess32::PpuProcess32(ProcessParams *params, ObjectFile *objFile) :
+PpuProcess32::PpuProcess32(PpuSOCProcessParams *params, ObjectFile *objFile) :
         PpuProcess(params, objFile)
 {
     const Addr stack_base = 0x7FFFFFFF;
@@ -96,7 +96,7 @@ PpuProcess32::PpuProcess32(ProcessParams *params, ObjectFile *objFile) :
 void
 PpuProcess64::initState()
 {
-    Process::initState();
+    PpuSOCProcess::initState();
 
     argsInit<uint64_t>(PageBytes);
     for (ContextID ctx: contextIds)
@@ -106,7 +106,7 @@ PpuProcess64::initState()
 void
 PpuProcess32::initState()
 {
-    Process::initState();
+    PpuSOCProcess::initState();
 
     argsInit<uint32_t>(PageBytes);
     for (ContextID ctx: contextIds) {

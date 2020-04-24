@@ -49,7 +49,7 @@
 using namespace PpuISA;
 #endif
 
-class MultiperspectivePerceptron : public BPredUnit
+class MultiperspectivePerceptron : public PpuBPredUnit
 {
   protected:
     /**

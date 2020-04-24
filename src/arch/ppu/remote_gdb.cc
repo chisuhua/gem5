@@ -143,7 +143,7 @@
 #include "arch/ppu/system.hh"
 #include "arch/ppu/utility.hh"
 #include "ppu/thread_state.hh"
-#include "debug/GDBAcc.hh"
+#include "debug/PpuGDBAcc.hh"
 #include "mem/page_table.hh"
 #include "sim/full_system.hh"
 
@@ -152,8 +152,8 @@ using namespace std;
 namespace PpuISA
 {
 
-RemoteGDB::RemoteGDB(System *_system, ThreadContext *tc, int _port)
-    : BaseRemoteGDB(_system, tc, _port), regCache(this), regCache32(this)
+RemoteGDB::RemoteGDB(PpuSOCSystem *_system, ThreadContext *tc, int _port)
+    : PpuBaseRemoteGDB(_system, tc, _port), regCache(this), regCache32(this)
 {
 }
 
@@ -161,7 +161,7 @@ bool
 RemoteGDB::acc(Addr va, size_t len)
 {
     // panic_if(FullSystem, "acc not implemented for PPU FS!");
-    if (FullSystem) {
+    if (PpuFullSystem) {
         /**
          * currently no mapping from virt to phys
          * va = phys
@@ -172,14 +172,18 @@ RemoteGDB::acc(Addr va, size_t len)
             return false;
         }
     } else {
-        return context()->getProcessPtr()->pTable->lookup(va) != nullptr;
+        panic("Ppu RemoteGDB::acc only support FullSystem");
+        /*
+        return (dynamic_cast<PpuThreadContext*>(context()))->PpugetProcessPtr()->pTable->lookup(va) != nullptr;
+        */
     }
 }
 
 void
-RemoteGDB::PpuGdbRegCache::getRegs(ThreadContext *context)
+RemoteGDB::PpuGdbRegCache::getRegs(ThreadContext *context_)
 {
-    DPRINTF(GDBAcc, "getregs in remotegdb, size %lu\n", size());
+    PpuThreadContext* context = dynamic_cast<PpuThreadContext*>(context_);
+    DPRINTF(PpuGDBAcc, "getregs in remotegdb, size %lu\n", size());
     for (int i = 0; i < NumIntArchRegs; i++)
         r.gpr[i] = context->readIntReg(i);
     r.pc = context->pcState().pc();
@@ -198,9 +202,10 @@ RemoteGDB::PpuGdbRegCache::getRegs(ThreadContext *context)
 }
 
 void
-RemoteGDB::PpuGdbRegCache::setRegs(ThreadContext *context) const
+RemoteGDB::PpuGdbRegCache::setRegs(ThreadContext *context_) const
 {
-    DPRINTF(GDBAcc, "setregs in remotegdb \n");
+    PpuThreadContext* context = dynamic_cast<PpuThreadContext*>(context_);
+    DPRINTF(PpuGDBAcc, "setregs in remotegdb \n");
     for (int i = 0; i < NumIntArchRegs; i++)
         context->setIntReg(i, r.gpr[i]);
     context->pcState(r.pc);
@@ -219,13 +224,14 @@ RemoteGDB::PpuGdbRegCache::setRegs(ThreadContext *context) const
 }
 
 void
-RemoteGDB::Ppu32GdbRegCache::getRegs(ThreadContext *context)
+RemoteGDB::Ppu32GdbRegCache::getRegs(ThreadContext *context_)
 {
-    DPRINTF(GDBAcc, "getregs in remotegdb\n");
+    PpuThreadContext* context = dynamic_cast<PpuThreadContext*>(context_);
+    DPRINTF(PpuGDBAcc, "getregs in remotegdb\n");
 
     // read pc
     r.pc = context->pcState().pc();
-    DPRINTF(GDBAcc, "current pc: %#x\n", r.pc);
+    DPRINTF(PpuGDBAcc, "current pc: %#x\n", r.pc);
     // read general purpose registers
     for (int i = 0; i < NumIntArchRegs; i++) {
         r.gpr[i] = context->readIntReg(i);
@@ -243,9 +249,10 @@ RemoteGDB::Ppu32GdbRegCache::getRegs(ThreadContext *context)
 }
 
 void
-RemoteGDB::Ppu32GdbRegCache::setRegs(ThreadContext *context) const
+RemoteGDB::Ppu32GdbRegCache::setRegs(ThreadContext *context_) const
 {
-    DPRINTF(GDBAcc, "setregs in remotegdb\n");
+    PpuThreadContext* context = dynamic_cast<PpuThreadContext*>(context_);
+    DPRINTF(PpuGDBAcc, "setregs in remotegdb\n");
 
     // set pc
     context->pcState(r.pc);
@@ -255,7 +262,7 @@ RemoteGDB::Ppu32GdbRegCache::setRegs(ThreadContext *context) const
     }
 }
 
-BaseGdbRegCache*
+PpuBaseGdbRegCache*
 RemoteGDB::gdbRegs()
 {
     // if (isRv32(context())) {

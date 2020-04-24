@@ -34,7 +34,7 @@
 #include "base/trace.hh"
 #include "debug/PpuFetch.hh"
 
-DefaultBTB::DefaultBTB(unsigned _numEntries,
+PpuDefaultBTB::PpuDefaultBTB(unsigned _numEntries,
                        unsigned _tagBits,
                        unsigned _instShiftAmt,
                        unsigned _num_threads)
@@ -63,7 +63,7 @@ DefaultBTB::DefaultBTB(unsigned _numEntries,
 }
 
 void
-DefaultBTB::reset()
+PpuDefaultBTB::reset()
 {
     for (unsigned i = 0; i < numEntries; ++i) {
         btb[i].valid = false;
@@ -72,7 +72,7 @@ DefaultBTB::reset()
 
 inline
 unsigned
-DefaultBTB::getIndex(Addr instPC, ThreadID tid)
+PpuDefaultBTB::getIndex(Addr instPC, ThreadID tid)
 {
     // Need to shift PC over by the word offset.
     return ((instPC >> instShiftAmt)
@@ -82,13 +82,13 @@ DefaultBTB::getIndex(Addr instPC, ThreadID tid)
 
 inline
 Addr
-DefaultBTB::getTag(Addr instPC)
+PpuDefaultBTB::getTag(Addr instPC)
 {
     return (instPC >> tagShiftAmt) & tagMask;
 }
 
 bool
-DefaultBTB::valid(Addr instPC, ThreadID tid)
+PpuDefaultBTB::valid(Addr instPC, ThreadID tid)
 {
     unsigned btb_idx = getIndex(instPC, tid);
 
@@ -109,7 +109,7 @@ DefaultBTB::valid(Addr instPC, ThreadID tid)
 // address is valid, and also the address.  For now will just use addr = 0 to
 // represent invalid entry.
 ThePpuISA::PCState
-DefaultBTB::lookup(Addr instPC, ThreadID tid)
+PpuDefaultBTB::lookup(Addr instPC, ThreadID tid)
 {
     unsigned btb_idx = getIndex(instPC, tid);
 
@@ -127,7 +127,7 @@ DefaultBTB::lookup(Addr instPC, ThreadID tid)
 }
 
 void
-DefaultBTB::update(Addr instPC, const ThePpuISA::PCState &target, ThreadID tid)
+PpuDefaultBTB::update(Addr instPC, const ThePpuISA::PCState &target, ThreadID tid)
 {
     unsigned btb_idx = getIndex(instPC, tid);
 

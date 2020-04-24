@@ -45,8 +45,8 @@
 #include "base/bitfield.hh"
 #include "base/intmath.hh"
 
-TournamentBP::TournamentBP(const TournamentBPParams *params)
-    : BPredUnit(params),
+PpuTournamentBP::PpuTournamentBP(const PpuTournamentBPParams *params)
+    : PpuBPredUnit(params),
       localPredictorSize(params->localPredictorSize),
       localCtrBits(params->localCtrBits),
       localCtrs(localPredictorSize, SatCounter(localCtrBits)),
@@ -122,7 +122,7 @@ TournamentBP::TournamentBP(const TournamentBPParams *params)
 
 inline
 unsigned
-TournamentBP::calcLocHistIdx(Addr &branch_addr)
+PpuTournamentBP::calcLocHistIdx(Addr &branch_addr)
 {
     // Get low order bits after removing instruction offset.
     return (branch_addr >> instShiftAmt) & (localHistoryTableSize - 1);
@@ -130,7 +130,7 @@ TournamentBP::calcLocHistIdx(Addr &branch_addr)
 
 inline
 void
-TournamentBP::updateGlobalHistTaken(ThreadID tid)
+PpuTournamentBP::updateGlobalHistTaken(ThreadID tid)
 {
     globalHistory[tid] = (globalHistory[tid] << 1) | 1;
     globalHistory[tid] = globalHistory[tid] & historyRegisterMask;
@@ -138,7 +138,7 @@ TournamentBP::updateGlobalHistTaken(ThreadID tid)
 
 inline
 void
-TournamentBP::updateGlobalHistNotTaken(ThreadID tid)
+PpuTournamentBP::updateGlobalHistNotTaken(ThreadID tid)
 {
     globalHistory[tid] = (globalHistory[tid] << 1);
     globalHistory[tid] = globalHistory[tid] & historyRegisterMask;
@@ -146,7 +146,7 @@ TournamentBP::updateGlobalHistNotTaken(ThreadID tid)
 
 inline
 void
-TournamentBP::updateLocalHistTaken(unsigned local_history_idx)
+PpuTournamentBP::updateLocalHistTaken(unsigned local_history_idx)
 {
     localHistoryTable[local_history_idx] =
         (localHistoryTable[local_history_idx] << 1) | 1;
@@ -154,7 +154,7 @@ TournamentBP::updateLocalHistTaken(unsigned local_history_idx)
 
 inline
 void
-TournamentBP::updateLocalHistNotTaken(unsigned local_history_idx)
+PpuTournamentBP::updateLocalHistNotTaken(unsigned local_history_idx)
 {
     localHistoryTable[local_history_idx] =
         (localHistoryTable[local_history_idx] << 1);
@@ -162,7 +162,7 @@ TournamentBP::updateLocalHistNotTaken(unsigned local_history_idx)
 
 
 void
-TournamentBP::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
+PpuTournamentBP::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
 {
     unsigned local_history_idx = calcLocHistIdx(branch_addr);
     //Update Global History to Not Taken (clear LSB)
@@ -173,7 +173,7 @@ TournamentBP::btbUpdate(ThreadID tid, Addr branch_addr, void * &bp_history)
 }
 
 bool
-TournamentBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
+PpuTournamentBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
 {
     bool local_prediction;
     unsigned local_history_idx;
@@ -234,7 +234,7 @@ TournamentBP::lookup(ThreadID tid, Addr branch_addr, void * &bp_history)
 }
 
 void
-TournamentBP::uncondBranch(ThreadID tid, Addr pc, void * &bp_history)
+PpuTournamentBP::uncondBranch(ThreadID tid, Addr pc, void * &bp_history)
 {
     // Create BPHistory and pass it back to be recorded.
     BPHistory *history = new BPHistory;
@@ -250,7 +250,7 @@ TournamentBP::uncondBranch(ThreadID tid, Addr pc, void * &bp_history)
 }
 
 void
-TournamentBP::update(ThreadID tid, Addr branch_addr, bool taken,
+PpuTournamentBP::update(ThreadID tid, Addr branch_addr, bool taken,
                      void *bp_history, bool squashed,
                      const StaticInstPtr & inst, Addr corrTarget)
 {
@@ -329,7 +329,7 @@ TournamentBP::update(ThreadID tid, Addr branch_addr, bool taken,
 }
 
 void
-TournamentBP::squash(ThreadID tid, void *bp_history)
+PpuTournamentBP::squash(ThreadID tid, void *bp_history)
 {
     BPHistory *history = static_cast<BPHistory *>(bp_history);
 
@@ -345,13 +345,13 @@ TournamentBP::squash(ThreadID tid, void *bp_history)
     delete history;
 }
 
-TournamentBP*
-TournamentBPParams::create()
+PpuTournamentBP*
+PpuTournamentBPParams::create()
 {
-    return new TournamentBP(this);
+    return new PpuTournamentBP(this);
 }
 
 #ifdef DEBUG
 int
-TournamentBP::BPHistory::newCount = 0;
+PpuTournamentBP::BPHistory::newCount = 0;
 #endif

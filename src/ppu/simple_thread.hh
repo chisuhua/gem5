@@ -67,20 +67,23 @@
 #include "sim/byteswap.hh"
 #include "sim/eventq.hh"
 #include "sim/full_system.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 #include "sim/serialize.hh"
 #include "ppu_sim/system.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 
 class PpuBaseCPU;
@@ -96,8 +99,8 @@ namespace Kernel {
 namespace PpuISA {
 /**
  * The SimpleThread object provides a combination of the ThreadState
- * object and the ThreadContext interface. It implements the
- * ThreadContext interface and adds to the ThreadState object by adding all
+ * object and the PpuThreadContext interface. It implements the
+ * PpuThreadContext interface and adds to the ThreadState object by adding all
  * the objects needed for simple functional execution, including a
  * simple architectural register file, and pointers to the ITB and DTB
  * in full system mode. For CPU models that do not need more advanced
@@ -108,7 +111,7 @@ namespace PpuISA {
  * examples.
  */
 
-class SimpleThread : public ThreadState, public ThreadContext
+class SimpleThread : public ThreadState, public PpuThreadContext
 {
   protected:
     typedef ThePpuISA::MachInst MachInst;
@@ -116,7 +119,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     using VecElem = ThePpuISA::VecElem;
     using VecPredRegContainer = ThePpuISA::VecPredRegContainer;
   public:
-    typedef ThreadContext::Status Status;
+    typedef PpuThreadContext::Status Status;
 
   protected:
     std::array<RegVal, ThePpuISA::NumFloatRegs> floatRegs;
@@ -140,14 +143,14 @@ class SimpleThread : public ThreadState, public ThreadContext
         return csprintf("%s.[tid:%i]", baseCpu->name(), threadId());
     }
 
-    PCEventQueue pcEventQueue;
+    PpuPCEventQueue pcEventQueue;
     /**
      * An instruction-based event queue. Used for scheduling events based on
      * number of instructions committed.
      */
     EventQueue comInstEventQueue;
 
-    System *system;
+    PpuSOCSystem *system;
 
     BaseTLB *itb;
     BaseTLB *dtb;
@@ -156,21 +159,21 @@ class SimpleThread : public ThreadState, public ThreadContext
 
     // constructor: initialize SimpleThread from given process structure
     // FS
-    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_system,
+    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_system,
                  BaseTLB *_itb, BaseTLB *_dtb, ThePpuISA::ISA *_isa,
                  bool use_kernel_stats = true);
     // SE
-    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_system,
-                 Process *_process, BaseTLB *_itb, BaseTLB *_dtb,
+    SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_system,
+                 PpuSOCProcess *_process, BaseTLB *_itb, BaseTLB *_dtb,
                  ThePpuISA::ISA *_isa);
 
     virtual ~SimpleThread() {}
 
-    void takeOverFrom(ThreadContext *oldContext) override;
+    void takeOverFrom(PpuThreadContext *oldContext) override;
 
     void regStats(const std::string &name) override;
 
-    void copyState(ThreadContext *oldContext);
+    void copyState(PpuThreadContext *oldContext);
 
     void serialize(CheckpointOut &cp) const override;
     void unserialize(CheckpointIn &cp) override;
@@ -181,11 +184,11 @@ class SimpleThread : public ThreadState, public ThreadContext
      *  state.
      **************************************************************/
 
-    /** Returns the pointer to this SimpleThread's ThreadContext. Used
-     *  when a ThreadContext must be passed to objects outside of the
+    /** Returns the pointer to this SimpleThread's PpuThreadContext. Used
+     *  when a PpuThreadContext must be passed to objects outside of the
      *  CPU.
      */
-    ThreadContext *getTC() { return this; }
+    PpuThreadContext *getTC() { return this; }
 
     void demapPage(Addr vaddr, uint64_t asn)
     {
@@ -206,11 +209,11 @@ class SimpleThread : public ThreadState, public ThreadContext
     void dumpFuncProfile() override;
 
     /*******************************************
-     * ThreadContext interface functions.
+     * PpuThreadContext interface functions.
      ******************************************/
 
-    bool schedule(PCEvent *e) override { return pcEventQueue.schedule(e); }
-    bool remove(PCEvent *e) override { return pcEventQueue.remove(e); }
+    bool schedule(PpuPCEvent *e) override { return pcEventQueue.schedule(e); }
+    bool remove(PpuPCEvent *e) override { return pcEventQueue.remove(e); }
 
     void
     scheduleInstCountEvent(Event *event, Tick count) override
@@ -241,13 +244,14 @@ class SimpleThread : public ThreadState, public ThreadContext
 
     BaseTLB *getDTBPtr() override { return dtb; }
 
-    PpuCheckerCPU *getCheckerCpuPtr() override { return NULL; }
+    PpuCheckerCPU *PpugetCheckerCpuPtr() override { return NULL; }
+    CheckerCPU *getCheckerCpuPtr() override { return NULL; }
 
     BaseISA *getIsaPtr() override { return isa; }
 
     ThePpuISA::Decoder *getDecoderPtr() override { return &decoder; }
 
-    System *getSystemPtr() override { return system; }
+    PpuSOCSystem *PpugetSystemPtr() override { return system; }
 
     Kernel::Statistics *
     getKernelStats() override
@@ -258,13 +262,19 @@ class SimpleThread : public ThreadState, public ThreadContext
     PortProxy &getPhysProxy() override { return ThreadState::getPhysProxy(); }
     PortProxy &getVirtProxy() override { return ThreadState::getVirtProxy(); }
 
-    void initMemProxies(ThreadContext *tc) override
+    void initMemProxies(PpuThreadContext *tc) override
     {
         ThreadState::initMemProxies(tc);
     }
 
-    Process *getProcessPtr() override { return ThreadState::getProcessPtr(); }
-    void setProcessPtr(Process *p) override { ThreadState::setProcessPtr(p); }
+    // Process *getProcessPtr() override { return ThreadState::getProcessPtr(); }
+    PpuSOCProcess *PpugetProcessPtr() override { return ThreadState::getProcessPtr(); }
+
+    void setProcessPtr(Process *p) override {
+        panic("ppu simple thread should use PpuSOCProcess instead\n");
+        // ThreadState::setProcessPtr(p);
+    }
+    void setProcessPtr(PpuSOCProcess *p) override { ThreadState::setProcessPtr(p); }
 
     Status status() const override { return _status; }
 
@@ -279,10 +289,10 @@ class SimpleThread : public ThreadState, public ThreadContext
     /// Set the status to Halted.
     void halt() override;
 
-    EndQuiesceEvent *
-    getQuiesceEvent() override
+    PpuEndQuiesceEvent *
+    PpugetQuiesceEvent() override
     {
-        return ThreadState::getQuiesceEvent();
+        return ThreadState::PpugetQuiesceEvent();
     }
 
     Tick
@@ -299,7 +309,7 @@ class SimpleThread : public ThreadState, public ThreadContext
     void profileClear() override { ThreadState::profileClear(); }
     void profileSample() override { ThreadState::profileSample(); }
 
-    void copyArchRegs(ThreadContext *tc) override;
+    void copyArchRegs(PpuThreadContext *tc) override;
 
     void
     clearArchRegs() override

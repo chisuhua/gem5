@@ -311,7 +311,7 @@ Fetch2::evaluate()
             output_index < outputWidth && /* More output to fill */
             prediction.isBubble() /* No predicted branch */)
         {
-            ThreadContext *thread = cpu.getContext(line_in->id.threadId);
+            PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(line_in->id.threadId));
             ThePpuISA::Decoder *decoder = thread->getDecoderPtr();
 
             /* Discard line due to prediction sequence number being wrong but

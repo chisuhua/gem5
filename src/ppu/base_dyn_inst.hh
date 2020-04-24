@@ -923,7 +923,7 @@ class BaseDynInst : public ExecContext, public RefCounted
     void setThreadState(ImplState *state) { thread = state; }
 
     /** Returns the thread context. */
-    ThreadContext *tcBase() { return thread->getTC(); }
+    PpuThreadContext *tcBase() { return thread->getTC(); }
 
   public:
     /** Returns whether or not the eff. addr. source registers are ready. */
@@ -957,7 +957,7 @@ class BaseDynInst : public ExecContext, public RefCounted
     // monitor/mwait funtions
     void armMonitor(Addr address) { cpu->armMonitor(threadNumber, address); }
     bool mwait(PacketPtr pkt) { return cpu->mwait(threadNumber, pkt); }
-    void mwaitAtomic(ThreadContext *tc)
+    void mwaitAtomic(PpuThreadContext *tc)
     { return cpu->mwaitAtomic(threadNumber, tc, cpu->dtb); }
     AddressMonitor *getAddrMonitor()
     { return cpu->getCpuAddrMonitor(threadNumber); }

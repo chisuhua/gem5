@@ -124,7 +124,7 @@ InstPBTrace::~InstPBTrace()
 }
 
 InstPBTraceRecord*
-InstPBTrace::getInstRecord(Tick when, ThreadContext *tc, const StaticInstPtr si,
+InstPBTrace::getInstRecord(Tick when, PpuThreadContext *tc, const StaticInstPtr si,
                            ThePpuISA::PCState pc, const StaticInstPtr mi)
 {
     // Only record the trace if Exec debugging is enabled
@@ -136,7 +136,7 @@ InstPBTrace::getInstRecord(Tick when, ThreadContext *tc, const StaticInstPtr si,
 }
 
 void
-InstPBTrace::traceInst(ThreadContext *tc, StaticInstPtr si, ThePpuISA::PCState pc)
+InstPBTrace::traceInst(PpuThreadContext *tc, StaticInstPtr si, ThePpuISA::PCState pc)
 {
     if (curMsg) {
         /// @todo if we are running multi-threaded I assume we'd need a lock here

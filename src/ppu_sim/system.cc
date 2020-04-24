@@ -66,7 +66,7 @@
 #include "debug/PpuWorkItems.hh"
 #include "mem/abstract_mem.hh"
 #include "mem/physical.hh"
-#include "params/System.hh"
+#include "params/PpuSOCSystem.hh"
 #include "sim/byteswap.hh"
 #include "sim/debug.hh"
 #include "sim/full_system.hh"
@@ -82,14 +82,14 @@
 #endif
 
 using namespace std;
-using namespace TheISA;
+using namespace ThePpuISA;
 
-vector<System *> System::systemList;
+vector<PpuSOCSystem *> PpuSOCSystem::systemList;
 
-int System::numSystemsRunning = 0;
+int PpuSOCSystem::numSystemsRunning = 0;
 
-System::System(Params *p)
-    : SimObject(p), _systemPort("system_port", this),
+PpuSOCSystem::PpuSOCSystem(Params *p)
+    : System(p), _systemPort("system_port", this),
       multiThread(p->multi_thread),
       pagePtr(0),
       init_param(p->init_param),
@@ -127,7 +127,7 @@ System::System(Params *p)
     }
 #endif
 
-    if (FullSystem) {
+    if (PpuFullSystem) {
         kernelSymtab = new SymbolTable;
         if (!debugSymbolTable)
             debugSymbolTable = new SymbolTable;
@@ -147,7 +147,7 @@ System::System(Params *p)
     tmp_id = getMasterId(this, "interrupt");
     assert(tmp_id == Request::intMasterId);
 
-    if (FullSystem) {
+    if (PpuFullSystem) {
         if (params()->kernel == "") {
             inform("No kernel set for full system simulation. "
                    "Assuming you know what you're doing\n");
@@ -217,7 +217,7 @@ System::System(Params *p)
         params()->memories[x]->system(this);
 }
 
-System::~System()
+PpuSOCSystem::~PpuSOCSystem()
 {
     delete kernelSymtab;
     delete kernel;
@@ -227,7 +227,7 @@ System::~System()
 }
 
 void
-System::init()
+PpuSOCSystem::init()
 {
     // check that the system port is connected
     if (!_systemPort.isConnected())
@@ -235,20 +235,20 @@ System::init()
 }
 
 Port &
-System::getPort(const std::string &if_name, PortID idx)
+PpuSOCSystem::getPort(const std::string &if_name, PortID idx)
 {
     // no need to distinguish at the moment (besides checking)
     return _systemPort;
 }
 
 void
-System::setMemoryMode(Enums::MemoryMode mode)
+PpuSOCSystem::setMemoryMode(Enums::MemoryMode mode)
 {
     assert(drainState() == DrainState::Drained);
     memoryMode = mode;
 }
 
-bool System::breakpoint()
+bool PpuSOCSystem::breakpoint()
 {
     if (remoteGDB.size())
         return remoteGDB[0]->breakpoint();
@@ -256,7 +256,7 @@ bool System::breakpoint()
 }
 
 ContextID
-System::registerThreadContext(ThreadContext *tc, ContextID assigned)
+PpuSOCSystem::registerThreadContext(ThreadContext *tc, ContextID assigned)
 {
     int id = assigned;
     if (id == InvalidContextID) {
@@ -279,7 +279,7 @@ System::registerThreadContext(ThreadContext *tc, ContextID assigned)
 #if THE_ISA != NULL_ISA
     int port = getRemoteGDBPort();
     if (port) {
-        RemoteGDB *rgdb = new RemoteGDB(this, tc, port + id);
+        RemoteGDB *rgdb = new PpuISA::RemoteGDB(this, tc, port + id);
         rgdb->listen();
 
         BaseCPU *cpu = tc->getCpuPtr();
@@ -303,7 +303,7 @@ System::registerThreadContext(ThreadContext *tc, ContextID assigned)
 }
 
 ThreadContext *
-System::findFreeContext()
+PpuSOCSystem::findFreeContext()
 {
     for (auto &it : threadContexts) {
         if (ThreadContext::Halted == it->status())
@@ -313,7 +313,7 @@ System::findFreeContext()
 }
 
 bool
-System::schedule(PCEvent *event)
+PpuSOCSystem::schedule(PpuPCEvent *event)
 {
     bool all = true;
     liveEvents.push_back(event);
@@ -323,7 +323,7 @@ System::schedule(PCEvent *event)
 }
 
 bool
-System::remove(PCEvent *event)
+PpuSOCSystem::remove(PpuPCEvent *event)
 {
     bool all = true;
     liveEvents.remove(event);
@@ -333,7 +333,7 @@ System::remove(PCEvent *event)
 }
 
 int
-System::numRunningContexts()
+PpuSOCSystem::numRunningContexts()
 {
     return std::count_if(
         threadContexts.cbegin(),
@@ -346,9 +346,9 @@ System::numRunningContexts()
 }
 
 void
-System::initState()
+PpuSOCSystem::initState()
 {
-    if (FullSystem) {
+    if (PpuFullSystem) {
         // Moved from the constructor to here since it relies on the
         // address map being resolved in the interconnect
         /**
@@ -390,7 +390,7 @@ System::initState()
 }
 
 void
-System::replaceThreadContext(ThreadContext *tc, ContextID context_id)
+PpuSOCSystem::replaceThreadContext(ThreadContext *tc, ContextID context_id)
 {
     if (context_id >= threadContexts.size()) {
         panic("replaceThreadContext: bad id, %d >= %d\n",
@@ -407,7 +407,7 @@ System::replaceThreadContext(ThreadContext *tc, ContextID context_id)
 }
 
 bool
-System::validKvmEnvironment() const
+PpuSOCSystem::validKvmEnvironment() const
 {
 #if USE_KVM
     if (threadContexts.empty())
@@ -425,7 +425,7 @@ System::validKvmEnvironment() const
 }
 
 Addr
-System::allocPhysPages(int npages)
+PpuSOCSystem::allocPhysPages(int npages)
 {
     Addr return_addr = pagePtr << PageShift;
     pagePtr += npages;
@@ -444,33 +444,33 @@ System::allocPhysPages(int npages)
 }
 
 Addr
-System::memSize() const
+PpuSOCSystem::memSize() const
 {
     return physmem.totalSize();
 }
 
 Addr
-System::freeMemSize() const
+PpuSOCSystem::freeMemSize() const
 {
    return physmem.totalSize() - (pagePtr << PageShift);
 }
 
 bool
-System::isMemAddr(Addr addr) const
+PpuSOCSystem::isMemAddr(Addr addr) const
 {
     return physmem.isMemAddr(addr);
 }
 
 void
-System::drainResume()
+PpuSOCSystem::drainResume()
 {
     totalNumInsts = 0;
 }
 
 void
-System::serialize(CheckpointOut &cp) const
+PpuSOCSystem::serialize(CheckpointOut &cp) const
 {
-    if (FullSystem)
+    if (PpuFullSystem)
         kernelSymtab->serialize("kernel_symtab", cp);
     SERIALIZE_SCALAR(pagePtr);
     serializeSymtab(cp);
@@ -481,9 +481,9 @@ System::serialize(CheckpointOut &cp) const
 
 
 void
-System::unserialize(CheckpointIn &cp)
+PpuSOCSystem::unserialize(CheckpointIn &cp)
 {
-    if (FullSystem)
+    if (PpuFullSystem)
         kernelSymtab->unserialize("kernel_symtab", cp);
     UNSERIALIZE_SCALAR(pagePtr);
     unserializeSymtab(cp);
@@ -493,7 +493,7 @@ System::unserialize(CheckpointIn &cp)
 }
 
 void
-System::regStats()
+PpuSOCSystem::regStats()
 {
     SimObject::regStats();
 
@@ -509,7 +509,7 @@ System::regStats()
 }
 
 void
-System::workItemEnd(uint32_t tid, uint32_t workid)
+PpuSOCSystem::workItemEnd(uint32_t tid, uint32_t workid)
 {
     std::pair<uint32_t,uint32_t> p(tid, workid);
     if (!lastWorkItemStarted.count(p))
@@ -526,28 +526,28 @@ System::workItemEnd(uint32_t tid, uint32_t workid)
 }
 
 void
-System::printSystems()
+PpuSOCSystem::printSystems()
 {
     ios::fmtflags flags(cerr.flags());
 
-    vector<System *>::iterator i = systemList.begin();
-    vector<System *>::iterator end = systemList.end();
+    vector<PpuSOCSystem *>::iterator i = systemList.begin();
+    vector<PpuSOCSystem *>::iterator end = systemList.end();
     for (; i != end; ++i) {
-        System *sys = *i;
-        cerr << "System " << sys->name() << ": " << hex << sys << endl;
+        PpuSOCSystem *sys = *i;
+        cerr << "PpuSOCSystem " << sys->name() << ": " << hex << sys << endl;
     }
 
     cerr.flags(flags);
 }
 
 void
-printSystems()
+printPpuSOCSystems()
 {
-    System::printSystems();
+    PpuSOCSystem::printSystems();
 }
 
 std::string
-System::stripSystemName(const std::string& master_name) const
+PpuSOCSystem::stripSystemName(const std::string& master_name) const
 {
     if (startswith(master_name, name())) {
         return master_name.substr(name().size());
@@ -557,7 +557,7 @@ System::stripSystemName(const std::string& master_name) const
 }
 
 MasterID
-System::lookupMasterId(const SimObject* obj) const
+PpuSOCSystem::lookupMasterId(const SimObject* obj) const
 {
     MasterID id = Request::invldMasterId;
 
@@ -580,7 +580,7 @@ System::lookupMasterId(const SimObject* obj) const
 }
 
 MasterID
-System::lookupMasterId(const std::string& master_name) const
+PpuSOCSystem::lookupMasterId(const std::string& master_name) const
 {
     std::string name = stripSystemName(master_name);
 
@@ -594,20 +594,20 @@ System::lookupMasterId(const std::string& master_name) const
 }
 
 MasterID
-System::getGlobalMasterId(const std::string& master_name)
+PpuSOCSystem::getGlobalMasterId(const std::string& master_name)
 {
     return _getMasterId(nullptr, master_name);
 }
 
 MasterID
-System::getMasterId(const SimObject* master, std::string submaster)
+PpuSOCSystem::getMasterId(const SimObject* master, std::string submaster)
 {
     auto master_name = leafMasterName(master, submaster);
     return _getMasterId(master, master_name);
 }
 
 MasterID
-System::_getMasterId(const SimObject* master, const std::string& master_name)
+PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_name)
 {
     std::string name = stripSystemName(master_name);
 
@@ -637,7 +637,7 @@ System::_getMasterId(const SimObject* master, const std::string& master_name)
 }
 
 std::string
-System::leafMasterName(const SimObject* master, const std::string& submaster)
+PpuSOCSystem::leafMasterName(const SimObject* master, const std::string& submaster)
 {
     if (submaster.empty()) {
         return master->name();
@@ -649,7 +649,7 @@ System::leafMasterName(const SimObject* master, const std::string& submaster)
 }
 
 std::string
-System::getMasterName(MasterID master_id)
+PpuSOCSystem::getMasterName(MasterID master_id)
 {
     if (master_id >= masters.size())
         fatal("Invalid master_id passed to getMasterName()\n");
@@ -658,8 +658,8 @@ System::getMasterName(MasterID master_id)
     return master_info.masterName;
 }
 
-System *
-SystemParams::create()
+PpuSOCSystem *
+PpuSOCSystemParams::create()
 {
-    return new System(this);
+    return new PpuSOCSystem(this);
 }

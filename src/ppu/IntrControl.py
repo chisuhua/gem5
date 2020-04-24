@@ -32,4 +32,4 @@ from m5.proxy import *
 class IntrControl(SimObject):
     type = 'IntrControl'
     cxx_header = "ppu/intr_control.hh"
-    sys = Param.System(Parent.any, "the system we are part of")
+    sys = Param.PpuSOCSystem(Parent.any, "the system we are part of")

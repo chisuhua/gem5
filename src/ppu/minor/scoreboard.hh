@@ -115,7 +115,7 @@ class Scoreboard : public Named
      *  destination registers are marked as being unpredictable without
      *  an estimated retire time */
     void markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
-        ThreadContext *thread_context, bool mark_unpredictable);
+        PpuThreadContext *thread_context, bool mark_unpredictable);
 
     /** Clear down the dependencies for this instruction.  clear_unpredictable
      *  must match mark_unpredictable for the same inst. */
@@ -126,14 +126,14 @@ class Scoreboard : public Named
      *  inst must actually be committed before a dependent inst
      *  can call initiateAcc */
     InstSeqNum execSeqNumToWaitFor(MinorDynInstPtr inst,
-        ThreadContext *thread_context);
+        PpuThreadContext *thread_context);
 
     /** Can this instruction be issued.  Are any of its source registers
      *  due to be written by other marked-up instructions in flight */
     bool canInstIssue(MinorDynInstPtr inst,
         const std::vector<Cycles> *src_reg_relative_latencies,
         const std::vector<bool> *cant_forward_from_fu_indices,
-        Cycles now, ThreadContext *thread_context);
+        Cycles now, PpuThreadContext *thread_context);
 
     /** MinorTraceIF interface */
     void minorTrace() const;

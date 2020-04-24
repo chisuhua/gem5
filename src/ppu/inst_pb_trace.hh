@@ -48,15 +48,18 @@
 #include "proto/protoio.hh"
 #include "sim/insttracer.hh"
 
+#if 0
 #ifdef BUILD_PPU
 namespace PpuISA {
 #endif
 
-class ThreadContext;
+class PpuThreadContext;
 #ifdef BUILD_PPU
 };
 using namespace PpuISA;
 #endif
+#endif
+class PpuThreadContext;
 
 namespace ProtoMessage {
 class Inst;
@@ -73,7 +76,7 @@ namespace Trace {
 class InstPBTraceRecord : public InstRecord
 {
   public:
-    InstPBTraceRecord(InstPBTrace& _tracer, Tick when, ThreadContext *tc,
+    InstPBTraceRecord(InstPBTrace& _tracer, Tick when, PpuThreadContext *tc,
                       const StaticInstPtr si, ThePpuISA::PCState pc,
                       const StaticInstPtr mi = NULL)
         : InstRecord(when, tc, si, pc, mi), tracer(_tracer)
@@ -96,7 +99,7 @@ class InstPBTrace : public InstTracer
     InstPBTrace(const InstPBTraceParams *p);
     virtual ~InstPBTrace();
 
-    InstPBTraceRecord* getInstRecord(Tick when, ThreadContext *tc, const
+    InstPBTraceRecord* getInstRecord(Tick when, PpuThreadContext *tc, const
                                     StaticInstPtr si, ThePpuISA::PCState pc, const
                                     StaticInstPtr mi = NULL) override;
 
@@ -130,7 +133,7 @@ class InstPBTrace : public InstTracer
      * @param si for the machInst and opClass
      * @param pc for the PC Addr
      */
-    void traceInst(ThreadContext *tc, StaticInstPtr si, ThePpuISA::PCState pc);
+    void traceInst(PpuThreadContext *tc, StaticInstPtr si, ThePpuISA::PCState pc);
 
     /** Write a memory request to the trace file as part of the cur instruction
      * @param si for the machInst and opClass

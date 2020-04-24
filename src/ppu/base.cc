@@ -68,7 +68,7 @@
 #include "params/PpuBaseCPU.hh"
 #include "sim/clocked_object.hh"
 #include "sim/full_system.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 #include "sim/sim_events.hh"
 #include "sim/sim_exit.hh"
 #include "ppu_sim/system.hh"
@@ -89,7 +89,7 @@ vector<PpuBaseCPU *> PpuBaseCPU::cpuList;
 // careful to only use it once all the CPUs that you care about have
 // been initialized
 int PpumaxThreadsPerCPU = 1;
-
+/*
 PpuCPUProgressEvent::PpuCPUProgressEvent(PpuBaseCPU *_cpu, Tick ival)
     : Event(Event::Progress_Event_Pri), _interval(ival), lastNumInst(0),
       cpu(_cpu), _repeatEvent(true)
@@ -130,9 +130,10 @@ PpuCPUProgressEvent::description() const
 {
     return "CPU Progress";
 }
+*/
 
 PpuBaseCPU::PpuBaseCPU(Params *p, bool is_checker)
-    : ClockedObject(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
+    : BaseCPU(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
       _instMasterId(p->system->getMasterId(this, "inst")),
       _dataMasterId(p->system->getMasterId(this, "data")),
       _taskId(ContextSwitchTaskId::Unknown), _pid(invldPid),
@@ -190,7 +191,7 @@ PpuBaseCPU::PpuBaseCPU(Params *p, bool is_checker)
             interrupts[tid]->setCPU(this);
     }
 
-    if (FullSystem) {
+    if (PpuFullSystem) {
         if (params()->profile)
             profileEvent = new EventFunctionWrapper(
                 [this]{ processProfileEvent(); },
@@ -251,7 +252,7 @@ PpuBaseCPU::mwait(ThreadID tid, PacketPtr pkt)
 }
 
 void
-PpuBaseCPU::mwaitAtomic(ThreadID tid, ThreadContext *tc, BaseTLB *dtb)
+PpuBaseCPU::mwaitAtomic(ThreadID tid, PpuThreadContext *tc, BaseTLB *dtb)
 {
     assert(tid < numThreads);
     AddressMonitor &monitor = addressMonitor[tid];
@@ -328,13 +329,13 @@ PpuBaseCPU::init()
 void
 PpuBaseCPU::startup()
 {
-    if (FullSystem) {
+    if (PpuFullSystem) {
         if (!params()->switched_out && profileEvent)
             schedule(profileEvent, curTick());
     }
 
     if (params()->progress_interval) {
-        new PpuCPUProgressEvent(this, params()->progress_interval);
+        new CPUProgressEvent(this, params()->progress_interval);
     }
 
     if (_switchedOut)
@@ -443,7 +444,7 @@ PpuBaseCPU::registerThreadContexts()
 
     ThreadID size = threadContexts.size();
     for (ThreadID tid = 0; tid < size; ++tid) {
-        ThreadContext *tc = threadContexts[tid];
+        PpuThreadContext *tc = threadContexts[tid];
 
         if (system->multiThread) {
             tc->setContextId(system->registerThreadContext(tc));
@@ -451,8 +452,10 @@ PpuBaseCPU::registerThreadContexts()
             tc->setContextId(system->registerThreadContext(tc, _cpuId));
         }
 
-        if (!FullSystem)
-            tc->getProcessPtr()->assignThreadContext(tc->contextId());
+        /*
+        if (!PpuFullSystem)
+            tc->PpugetProcessPtr()->assignThreadContext(tc->contextId());
+            */
     }
 }
 
@@ -468,7 +471,7 @@ void
 PpuBaseCPU::schedulePowerGatingEvent()
 {
     for (auto tc : threadContexts) {
-        if (tc->status() == ThreadContext::Active)
+        if (tc->status() == PpuThreadContext::Active)
             return;
     }
 
@@ -482,7 +485,7 @@ PpuBaseCPU::schedulePowerGatingEvent()
 }
 
 int
-PpuBaseCPU::findContext(ThreadContext *tc)
+PpuBaseCPU::findContext(PpuThreadContext *tc)
 {
     ThreadID size = threadContexts.size();
     for (ThreadID tid = 0; tid < size; ++tid) {
@@ -513,7 +516,7 @@ PpuBaseCPU::suspendContext(ThreadID thread_num)
             threadContexts[thread_num]->contextId());
     // Check if all threads are suspended
     for (auto t : threadContexts) {
-        if (t->status() != ThreadContext::Suspended) {
+        if (t->status() != PpuThreadContext::Suspended) {
             return;
         }
     }
@@ -579,12 +582,12 @@ PpuBaseCPU::takeOverFrom(PpuBaseCPU *oldCPU)
 
     ThreadID size = threadContexts.size();
     for (ThreadID i = 0; i < size; ++i) {
-        ThreadContext *newTC = threadContexts[i];
-        ThreadContext *oldTC = oldCPU->threadContexts[i];
+        PpuThreadContext *newTC = threadContexts[i];
+        PpuThreadContext *oldTC = oldCPU->threadContexts[i];
 
         newTC->takeOverFrom(oldTC);
 
-        CpuEvent::replaceThreadContext(oldTC, newTC);
+        PpuCpuEvent::replaceThreadContext(oldTC, newTC);
 
         assert(newTC->contextId() == oldTC->contextId());
         assert(newTC->threadId() == oldTC->threadId());
@@ -594,7 +597,7 @@ PpuBaseCPU::takeOverFrom(PpuBaseCPU *oldCPU)
          * r31 on Alpha) doesn't necessarily contain zero at this
          * point.
            if (DTRACE(PpuContext))
-            ThreadContext::compare(oldTC, newTC);
+            PpuThreadContext::compare(oldTC, newTC);
         */
 
         Port *old_itb_port = oldTC->getITBPtr()->getTableWalkerPort();
@@ -612,8 +615,12 @@ PpuBaseCPU::takeOverFrom(PpuBaseCPU *oldCPU)
 
         // Checker whether or not we have to transfer PpuCheckerCPU
         // objects over in the switch
-        PpuCheckerCPU *oldChecker = oldTC->getCheckerCpuPtr();
-        PpuCheckerCPU *newChecker = newTC->getCheckerCpuPtr();
+        PpuCheckerCPU *oldChecker = oldTC->PpugetCheckerCpuPtr();
+        PpuCheckerCPU *newChecker = newTC->PpugetCheckerCpuPtr();
+
+        // CheckerCPU *oldChecker = oldTC->getCheckerCpuPtr();
+        // CheckerCPU *newChecker = newTC->getCheckerCpuPtr();
+
         if (oldChecker && newChecker) {
             Port *old_checker_itb_port =
                 oldChecker->getITBPtr()->getTableWalkerPort();
@@ -641,7 +648,7 @@ PpuBaseCPU::takeOverFrom(PpuBaseCPU *oldCPU)
     }
     oldCPU->interrupts.clear();
 
-    if (FullSystem) {
+    if (PpuFullSystem) {
         for (ThreadID i = 0; i < size; ++i)
             threadContexts[i]->profileClear();
 
@@ -661,8 +668,9 @@ void
 PpuBaseCPU::flushTLBs()
 {
     for (ThreadID i = 0; i < threadContexts.size(); ++i) {
-        ThreadContext &tc(*threadContexts[i]);
-        PpuCheckerCPU *checker(tc.getCheckerCpuPtr());
+        PpuThreadContext &tc(*threadContexts[i]);
+        PpuCheckerCPU *checker(tc.PpugetCheckerCpuPtr());
+        // CheckerCPU *checker(tc.getCheckerCpuPtr());
 
         tc.getITBPtr()->flushAll();
         tc.getDTBPtr()->flushAll();

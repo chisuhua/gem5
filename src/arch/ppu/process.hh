@@ -38,22 +38,22 @@
 #include <vector>
 
 #include "mem/page_table.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 
 class ObjectFile;
-class System;
+class PpuSOCSystem;
 
-class PpuProcess : public Process
+class PpuProcess : public PpuSOCProcess
 {
   protected:
-    PpuProcess(ProcessParams * params, ObjectFile *objFile);
+    PpuProcess(PpuSOCProcessParams * params, ObjectFile *objFile);
     template<class IntType>
     void argsInit(int pageSize);
 
   public:
     RegVal getSyscallArg(ThreadContext *tc, int &i) override;
     /// Explicitly import the otherwise hidden getSyscallArg
-    using Process::getSyscallArg;
+    using PpuSOCProcess::getSyscallArg;
     void setSyscallReturn(ThreadContext *tc,
                           SyscallReturn return_value) override;
 
@@ -63,14 +63,14 @@ class PpuProcess : public Process
 class PpuProcess64 : public PpuProcess
 {
   protected:
-    PpuProcess64(ProcessParams * params, ObjectFile *objFile);
+    PpuProcess64(PpuSOCProcessParams * params, ObjectFile *objFile);
     void initState() override;
 };
 
 class PpuProcess32 : public PpuProcess
 {
   protected:
-    PpuProcess32(ProcessParams * params, ObjectFile *objFile);
+    PpuProcess32(PpuSOCProcessParams * params, ObjectFile *objFile);
     void initState() override;
 };
 

@@ -52,10 +52,10 @@
 struct PpuISAParams;
 class Checkpoint;
 class EventManager;
+class ThreadContext;
 
 namespace PpuISA
 {
-class ThreadContext;
 
 enum PrivilegeMode {
     PRV_U = 0,

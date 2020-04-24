@@ -124,7 +124,7 @@ class TimingSimpleCPU : public BaseSimpleCPU
         }
 
         void
-        finish(const Fault &fault, const RequestPtr &req, ThreadContext *tc,
+        finish(const Fault &fault, const RequestPtr &req, PpuThreadContext *tc,
                BaseTLB::Mode mode)
         {
             cpu->sendFetch(fault, req, tc);
@@ -297,7 +297,7 @@ class TimingSimpleCPU : public BaseSimpleCPU
 
     void fetch();
     void sendFetch(const Fault &fault,
-                   const RequestPtr &req, ThreadContext *tc);
+                   const RequestPtr &req, PpuThreadContext *tc);
     void completeIfetch(PacketPtr );
     void completeDataAccess(PacketPtr pkt);
     void advanceInst(const Fault &fault);

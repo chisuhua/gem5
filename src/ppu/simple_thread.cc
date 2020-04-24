@@ -65,7 +65,7 @@
 #include "params/PpuBaseCPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
-#include "sim/process.hh"
+#include "ppu_sim/process.hh"
 #include "sim/serialize.hh"
 #include "sim/sim_exit.hh"
 #include "ppu_sim/system.hh"
@@ -73,8 +73,8 @@
 using namespace std;
 
 // constructor
-SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
-                           Process *_process, BaseTLB *_itb,
+SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys,
+                           PpuSOCProcess *_process, BaseTLB *_itb,
                            BaseTLB *_dtb, ThePpuISA::ISA *_isa)
     : ThreadState(_cpu, _thread_num, _process), isa(_isa),
       predicate(true), memAccPredicate(true),
@@ -82,10 +82,10 @@ SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
       system(_sys), itb(_itb), dtb(_dtb), decoder(ThePpuISA::Decoder(_isa))
 {
     clearArchRegs();
-    quiesceEvent = new EndQuiesceEvent(this);
+    quiesceEvent = new PpuEndQuiesceEvent(this);
 }
 
-SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
+SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys,
                            BaseTLB *_itb, BaseTLB *_dtb,
                            ThePpuISA::ISA *_isa, bool use_kernel_stats)
     : ThreadState(_cpu, _thread_num, NULL), isa(_isa),
@@ -93,7 +93,7 @@ SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
       comInstEventQueue("instruction-based event queue"),
       system(_sys), itb(_itb), dtb(_dtb), decoder(ThePpuISA::Decoder(_isa))
 {
-    quiesceEvent = new EndQuiesceEvent(this);
+    quiesceEvent = new PpuEndQuiesceEvent(this);
 
     clearArchRegs();
 
@@ -116,7 +116,7 @@ SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, System *_sys,
 }
 
 void
-SimpleThread::takeOverFrom(ThreadContext *oldContext)
+SimpleThread::takeOverFrom(PpuThreadContext *oldContext)
 {
     ::takeOverFrom(*this, *oldContext);
     decoder.takeOverFrom(oldContext->getDecoderPtr());
@@ -127,12 +127,12 @@ SimpleThread::takeOverFrom(ThreadContext *oldContext)
 }
 
 void
-SimpleThread::copyState(ThreadContext *oldContext)
+SimpleThread::copyState(PpuThreadContext *oldContext)
 {
     // copy over functional state
     _status = oldContext->status();
     copyArchRegs(oldContext);
-    if (FullSystem)
+    if (PpuFullSystem)
         funcExeInst = oldContext->readFuncExeInst();
 
     _threadId = oldContext->threadId();
@@ -164,30 +164,32 @@ void
 SimpleThread::dumpFuncProfile()
 {
     OutputStream *os(simout.create(csprintf("profile.%s.dat", baseCpu->name())));
-    profile->dump(this, *os->stream());
+    warn("FIXME i disable the profile dump\n");
+    // FIXME
+    // profile->dump(this, *os->stream());
     simout.close(os);
 }
 
 void
 SimpleThread::activate()
 {
-    if (status() == ThreadContext::Active)
+    if (status() == PpuThreadContext::Active)
         return;
 
     lastActivate = curTick();
-    _status = ThreadContext::Active;
+    _status = PpuThreadContext::Active;
     baseCpu->activateContext(_threadId);
 }
 
 void
 SimpleThread::suspend()
 {
-    if (status() == ThreadContext::Suspended)
+    if (status() == PpuThreadContext::Suspended)
         return;
 
     lastActivate = curTick();
     lastSuspend = curTick();
-    _status = ThreadContext::Suspended;
+    _status = PpuThreadContext::Suspended;
     baseCpu->suspendContext(_threadId);
 }
 
@@ -195,10 +197,10 @@ SimpleThread::suspend()
 void
 SimpleThread::halt()
 {
-    if (status() == ThreadContext::Halted)
+    if (status() == PpuThreadContext::Halted)
         return;
 
-    _status = ThreadContext::Halted;
+    _status = PpuThreadContext::Halted;
     baseCpu->haltContext(_threadId);
 }
 
@@ -206,12 +208,12 @@ SimpleThread::halt()
 void
 SimpleThread::regStats(const string &name)
 {
-    if (FullSystem && kernelStats)
+    if (PpuFullSystem && kernelStats)
         kernelStats->regStats(name + ".kern");
 }
 
 void
-SimpleThread::copyArchRegs(ThreadContext *src_tc)
+SimpleThread::copyArchRegs(PpuThreadContext *src_tc)
 {
     ThePpuISA::copyRegs(src_tc, this);
 }

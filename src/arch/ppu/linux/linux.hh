@@ -197,7 +197,7 @@ class PpuLinux64 : public PpuLinux
 
     static void
     archClone(uint64_t flags,
-              Process *pp, Process *cp,
+              PpuSOCProcess *pp, PpuSOCProcess *cp,
               ThreadContext *ptc, ThreadContext *ctc,
               uint64_t stack, uint64_t tls)
     {
@@ -369,7 +369,7 @@ class PpuLinux32 : public PpuLinux
 
     static void
     archClone(uint64_t flags,
-              Process *pp, Process *cp,
+              PpuSOCProcess *pp, PpuSOCProcess *cp,
               ThreadContext *ptc, ThreadContext *ctc,
               uint64_t stack, uint64_t tls)
     {

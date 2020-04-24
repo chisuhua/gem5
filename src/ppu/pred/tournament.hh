@@ -50,7 +50,7 @@
 #include "base/sat_counter.hh"
 #include "base/types.hh"
 #include "ppu/pred/bpred_unit.hh"
-#include "params/TournamentBP.hh"
+#include "params/PpuTournamentBP.hh"
 
 #ifdef BUILD_PPU
 using namespace PpuISA;
@@ -64,13 +64,13 @@ using namespace PpuISA;
  * predictor chooses between the two.  Both the global history register
  * and the selected local history are speculatively updated.
  */
-class TournamentBP : public BPredUnit
+class PpuTournamentBP : public PpuBPredUnit
 {
   public:
     /**
      * Default branch predictor constructor.
      */
-    TournamentBP(const TournamentBPParams *params);
+    PpuTournamentBP(const PpuTournamentBPParams *params);
 
     /**
      * Looks up the given address in the branch predictor and returns

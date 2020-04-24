@@ -43,11 +43,11 @@
 #include "params/PpuInterrupts.hh"
 #include "sim/sim_object.hh"
 
-class PpuBaseCPU;
+class BaseCPU;
+class ThreadContext;
 
 namespace PpuISA {
 
-class ThreadContext;
 
 
 /*
@@ -57,7 +57,7 @@ class ThreadContext;
 class Interrupts : public BaseInterrupts
 {
   private:
-    PpuBaseCPU * cpu;
+    BaseCPU * cpu;
 
     std::bitset<NumInterruptTypes> ip;
     std::bitset<NumInterruptTypes> ie;
@@ -73,7 +73,7 @@ class Interrupts : public BaseInterrupts
 
     Interrupts(Params * p) : BaseInterrupts(p), cpu(nullptr), ip(0), ie(0) {}
 
-    void setCPU(PpuBaseCPU * _cpu) { cpu = _cpu; }
+    void setCPU(BaseCPU * _cpu) { cpu = _cpu; }
 
     std::bitset<NumInterruptTypes>
     globalMask(ThreadContext *tc) const

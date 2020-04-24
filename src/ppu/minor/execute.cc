@@ -215,13 +215,13 @@ Execute::popInput(ThreadID tid)
 void
 Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
 {
-    ThreadContext *thread = cpu.getContext(inst->id.threadId);
+    PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(inst->id.threadId));
     const ThePpuISA::PCState &pc_before = inst->pc;
     ThePpuISA::PCState target = thread->pcState();
 
     /* Force a branch for SerializeAfter/SquashAfter instructions
      * at the end of micro-op sequence when we're not suspended */
-    bool force_branch = thread->status() != ThreadContext::Suspended &&
+    bool force_branch = thread->status() != PpuThreadContext::Suspended &&
         !inst->isFault() &&
         inst->isLastOpInInst() &&
         (inst->staticInst->isSerializeAfter() ||
@@ -322,7 +322,7 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
     LSQ::LSQRequestPtr response, BranchData &branch, Fault &fault)
 {
     ThreadID thread_id = inst->id.threadId;
-    ThreadContext *thread = cpu.getContext(thread_id);
+    PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id));
 
     ExecContext context(cpu, *cpu.threads[thread_id], *this, inst);
 
@@ -411,7 +411,7 @@ Execute::handleMemResponse(MinorDynInstPtr inst,
 bool
 Execute::isInterrupted(ThreadID thread_id) const
 {
-    return cpu.checkInterrupts(cpu.getContext(thread_id));
+    return cpu.checkInterrupts(dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id)));
 }
 
 bool
@@ -458,7 +458,7 @@ Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
          * queues are full */
         issued = false;
     } else {
-        ThreadContext *thread = cpu.getContext(inst->id.threadId);
+        PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(inst->id.threadId));
         ThePpuISA::PCState old_pc = thread->pcState();
 
         ExecContext context(cpu, *cpu.threads[inst->id.threadId],
@@ -581,7 +581,7 @@ Execute::issue(ThreadID thread_id)
             /* Skip */
             issued = true;
         } else if (cpu.getContext(thread_id)->status() ==
-            ThreadContext::Suspended)
+            PpuThreadContext::Suspended)
         {
             DPRINTF(PpuMinorExecute, "Discarding inst: %s from suspended"
                 " thread\n", *inst);
@@ -628,7 +628,7 @@ Execute::issue(ThreadID thread_id)
                     /* Mark the destinations for this instruction as
                      *  busy */
                     scoreboard[thread_id].markupInstDests(inst, cpu.curCycle() +
-                        Cycles(0), cpu.getContext(thread_id), false);
+                        Cycles(0), dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id)), false);
 
                     DPRINTF(PpuMinorExecute, "Issuing %s to %d\n", inst->id, noCostFUIndex);
                     inst->fuIndex = noCostFUIndex;
@@ -718,7 +718,7 @@ Execute::issue(ThreadID thread_id)
                             if (allowEarlyMemIssue) {
                                 inst->instToWaitFor =
                                     scoreboard[thread_id].execSeqNumToWaitFor(inst,
-                                        cpu.getContext(thread_id));
+                                        dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id)));
 
                                 if (lsq.getLastMemBarrier(thread_id) >
                                     inst->instToWaitFor)
@@ -759,7 +759,7 @@ Execute::issue(ThreadID thread_id)
                             fu->description.opLat +
                             extra_dest_retire_lat +
                             extra_assumed_lat,
-                            cpu.getContext(thread_id),
+                            dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id)),
                             issued_mem_ref && extra_assumed_lat == Cycles(0));
 
                         /* Push the instruction onto the inFlight queue so
@@ -835,9 +835,9 @@ Execute::issue(ThreadID thread_id)
 }
 
 bool
-Execute::tryPCEvents(ThreadID thread_id)
+Execute::tryPpuPCEvents(ThreadID thread_id)
 {
-    ThreadContext *thread = cpu.getContext(thread_id);
+    PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id));
     unsigned int num_pc_event_checks = 0;
 
     /* Handle PC events on instructions */
@@ -894,14 +894,14 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
     bool &completed_mem_issue)
 {
     ThreadID thread_id = inst->id.threadId;
-    ThreadContext *thread = cpu.getContext(thread_id);
+    PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id));
 
     bool completed_inst = true;
     fault = NoFault;
 
     /* Is the thread for this instruction suspended?  In that case, just
      *  stall as long as there are no pending interrupts */
-    if (thread->status() == ThreadContext::Suspended &&
+    if (thread->status() == PpuThreadContext::Suspended &&
         !isInterrupted(thread_id))
     {
         panic("We should never hit the case where we try to commit from a "
@@ -999,7 +999,7 @@ Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
 
         /* Check to see if this instruction suspended the current thread. */
         if (!inst->isFault() &&
-            thread->status() == ThreadContext::Suspended &&
+            thread->status() == PpuThreadContext::Suspended &&
             branch.isBubble() && /* It didn't branch too */
             !isInterrupted(thread_id)) /* Don't suspend if we have
                 interrupts */
@@ -1117,8 +1117,8 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             can_commit_insts);
 
         /* Test for PC events after every instruction */
-        if (isInbetweenInsts(thread_id) && tryPCEvents(thread_id)) {
-            ThreadContext *thread = cpu.getContext(thread_id);
+        if (isInbetweenInsts(thread_id) && tryPpuPCEvents(thread_id)) {
+            PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id));
 
             /* Branch as there was a change in PC */
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
@@ -1244,7 +1244,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
                         DPRINTF(PpuMinorExecute, "Evaluating expression for"
                             " extra commit delay inst: %s\n", *inst);
 
-                        ThreadContext *thread = cpu.getContext(thread_id);
+                        PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(thread_id));
 
                         TimingExprEvalContext context(inst->staticInst,
                             thread, NULL);
@@ -1534,7 +1534,7 @@ Execute::evaluate()
             if (!fu->stalled && fu->provides(inst->staticInst->opClass()) &&
                 scoreboard[inst->id.threadId].canInstIssue(inst,
                     NULL, NULL, cpu.curCycle() + Cycles(1),
-                    cpu.getContext(inst->id.threadId))) {
+                    dynamic_cast<PpuThreadContext*>(cpu.getContext(inst->id.threadId)))) {
                 can_issue_next = true;
                 break;
             }
@@ -1607,7 +1607,7 @@ Execute::checkInterrupts(BranchData& branch, bool& interrupted)
          *  straighaway so this is different from took_interrupt */
         bool thread_interrupted = false;
 
-        if (FullSystem && cpu.getInterruptController(tid)) {
+        if (PpuFullSystem && cpu.getInterruptController(tid)) {
             /* This is here because it seems that after drainResume the
              * interrupt controller isn't always set */
             thread_interrupted = executeInfo[tid].drainState == NotDraining &&
@@ -1635,7 +1635,7 @@ Execute::checkInterrupts(BranchData& branch, bool& interrupted)
 bool
 Execute::hasInterrupt(ThreadID thread_id)
 {
-    if (FullSystem && cpu.getInterruptController(thread_id)) {
+    if (PpuFullSystem && cpu.getInterruptController(thread_id)) {
         return executeInfo[thread_id].drainState == NotDraining &&
                isInterrupted(thread_id);
     }

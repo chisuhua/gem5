@@ -40,10 +40,10 @@
 #include "debug/Stack.hh"
 
 class StackTrace;
+class ThreadContext;
 
 namespace PpuISA
 {
-class ThreadContext;
 
 class ProcessInfo
 {

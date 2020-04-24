@@ -34,16 +34,16 @@
 #include "arch/isa_traits.hh"
 #include "config/the_isa.hh"
 #include "ppu/inst_seq.hh"
-#include "params/IndirectPredictor.hh"
+#include "params/PpuIndirectPredictor.hh"
 #include "sim/sim_object.hh"
 
-class IndirectPredictor : public SimObject
+class PpuIndirectPredictor : public SimObject
 {
   public:
 
-    typedef IndirectPredictorParams Params;
+    typedef PpuIndirectPredictorParams Params;
 
-    IndirectPredictor(const Params *params)
+    PpuIndirectPredictor(const Params *params)
         : SimObject(params)
     {
     }

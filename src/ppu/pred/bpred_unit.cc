@@ -53,7 +53,7 @@
 #include "config/the_isa.hh"
 #include "debug/PpuBranch.hh"
 
-BPredUnit::BPredUnit(const Params *params)
+PpuBPredUnit::PpuBPredUnit(const Params *params)
     : SimObject(params),
       numThreads(params->numThreads),
       predHist(numThreads),
@@ -70,7 +70,7 @@ BPredUnit::BPredUnit(const Params *params)
 }
 
 void
-BPredUnit::regStats()
+PpuBPredUnit::regStats()
 {
     SimObject::regStats();
 
@@ -144,7 +144,7 @@ BPredUnit::regStats()
 }
 
 ProbePoints::PMUUPtr
-BPredUnit::pmuProbePoint(const char *name)
+PpuBPredUnit::pmuProbePoint(const char *name)
 {
     ProbePoints::PMUUPtr ptr;
     ptr.reset(new ProbePoints::PMU(getProbeManager(), name));
@@ -153,14 +153,14 @@ BPredUnit::pmuProbePoint(const char *name)
 }
 
 void
-BPredUnit::regProbePoints()
+PpuBPredUnit::regProbePoints()
 {
     ppBranches = pmuProbePoint("Branches");
     ppMisses = pmuProbePoint("Misses");
 }
 
 void
-BPredUnit::drainSanityCheck() const
+PpuBPredUnit::drainSanityCheck() const
 {
     // We shouldn't have any outstanding requests when we resume from
     // a drained system.
@@ -169,7 +169,7 @@ BPredUnit::drainSanityCheck() const
 }
 
 bool
-BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
+PpuBPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
                    ThePpuISA::PCState &pc, ThreadID tid)
 {
     // See if branch predictor predicts taken.
@@ -342,7 +342,7 @@ BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
 }
 
 void
-BPredUnit::update(const InstSeqNum &done_sn, ThreadID tid)
+PpuBPredUnit::update(const InstSeqNum &done_sn, ThreadID tid)
 {
     DPRINTF(PpuBranch, "[tid:%i] Committing branches until "
             "sn:%llu]\n", tid, done_sn);
@@ -365,7 +365,7 @@ BPredUnit::update(const InstSeqNum &done_sn, ThreadID tid)
 }
 
 void
-BPredUnit::squash(const InstSeqNum &squashed_sn, ThreadID tid)
+PpuBPredUnit::squash(const InstSeqNum &squashed_sn, ThreadID tid)
 {
     History &pred_hist = predHist[tid];
 
@@ -410,7 +410,7 @@ BPredUnit::squash(const InstSeqNum &squashed_sn, ThreadID tid)
 }
 
 void
-BPredUnit::squash(const InstSeqNum &squashed_sn,
+PpuBPredUnit::squash(const InstSeqNum &squashed_sn,
                   const ThePpuISA::PCState &corrTarget,
                   bool actually_taken, ThreadID tid)
 {
@@ -541,7 +541,7 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
 }
 
 void
-BPredUnit::dump()
+PpuBPredUnit::dump()
 {
     int i = 0;
     for (const auto& ph : predHist) {
