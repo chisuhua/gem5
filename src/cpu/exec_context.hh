@@ -42,6 +42,10 @@
  *          Andreas Sandberg
  */
 
+#ifdef BUILD_PPU
+
+#include "ppu/exec_context.hh"
+#else
 #ifndef __CPU_EXEC_CONTEXT_HH__
 #define __CPU_EXEC_CONTEXT_HH__
 
@@ -343,3 +347,4 @@ class ExecContext {
 };
 
 #endif // __CPU_EXEC_CONTEXT_HH__
+#endif

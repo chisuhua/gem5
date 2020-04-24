@@ -32,9 +32,16 @@
 #define __ARCH_GENERIC_DECODE_CACHE_HH__
 
 #include "arch/types.hh"
+
 #include "config/the_isa.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/decode_cache.hh"
+#include "ppu/static_inst_fwd.hh"
+#else
 #include "cpu/decode_cache.hh"
 #include "cpu/static_inst_fwd.hh"
+#endif
 
 namespace TheISA
 {

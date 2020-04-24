@@ -36,6 +36,7 @@
  * of simulation.
  */
 extern bool FullSystem;
+extern bool PpuFullSystem;
 
 /**
  * In addition to the boolean flag we make use of an unsigned int
@@ -44,5 +45,6 @@ extern bool FullSystem;
  * any other value full system.
  */
 extern unsigned int FullSystemInt;
+extern unsigned int PpuFullSystemInt;
 
 #endif // __SIM_FULL_SYSTEM_HH__

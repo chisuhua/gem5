@@ -237,6 +237,7 @@ def define_constants(constants):
     constants.sparc_tag = 'SPARC'
     constants.alpha_tag = 'ALPHA'
     constants.riscv_tag = 'RISCV'
+    constants.ppu_tag = 'PPU'
     constants.arm_tag = 'ARM'
     constants.mips_tag = 'MIPS'
     constants.power_tag = 'POWER'
@@ -262,6 +263,7 @@ def define_constants(constants):
             constants.sparc_tag,
             constants.alpha_tag,
             constants.riscv_tag,
+            constants.ppu_tag,
             constants.arm_tag,
             constants.mips_tag,
             constants.power_tag,
@@ -291,6 +293,7 @@ def define_constants(constants):
         constants.sparc_tag : (constants.host_x86_64_tag, constants.host_i386_tag),
         constants.alpha_tag : (constants.host_x86_64_tag, constants.host_i386_tag),
         constants.riscv_tag : (constants.host_x86_64_tag, constants.host_i386_tag),
+        constants.ppu_tag   : (constants.host_x86_64_tag, constants.host_i386_tag),
         constants.mips_tag  : (constants.host_x86_64_tag, constants.host_i386_tag),
         constants.power_tag : (constants.host_x86_64_tag, constants.host_i386_tag),
         constants.null_tag  : (None,)

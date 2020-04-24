@@ -97,6 +97,11 @@ elif buildEnv['TARGET_ISA'] == 'riscv':
     from m5.objects.RiscvInterrupts import RiscvInterrupts as ArchInterrupts
     from m5.objects.RiscvISA import RiscvISA as ArchISA
     ArchISAsParam = VectorParam.RiscvISA
+elif buildEnv['TARGET_ISA'] == 'ppu':
+    from m5.objects.PpuTLB import PpuTLB as ArchDTB, PpuTLB as ArchITB
+    from m5.objects.PpuInterrupts import PpuInterrupts as ArchInterrupts
+    from m5.objects.PpuISA import PpuISA as ArchISA
+    ArchISAsParam = VectorParam.PpuISA
 else:
     print("Don't know what object types to use for ISA %s" %
             buildEnv['TARGET_ISA'])

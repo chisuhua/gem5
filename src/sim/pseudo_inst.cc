@@ -175,6 +175,19 @@ m5exit(ThreadContext *tc, Tick delay)
     }
 }
 
+#if 0
+void
+m5exit(PpuISA::ThreadContext *tc, Tick delay)
+{
+    DPRINTF(PseudoInst, "PseudoInst::m5exit(%i)\n", delay);
+    if (DistIface::readyToExit(delay)) {
+        Tick when = curTick() + delay * SimClock::Int::ns;
+        exitSimLoop("m5_exit instruction encountered", 0, when, 0, true);
+    }
+}
+#endif
+
+
 void
 m5fail(ThreadContext *tc, Tick delay, uint64_t code)
 {
@@ -591,7 +604,7 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     }
 }
 
-#ifdef BUILD_PPU
+#ifdef BUILD_GPU
 void
 gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 {

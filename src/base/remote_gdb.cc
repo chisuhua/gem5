@@ -318,12 +318,16 @@ break_type(char c)
 std::map<Addr, HardBreakpoint *> hardBreakMap;
 
 }
-
+/*
 BaseRemoteGDB::BaseRemoteGDB(System *_system, ThreadContext *c, int _port) :
         connectEvent(nullptr), dataEvent(nullptr), _port(_port), fd(-1),
         active(false), attached(false), sys(_system), tc(c),
         trapEvent(this), singleStepEvent(*this)
 {
+    debuggers.push_back(this);
+}
+*/
+void BaseRemoteGDB::addDebuggers() {
     debuggers.push_back(this);
 }
 

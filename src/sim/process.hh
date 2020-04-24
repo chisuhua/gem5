@@ -60,6 +60,18 @@ class ObjectFile;
 class SyscallDesc;
 class SyscallReturn;
 class System;
+
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
 class ThreadContext;
 
 class Process : public SimObject
@@ -79,8 +91,14 @@ class Process : public SimObject
     DrainState drain() override;
 
     virtual void syscall(ThreadContext *tc, Fault *fault) = 0;
+
     virtual RegVal getSyscallArg(ThreadContext *tc, int &i) = 0;
-    virtual RegVal getSyscallArg(ThreadContext *tc, int &i, int width);
+
+    virtual RegVal getSyscallArg(ThreadContext *tc, int &i, int width){
+        return getSyscallArg(tc, i);
+    }
+
+
     virtual void setSyscallReturn(ThreadContext *tc,
                                   SyscallReturn return_value) = 0;
     virtual SyscallDesc *getDesc(int callnum) = 0;
@@ -163,6 +181,9 @@ class Process : public SimObject
 
     virtual void clone(ThreadContext *old_tc, ThreadContext *new_tc,
                        Process *new_p, RegVal flags);
+
+//    virtual void clone(PpuISA::ThreadContext *old_tc, PpuISA::ThreadContext *new_tc,
+//                       Process *new_p, RegVal flags);
 
     // thread contexts associated with this process
     std::vector<ContextID> contextIds;

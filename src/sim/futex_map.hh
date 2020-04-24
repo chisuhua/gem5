@@ -35,7 +35,11 @@
 
 #include <unordered_map>
 
+#ifdef BUILD_PPU
+#include <ppu/thread_context.hh>
+#else
 #include <cpu/thread_context.hh>
+#endif
 
 /**
  * FutexKey class defines an unique identifier for a particular futex in the

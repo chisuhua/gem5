@@ -59,7 +59,9 @@ class ObjectFile : public ImageFile
         Thumb,
         Power,
         Riscv64,
-        Riscv32
+        Riscv32,
+        Ppu64,
+        Ppu32
     };
 
     enum OpSys {

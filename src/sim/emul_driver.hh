@@ -37,6 +37,18 @@
 #include "sim/sim_object.hh"
 
 class Process;
+
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
 class ThreadContext;
 
 /**

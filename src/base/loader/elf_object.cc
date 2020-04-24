@@ -188,6 +188,8 @@ ElfObject::determineArch()
         arch = Arm64;
     } else if (emach == EM_RISCV) {
         arch = (eclass == ELFCLASS64) ? Riscv64 : Riscv32;
+    } else if (emach == EM_PPU) {
+        arch = (eclass == ELFCLASS64) ? Ppu64 : Ppu32;
     } else if (emach == EM_PPC && eclass == ELFCLASS32) {
         arch = Power;
         if (edata != ELFDATA2MSB) {

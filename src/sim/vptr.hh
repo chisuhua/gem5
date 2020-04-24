@@ -33,6 +33,17 @@
 
 #include "mem/fs_translating_port_proxy.hh"
 
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
 class ThreadContext;
 
 template <class T>

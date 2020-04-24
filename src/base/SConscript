@@ -134,3 +134,12 @@ CompoundFlag('GDBAll',
 CompoundFlag('AnnotateAll', ['Annotate', 'AnnotateQ', 'AnnotateVerbose'],
     desc="All Annotation flags")
 
+#DebugFlag('PpuFmtTicksOff', "Don't show tick count on debug messages")
+#DebugFlag('PpuGDBAcc', "Remote debugger accesses")
+#DebugFlag('PpuGDBExtra', "Dump extra information on reads and writes")
+#DebugFlag('PpuGDBMisc', "Breakpoints, traps, watchpoints, etc.")
+#DebugFlag('PpuGDBRead', "Reads to the remote address space")
+#DebugFlag('PpuGDBRecv', "Messages received from the remote application")
+#DebugFlag('PpuGDBSend', "Messages sent to the remote application")
+#DebugFlag('PpuGDBWrite', "Writes to the remote address space")
+

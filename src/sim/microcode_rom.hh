@@ -38,7 +38,12 @@
 
 #include <inttypes.h>
 
+#ifdef BUILD_PPU
+#include "ppu/static_inst_fwd.hh"
+using namespace ThePpuISA;
+#else
 #include "cpu/static_inst_fwd.hh"
+#endif
 
 typedef uint16_t MicroPC;
 

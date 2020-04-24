@@ -45,9 +45,21 @@
 
 #include <gem5/asm/generic/m5ops.h>
 
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
 class ThreadContext;
 
 #include "arch/pseudo_inst.hh"
+
 #include "arch/utility.hh"
 #include "base/types.hh" // For Tick and Addr data types.
 #include "debug/PseudoInst.hh"

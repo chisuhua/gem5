@@ -33,9 +33,28 @@
 #define __FAULTS_HH__
 
 #include "base/types.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/static_inst.hh"
+using namespace ThePpuISA;
+#else
 #include "cpu/static_inst.hh"
+#endif
+
 #include "sim/stats.hh"
 
+
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
 class ThreadContext;
 
 typedef const char * FaultName;

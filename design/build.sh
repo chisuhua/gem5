@@ -5,6 +5,8 @@
 #scons build/X86_VI_hammer_GPU/gem5.opt --verbose
 
 
+#scons build/PPU/gem5.debug --verbose -j6
+
 #scons build/RISCV/gem5.debug --verbose -j6
 #scons build/RISCV/gem5.debug
 
@@ -25,6 +27,6 @@
 #scons build/MSI/gem5.opt --verbose -j6
 
 
-#scons build/X86_VI_hammer/gem5.debug --verbose -j8 BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
+scons build/X86_VI_hammer/gem5.debug --verbose -j8 BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
 
-scons --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_debug.so --verbose BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
+#scons --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_debug.so --verbose BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu

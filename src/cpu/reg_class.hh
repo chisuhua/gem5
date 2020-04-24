@@ -41,6 +41,9 @@
  *          Nathanael Premillieu
  *          Rekai Gonzalez
  */
+#ifdef BUILD_PPU
+#include "ppu/reg_class.hh"
+#else
 
 #ifndef __CPU__REG_CLASS_HH__
 #define __CPU__REG_CLASS_HH__
@@ -380,3 +383,4 @@ struct hash<RegId>
 }
 
 #endif // __CPU__REG_CLASS_HH__
+#endif

@@ -31,6 +31,18 @@
 #ifndef __ARCH_GENERIC_PSEUDO_INST_HH__
 #define __ARCH_GENERIC_PSEUDO_INST_HH__
 
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
+
 class ThreadContext;
 
 namespace GenericISA {
@@ -40,7 +52,11 @@ namespace GenericISA {
  * handler in System Emulation mode.
  */
 void
+// #ifdef BUILD_PPU
+// m5PageFault(PpuISA::ThreadContext *tc);
+// #else
 m5PageFault(ThreadContext *tc);
+// #endif
 
 } // namespace GenericISA
 

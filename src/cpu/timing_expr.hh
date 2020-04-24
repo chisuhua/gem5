@@ -45,6 +45,9 @@
  * Expressions, in evaluation, will have access to the ThreadContext and
  * a StaticInst.
  */
+#ifdef BUILD_PPU
+#include "ppu/timing_expr.hh"
+#else
 
 #ifndef __CPU_TIMING_EXPR_HH__
 #define __CPU_TIMING_EXPR_HH__
@@ -213,4 +216,5 @@ class TimingExprIf : public TimingExpr
     uint64_t eval(TimingExprEvalContext &context);
 };
 
+#endif
 #endif

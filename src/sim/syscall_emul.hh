@@ -96,8 +96,15 @@
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "config/the_isa.hh"
+
+#ifdef BUILD_PPU
+#include "ppu/base.hh"
+#include "ppu/thread_context.hh"
+#else
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
+#endif
+
 #include "mem/page_table.hh"
 #include "params/Process.hh"
 #include "sim/emul_driver.hh"
@@ -1461,7 +1468,7 @@ cloneFunc(SyscallDesc *desc, int callnum, ThreadContext *tc)
     RegVal newStack = p->getSyscallArg(tc, index);
     Addr ptidPtr = p->getSyscallArg(tc, index);
 
-#if THE_ISA == RISCV_ISA or THE_ISA == ARM_ISA
+#if THE_ISA == RISCV_ISA or THE_ISA == ARM_ISA or THE_ISA == PPU_ISA
     /**
      * Linux sets CLONE_BACKWARDS flag for RISC-V and Arm.
      * The flag defines the list of clone() arguments in the following

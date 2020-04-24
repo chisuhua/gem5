@@ -136,6 +136,9 @@ Root::serialize(CheckpointOut &cp) const
 bool FullSystem;
 unsigned int FullSystemInt;
 
+bool PpuFullSystem;
+unsigned int PpuFullSystemInt;
+
 Root *
 RootParams::create()
 {
@@ -147,6 +150,9 @@ RootParams::create()
 
     FullSystem = full_system;
     FullSystemInt = full_system ? 1 : 0;
+
+    PpuFullSystem = true;
+    PpuFullSystemInt = 1;
 
     return new Root(this);
 }

@@ -88,6 +88,7 @@ if env['BUILD_GPU']:
             '''),
         env.subst('${TARGET_GPU_ISA}'))
 
+
 #################################################################
 #
 # Include architecture-specific files.
@@ -136,7 +137,7 @@ IsaDescBuilder = Builder(action=desc_action)
 
 # ISAs should use this function to set up an IsaDescBuilder and not try to
 # set one up manually.
-def ISADesc(desc, decoder_splits=1, exec_splits=1):
+def ISADesc(desc, decoder_splits=1, exec_splits=1, build_ppu=0):
     '''Set up a builder for an ISA description.
 
     The decoder_splits and exec_splits parameters let us determine what
@@ -200,7 +201,10 @@ def ISADesc(desc, decoder_splits=1, exec_splits=1):
     # These generated files are also top level sources.
     def source_gen(name):
         add_gen(name)
-        Source(gen_file(name))
+        if build_ppu == 1:
+            Source(gen_file(name), append={'CXXFLAGS': '-DBUILD_PPU'})
+        else:
+            Source(gen_file(name))
 
     source_gen('decoder.cc')
 
@@ -231,3 +235,11 @@ DebugFlag('CCRegs')
 DebugFlag('MiscRegs')
 CompoundFlag('Registers', [ 'IntRegs', 'FloatRegs', 'VecRegs', 'VecPredRegs',
                             'CCRegs', 'MiscRegs' ])
+DebugFlag('PpuIntRegs')
+DebugFlag('PpuFloatRegs')
+DebugFlag('PpuVecRegs')
+DebugFlag('PpuVecPredRegs')
+DebugFlag('PpuCCRegs')
+DebugFlag('PpuMiscRegs')
+CompoundFlag('PpuRegisters', [ 'PpuIntRegs', 'PpuFloatRegs', 'PpuVecRegs', 'PpuVecPredRegs',
+                            'PpuCCRegs', 'PpuMiscRegs' ])

@@ -207,6 +207,8 @@ FUPipeline::findTiming(const StaticInstPtr &inst)
     TheISA::ExtMachInst mach_inst = inst->machInst;
 #elif THE_ISA == RISCV_ISA
     TheISA::ExtMachInst mach_inst = inst->machInst;
+#elif THE_ISA == PPU_ISA
+    TheISA::ExtMachInst mach_inst = inst->machInst;
 #else
     /* Just allow extra decode based on op classes */
     uint64_t mach_inst = 0;

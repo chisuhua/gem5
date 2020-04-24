@@ -64,13 +64,33 @@
 #include "sim/insttracer.hh"
 #include "sim/probe/pmu.hh"
 #include "sim/probe/probe.hh"
+
+#ifdef BUILD_PPU
+#include "ppu_sim/system.hh"
+#else
 #include "sim/system.hh"
+#endif
+
 #include "debug/Mwait.hh"
+
+#if 0
+#ifdef BUILD_PPU
+namespace PpuISA {
+#endif
+
+class ThreadContext;
+
+#ifdef BUILD_PPU
+};
+using namespace PpuISA;
+#endif
+#endif
+class ThreadContext;
+
 
 class BaseCPU;
 struct BaseCPUParams;
 class CheckerCPU;
-class ThreadContext;
 
 struct AddressMonitor
 {

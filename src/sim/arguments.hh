@@ -33,8 +33,11 @@
 
 #include <cassert>
 #include <memory>
-
+#ifdef BUILD_PPU
+#include "ppu/thread_context.hh"
+#else
 #include "cpu/thread_context.hh"
+#endif
 #include "mem/fs_translating_port_proxy.hh"
 
 class Arguments
