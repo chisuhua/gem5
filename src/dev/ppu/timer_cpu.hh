@@ -32,11 +32,11 @@
 #define __DEV_PPU_TIMER_CPU_HH__
 
 #include "dev/io_device.hh"
-#include "params/TimerCpu.hh"
+#include "params/PpuTimerCpu.hh"
 
-class BaseCPU;
+class PpuBaseCPU;
 
-class TimerCpu : public BasicPioDevice
+class PpuTimerCpu : public BasicPioDevice
 {
   public:
     enum {
@@ -47,7 +47,7 @@ class TimerCpu : public BasicPioDevice
 
   private:
     /** cpu the timer belongs to */
-    BaseCPU *cpu;
+    PpuBaseCPU *cpu;
 
     /** mtimecmp register */
     uint64_t timecmp;
@@ -60,7 +60,7 @@ class TimerCpu : public BasicPioDevice
     void startTimer(uint64_t val);
 
   public:
-    typedef TimerCpuParams Params;
+    typedef PpuTimerCpuParams Params;
     const Params *
     params() const
     {
@@ -70,7 +70,7 @@ class TimerCpu : public BasicPioDevice
     /**
      * The constructor.
      */
-    TimerCpu(Params *p);
+    PpuTimerCpu(Params *p);
 
     /**
      * Overrides pure virtual read method of pio device.

@@ -30,9 +30,12 @@
 
 Import('*')
 
-if env['TARGET_ISA'] == 'ppu':
+if not env['BUILD_PPU']:
+    Return()
+
+if env['TARGET_PPU_ISA'] == 'ppu':
     SimObject('PPSystemBoard.py')
 
-    Source('custom_regs.cc')
-    Source('ppsystemboard.cc')
-    Source('timer_cpu.cc')
+    Source('custom_regs.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('ppsystemboard.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+    Source('timer_cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

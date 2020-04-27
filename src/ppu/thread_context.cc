@@ -132,10 +132,10 @@ PpuThreadContext::compare(PpuThreadContext *one, PpuThreadContext *two)
 void
 PpuThreadContext::quiesce()
 {
-    if (!getCpuPtr()->params()->do_quiesce)
+    if (!PpugetCpuPtr()->params()->do_quiesce)
         return;
 
-    DPRINTF(PpuQuiesce, "%s: quiesce()\n", getCpuPtr()->name());
+    DPRINTF(PpuQuiesce, "%s: quiesce()\n", PpugetCpuPtr()->name());
 
     suspend();
     if (getKernelStats())
@@ -146,7 +146,7 @@ PpuThreadContext::quiesce()
 void
 PpuThreadContext::quiesceTick(Tick resume)
 {
-    PpuBaseCPU *cpu = dynamic_cast<PpuBaseCPU*>(getCpuPtr());
+    PpuBaseCPU *cpu = dynamic_cast<PpuBaseCPU*>(PpugetCpuPtr());
 
     if (!cpu->params()->do_quiesce)
         return;
@@ -259,13 +259,13 @@ takeOverFrom(PpuThreadContext &ntc, PpuThreadContext &otc)
     if (PpuFullSystem) {
         assert(ntc.PpugetSystemPtr() == otc.PpugetSystemPtr());
 
-        PpuBaseCPU *ncpu(dynamic_cast<PpuBaseCPU*>(ntc.getCpuPtr()));
+        PpuBaseCPU *ncpu(dynamic_cast<PpuBaseCPU*>(ntc.PpugetCpuPtr()));
         assert(ncpu);
         PpuEndQuiesceEvent *oqe(otc.PpugetQuiesceEvent());
         assert(oqe);
         assert(oqe->tc == &otc);
 
-        PpuBaseCPU *ocpu(dynamic_cast<PpuBaseCPU*>(otc.getCpuPtr()));
+        PpuBaseCPU *ocpu(dynamic_cast<PpuBaseCPU*>(otc.PpugetCpuPtr()));
         assert(ocpu);
         PpuEndQuiesceEvent *nqe(ntc.PpugetQuiesceEvent());
         assert(nqe);

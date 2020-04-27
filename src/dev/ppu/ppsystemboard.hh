@@ -32,7 +32,7 @@
 #define __DEV_PPU_PPSYSTEMBOARD_HH__
 
 #include "dev/platform.hh"
-#include "params/PPSystemBoard.hh"
+#include "params/PpuSystemBoard.hh"
 
 class System;
 
@@ -40,19 +40,19 @@ class System;
  * Just a ppsystem board containing a system and uart
  * will be extended with other stuff soon
  */
-class PPSystemBoard : public Platform
+class PpuSystemBoard : public Platform
 {
   public:
     // pointer to system
-    System *system;
+    PpuSOCSystem *system;
 
   public:
-    typedef PPSystemBoardParams Params;
+    typedef PpuSystemBoardParams Params;
     const Params* params() const {
         return dynamic_cast<const Params *>(_params);
     }
 
-    PPSystemBoard(const Params *p);
+    PpuSystemBoard(const Params *p);
 
   public:
     void postConsoleInt() override;

@@ -993,6 +993,7 @@ sticky_vars.AddVariables(
                  have_tuntap),
     BoolVariable('BUILD_GPU', 'Build the compute-GPU model', False),
     BoolVariable('BUILD_PPU', 'Build the PPU model', False),
+    BoolVariable('BUILD_PPU_SYSTEM', 'Build the PPU model', False),
     EnumVariable('PROTOCOL', 'Coherence protocol for Ruby', 'None',
                   all_protocols),
     EnumVariable('BACKTRACE_IMPL', 'Post-mortem dump implementation',
@@ -1267,8 +1268,8 @@ for variant_path in variant_paths:
     if env['BUILD_GPU']:
         env.Append(CPPDEFINES=['BUILD_GPU'])
 
-    #if env['BUILD_PPU']:
-    #    env.Append(CPPDEFINES=['BUILD_PPU'])
+    if env['BUILD_PPU']:
+        env.Append(CPPDEFINES=['BUILD_PPU_SYSTEM'])
 
     # Warn about missing optional functionality
     if env['USE_KVM']:

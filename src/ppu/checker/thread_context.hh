@@ -108,7 +108,8 @@ class CheckerThreadContext : public PpuThreadContext
         return actualTC->getCurrentInstCount();
     }
 
-    PpuBaseCPU *getCpuPtr() override { return actualTC->getCpuPtr(); }
+    PpuBaseCPU *PpugetCpuPtr() override { return actualTC->getCpuPtr(); }
+    BaseCPU *getCpuPtr() override { panic("ca't call getCpuPtr in CheckerThreadContext\n "); }
 
     uint32_t socketId() const override { return actualTC->socketId(); }
 

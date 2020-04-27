@@ -43,10 +43,6 @@
  *          Timothy M. Jones
  *          Nilay Vaish
  */
-#ifdef BUILD_PPU
-#include "ppu/pred/bpred_unit.hh"
-#else
-
 #ifndef __CPU_PRED_BPRED_UNIT_HH__
 #define __CPU_PRED_BPRED_UNIT_HH__
 
@@ -351,5 +347,4 @@ class BPredUnit : public SimObject
     /** @} */
 };
 
-#endif // __CPU_PRED_BPRED_UNIT_HH__
 #endif // __CPU_PRED_BPRED_UNIT_HH__

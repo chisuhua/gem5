@@ -438,21 +438,21 @@ class ExecContext : public ::ExecContext
         thread.getDTBPtr()->demapPage(vaddr, asn);
     }
 
-    PpuBaseCPU *getCpuPtr() { return &cpu; }
+    PpuBaseCPU *PpugetCpuPtr() { return &cpu; }
 
   public:
     // monitor/mwait funtions
     void armMonitor(Addr address) override
-    { getCpuPtr()->armMonitor(inst->id.threadId, address); }
+    { PpugetCpuPtr()->armMonitor(inst->id.threadId, address); }
 
     bool mwait(PacketPtr pkt) override
-    { return getCpuPtr()->mwait(inst->id.threadId, pkt); }
+    { return PpugetCpuPtr()->mwait(inst->id.threadId, pkt); }
 
     void mwaitAtomic(PpuThreadContext *tc) override
-    { return getCpuPtr()->mwaitAtomic(inst->id.threadId, tc, thread.dtb); }
+    { return PpugetCpuPtr()->mwaitAtomic(inst->id.threadId, tc, thread.dtb); }
 
     AddressMonitor *getAddrMonitor() override
-    { return getCpuPtr()->getCpuAddrMonitor(inst->id.threadId); }
+    { return PpugetCpuPtr()->getCpuAddrMonitor(inst->id.threadId); }
 };
 
 }

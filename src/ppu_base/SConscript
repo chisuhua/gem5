@@ -30,6 +30,9 @@
 
 Import('*')
 
+if not env['BUILD_PPU']:
+    Return()
+
 #if env['CP_ANNOTATE']:
 #    SimObject('CPA.py')
 #    Source('cp_annotate.cc')

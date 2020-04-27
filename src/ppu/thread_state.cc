@@ -35,7 +35,7 @@
 #include "ppu/profile.hh"
 #include "ppu/quiesce_event.hh"
 #include "kern/kernel_stats.hh"
-#include "mem/fs_translating_port_proxy.hh"
+#include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/port.hh"
 #include "mem/port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
@@ -114,7 +114,7 @@ ThreadState::initMemProxies(PpuThreadContext *tc)
                                   baseCpu->cacheLineSize());
 
         assert(virtProxy == NULL);
-        virtProxy = new FSTranslatingPortProxy(tc);
+        virtProxy = new PpuFSTranslatingPortProxy(tc);
     } else {
         panic("PPU don't suport SE ThreadState::initMemProxies\n");
         /*

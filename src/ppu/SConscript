@@ -30,6 +30,9 @@
 
 Import('*')
 
+if not env['BUILD_PPU']:
+    Return()
+
 
 DebugFlag('PpuActivity')
 DebugFlag('PpuCommit')

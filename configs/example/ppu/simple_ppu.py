@@ -44,6 +44,12 @@ class MemBus(SystemXBar):
     badaddr_responder = BadAddr(warn_access="warn")
     default = Self.badaddr_responder.pio
 
+    frontend_latency = 0
+    forward_latency = 0
+    response_latency = 0
+    snoop_response_latency = 0
+    snoop_filter = SnoopFilter(lookup_latency=1)
+
 
 class PPSystem(BareMetalPpuSystem):
     """
@@ -58,10 +64,8 @@ class PPSystem(BareMetalPpuSystem):
         self.clk_domain = SrcClockDomain(clock='100MHz')
         self.clk_domain.voltage_domain = VoltageDomain()
 
-        pdb.set_trace()
-
         # set up our board
-        self.board = PPSystemBoard(
+        self.board = PpuSystemBoard(
                     #timer_cpu=TimerCpu(pio_addr=0x4400bff8),
                     #uart = Uart8250(pio_addr=0x70013000, pio_size=0x1000)
                     )

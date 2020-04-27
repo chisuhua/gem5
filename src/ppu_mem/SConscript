@@ -1,6 +1,6 @@
 # -*- mode:python -*-
-
-# Copyright (c) 2013-2014 ARM Limited
+#
+# Copyright (c) 2018 ARM Limited
 # All rights reserved
 #
 # The license below extends only to copyright in the software and shall
@@ -39,38 +39,89 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Authors: Nathan Binkert
-#          Andrew Bardsley
 
 Import('*')
 
 if not env['BUILD_PPU']:
     Return()
 
-if 'MinorPPU' in env['CPU_MODELS']:
-    SimObject('MinorPPU.py')
-
-    Source('activity.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('decode.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('dyn_inst.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('execute.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('fetch1.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('fetch2.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('func_unit.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('lsq.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('pipe_data.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('pipeline.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('scoreboard.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-    Source('stats.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-
-    DebugFlag('PpuMinorCPU', 'Minor CPU-level events')
-    DebugFlag('PpuMinorExecute', 'Minor Execute stage')
-    DebugFlag('PpuMinorInterrupt', 'Minor interrupt handling')
-    DebugFlag('PpuMinorMem', 'Minor memory accesses')
-    DebugFlag('PpuMinorScoreboard', 'Minor Execute register scoreboard')
-    DebugFlag('PpuMinorTrace', 'MinorTrace cycle-by-cycle state trace')
-    DebugFlag('PpuMinorTiming', 'Extra timing for instructions')
-
-    CompoundFlag('Minor', [
-        'PpuMinorCPU', 'PpuMinorExecute', 'PpuMinorInterrupt', 'PpuMinorMem',
-        'PpuMinorScoreboard'])
+#SimObject('CommMonitor.py')
+#Source('comm_monitor.cc')
+#
+#SimObject('AbstractMemory.py')
+#SimObject('AddrMapper.py')
+#SimObject('Bridge.py')
+#SimObject('DRAMCtrl.py')
+#SimObject('ExternalMaster.py')
+#SimObject('ExternalSlave.py')
+#SimObject('MemObject.py')
+#SimObject('SimpleMemory.py')
+#SimObject('XBar.py')
+#SimObject('HMCController.py')
+#SimObject('SerialLink.py')
+#SimObject('MemDelay.py')
+#
+#Source('abstract_mem.cc')
+#Source('addr_mapper.cc')
+#Source('bridge.cc')
+#Source('coherent_xbar.cc')
+#Source('drampower.cc')
+#Source('dram_ctrl.cc')
+#Source('external_master.cc')
+#Source('external_slave.cc')
+#Source('noncoherent_xbar.cc')
+#Source('packet.cc')
+#Source('port.cc')
+#Source('packet_queue.cc')
+#Source('port_proxy.cc')
+#Source('physical.cc')
+#Source('secure_port_proxy.cc')
+#Source('simple_mem.cc')
+#Source('snoop_filter.cc')
+#Source('stack_dist_calc.cc')
+#Source('tport.cc')
+#Source('xbar.cc')
+#Source('hmc_controller.cc')
+#Source('serial_link.cc')
+#Source('mem_delay.cc')
+#
+#if env['TARGET_ISA'] != 'null':
+Source('fs_translating_port_proxy.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#    Source('se_translating_port_proxy.cc')
+#    Source('page_table.cc')
+#
+#if env['HAVE_DRAMSIM']:
+#    SimObject('DRAMSim2.py')
+#    Source('dramsim2_wrapper.cc')
+#    Source('dramsim2.cc')
+#
+#SimObject('MemChecker.py')
+#Source('mem_checker.cc')
+#Source('mem_checker_monitor.cc')
+#
+#DebugFlag('AddrRanges')
+#DebugFlag('BaseXBar')
+#DebugFlag('CoherentXBar')
+#DebugFlag('NoncoherentXBar')
+#DebugFlag('SnoopFilter')
+#CompoundFlag('XBar', ['BaseXBar', 'CoherentXBar', 'NoncoherentXBar',
+#                      'SnoopFilter'])
+#
+#DebugFlag('Bridge')
+#DebugFlag('CommMonitor')
+#DebugFlag('DRAM')
+#DebugFlag('DRAMPower')
+#DebugFlag('DRAMState')
+#DebugFlag('ExternalPort')
+#DebugFlag('LLSC')
+#DebugFlag('MMU')
+#DebugFlag('MemoryAccess')
+#DebugFlag('PacketQueue')
+#DebugFlag('StackDist')
+#DebugFlag("DRAMSim2")
+#DebugFlag('HMCController')
+#DebugFlag('SerialLink')
+#
+#DebugFlag("MemChecker")
+#DebugFlag("MemCheckerMonitor")
+#DebugFlag("QOS")

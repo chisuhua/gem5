@@ -150,7 +150,7 @@
 #include "ppu/static_inst.hh"
 #include "ppu/thread_context.hh"
 #include "debug/PpuGDBAll.hh"
-#include "mem/fs_translating_port_proxy.hh"
+#include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/port.hh"
 #include "mem/se_translating_port_proxy.hh"
 #include "sim/full_system.hh"

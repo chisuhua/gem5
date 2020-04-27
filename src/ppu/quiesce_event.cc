@@ -42,7 +42,7 @@ PpuEndQuiesceEvent::PpuEndQuiesceEvent(PpuThreadContext *_tc)
 void
 PpuEndQuiesceEvent::process()
 {
-    DPRINTF(PpuQuiesce, "activating %s\n", tc->getCpuPtr()->name());
+    DPRINTF(PpuQuiesce, "activating %s\n", tc->PpugetCpuPtr()->name());
     tc->activate();
 }
 

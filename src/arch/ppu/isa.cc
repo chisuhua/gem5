@@ -110,16 +110,17 @@ ISA::readMiscRegNoEffect(int misc_reg) const
 }
 
 RegVal
-ISA::readMiscReg(int misc_reg, ThreadContext *tc)
+ISA::readMiscReg(int misc_reg, ThreadContext *tc_)
 {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
     switch (misc_reg) {
       case MISCREG_HARTID:
         return tc->contextId();
       case MISCREG_CYCLE:
         if (hpmCounterEnabled(MISCREG_CYCLE)) {
             DPRINTF(PpuMisc, "Cycle counter at: %llu.\n",
-                    tc->getCpuPtr()->curCycle());
-            return tc->getCpuPtr()->curCycle();
+                    tc->PpugetCpuPtr()->curCycle());
+            return tc->PpugetCpuPtr()->curCycle();
         } else {
             warn("Cycle counter disabled.\n");
             return 0;
@@ -136,8 +137,8 @@ ISA::readMiscReg(int misc_reg, ThreadContext *tc)
       case MISCREG_INSTRET:
         if (hpmCounterEnabled(MISCREG_INSTRET)) {
             DPRINTF(PpuMisc, "Instruction counter at: %llu.\n",
-                    tc->getCpuPtr()->totalInsts());
-            return tc->getCpuPtr()->totalInsts();
+                    tc->PpugetCpuPtr()->totalInsts());
+            return tc->PpugetCpuPtr()->totalInsts();
         } else {
             warn("Instruction counter disabled.\n");
             return 0;
@@ -145,13 +146,13 @@ ISA::readMiscReg(int misc_reg, ThreadContext *tc)
       case MISCREG_IP:
         {
             auto ic = dynamic_cast<PpuISA::Interrupts *>(
-                    tc->getCpuPtr()->getInterruptController(tc->threadId()));
+                    tc->PpugetCpuPtr()->getInterruptController(tc->threadId()));
             return ic->readIP();
         }
       case MISCREG_IE:
         {
             auto ic = dynamic_cast<PpuISA::Interrupts *>(
-                    tc->getCpuPtr()->getInterruptController(tc->threadId()));
+                    tc->PpugetCpuPtr()->getInterruptController(tc->threadId()));
             return ic->readIE();
         }
       default:
@@ -161,8 +162,8 @@ ISA::readMiscReg(int misc_reg, ThreadContext *tc)
                 misc_reg <= MISCREG_HPMCOUNTER31) {
             if (hpmCounterEnabled(misc_reg)) {
                 DPRINTF(PpuMisc, "HPM counter %d: %llu.\n",
-                        misc_reg - MISCREG_CYCLE, tc->getCpuPtr()->curCycle());
-                return tc->getCpuPtr()->curCycle();
+                        misc_reg - MISCREG_CYCLE, tc->PpugetCpuPtr()->curCycle());
+                return tc->PpugetCpuPtr()->curCycle();
             } else {
                 warn("HPM counter %d disabled.\n", misc_reg - MISCREG_CYCLE);
                 return 0;
@@ -184,8 +185,9 @@ ISA::setMiscRegNoEffect(int misc_reg, RegVal val)
 }
 
 void
-ISA::setMiscReg(int misc_reg, RegVal val, ThreadContext *tc)
+ISA::setMiscReg(int misc_reg, RegVal val, ThreadContext *tc_)
 {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
     if (misc_reg >= MISCREG_CYCLE && misc_reg <= MISCREG_HPMCOUNTER31) {
         // Ignore writes to HPM counters for now
         warn("Ignoring write to %s.\n", CSRData.at(misc_reg).name);
@@ -194,14 +196,14 @@ ISA::setMiscReg(int misc_reg, RegVal val, ThreadContext *tc)
           case MISCREG_IP:
             {
                 auto ic = dynamic_cast<PpuISA::Interrupts *>(
-                    tc->getCpuPtr()->getInterruptController(tc->threadId()));
+                    tc->PpugetCpuPtr()->getInterruptController(tc->threadId()));
                 ic->setIP(val);
             }
             break;
           case MISCREG_IE:
             {
                 auto ic = dynamic_cast<PpuISA::Interrupts *>(
-                    tc->getCpuPtr()->getInterruptController(tc->threadId()));
+                    tc->PpugetCpuPtr()->getInterruptController(tc->threadId()));
                 ic->setIE(val);
             }
             break;

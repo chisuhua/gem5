@@ -63,7 +63,7 @@
 #include "mem/physical.hh"
 #include "mem/port.hh"
 #include "mem/port_proxy.hh"
-#include "params/System.hh"
+#include "params/PpuSOCSystem.hh"
 #include "sim/futex_map.hh"
 #include "sim/redirect_path.hh"
 #include "sim/se_signal.hh"
@@ -75,6 +75,7 @@
 class PpuBaseRemoteGDB;
 class KvmVM;
 class ObjectFile;
+// class System;
 
 #if 0
 #ifdef BUILD_PPU
@@ -94,8 +95,8 @@ namespace PpuISA
 {
 */
 
-// class PpuSOCSystem : public SimObject, public PpuPCEventScope
-class PpuSOCSystem : public PpuPCEventScope, public System
+class PpuSOCSystem : public SimObject, public PpuPCEventScope
+// class PpuSOCSystem : public PpuPCEventScope, public System
 {
   private:
 
@@ -586,7 +587,7 @@ class PpuSOCSystem : public PpuPCEventScope, public System
     bool breakpoint();
 
   public:
-    typedef SystemParams Params;
+    typedef PpuSOCSystemParams Params;
 
   protected:
     Params *_params;
@@ -675,6 +676,8 @@ class PpuSOCSystem : public PpuPCEventScope, public System
     // to be redirected to the faux-filesystem (a duplicate filesystem
     // intended to replace certain files on the host filesystem).
     std::vector<RedirectPath*> redirectPaths;
+
+    System *system;
 
   protected:
 

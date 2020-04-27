@@ -47,7 +47,7 @@ namespace Kernel {
 
 class Checkpoint;
 
-class FSTranslatingPortProxy;
+class PpuFSTranslatingPortProxy;
 class SETranslatingPortProxy;
 
 namespace PpuISA {

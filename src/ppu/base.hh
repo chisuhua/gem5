@@ -91,6 +91,7 @@ struct AddressMonitor
     bool waiting;   // 0=normal, 1=mwaiting
     bool gotWakeup;
 };
+*/
 class PpuCPUProgressEvent : public Event
 {
   protected:
@@ -111,10 +112,9 @@ class PpuCPUProgressEvent : public Event
 
     virtual const char *description() const;
 };
-*/
 
-// class PpuBaseCPU : public ClockedObject
-class PpuBaseCPU : public BaseCPU
+class PpuBaseCPU : public ClockedObject
+// class PpuBaseCPU : public BaseCPU
 {
   protected:
 

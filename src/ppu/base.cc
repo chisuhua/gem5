@@ -89,7 +89,7 @@ vector<PpuBaseCPU *> PpuBaseCPU::cpuList;
 // careful to only use it once all the CPUs that you care about have
 // been initialized
 int PpumaxThreadsPerCPU = 1;
-/*
+
 PpuCPUProgressEvent::PpuCPUProgressEvent(PpuBaseCPU *_cpu, Tick ival)
     : Event(Event::Progress_Event_Pri), _interval(ival), lastNumInst(0),
       cpu(_cpu), _repeatEvent(true)
@@ -130,10 +130,10 @@ PpuCPUProgressEvent::description() const
 {
     return "CPU Progress";
 }
-*/
+
 
 PpuBaseCPU::PpuBaseCPU(Params *p, bool is_checker)
-    : BaseCPU(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
+    : ClockedObject(p), instCnt(0), _cpuId(p->cpu_id), _socketId(p->socket_id),
       _instMasterId(p->system->getMasterId(this, "inst")),
       _dataMasterId(p->system->getMasterId(this, "data")),
       _taskId(ContextSwitchTaskId::Unknown), _pid(invldPid),
@@ -335,7 +335,7 @@ PpuBaseCPU::startup()
     }
 
     if (params()->progress_interval) {
-        new CPUProgressEvent(this, params()->progress_interval);
+        new PpuCPUProgressEvent(this, params()->progress_interval);
     }
 
     if (_switchedOut)

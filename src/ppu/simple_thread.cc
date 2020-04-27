@@ -60,7 +60,7 @@
 #include "ppu/profile.hh"
 #include "ppu/quiesce_event.hh"
 #include "ppu/thread_context.hh"
-#include "mem/fs_translating_port_proxy.hh"
+#include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
 #include "params/PpuBaseCPU.hh"
 #include "sim/faults.hh"

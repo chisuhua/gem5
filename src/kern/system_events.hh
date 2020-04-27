@@ -33,7 +33,23 @@
 #ifndef __SYSTEM_EVENTS_HH__
 #define __SYSTEM_EVENTS_HH__
 
+#ifdef BUILD_PPU
+#include "ppu/pc_event.hh"
+
+class ThreadContext;
+
+class SkipFuncEvent : public PpuPCEvent
+{
+  public:
+    SkipFuncEvent(PpuPCEventScope *s, const std::string &desc, Addr addr)
+        : PpuPCEvent(s, desc, addr)
+    {}
+    virtual void process(ThreadContext *tc);
+};
+#else
 #include "cpu/pc_event.hh"
+
+class ThreadContext;
 
 class SkipFuncEvent : public PCEvent
 {
@@ -43,5 +59,6 @@ class SkipFuncEvent : public PCEvent
     {}
     virtual void process(ThreadContext *tc);
 };
+#endif
 
 #endif // __SYSTEM_EVENTS_HH__

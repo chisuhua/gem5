@@ -30,6 +30,9 @@
 
 Import('*')
 
+if not env['BUILD_PPU']:
+    Return()
+
 SimObject('PpuSOCSystem.py')
 #SimObject('PpuSOCProcess.py')
 #Source('arguments.cc', append={'CXXFLAGS': '-DBUILD_PPU'})

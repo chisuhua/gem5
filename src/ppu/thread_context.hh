@@ -133,8 +133,10 @@ class PpuThreadContext : public ThreadContext
 */
     virtual ~PpuThreadContext() { };
 
-    // virtual PpuBaseCPU *getCpuPtr() = 0;
-    virtual BaseCPU *getCpuPtr() = 0;
+    virtual PpuBaseCPU *PpugetCpuPtr() = 0;
+    virtual BaseCPU *getCpuPtr() {
+        panic("Use PpugetCpuPtr in PpuThreadContext\n");
+    };
 
     virtual int cpuId() const = 0;
 

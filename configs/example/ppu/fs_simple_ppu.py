@@ -30,7 +30,8 @@
 Full system script
 '''
 
-import argparse
+#import argparse
+import optparse
 from simple_ppu import PPSystem
 
 import m5
@@ -40,31 +41,44 @@ m5.util.addToPath('../..')
 from common import MemConfig
 
 cpu_types = {
-    'atomic': AtomicSimpleCPU,
-    'timing': TimingSimpleCPU,
-    'minor': MinorCPU
+    #'atomic': AtomicSimpleCPU,
+    #'timing': TimingSimpleCPU,
+    'minor': MinorPPU
 }
 
 
-def create(args):
+def create(options, args):
     '''Create the system and configure it'''
-    cpu_class = cpu_types[args.cpu]
+    cpu_class = cpu_types[options.cpu]
     mem_mode = cpu_class.memory_mode()
 
-    system = PPSystem(cpu_class=cpu_class,
-                          wfgdb=args.wait_for_gdb,
+    system = System()
+
+    system.voltage_domain = VoltageDomain(voltage = '1V')
+    system.clk_domain = SrcClockDomain(clock =  options.sys_clock,
+                        voltage_domain = system.voltage_domain)
+
+
+    ppsystem = PPSystem(cpu_class=cpu_class,
+                          wfgdb=options.wait_for_gdb,
                           mem_mode=mem_mode,
-                          bootloader=args.binary)
+                          bootloader=options.binary)
 
     # some required stuff
     mem_type = 'SimpleMemory'
     mem_channels = 1
-    args.mem_type = mem_type
-    args.mem_channels = mem_channels
+    options.mem_type = mem_type
+    options.mem_channels = mem_channels
 
-    MemConfig.config_mem(args, system)
+    MemConfig.config_mem(options, ppsystem)
 
-    system.connect()
+    ppsystem.connect()
+
+    system.ppsystem = ppsystem
+
+    # The system port is never used in the tester so merely connect it
+    # to avoid problems
+    system.system_port = ppsystem.membus.slave
 
     return system
 
@@ -76,28 +90,32 @@ def run():
 
 
 def main():
-    parser = argparse.ArgumentParser(epilog=__doc__)
+    #parser = argparse.ArgumentParser(epilog=__doc__)
+    parser = optparse.OptionParser()
 
-    parser.add_argument('-b',
-                        '--binary',
-                        type=str,
+    parser.add_option("-b", "--binary",
+                        type="string",
                         default=None,
-                        required=True,
+                        #required=True,
                         help='The binary to run')
-    parser.add_argument('--cpu',
+    parser.add_option('--cpu',
                         type=str,
                         default='minor',
                         help='CPU model to use')
-    parser.add_argument('-w',
-                        '--wait-for-gdb',
+    parser.add_option('-w', '--wait-for-gdb',
                         action='store_true',
                         help='Wait for remote gdb connection '
                         'before starting simulation')
+    parser.add_option("--sys-clock", action="store", type="string",
+                        default='1GHz',
+                        help = """Top-level clock for blocks running at system
+                        speed""")
 
-    args = parser.parse_args()
 
-    root = Root(full_system=True)
-    root.system = create(args)
+    (options, args) = parser.parse_args()
+
+    root = Root(full_system=False)
+    root.system = create(options, args)
 
     m5.instantiate()
 

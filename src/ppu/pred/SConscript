@@ -30,6 +30,9 @@
 
 Import('*')
 
+if not env['BUILD_PPU']:
+    Return()
+
 DebugFlag('PpuFreeList')
 DebugFlag('PpuBranch')
 DebugFlag('PpuTage')

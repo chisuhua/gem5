@@ -93,6 +93,7 @@ class ThreadContext;
 
 class System : public SimObject, public PCEventScope
 {
+    friend class PpuSOCSystem;
   private:
 
     /**

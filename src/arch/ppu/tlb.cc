@@ -326,7 +326,7 @@ Fault
 TLB::translateData(const RequestPtr &req, ThreadContext *tc_, bool write)
 {
     PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
-    if (FullSystem) {
+    if (PpuFullSystem) {
         /**
          * check if we simulate a bare metal system
          * if so, we have no tlb, phys addr == virt addr

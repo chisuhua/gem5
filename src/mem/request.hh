@@ -219,6 +219,12 @@ class Request
         funcMasterId = 1,
         /** This master id is used for message signaled interrupts */
         intMasterId = 2,
+#ifdef BUILD_PPU_SYSTEM
+        PpuwbMasterId = 3,
+        PpufuncMasterId = 4,
+        PpuintMasterId = 5,
+#endif
+
         /**
          * Invalid master id for assertion checking only. It is
          * invalid behavior to ever send this id as part of a request.

@@ -89,7 +89,7 @@ vector<PpuSOCSystem *> PpuSOCSystem::systemList;
 int PpuSOCSystem::numSystemsRunning = 0;
 
 PpuSOCSystem::PpuSOCSystem(Params *p)
-    : System(p), _systemPort("system_port", this),
+    : SimObject(p), _systemPort("system_port", this),
       multiThread(p->multi_thread),
       pagePtr(0),
       init_param(p->init_param),
@@ -115,7 +115,8 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
                  RangeSize(p->m5ops_base, 0x10000) :
                  AddrRange(1, 0)), // Create an empty range if disabled
       totalNumInsts(0),
-      redirectPaths(p->redirect_paths)
+      redirectPaths(p->redirect_paths),
+      system(p->system)
 {
 
     // add self to global system list
@@ -141,11 +142,11 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
     // Get the generic system master IDs
     MasterID tmp_id M5_VAR_USED;
     tmp_id = getMasterId(this, "writebacks");
-    assert(tmp_id == Request::wbMasterId);
+    assert(tmp_id == Request::PpuwbMasterId);
     tmp_id = getMasterId(this, "functional");
-    assert(tmp_id == Request::funcMasterId);
+    assert(tmp_id == Request::PpufuncMasterId);
     tmp_id = getMasterId(this, "interrupt");
-    assert(tmp_id == Request::intMasterId);
+    assert(tmp_id == Request::PpuintMasterId);
 
     if (PpuFullSystem) {
         if (params()->kernel == "") {
@@ -214,7 +215,8 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
 
     // Set back pointers to the system in all memories
     for (int x = 0; x < params()->memories.size(); x++)
-        params()->memories[x]->system(this);
+        params()->memories[x]->system(system);
+        // params()->memories[x]->system(this);
 }
 
 PpuSOCSystem::~PpuSOCSystem()
@@ -256,8 +258,9 @@ bool PpuSOCSystem::breakpoint()
 }
 
 ContextID
-PpuSOCSystem::registerThreadContext(ThreadContext *tc, ContextID assigned)
+PpuSOCSystem::registerThreadContext(ThreadContext *tc_, ContextID assigned)
 {
+    PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
     int id = assigned;
     if (id == InvalidContextID) {
         // Find an unused context ID for this thread.
@@ -282,7 +285,7 @@ PpuSOCSystem::registerThreadContext(ThreadContext *tc, ContextID assigned)
         RemoteGDB *rgdb = new PpuISA::RemoteGDB(this, tc, port + id);
         rgdb->listen();
 
-        BaseCPU *cpu = tc->getCpuPtr();
+        PpuBaseCPU *cpu = tc->PpugetCpuPtr();
         if (cpu->waitForRemoteGDB()) {
             inform("%s: Waiting for a remote GDB connection on port %d.\n",
                    cpu->name(), rgdb->port());
@@ -549,16 +552,21 @@ printPpuSOCSystems()
 std::string
 PpuSOCSystem::stripSystemName(const std::string& master_name) const
 {
+    return system->stripSystemName(master_name);
+    /*
     if (startswith(master_name, name())) {
         return master_name.substr(name().size());
     } else {
         return master_name;
     }
+    */
 }
 
 MasterID
 PpuSOCSystem::lookupMasterId(const SimObject* obj) const
 {
+    return system->lookupMasterId(obj);
+    /*
     MasterID id = Request::invldMasterId;
 
     // number of occurrences of the SimObject pointer
@@ -577,11 +585,14 @@ PpuSOCSystem::lookupMasterId(const SimObject* obj) const
         "More than one master is sharing the same SimObject\n");
 
     return id;
+    */
 }
 
 MasterID
 PpuSOCSystem::lookupMasterId(const std::string& master_name) const
 {
+    return system->lookupMasterId(master_name);
+    /*
     std::string name = stripSystemName(master_name);
 
     for (int i = 0; i < masters.size(); i++) {
@@ -591,21 +602,26 @@ PpuSOCSystem::lookupMasterId(const std::string& master_name) const
     }
 
     return Request::invldMasterId;
+    */
 }
 
 MasterID
 PpuSOCSystem::getGlobalMasterId(const std::string& master_name)
 {
-    return _getMasterId(nullptr, master_name);
+    return system->getGlobalMasterId(master_name);
+    // return _getMasterId(nullptr, master_name);
 }
 
 MasterID
 PpuSOCSystem::getMasterId(const SimObject* master, std::string submaster)
 {
+    return system->getMasterId(master, submaster);
+    /*
     auto master_name = leafMasterName(master, submaster);
     return _getMasterId(master, master_name);
+    */
 }
-
+/*
 MasterID
 PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_name)
 {
@@ -635,10 +651,13 @@ PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_na
 
     return masters.back().masterId;
 }
+*/
 
 std::string
 PpuSOCSystem::leafMasterName(const SimObject* master, const std::string& submaster)
 {
+    return system->leafMasterName(master, submaster);
+    /*
     if (submaster.empty()) {
         return master->name();
     } else {
@@ -646,16 +665,20 @@ PpuSOCSystem::leafMasterName(const SimObject* master, const std::string& submast
         // the root SimObject master name
         return master->name() + "." + submaster;
     }
+    */
 }
 
 std::string
 PpuSOCSystem::getMasterName(MasterID master_id)
 {
+    return system->getMasterName(master_id);
+    /*
     if (master_id >= masters.size())
         fatal("Invalid master_id passed to getMasterName()\n");
 
     const auto& master_info = masters[master_id];
     return master_info.masterName;
+    */
 }
 
 PpuSOCSystem *

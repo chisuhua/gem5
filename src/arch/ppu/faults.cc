@@ -145,19 +145,22 @@ void Reset::invoke(ThreadContext *tc_, const StaticInstPtr &inst)
     // TODO copied from ppu-ccc
     if (PpuFullSystem)
     {
-        tc->getCpuPtr()->clearInterrupts(tc->threadId());
+        tc->PpugetCpuPtr()->clearInterrupts(tc->threadId());
         tc->clearArchRegs();
         STATUS status = tc->readMiscRegNoEffect(MISCREG_STATUS);
         status.mie = 0;
         status.mprv = 0;
         tc->setMiscRegNoEffect(MISCREG_STATUS, status);
     } else {
+        panic("don't support SE in ppu");
+        /*
         tc->setMiscReg(MISCREG_PRV, PRV_M);
         STATUS status = tc->readMiscReg(MISCREG_STATUS);
         status.mie = 0;
         status.mprv = 0;
         tc->setMiscReg(MISCREG_STATUS, status);
         tc->setMiscReg(MISCREG_MCAUSE, 0);
+        */
     }
 
     // Advance the PC to the implementation-defined reset vector

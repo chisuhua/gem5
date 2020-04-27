@@ -46,7 +46,7 @@
 using namespace LittleEndianGuest;
 
 PpuSystem::PpuSystem(Params *p)
-    : PpuSOCSystem(p),
+    : PpuSOCSystem(dynamic_cast<PpuSOCSystemParams*>(p)),
       _isBareMetal(p->bare_metal),
       _resetVect(p->reset_vect),
       _rv32(p->rv32)

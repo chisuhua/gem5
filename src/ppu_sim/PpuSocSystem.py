@@ -52,8 +52,8 @@ from m5.objects.System import *
 #class MemoryMode(Enum): vals = ['invalid', 'atomic', 'timing',
 #                                'atomic_noncaching']
 
-#class PpuSOCSystem(SimObject):
-class PpuSOCSystem(System):
+#class PpuSOCSystem(System):
+class PpuSOCSystem(SimObject):
     type = 'PpuSOCSystem'
     cxx_header = "ppu_sim/system.hh"
     system_port = MasterPort("System port")
@@ -136,3 +136,4 @@ class PpuSOCSystem(System):
 
     if buildEnv['USE_KVM']:
         kvm_vm = Param.KvmVM(NULL, 'KVM VM (i.e., shared memory domain)')
+    system = Param.System(Parent.any, "system the PpuSOCSystem is in")

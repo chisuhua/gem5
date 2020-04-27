@@ -30,12 +30,12 @@
 
 #include "dev/ppu/timer_cpu.hh"
 
-#include "cpu/base.hh"
+#include "ppu/base.hh"
 #include "debug/Timer.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
 
-TimerCpu::TimerCpu(Params *p)
+PpuTimerCpu::PpuTimerCpu(Params *p)
     : BasicPioDevice(p, 0x10),
       cpu(p->cpu),
       timecmp(0x0),
@@ -43,7 +43,7 @@ TimerCpu::TimerCpu(Params *p)
 {}
 
 Tick
-TimerCpu::read(PacketPtr pkt)
+PpuTimerCpu::read(PacketPtr pkt)
 {
     assert(pkt->getAddr() >= pioAddr && pkt->getAddr() < pioAddr + pioSize);
 
@@ -70,7 +70,7 @@ TimerCpu::read(PacketPtr pkt)
                     pkt->setRaw<uint32_t>(timecmp >> 32);
                     break;
                 default:
-                    panic("Tried to write TimerCpu at offset %#x\n", addr);
+                    panic("Tried to write PpuTimerCpu at offset %#x\n", addr);
                     break;
             }
             break;
@@ -85,11 +85,11 @@ TimerCpu::read(PacketPtr pkt)
                     pkt->setRaw<uint64_t>(timecmp);
                     break;
                 default:
-                    panic("Tried to read TimerCpu at offset %#x\n", addr);
+                    panic("Tried to read PpuTimerCpu at offset %#x\n", addr);
             }
             break;
         default:
-            panic("Unsupported packet size for read access on TimerCpu");
+            panic("Unsupported packet size for read access on PpuTimerCpu");
             break;
     }
 
@@ -98,7 +98,7 @@ TimerCpu::read(PacketPtr pkt)
 }
 
 Tick
-TimerCpu::write(PacketPtr pkt)
+PpuTimerCpu::write(PacketPtr pkt)
 {
     assert(pkt->getAddr() >= pioAddr && pkt->getAddr() < pioAddr + pioSize);
 
@@ -108,11 +108,11 @@ TimerCpu::write(PacketPtr pkt)
             switch (addr) {
                 case Time:
                     DPRINTF(Timer,
-                        "Ignore write on TimerCpu r-o time register.\n");
+                        "Ignore write on PpuTimerCpu r-o time register.\n");
                     break;
                 case (Time + 4):
                     DPRINTF(Timer,
-                        "Ignore write on TimerCpu r-o time register.\n");
+                        "Ignore write on PpuTimerCpu r-o time register.\n");
                     break;
                 case TimeCmp:
                     DPRINTF(Timer, "write on TimerCmp LO register.\n");
@@ -131,7 +131,7 @@ TimerCpu::write(PacketPtr pkt)
                     startTimer(timecmp);
                     break;
                 default:
-                    panic("Tried to write TimerCpu at offset %#x\n", addr);
+                    panic("Tried to write PpuTimerCpu at offset %#x\n", addr);
                     break;
             }
             break;
@@ -140,7 +140,7 @@ TimerCpu::write(PacketPtr pkt)
                 case Time:
                     /** TODO: should not be writable, right? */
                     DPRINTF(Timer,
-                        "Ignore write on TimerCpu r-o time register.\n");
+                        "Ignore write on PpuTimerCpu r-o time register.\n");
                     break;
                 case TimeCmp:
                     DPRINTF(Timer,
@@ -152,12 +152,12 @@ TimerCpu::write(PacketPtr pkt)
                     startTimer(timecmp);
                     break;
                 default:
-                    panic("Tried to write TimerCpu at offset %#x\n", addr);
+                    panic("Tried to write PpuTimerCpu at offset %#x\n", addr);
                     break;
             }
             break;
         default:
-            panic("Unsupported packet size for write access on TimerCpu");
+            panic("Unsupported packet size for write access on PpuTimerCpu");
             break;
     }
 
@@ -166,7 +166,7 @@ TimerCpu::write(PacketPtr pkt)
 }
 
 void
-TimerCpu::startTimer(uint64_t val)
+PpuTimerCpu::startTimer(uint64_t val)
 {
     DPRINTF(Timer, "Start timer with value %#lx\n", val);
 
@@ -183,14 +183,14 @@ TimerCpu::startTimer(uint64_t val)
 }
 
 void
-TimerCpu::timerAlarm()
+PpuTimerCpu::timerAlarm()
 {
     DPRINTF(Timer, "Timer Alarm\n");
     cpu->postInterrupt(0, 7, 0);
 }
 
-TimerCpu *
-TimerCpuParams::create()
+PpuTimerCpu *
+PpuTimerCpuParams::create()
 {
-    return new TimerCpu(this);
+    return new PpuTimerCpu(this);
 }

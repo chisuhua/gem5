@@ -28,8 +28,11 @@ from m5.proxy import *
 
 from Device import BasicPioDevice
 from Platform import Platform
+#from m5.objects.SubSystem import SubSystem
 from Terminal import Terminal
 from Uart import Uart8250
+
+from m5.objects.PpuSOCSystem import PpuSOCSystem
 import pdb
 
 
@@ -40,19 +43,21 @@ class CustomRegs(BasicPioDevice):
     regs = VectorParam.UInt32("Addresses of the custom registers.")
 
 
-class TimerCpu(BasicPioDevice):
-    type = 'TimerCpu'
+class PpuTimerCpu(BasicPioDevice):
+    type = 'PpuTimerCpu'
     cxx_header = 'dev/ppu/timer_cpu.hh'
 
-    cpu = Param.BaseCPU(Parent.any, "Cpu this device is part of.")
+    cpu = Param.PpuBaseCPU(Parent.any, "Cpu this device is part of.")
 
 
-class PPSystemBoard(Platform):
-    type = 'PPSystemBoard'
+#class PpuSystemBoard(SubSystem):
+class PpuSystemBoard(Platform):
+    type = 'PpuSystemBoard'
     cxx_header = 'dev/ppu/ppsystemboard.hh'
-    system = Param.System(Parent.any, 'system')
+    system = Param.PpuSOCSystem(Parent.any, 'system')
+    #system = Param.System(Parent.any, 'system')
 
-    timer_cpu = TimerCpu(pio_addr=0x70014000) # defult BasicPioDevice pio_size is 0x10
+    timer_cpu = PpuTimerCpu(pio_addr=0x70014000) # defult BasicPioDevice pio_size is 0x10
 
     pdb.set_trace()
 

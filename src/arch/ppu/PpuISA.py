@@ -50,4 +50,4 @@ class PpuISA(BaseISA):
     type = 'PpuISA'
     cxx_class = 'PpuISA::ISA'
     cxx_header = "arch/ppu/isa.hh"
-    system = Param.System(Parent.any, "System this ISA object belongs to")
+    system = Param.PpuSOCSystem(Parent.any, "System this ISA object belongs to")

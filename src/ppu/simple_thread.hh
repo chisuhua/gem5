@@ -231,7 +231,7 @@ class SimpleThread : public ThreadState, public PpuThreadContext
         return comInstEventQueue.getCurTick();
     }
 
-    PpuBaseCPU *getCpuPtr() override { return baseCpu; }
+    PpuBaseCPU *PpugetCpuPtr() override { return baseCpu; }
 
     int cpuId() const override { return ThreadState::cpuId(); }
     uint32_t socketId() const override { return ThreadState::socketId(); }

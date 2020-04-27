@@ -32,9 +32,10 @@
 
 from m5.params import *
 
-from m5.objects.System import System
+#from m5.objects.System import System
+from m5.objects.PpuSOCSystem import PpuSOCSystem
 
-class PpuSystem(System):
+class PpuSystem(PpuSOCSystem):
     type = 'PpuSystem'
     cxx_header = 'arch/ppu/system.hh'
     bare_metal = Param.Bool(False, "Using Bare Metal Application?")

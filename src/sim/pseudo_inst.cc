@@ -79,7 +79,10 @@
 struct gpusyscall;
 typedef struct gpusyscall gpusyscall_t;
 typedef uint64_t (*cudaFunc_t)(ThreadContext *, gpusyscall_t *);
+
+#ifdef BUILD_PPU_SYSTEM
 extern cudaFunc_t gpgpu_funcs[];
+#endif
 
 using namespace std;
 using namespace Stats;
@@ -604,7 +607,7 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     }
 }
 
-#ifdef BUILD_GPU
+#ifdef BUILD_PPU_SYSTEM
 void
 gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 {

@@ -54,6 +54,10 @@ class PpuBaseCPU;
 class BaseCPU;
 class ThreadContext;
 
+#ifdef BUILD_PPU
+class PpuBaseCPU;
+#endif
+
 class BaseInterrupts : public SimObject
 {
   protected:
@@ -65,6 +69,10 @@ class BaseInterrupts : public SimObject
     BaseInterrupts(Params *p) : SimObject(p) {}
 
     virtual void setCPU(BaseCPU * newCPU) = 0;
+
+#ifdef BUILD_PPU
+    virtual void setCPU(PpuBaseCPU * newCPU) = 0;
+#endif
 
     const Params *
     params() const

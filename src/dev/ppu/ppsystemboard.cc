@@ -30,33 +30,33 @@
 
 #include "dev/ppu/ppsystemboard.hh"
 
-PPSystemBoard::PPSystemBoard(const Params *p)
+PpuSystemBoard::PpuSystemBoard(const Params *p)
     : Platform(p), system(p->system)
 {
 }
 
 // implement virtual functions from platform base class
-void PPSystemBoard::postConsoleInt()
+void PpuSystemBoard::postConsoleInt()
 {
     // do nothing
 }
 
-void PPSystemBoard::clearConsoleInt()
+void PpuSystemBoard::clearConsoleInt()
 {
     // do nothing
 }
 
-void PPSystemBoard::postPciInt(int line)
+void PpuSystemBoard::postPciInt(int line)
 {
     // do nothing
 }
 
-void PPSystemBoard::clearPciInt(int line)
+void PpuSystemBoard::clearPciInt(int line)
 {
     // do nothing
 }
 
-PPSystemBoard* PPSystemBoardParams::create()
+PpuSystemBoard* PpuSystemBoardParams::create()
 {
-    return new PPSystemBoard(this);
+    return new PpuSystemBoard(this);
 }

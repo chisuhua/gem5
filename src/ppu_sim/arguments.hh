@@ -35,7 +35,7 @@
 #include <memory>
 
 #include "ppu/thread_context.hh"
-#include "mem/fs_translating_port_proxy.hh"
+#include "ppu_mem/fs_translating_port_proxy.hh"
 /*
 namespace PpuISA
 {
