@@ -2,10 +2,12 @@
 #include <tlm>
 
 #include "cli_parser.hh"
+#include "master_transactor.hh"
+#include "slave_transactor.hh"
 #include "report_handler.hh"
 #include "sc_target.hh"
+#include "sc_initiator.hh"
 #include "sim_control.hh"
-#include "slave_transactor.hh"
 #include "stats.hh"
 
 int
@@ -23,17 +25,26 @@ sc_main(int argc, char **argv)
                                            parser.getSimulationEnd(),
                                            parser.getDebugFlags());
 
+    // Master Transactor
+    Gem5SystemC::Gem5MasterTransactor master_transactor("master_transactor", "transactor");
+
+    Initiator initiator("traffic_generator");
+    initiator.socket.bind(master_transactor.socket);
+
+    master_transactor.sim_control.bind(sim_control);
+
+
+    // Slave Transactor
     // unsigned long long int memorySize = 512*1024*1024ULL;
     unsigned long long int memorySize = 16ULL;
-
-    Gem5SystemC::Gem5SlaveTransactor transactor("transactor", "transactor");
+    Gem5SystemC::Gem5SlaveTransactor  slave_transactor("slave_transactor", "transactor");
     Target memory("memory",
                   parser.getVerboseFlag(),
                   memorySize,
                   parser.getMemoryOffset());
 
-    memory.socket.bind(transactor.socket);
-    transactor.sim_control.bind(sim_control);
+    memory.socket.bind(slave_transactor.socket);
+    slave_transactor.sim_control.bind(sim_control);
 
     memory.top.signals.Trace(trace_fp);
     sc_trace(trace_fp, memory.top.rst_n, "rst_n");
@@ -48,7 +59,7 @@ sc_main(int argc, char **argv)
 
     SC_REPORT_INFO("sc_main", "Start of Simulation");
 
-    sc_core::sc_start();
+    sc_core::sc_start(); // Run to end of simulation
     // sc_core::sc_start(140, SC_US);
 
     SC_REPORT_INFO("sc_main", "End of Simulation");
@@ -60,5 +71,6 @@ sc_main(int argc, char **argv)
     if (trace_fp) {
         sc_close_vcd_trace_file(trace_fp);
     }
+
     return EXIT_SUCCESS;
 }
