@@ -55,10 +55,10 @@ sc_main(int argc, char** argv)
                                             parser.getSimulationEnd(),
                                             parser.getDebugFlags());
 
-    TrafficGenerator trafficGenerator("traffic_generator");
+    TrafficGenerator initiator("traffic_generator");
     Gem5SystemC::Gem5MasterTransactor transactor("transactor", "transactor");
 
-    trafficGenerator.socket.bind(transactor.socket);
+    initiator.socket.bind(transactor.socket);
     transactor.sim_control.bind(sim_control);
 
     SC_REPORT_INFO("sc_main", "Start of Simulation");

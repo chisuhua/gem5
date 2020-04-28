@@ -49,12 +49,12 @@
 #include "debug/PpuFetch.hh"
 #include "debug/PpuMinorTrace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 Fetch2::Fetch2(const std::string &name,
-    MinorPPU &cpu_,
-    MinorPPUParams &params,
+    PpuMinorPPU &cpu_,
+    PpuMinorPPUParams &params,
     Latch<ForwardLineData>::Output inp_,
     Latch<BranchData>::Output branchInp_,
     Latch<BranchData>::Input predictionOut_,
@@ -125,7 +125,7 @@ Fetch2::dumpAllInput(ThreadID tid)
 void
 Fetch2::updateBranchPrediction(const BranchData &branch)
 {
-    MinorDynInstPtr inst = branch.inst;
+    PpuMinorDynInstPtr inst = branch.inst;
 
     /* Don't even consider instructions we didn't try to predict or faults */
     if (inst->isFault() || !inst->triedToPredict)
@@ -185,7 +185,7 @@ Fetch2::updateBranchPrediction(const BranchData &branch)
 }
 
 void
-Fetch2::predictBranch(MinorDynInstPtr inst, BranchData &branch)
+Fetch2::predictBranch(PpuMinorDynInstPtr inst, BranchData &branch)
 {
     Fetch2ThreadInfo &thread = fetchInfo[inst->id.threadId];
     ThePpuISA::PCState inst_pc = inst->pc;
@@ -342,7 +342,7 @@ Fetch2::evaluate()
 
             /* The generated instruction.  Leave as NULL if no instruction
              *  is to be packed into the output */
-            MinorDynInstPtr dyn_inst = NULL;
+            PpuMinorDynInstPtr dyn_inst = NULL;
 
             if (discard_line) {
                 /* Rest of line was from an older prediction in the same
@@ -352,11 +352,11 @@ Fetch2::evaluate()
                     line_in->id, fetch_info.inputIndex,
                     fetch_info.predictionSeqNum);
             } else if (line_in->isFault()) {
-                /* Pack a fault as a MinorDynInst with ->fault set */
+                /* Pack a fault as a PpuMinorDynInst with ->fault set */
 
                 /* Make a new instruction and pick up the line, stream,
                  *  prediction, thread ids from the incoming line */
-                dyn_inst = new MinorDynInst(line_in->id);
+                dyn_inst = new PpuMinorDynInst(line_in->id);
 
                 /* Fetch and prediction sequence numbers originate here */
                 dyn_inst->id.fetchSeqNum = fetch_info.fetchSeqNum;
@@ -395,7 +395,7 @@ Fetch2::evaluate()
                 if (decoder->instReady()) {
                     /* Make a new instruction and pick up the line, stream,
                      *  prediction, thread ids from the incoming line */
-                    dyn_inst = new MinorDynInst(line_in->id);
+                    dyn_inst = new PpuMinorDynInst(line_in->id);
 
                     /* Fetch and prediction sequence numbers originate here */
                     dyn_inst->id.fetchSeqNum = fetch_info.fetchSeqNum;
@@ -438,7 +438,7 @@ Fetch2::evaluate()
                     /* In SE mode, it's possible to branch to a microop when
                      *  replaying faults such as page faults (or simply
                      *  intra-microcode branches in X86).  Unfortunately,
-                     *  as Minor has micro-op decomposition in a separate
+                     *  as PpuMinor has micro-op decomposition in a separate
                      *  pipeline stage from instruction decomposition, the
                      *  following advancePC (which may follow a branch with
                      *  microPC() != 0) *must* see a fresh macroop.  This
@@ -487,7 +487,7 @@ Fetch2::evaluate()
                 insts_out.insts[output_index] = dyn_inst;
                 output_index++;
 
-                /* Output MinorTrace instruction info for
+                /* Output PpuMinorTrace instruction info for
                  *  pre-microop decomposition macroops */
                 if (DTRACE(PpuMinorTrace) && !dyn_inst->isFault() &&
                     dyn_inst->staticInst->isMacroop())

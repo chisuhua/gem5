@@ -72,17 +72,34 @@ OPTION="${OPTION} --debug-flags=Printf"
 #OPTION="${OPTION} --debug-file=run_debug.log"
 #OPTION="${OPTION},BaseXBar"
 OPTION="${OPTION},Decode"
+#OPTION="${OPTION},MemoryAccess"
+#OPTION="${OPTION},Decode"
 #OPTION="${OPTION},Interrupt"
 #OPTION="${OPTION},RiscvMisc"
 OPTION="${OPTION},Stack"
 #OPTION="${OPTION},RiscvTLB"
 #OPTION="${OPTION},Fetch"
 
+OPTION="${OPTION},Uart"
+OPTION="${OPTION},Timer"
+#OPTION="${OPTION},GDBRecv"
+#OPTION="${OPTION},GDBMisc"
+#OPTION="${OPTION},GDBAcc"
+#OPTION="${OPTION},GDBSend"
+#OPTION="${OPTION},GDBWrite"
+
+#OPTION="${OPTION},MinorMem"
+#
+
+
 CMD="tests/test-progs/hello/bin/x86/linux/hello"
 CMD="tests/test-progs/threads/bin/X86/linux/threads"
 
-CONF="configs/example/riscv/fs_simple_ppu.py"
-CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
+#CONF="configs/example/ppu/fs_simple_ppu.py"
+CONF="configs/example/ppu/fs_bare_metal.py"
+#CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
+CMD="-b /mnt/d/yunpan/source/github/sim/zephyreproject/zephyr/build_ppu32/zephyr/zephyr.elf"
+CMD="${CMD} -w"
 
 echo $RUN $OPTION $CONF $CMD
 $RUN $OPTION $CONF $CMD

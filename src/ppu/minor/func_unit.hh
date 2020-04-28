@@ -50,10 +50,10 @@
 #include "ppu/minor/dyn_inst.hh"
 #include "ppu/func_unit.hh"
 #include "ppu/timing_expr.hh"
-#include "params/MinorFU.hh"
-#include "params/MinorFUPool.hh"
-#include "params/MinorOpClass.hh"
-#include "params/MinorOpClassSet.hh"
+#include "params/PpuMinorFU.hh"
+#include "params/PpuMinorFUPool.hh"
+#include "params/PpuMinorOpClass.hh"
+#include "params/PpuMinorOpClassSet.hh"
 #include "sim/clocked_object.hh"
 
 
@@ -61,32 +61,32 @@
 using namespace PpuISA;
 #endif
 
-/** Boxing for MinorOpClass to get around a build problem with C++11 but
+/** Boxing for PpuMinorOpClass to get around a build problem with C++11 but
  *  also allow for future additions to op class checking */
-class MinorOpClass : public SimObject
+class PpuMinorOpClass : public SimObject
 {
   public:
     OpClass opClass;
 
   public:
-    MinorOpClass(const MinorOpClassParams *params) :
+    PpuMinorOpClass(const PpuMinorOpClassParams *params) :
         SimObject(params),
         opClass(params->opClass)
     { }
 };
 
 /** Wrapper for a matchable set of op classes */
-class MinorOpClassSet : public SimObject
+class PpuMinorOpClassSet : public SimObject
 {
   public:
-    std::vector<MinorOpClass *> opClasses;
+    std::vector<PpuMinorOpClass *> opClasses;
 
     /** Convenience packing of opClasses into a bit vector for easier
      *  testing */
     std::vector<bool> capabilityList;
 
   public:
-    MinorOpClassSet(const MinorOpClassSetParams *params);
+    PpuMinorOpClassSet(const PpuMinorOpClassSetParams *params);
 
   public:
     /** Does this set support the given op class */
@@ -97,7 +97,7 @@ class MinorOpClassSet : public SimObject
  *  register dependency latencies tweaked based on the ExtMachInst of the
  *  source instruction.
  */
-class MinorFUTiming: public SimObject
+class PpuMinorFUTiming: public SimObject
 {
   public:
     /** Mask off the ExtMachInst of an instruction before comparing with
@@ -133,10 +133,10 @@ class MinorFUTiming: public SimObject
     std::vector<Cycles> srcRegsRelativeLats;
 
     /** Extra opClasses check (after the FU one) */
-    MinorOpClassSet *opClasses;
+    PpuMinorOpClassSet *opClasses;
 
   public:
-    MinorFUTiming(const MinorFUTimingParams *params);
+    PpuMinorFUTiming(const PpuMinorFUTimingParams *params);
 
   public:
     /** Does the extra decode in this object support the given op class */
@@ -148,13 +148,13 @@ class MinorFUTiming: public SimObject
  *  rather than each operation (as in src/FuncUnit).
  *
  *  This is very similar to cpu/func_unit but replicated here to allow
- *  the Minor functional units to change without having to disturb the common
+ *  the PpuMinor functional units to change without having to disturb the common
  *  definition.
  */
-class MinorFU : public SimObject
+class PpuMinorFU : public SimObject
 {
   public:
-    MinorOpClassSet *opClasses;
+    PpuMinorOpClassSet *opClasses;
 
     /** Delay from issuing the operation, to it reaching the
      *  end of the associated pipeline */
@@ -169,10 +169,10 @@ class MinorFU : public SimObject
     std::vector<unsigned int> cantForwardFromFUIndices;
 
     /** Extra timing info to give timings to individual ops */
-    std::vector<MinorFUTiming *> timings;
+    std::vector<PpuMinorFUTiming *> timings;
 
   public:
-    MinorFU(const MinorFUParams *params) :
+    PpuMinorFU(const PpuMinorFUParams *params) :
         SimObject(params),
         opClasses(params->opClasses),
         opLat(params->opLat),
@@ -182,20 +182,20 @@ class MinorFU : public SimObject
     { }
 };
 
-/** A collection of MinorFUs */
-class MinorFUPool : public SimObject
+/** A collection of PpuMinorFUs */
+class PpuMinorFUPool : public SimObject
 {
   public:
-    std::vector<MinorFU *> funcUnits;
+    std::vector<PpuMinorFU *> funcUnits;
 
   public:
-    MinorFUPool(const MinorFUPoolParams *params) :
+    PpuMinorFUPool(const PpuMinorFUPoolParams *params) :
         SimObject(params),
         funcUnits(params->funcUnits)
     { }
 };
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** Container class to box instructions in the FUs to make those
@@ -203,10 +203,10 @@ namespace Minor
 class QueuedInst
 {
   public:
-    MinorDynInstPtr inst;
+    PpuMinorDynInstPtr inst;
 
   public:
-    QueuedInst(MinorDynInstPtr inst_ = MinorDynInst::bubble()) :
+    QueuedInst(PpuMinorDynInstPtr inst_ = PpuMinorDynInst::bubble()) :
         inst(inst_)
     { }
 
@@ -216,7 +216,7 @@ class QueuedInst
     bool isBubble() const { return inst->isBubble(); }
 
     static QueuedInst bubble()
-    { return QueuedInst(MinorDynInst::bubble()); }
+    { return QueuedInst(PpuMinorDynInst::bubble()); }
 };
 
 /** Functional units have pipelines which stall when an inst gets to
@@ -225,12 +225,12 @@ class QueuedInst
 typedef SelfStallingPipeline<QueuedInst,
     ReportTraitsAdaptor<QueuedInst> > FUPipelineBase;
 
-/** A functional unit configured from a MinorFU object */
+/** A functional unit configured from a PpuMinorFU object */
 class FUPipeline : public FUPipelineBase, public FuncUnit
 {
   public:
     /** Functional unit description that this pipeline implements */
-    const MinorFU &description;
+    const PpuMinorFU &description;
 
     /** An FUPipeline needs access to curCycle, use this timing source */
     ClockedObject &timeSource;
@@ -249,7 +249,7 @@ class FUPipeline : public FUPipelineBase, public FuncUnit
     Cycles nextInsertCycle;
 
   public:
-    FUPipeline(const std::string &name, const MinorFU &description_,
+    FUPipeline(const std::string &name, const PpuMinorFU &description_,
         ClockedObject &timeSource_);
 
   public:
@@ -262,7 +262,7 @@ class FUPipeline : public FUPipelineBase, public FuncUnit
 
     /** Find the extra timing information for this instruction.  Returns
      *  NULL if no decode info. is found */
-    MinorFUTiming *findTiming(const StaticInstPtr &inst);
+    PpuMinorFUTiming *findTiming(const StaticInstPtr &inst);
 
     /** Step the pipeline.  Allow multiple steps? */
     void advance();

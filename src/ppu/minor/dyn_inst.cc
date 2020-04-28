@@ -50,7 +50,7 @@
 #include "debug/PpuMinorExecute.hh"
 #include "enums/OpClass.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 const InstSeqNum InstId::firstStreamSeqNum;
@@ -75,13 +75,13 @@ operator <<(std::ostream &os, const InstId &id)
     return os;
 }
 
-MinorDynInstPtr MinorDynInst::bubbleInst = NULL;
+PpuMinorDynInstPtr PpuMinorDynInst::bubbleInst = NULL;
 
 void
-MinorDynInst::init()
+PpuMinorDynInst::init()
 {
     if (!bubbleInst) {
-        bubbleInst = new MinorDynInst();
+        bubbleInst = new PpuMinorDynInst();
         assert(bubbleInst->isBubble());
         /* Make bubbleInst immortal */
         bubbleInst->incref();
@@ -89,20 +89,20 @@ MinorDynInst::init()
 }
 
 bool
-MinorDynInst::isLastOpInInst() const
+PpuMinorDynInst::isLastOpInInst() const
 {
     assert(staticInst);
     return !(staticInst->isMicroop() && !staticInst->isLastMicroop());
 }
 
 bool
-MinorDynInst::isNoCostInst() const
+PpuMinorDynInst::isNoCostInst() const
 {
     return isInst() && staticInst->opClass() == No_OpClass;
 }
 
 void
-MinorDynInst::reportData(std::ostream &os) const
+PpuMinorDynInst::reportData(std::ostream &os) const
 {
     if (isBubble())
         os << "-";
@@ -115,7 +115,7 @@ MinorDynInst::reportData(std::ostream &os) const
 }
 
 std::ostream &
-operator <<(std::ostream &os, const MinorDynInst &inst)
+operator <<(std::ostream &os, const PpuMinorDynInst &inst)
 {
     os << inst.id << " pc: 0x"
         << std::hex << inst.pc.instAddr() << std::dec << " (";
@@ -180,7 +180,7 @@ printRegName(std::ostream &os, const RegId& reg)
 }
 
 void
-MinorDynInst::minorTraceInst(const Named &named_object) const
+PpuMinorDynInst::minorTraceInst(const Named &named_object) const
 {
     if (isFault()) {
         MINORINST(&named_object, "id=F;%s addr=0x%x fault=\"%s\"\n",
@@ -237,7 +237,7 @@ MinorDynInst::minorTraceInst(const Named &named_object) const
     }
 }
 
-MinorDynInst::~MinorDynInst()
+PpuMinorDynInst::~PpuMinorDynInst()
 {
     if (traceData)
         delete traceData;

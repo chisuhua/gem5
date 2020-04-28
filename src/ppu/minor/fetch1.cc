@@ -49,12 +49,12 @@
 #include "debug/PpuFetch.hh"
 #include "debug/PpuMinorTrace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 Fetch1::Fetch1(const std::string &name_,
-    MinorPPU &cpu_,
-    MinorPPUParams &params,
+    PpuMinorPPU &cpu_,
+    PpuMinorPPUParams &params,
     Latch<BranchData>::Output inp_,
     Latch<ForwardLineData>::Input out_,
     Latch<BranchData>::Output prediction_,
@@ -393,7 +393,7 @@ Fetch1::numInFlightFetches()
         transfers.occupiedSpace();
 }
 
-/** Print the appropriate MinorLine line for a fetch response */
+/** Print the appropriate PpuMinorLine line for a fetch response */
 void
 Fetch1::minorTraceResponseLine(const std::string &name,
     Fetch1::FetchRequestPtr response) const

@@ -54,26 +54,26 @@ from m5.objects.TimingExpr import TimingExpr
 
 from m5.objects.FuncUnit import OpClass
 
-class MinorOpClass(SimObject):
+class PpuMinorOpClass(SimObject):
     """Boxing of OpClass to get around build problems and provide a hook for
     future additions to OpClass checks"""
 
-    type = 'MinorOpClass'
+    type = 'PpuMinorOpClass'
     cxx_header = "ppu/minor/func_unit.hh"
 
     opClass = Param.OpClass("op class to match")
 
-class MinorOpClassSet(SimObject):
+class PpuMinorOpClassSet(SimObject):
     """A set of matchable op classes"""
 
-    type = 'MinorOpClassSet'
+    type = 'PpuMinorOpClassSet'
     cxx_header = "ppu/minor/func_unit.hh"
 
-    opClasses = VectorParam.MinorOpClass([], "op classes to be matched."
+    opClasses = VectorParam.PpuMinorOpClass([], "op classes to be matched."
         "  An empty list means any class")
 
-class MinorFUTiming(SimObject):
-    type = 'MinorFUTiming'
+class PpuMinorFUTiming(SimObject):
+    type = 'PpuMinorFUTiming'
     cxx_header = "ppu/minor/func_unit.hh"
 
     mask = Param.UInt64(0, "mask for testing ExtMachInst")
@@ -92,58 +92,58 @@ class MinorFUTiming(SimObject):
     srcRegsRelativeLats = VectorParam.Cycles("the maximum number of cycles"
         " after inst. issue that each src reg can be available for this"
         " inst. to issue")
-    opClasses = Param.MinorOpClassSet(MinorOpClassSet(),
+    opClasses = Param.PpuMinorOpClassSet(PpuMinorOpClassSet(),
         "op classes to be considered for this decode.  An empty set means any"
         " class")
     description = Param.String('', "description string of the decoding/inst."
         " class")
 
 def minorMakeOpClassSet(op_classes):
-    """Make a MinorOpClassSet from a list of OpClass enum value strings"""
+    """Make a PpuMinorOpClassSet from a list of OpClass enum value strings"""
     def boxOpClass(op_class):
-        return MinorOpClass(opClass=op_class)
+        return PpuMinorOpClass(opClass=op_class)
 
-    return MinorOpClassSet(opClasses=[ boxOpClass(o) for o in op_classes ])
+    return PpuMinorOpClassSet(opClasses=[ boxOpClass(o) for o in op_classes ])
 
-class MinorFU(SimObject):
-    type = 'MinorFU'
+class PpuMinorFU(SimObject):
+    type = 'PpuMinorFU'
     cxx_header = "ppu/minor/func_unit.hh"
 
-    opClasses = Param.MinorOpClassSet(MinorOpClassSet(), "type of operations"
+    opClasses = Param.PpuMinorOpClassSet(PpuMinorOpClassSet(), "type of operations"
         " allowed on this functional unit")
     opLat = Param.Cycles(1, "latency in cycles")
     issueLat = Param.Cycles(1, "cycles until another instruction can be"
         " issued")
-    timings = VectorParam.MinorFUTiming([], "extra decoding rules")
+    timings = VectorParam.PpuMinorFUTiming([], "extra decoding rules")
 
     cantForwardFromFUIndices = VectorParam.Unsigned([],
         "list of FU indices from which this FU can't receive and early"
         " (forwarded) result")
 
-class MinorFUPool(SimObject):
-    type = 'MinorFUPool'
+class PpuMinorFUPool(SimObject):
+    type = 'PpuMinorFUPool'
     cxx_header = "ppu/minor/func_unit.hh"
 
-    funcUnits = VectorParam.MinorFU("functional units")
+    funcUnits = VectorParam.PpuMinorFU("functional units")
 
-class MinorDefaultIntFU(MinorFU):
+class PpuMinorDefaultIntFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntAlu'])
-    timings = [MinorFUTiming(description="Int",
+    timings = [PpuMinorFUTiming(description="Int",
         srcRegsRelativeLats=[2])]
     opLat = 3
 
-class MinorDefaultIntMulFU(MinorFU):
+class PpuMinorDefaultIntMulFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntMult'])
-    timings = [MinorFUTiming(description='Mul',
+    timings = [PpuMinorFUTiming(description='Mul',
         srcRegsRelativeLats=[0])]
     opLat = 3
 
-class MinorDefaultIntDivFU(MinorFU):
+class PpuMinorDefaultIntDivFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntDiv'])
     issueLat = 9
     opLat = 9
 
-class MinorDefaultFloatSimdFU(MinorFU):
+class PpuMinorDefaultFloatSimdFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet([
         'FloatAdd', 'FloatCmp', 'FloatCvt', 'FloatMisc', 'FloatMult',
         'FloatMultAcc', 'FloatDiv', 'FloatSqrt',
@@ -157,37 +157,37 @@ class MinorDefaultFloatSimdFU(MinorFU):
         'SimdSha1Hash', 'SimdSha1Hash2', 'SimdSha256Hash',
         'SimdSha256Hash2', 'SimdShaSigma2', 'SimdShaSigma3'])
 
-    timings = [MinorFUTiming(description='FloatSimd',
+    timings = [PpuMinorFUTiming(description='FloatSimd',
         srcRegsRelativeLats=[2])]
     opLat = 6
 
-class MinorDefaultPredFU(MinorFU):
+class PpuMinorDefaultPredFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['SimdPredAlu'])
-    timings = [MinorFUTiming(description="Pred",
+    timings = [PpuMinorFUTiming(description="Pred",
         srcRegsRelativeLats=[2])]
     opLat = 3
 
-class MinorDefaultMemFU(MinorFU):
+class PpuMinorDefaultMemFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['MemRead', 'MemWrite', 'FloatMemRead',
                                      'FloatMemWrite'])
-    timings = [MinorFUTiming(description='Mem',
+    timings = [PpuMinorFUTiming(description='Mem',
         srcRegsRelativeLats=[1], extraAssumedLat=2)]
     opLat = 1
 
-class MinorDefaultMiscFU(MinorFU):
+class PpuMinorDefaultMiscFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IprAccess', 'InstPrefetch'])
     opLat = 1
 
-class MinorDefaultFUPool(MinorFUPool):
-    funcUnits = [MinorDefaultIntFU(), MinorDefaultIntFU(),
-        MinorDefaultIntMulFU(), MinorDefaultIntDivFU(),
-        MinorDefaultFloatSimdFU(), MinorDefaultPredFU(),
-        MinorDefaultMemFU(), MinorDefaultMiscFU()]
+class PpuMinorDefaultFUPool(PpuMinorFUPool):
+    funcUnits = [PpuMinorDefaultIntFU(), PpuMinorDefaultIntFU(),
+        PpuMinorDefaultIntMulFU(), PpuMinorDefaultIntDivFU(),
+        PpuMinorDefaultFloatSimdFU(), PpuMinorDefaultPredFU(),
+        PpuMinorDefaultMemFU(), PpuMinorDefaultMiscFU()]
 
 class ThreadPolicy(Enum): vals = ['SingleThreaded', 'RoundRobin', 'Random']
 
-class MinorPPU(PpuBaseCPU):
-    type = 'MinorPPU'
+class PpuMinorPPU(PpuBaseCPU):
+    type = 'PpuMinorPPU'
     cxx_header = "ppu/minor/cpu.hh"
 
     @classmethod
@@ -270,7 +270,7 @@ class MinorPPU(PpuBaseCPU):
         "Delay from Execute deciding to branch and Fetch1 reacting"
         " (1 means next cycle)")
 
-    executeFuncUnits = Param.MinorFUPool(MinorDefaultFUPool(),
+    executeFuncUnits = Param.PpuMinorFUPool(PpuMinorDefaultFUPool(),
         "FUlines for this processor")
 
     executeSetTraceTimeOnCommit = Param.Bool(True,
@@ -289,5 +289,5 @@ class MinorPPU(PpuBaseCPU):
         numThreads = Parent.numThreads), "Branch Predictor")
 
     def addCheckerCpu(self):
-        print("Checker not yet supported by MinorPPU")
+        print("Checker not yet supported by PpuMinorPPU")
         exit(1)

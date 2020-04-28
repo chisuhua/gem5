@@ -40,7 +40,7 @@
 /**
  * @file
  *
- *  Top level definition of the Minor in-order CPU model
+ *  Top level definition of the PpuMinor in-order CPU model
  */
 
 #ifndef __PPU_MINOR_CPU_HH__
@@ -51,60 +51,60 @@
 #include "ppu/base.hh"
 #include "ppu/simple_thread.hh"
 #include "enums/ThreadPolicy.hh"
-#include "params/MinorPPU.hh"
+#include "params/PpuMinorPPU.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 /** Forward declared to break the cyclic inclusion dependencies between
  *  pipeline and cpu */
 class Pipeline;
 
-/** Minor will use the SimpleThread state for now */
-typedef SimpleThread MinorThread;
+/** PpuMinor will use the SimpleThread state for now */
+typedef SimpleThread PpuMinorThread;
 };
 
 /**
- *  MinorPPU is an in-order CPU model with four fixed pipeline stages:
+ *  PpuMinorPPU is an in-order CPU model with four fixed pipeline stages:
  *
  *  Fetch1 - fetches lines from memory
  *  Fetch2 - decomposes lines into macro-op instructions
  *  Decode - decomposes macro-ops into micro-ops
  *  Execute - executes those micro-ops
  *
- *  This pipeline is carried in the MinorPPU::pipeline object.
- *  The exec_context interface is not carried by MinorPPU but by
- *      Minor::ExecContext objects
- *  created by Minor::Execute.
+ *  This pipeline is carried in the PpuMinorPPU::pipeline object.
+ *  The exec_context interface is not carried by PpuMinorPPU but by
+ *      PpuMinor::ExecContext objects
+ *  created by PpuMinor::Execute.
  */
-class MinorPPU : public PpuBaseCPU
+class PpuMinorPPU : public PpuBaseCPU
 {
   protected:
     /** pipeline is a container for the clockable pipeline stage objects.
      *  Elements of pipeline call ThePpuISA to implement the model. */
-    Minor::Pipeline *pipeline;
+    PpuMinor::Pipeline *pipeline;
 
   public:
     /** Activity recording for pipeline.  This belongs to Pipeline but
-     *  stages will access it through the CPU as the MinorPPU object
+     *  stages will access it through the CPU as the PpuMinorPPU object
      *  actually mediates idling behaviour */
-    Minor::MinorActivityRecorder *activityRecorder;
+    PpuMinor::PpuMinorActivityRecorder *activityRecorder;
 
     /** These are thread state-representing objects for this CPU.  If
      *  you need a PpuThreadContext for *any* reason, use
      *  threads[threadId]->getTC() */
-    std::vector<Minor::MinorThread *> threads;
+    std::vector<PpuMinor::PpuMinorThread *> threads;
 
   public:
-    /** Provide a non-protected base class for Minor's Ports as derived
+    /** Provide a non-protected base class for PpuMinor's Ports as derived
      *  classes are created by Fetch1 and Execute */
-    class MinorPPUPort : public MasterPort
+    class PpuMinorPPUPort : public MasterPort
     {
       public:
         /** The enclosing cpu */
-        MinorPPU &cpu;
+        PpuMinorPPU &cpu;
 
       public:
-        MinorPPUPort(const std::string& name_, MinorPPU &cpu_)
+        PpuMinorPPUPort(const std::string& name_, PpuMinorPPU &cpu_)
             : MasterPort(name_, &cpu_), cpu(cpu_)
         { }
 
@@ -120,9 +120,9 @@ class MinorPPU : public PpuBaseCPU
     Port &getInstPort() override;
 
   public:
-    MinorPPU(MinorPPUParams *params);
+    PpuMinorPPU(PpuMinorPPUParams *params);
 
-    ~MinorPPU();
+    ~PpuMinorPPU();
 
   public:
     /** Starting, waking and initialisation */
@@ -133,7 +133,7 @@ class MinorPPU : public PpuBaseCPU
     Addr dbg_vtophys(Addr addr);
 
     /** Processor-specific statistics */
-    Minor::MinorStats stats;
+    PpuMinor::PpuMinorStats stats;
 
     /** Stats interface from SimObject (by way of PpuBaseCPU) */
     void regStats() override;
@@ -152,7 +152,7 @@ class MinorPPU : public PpuBaseCPU
     /** Drain interface */
     DrainState drain() override;
     void drainResume() override;
-    /** Signal from Pipeline that MinorPPU should signal that a drain
+    /** Signal from Pipeline that PpuMinorPPU should signal that a drain
      *  is complete and set its drainState */
     void signalDrainDone();
     void memWriteback() override;

@@ -51,9 +51,9 @@
 #include "ppu/minor/cpu.hh"
 #include "ppu/minor/pipe_data.hh"
 #include "ppu/pred/bpred_unit.hh"
-#include "params/MinorPPU.hh"
+#include "params/PpuMinorPPU.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** This stage receives lines of data from Fetch1, separates them into
@@ -62,7 +62,7 @@ class Fetch2 : public Named
 {
   protected:
     /** Pointer back to the containing CPU */
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
 
     /** Input port carrying lines from Fetch1 */
     Latch<ForwardLineData>::Output inp;
@@ -192,7 +192,7 @@ class Fetch2 : public Named
     /** Predicts branches for the given instruction.  Updates the
      *  instruction's predicted... fields and also the branch which
      *  carries the prediction to Fetch1 */
-    void predictBranch(MinorDynInstPtr inst, BranchData &branch);
+    void predictBranch(PpuMinorDynInstPtr inst, BranchData &branch);
 
     /** Use the current threading policy to determine the next thread to
      *  fetch from. */
@@ -200,8 +200,8 @@ class Fetch2 : public Named
 
   public:
     Fetch2(const std::string &name,
-        MinorPPU &cpu_,
-        MinorPPUParams &params,
+        PpuMinorPPU &cpu_,
+        PpuMinorPPUParams &params,
         Latch<ForwardLineData>::Output inp_,
         Latch<BranchData>::Output branchInp_,
         Latch<BranchData>::Input predictionOut_,

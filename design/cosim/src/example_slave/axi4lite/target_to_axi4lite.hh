@@ -35,10 +35,10 @@ using namespace std;
 
 #include "checkers/pc-axilite.h"
 #include "test-modules/signals-axilite.h"
-#include "tlm-bridges/tlm2axilite-bridge.h"
 #include "tlm.h"
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
+#include "tlm-bridges/tlm2axilite-bridge.h"
 
 // #include "test-modules/utils.h"
 

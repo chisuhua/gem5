@@ -50,7 +50,7 @@
 #include "ppu/minor/dyn_inst.hh"
 #include "ppu/minor/trace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** A scoreboard of register dependencies including, for each register:
@@ -114,28 +114,28 @@ class Scoreboard : public Named
      *  numResults counts.  If mark_unpredictable is true, the inst's
      *  destination registers are marked as being unpredictable without
      *  an estimated retire time */
-    void markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
+    void markupInstDests(PpuMinorDynInstPtr inst, Cycles retire_time,
         PpuThreadContext *thread_context, bool mark_unpredictable);
 
     /** Clear down the dependencies for this instruction.  clear_unpredictable
      *  must match mark_unpredictable for the same inst. */
-    void clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable);
+    void clearInstDests(PpuMinorDynInstPtr inst, bool clear_unpredictable);
 
     /** Returns the exec sequence number of the most recent inst on
      *  which the given inst depends.  Useful for determining which
      *  inst must actually be committed before a dependent inst
      *  can call initiateAcc */
-    InstSeqNum execSeqNumToWaitFor(MinorDynInstPtr inst,
+    InstSeqNum execSeqNumToWaitFor(PpuMinorDynInstPtr inst,
         PpuThreadContext *thread_context);
 
     /** Can this instruction be issued.  Are any of its source registers
      *  due to be written by other marked-up instructions in flight */
-    bool canInstIssue(MinorDynInstPtr inst,
+    bool canInstIssue(PpuMinorDynInstPtr inst,
         const std::vector<Cycles> *src_reg_relative_latencies,
         const std::vector<bool> *cant_forward_from_fu_indices,
         Cycles now, PpuThreadContext *thread_context);
 
-    /** MinorTraceIF interface */
+    /** PpuMinorTraceIF interface */
     void minorTrace() const;
 };
 

@@ -39,4 +39,4 @@
 
 Import('*')
 
-CpuModel('MinorPPU', default=True)
+CpuModel('PpuMinorPPU', default=True)

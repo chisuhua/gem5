@@ -46,8 +46,8 @@ Import('*')
 if not env['BUILD_PPU']:
     Return()
 
-if 'MinorPPU' in env['CPU_MODELS']:
-    SimObject('MinorPPU.py')
+if 'PpuMinorPPU' in env['CPU_MODELS']:
+    SimObject('PpuMinorPPU.py')
 
     Source('activity.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
@@ -63,14 +63,14 @@ if 'MinorPPU' in env['CPU_MODELS']:
     Source('scoreboard.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
     Source('stats.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
-    DebugFlag('PpuMinorCPU', 'Minor CPU-level events')
-    DebugFlag('PpuMinorExecute', 'Minor Execute stage')
-    DebugFlag('PpuMinorInterrupt', 'Minor interrupt handling')
-    DebugFlag('PpuMinorMem', 'Minor memory accesses')
-    DebugFlag('PpuMinorScoreboard', 'Minor Execute register scoreboard')
-    DebugFlag('PpuMinorTrace', 'MinorTrace cycle-by-cycle state trace')
+    DebugFlag('PpuMinorCPU', 'PpuMinor CPU-level events')
+    DebugFlag('PpuMinorExecute', 'PpuMinor Execute stage')
+    DebugFlag('PpuMinorInterrupt', 'PpuMinor interrupt handling')
+    DebugFlag('PpuMinorMem', 'PpuMinor memory accesses')
+    DebugFlag('PpuMinorScoreboard', 'PpuMinor Execute register scoreboard')
+    DebugFlag('PpuMinorTrace', 'PpuMinorTrace cycle-by-cycle state trace')
     DebugFlag('PpuMinorTiming', 'Extra timing for instructions')
 
-    CompoundFlag('Minor', [
+    CompoundFlag('PpuMinor', [
         'PpuMinorCPU', 'PpuMinorExecute', 'PpuMinorInterrupt', 'PpuMinorMem',
         'PpuMinorScoreboard'])

@@ -44,7 +44,7 @@
 #include "debug/PpuMinorScoreboard.hh"
 #include "debug/PpuMinorTiming.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 bool
@@ -107,7 +107,7 @@ flattenRegIndex(const RegId& reg, PpuThreadContext *thread_context)
 }
 
 void
-Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
+Scoreboard::markupInstDests(PpuMinorDynInstPtr inst, Cycles retire_time,
     PpuThreadContext *thread_context, bool mark_unpredictable)
 {
     if (inst->isFault())
@@ -151,7 +151,7 @@ Scoreboard::markupInstDests(MinorDynInstPtr inst, Cycles retire_time,
 }
 
 InstSeqNum
-Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
+Scoreboard::execSeqNumToWaitFor(PpuMinorDynInstPtr inst,
     PpuThreadContext *thread_context)
 {
     InstSeqNum ret = 0;
@@ -180,7 +180,7 @@ Scoreboard::execSeqNumToWaitFor(MinorDynInstPtr inst,
 }
 
 void
-Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
+Scoreboard::clearInstDests(PpuMinorDynInstPtr inst, bool clear_unpredictable)
 {
     if (inst->isFault())
         return;
@@ -215,7 +215,7 @@ Scoreboard::clearInstDests(MinorDynInstPtr inst, bool clear_unpredictable)
 }
 
 bool
-Scoreboard::canInstIssue(MinorDynInstPtr inst,
+Scoreboard::canInstIssue(PpuMinorDynInstPtr inst,
     const std::vector<Cycles> *src_reg_relative_latencies,
     const std::vector<bool> *cant_forward_from_fu_indices,
     Cycles now, PpuThreadContext *thread_context)

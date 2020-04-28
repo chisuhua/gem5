@@ -41,7 +41,7 @@
  * @file
  *
  *  The dynamic instruction and instruction/line id (sequence numbers)
- *  definition for Minor.  A spirited attempt is made here to not carry too
+ *  definition for PpuMinor.  A spirited attempt is made here to not carry too
  *  much on this structure.
  */
 
@@ -62,13 +62,13 @@ using namespace PpuISA;
 #endif
 
 
-namespace Minor
+namespace PpuMinor
 {
 
-class MinorDynInst;
+class PpuMinorDynInst;
 
-/** MinorDynInsts are currently reference counted. */
-typedef RefCountingPtr<MinorDynInst> MinorDynInstPtr;
+/** PpuMinorDynInsts are currently reference counted. */
+typedef RefCountingPtr<PpuMinorDynInst> PpuMinorDynInstPtr;
 
 /** Id for lines and instructions.  This includes all the relevant sequence
  *  numbers and thread ids for all stages of execution. */
@@ -144,27 +144,27 @@ class InstId
 };
 
 /** Print this id in the usual slash-separated format expected by
- *  MinorTrace */
+ *  PpuMinorTrace */
 std::ostream &operator <<(std::ostream &os, const InstId &id);
 
-class MinorDynInst;
+class PpuMinorDynInst;
 
 /** Print a short reference to this instruction.  '-' for a bubble and a
  *  series of '/' separated sequence numbers for other instructions.  The
  *  sequence numbers will be in the order: stream, prediction, line, fetch,
- *  exec with exec absent if it is 0.  This is used by MinorTrace. */
-std::ostream &operator <<(std::ostream &os, const MinorDynInst &inst);
+ *  exec with exec absent if it is 0.  This is used by PpuMinorTrace. */
+std::ostream &operator <<(std::ostream &os, const PpuMinorDynInst &inst);
 
-/** Dynamic instruction for Minor.
- *  MinorDynInst implements the BubbleIF interface
+/** Dynamic instruction for PpuMinor.
+ *  PpuMinorDynInst implements the BubbleIF interface
  *  Has two separate notions of sequence number for pre/post-micro-op
  *  decomposition: fetchSeqNum and execSeqNum */
-class MinorDynInst : public RefCounted
+class PpuMinorDynInst : public RefCounted
 {
   private:
-    /** A prototypical bubble instruction.  You must call MinorDynInst::init
+    /** A prototypical bubble instruction.  You must call PpuMinorDynInst::init
      *  to initialise this */
-    static MinorDynInstPtr bubbleInst;
+    static PpuMinorDynInstPtr bubbleInst;
 
   public:
     StaticInstPtr staticInst;
@@ -237,7 +237,7 @@ class MinorDynInst : public RefCounted
     RegId flatDestRegIdx[ThePpuISA::MaxInstDestRegs];
 
   public:
-    MinorDynInst(InstId id_ = InstId(), Fault fault_ = NoFault) :
+    PpuMinorDynInst(InstId id_ = InstId(), Fault fault_ = NoFault) :
         staticInst(NULL), id(id_), traceData(NULL),
         pc(ThePpuISA::PCState(0)), fault(fault_),
         triedToPredict(false), predictedTaken(false),
@@ -252,7 +252,7 @@ class MinorDynInst : public RefCounted
     bool isBubble() const { return id.fetchSeqNum == 0; }
 
     /** There is a single bubble inst */
-    static MinorDynInstPtr bubble() { return bubbleInst; }
+    static PpuMinorDynInstPtr bubble() { return bubbleInst; }
 
     /** Is this a fault rather than instruction */
     bool isFault() const { return fault != NoFault; }
@@ -275,7 +275,7 @@ class MinorDynInst : public RefCounted
     static void init();
 
     /** Print (possibly verbose) instruction information for
-     *  MinorTrace using the given Named object's name */
+     *  PpuMinorTrace using the given Named object's name */
     void minorTraceInst(const Named &named_object) const;
 
     /** ReportIF interface */
@@ -289,11 +289,11 @@ class MinorDynInst : public RefCounted
 
     void setMemAccPredicate(bool val) { memAccPredicate = val; }
 
-    ~MinorDynInst();
+    ~PpuMinorDynInst();
 };
 
 /** Print a summary of the instruction */
-std::ostream &operator <<(std::ostream &os, const MinorDynInst &inst);
+std::ostream &operator <<(std::ostream &os, const PpuMinorDynInst &inst);
 
 }
 

@@ -41,9 +41,9 @@
  * @file
  *
  *  This file contains miscellaneous classes and functions for formatting
- *  general trace information and also MinorTrace information.
+ *  general trace information and also PpuMinorTrace information.
  *
- *  MinorTrace is this model's cycle-by-cycle trace information for use by
+ *  PpuMinorTrace is this model's cycle-by-cycle trace information for use by
  *  minorview.
  */
 
@@ -55,20 +55,20 @@
 #include "base/trace.hh"
 #include "debug/PpuMinorTrace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
-/** DPRINTFN for MinorTrace reporting */
+/** DPRINTFN for PpuMinorTrace reporting */
 #define MINORTRACE(...) \
-    DPRINTF(PpuMinorTrace, "MinorTrace: " __VA_ARGS__)
+    DPRINTF(PpuMinorTrace, "PpuMinorTrace: " __VA_ARGS__)
 
-/** DPRINTFN for MinorTrace MinorInst line reporting */
+/** DPRINTFN for PpuMinorTrace PpuMinorInst line reporting */
 #define MINORINST(sim_object, ...) \
-    DPRINTFS(PpuMinorTrace, (sim_object), "MinorInst: " __VA_ARGS__)
+    DPRINTFS(PpuMinorTrace, (sim_object), "PpuMinorInst: " __VA_ARGS__)
 
-/** DPRINTFN for MinorTrace MinorLine line reporting */
+/** DPRINTFN for PpuMinorTrace PpuMinorLine line reporting */
 #define MINORLINE(sim_object, ...) \
-    DPRINTFS(PpuMinorTrace, (sim_object), "MinorLine: " __VA_ARGS__)
+    DPRINTFS(PpuMinorTrace, (sim_object), "PpuMinorLine: " __VA_ARGS__)
 
 }
 
