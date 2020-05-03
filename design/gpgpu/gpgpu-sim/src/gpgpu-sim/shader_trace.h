@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2011, Tor M. Aamodt, Tim Rogers
-// George L. Yuan, Andrew Turner, Inderpreet Singh
+// George L. Yuan, Andrew Turner, Inderpreet Singh 
 // The University of British Columbia
 // All rights reserved.
 //

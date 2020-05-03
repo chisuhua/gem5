@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,18 +28,18 @@
 #ifndef _CHAOS_ROUTER_HPP_
 #define _CHAOS_ROUTER_HPP_
 
-#include <queue>
 #include <string>
+#include <queue>
 #include <vector>
 
-#include "intersim2/allocators/allocator.hpp"
-#include "intersim2/buffer_state.hpp"
-#include "intersim2/module.hpp"
-#include "intersim2/outputset.hpp"
-#include "intersim2/pipefifo.hpp"
-#include "intersim2/routefunc.hpp"
-#include "intersim2/vc.hpp"
+#include "module.hpp"
 #include "router.hpp"
+#include "allocator.hpp"
+#include "routefunc.hpp"
+#include "outputset.hpp"
+#include "buffer_state.hpp"
+#include "pipefifo.hpp"
+#include "vc.hpp"
 
 class ChaosRouter : public Router {
 
@@ -106,8 +106,8 @@ class ChaosRouter : public Router {
 
 public:
   ChaosRouter( const Configuration& config,
-            Module *parent, const string & name, int id,
-            int inputs, int outputs );
+	    Module *parent, const string & name, int id,
+	    int inputs, int outputs );
 
   virtual ~ChaosRouter( );
 

@@ -37,8 +37,9 @@
 #include "area.h"
 #include "bank.h"
 #include "component.h"
-#include "htree2.h"
 #include "parameter.h"
+#include "htree2.h"
+
 
 class UCA : public Component
 {

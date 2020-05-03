@@ -590,7 +590,7 @@ class CudaGPU : public ClockedObject
 
     /// From gpu syscalls (used to be CUctx_st)
     void add_binary( symbol_table *symtab, unsigned fat_cubin_handle );
-    void add_ptxinfo( const char *deviceFun, const struct gpgpu_ptx_sim_kernel_info info );
+    void add_ptxinfo( const char *deviceFun, const struct gpgpu_ptx_sim_info info );
     void register_function( unsigned fat_cubin_handle, const char *hostFun, const char *deviceFun );
     function_info *get_kernel(const char *hostFun);
     void setInstBaseVaddr(uint64_t addr);

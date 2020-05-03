@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2011, Tor M. Aamodt, Ivan Sham, Ali Bakhoda,
+// Copyright (c) 2009-2011, Tor M. Aamodt, Ivan Sham, Ali Bakhoda, 
 // George L. Yuan, Wilson W.L. Fung
 // The University of British Columbia
 // All rights reserved.
@@ -29,13 +29,17 @@
 #ifndef DRAM_H
 #define DRAM_H
 
+#include "delayqueue.h"
+#include <set>
+#include <vector>
+#include <bitset>
+#include <sstream>
+#include <string>
+#include <fstream>
+#include <zlib.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <zlib.h>
-
-#include <set>
-
-#include "delayqueue.h"
+#include<iomanip>
 
 #define READ 'R'  //define read and write states
 #define WRITE 'W'
@@ -44,7 +48,7 @@
 
 class dram_req_t {
 public:
-   dram_req_t( class mem_fetch *data );
+   dram_req_t( class mem_fetch *data , unsigned banks, unsigned dram_bnk_indexing_policy);
 
    unsigned int row;
    unsigned int col;
@@ -62,8 +66,8 @@ public:
 
 struct bankgrp_t
 {
-        unsigned int CCDLc;
-        unsigned int RTPLc;
+	unsigned int CCDLc;
+	unsigned int RTPLc;
 };
 
 struct bank_t
@@ -89,25 +93,37 @@ struct bank_t
    unsigned int bkgrpindex;
 };
 
-struct mem_fetch;
+enum bank_index_function{
+	LINEAR_BK_INDEX = 0,
+	BITWISE_XORING_BK_INDEX,
+    CUSTOM_BK_INDEX
+};
 
-class dram_t
+enum bank_grp_bits_position{
+	HIGHER_BITS = 0,
+	LOWER_BITS
+};
+
+class mem_fetch;
+
+class dram_t 
 {
 public:
-   dram_t( unsigned int parition_id, const struct memory_config *config, class memory_stats_t *stats,
+   dram_t( unsigned int parition_id, const struct memory_config *config, class memory_stats_t *stats, 
            class memory_partition_unit *mp );
 
-   bool full() const;
+   bool full(bool is_write) const;
    void print( FILE* simFile ) const;
    void visualize() const;
    void print_stat( FILE* simFile );
-   unsigned que_length() const;
+   unsigned que_length() const; 
    bool returnq_full() const;
    unsigned int queue_limit() const;
    void visualizer_print( gzFile visualizer_file );
 
    class mem_fetch* return_queue_pop();
    class mem_fetch* return_queue_top();
+
    void push( class mem_fetch *data );
    void cycle();
    void dram_log (int task);
@@ -117,24 +133,31 @@ public:
 
    // Power Model
    void set_dram_power_stats(unsigned &cmd,
-                                                                unsigned &activity,
-                                                                unsigned &nop,
-                                                                unsigned &act,
-                                                                unsigned &pre,
-                                                                unsigned &rd,
-                                                                unsigned &wr,
-                                                                unsigned &req) const;
+								unsigned &activity,
+								unsigned &nop,
+								unsigned &act,
+								unsigned &pre,
+								unsigned &rd,
+								unsigned &wr,
+								unsigned &req) const;
 
-private:
-   void scheduler_fifo();
-   void scheduler_frfcfs();
+
 
    const struct memory_config *m_config;
 
+private:
    bankgrp_t **bkgrp;
 
    bank_t **bk;
    unsigned int prio;
+
+   unsigned get_bankgrp_number(unsigned i);
+
+   void scheduler_fifo();
+   void scheduler_frfcfs();
+
+   bool issue_col_command(int j);
+   bool issue_row_command(int j);
 
    unsigned int RRDc;
    unsigned int CCDc;
@@ -155,15 +178,55 @@ private:
    unsigned int dram_eff_bins[10];
    unsigned int last_n_cmd, last_n_activity, last_bwutil;
 
-   unsigned int n_cmd;
-   unsigned int n_activity;
-   unsigned int n_nop;
-   unsigned int n_act;
-   unsigned int n_pre;
-   unsigned int n_rd;
-   unsigned int n_wr;
-   unsigned int n_req;
-   unsigned int max_mrqs_temp;
+   unsigned long long n_cmd;
+   unsigned long long n_activity;
+   unsigned long long n_nop;
+   unsigned long long n_act;
+   unsigned long long n_pre;
+   unsigned long long n_ref;
+   unsigned long long n_rd;
+   unsigned long long n_rd_L2_A;
+   unsigned long long n_wr;
+   unsigned long long n_wr_WB;
+   unsigned long long n_req;
+   unsigned long long max_mrqs_temp;
+
+   //some statistics to see where BW is wasted?
+   unsigned long long wasted_bw_row;
+   unsigned long long wasted_bw_col;
+   unsigned long long util_bw;
+   unsigned long long idle_bw;
+   unsigned long long RCDc_limit;
+   unsigned long long CCDLc_limit;
+   unsigned long long CCDLc_limit_alone;
+   unsigned long long CCDc_limit;
+   unsigned long long WTRc_limit;
+   unsigned long long WTRc_limit_alone;
+   unsigned long long RCDWRc_limit;
+   unsigned long long RTWc_limit;
+   unsigned long long RTWc_limit_alone;
+   unsigned long long rwq_limit;
+
+   //row locality, BLP and other statistics
+   unsigned long long access_num;
+   unsigned long long read_num;
+   unsigned long long write_num;
+   unsigned long long hits_num;
+   unsigned long long hits_read_num;
+   unsigned long long hits_write_num;
+   unsigned long long banks_1time;
+   unsigned long long banks_acess_total;
+   unsigned long long banks_acess_total_after;
+   unsigned long long banks_time_rw;
+   unsigned long long banks_access_rw_total;
+   unsigned long long banks_time_ready;
+   unsigned long long banks_access_ready_total;
+   unsigned long long issued_two;
+   unsigned long long issued_total;
+   unsigned long long issued_total_row;
+   unsigned long long issued_total_col;
+   double write_to_read_ratio_blp_rw_average;
+   unsigned long long bkgrp_parallsim_rw;
 
    unsigned int bwutil;
    unsigned int max_mrqs;
@@ -173,15 +236,15 @@ private:
 
    unsigned int n_cmd_partial;
    unsigned int n_activity_partial;
-   unsigned int n_nop_partial;
-   unsigned int n_act_partial;
-   unsigned int n_pre_partial;
+   unsigned int n_nop_partial; 
+   unsigned int n_act_partial; 
+   unsigned int n_pre_partial; 
    unsigned int n_req_partial;
    unsigned int ave_mrqs_partial;
    unsigned int bwutil_partial;
 
-   struct memory_stats_t *m_stats;
-   class Stats_gpgpu* mrqq_Dist; //memory request queue inside DRAM
+   class memory_stats_t *m_stats;
+   class Stats_gpgpu* mrqq_Dist; //memory request queue inside DRAM  
 
    friend class frfcfs_scheduler;
 };

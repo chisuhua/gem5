@@ -1,3 +1,6 @@
 [submodule "ext/libsystemctlm-soc"]
 	path = ext/libsystemctlm-soc
 	url = git@github.com:chisuhua/libsystemctlm-soc.git
+[submodule "ext/axi"]
+	path = ext/axi
+	url = git@github.com:chisuhua/axi.git

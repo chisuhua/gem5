@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -25,23 +25,22 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <cassert>
+#include "booksim.hpp"
 #include <iostream>
 #include <sstream>
-
-#include "intersim2/booksim.hpp"
+#include <cassert>
 #include "allocator.hpp"
 
 /////////////////////////////////////////////////////////////////////////
 //Allocator types
-#include "islip.hpp"
-#include "loa.hpp"
 #include "maxsize.hpp"
 #include "pim.hpp"
+#include "islip.hpp"
+#include "loa.hpp"
+#include "wavefront.hpp"
 #include "selalloc.hpp"
 #include "separable_input_first.hpp"
 #include "separable_output_first.hpp"
-#include "wavefront.hpp"
 //
 /////////////////////////////////////////////////////////////////////////
 
@@ -50,16 +49,16 @@
 //==================================================
 
 Allocator::Allocator( Module *parent, const string& name,
-                      int inputs, int outputs ) :
+		      int inputs, int outputs ) :
 Module( parent, name ), _inputs( inputs ), _outputs( outputs ), _dirty( false )
 {
-  _inmatch.resize(_inputs, -1);
+  _inmatch.resize(_inputs, -1);   
   _outmatch.resize(_outputs, -1);
 }
 
 void Allocator::Clear( )
 {
-  if (_dirty) {
+  if(_dirty) {
     _inmatch.assign(_inputs, -1);
     _outmatch.assign(_outputs, -1);
     _dirty = false;
@@ -67,7 +66,7 @@ void Allocator::Clear( )
 }
 
 void Allocator::AddRequest( int in, int out, int label, int in_pri,
-                            int out_pri ) {
+			    int out_pri ) {
 
   assert( ( in >= 0 ) && ( in < _inputs ) );
   assert( ( out >= 0 ) && ( out < _outputs ) );
@@ -91,17 +90,17 @@ int Allocator::InputAssigned( int out ) const
 
 void Allocator::PrintGrants( ostream * os ) const
 {
-  if (!os) os = &cout;
+  if(!os) os = &cout;
 
   *os << "Input grants = [ ";
   for ( int input = 0; input < _inputs; ++input ) {
-    if (_inmatch[input] >= 0) {
+    if(_inmatch[input] >= 0) {
       *os << input << " -> " << _inmatch[input] << "  ";
     }
   }
   *os << "], output grants = [ ";
   for ( int output = 0; output < _outputs; ++output ) {
-    if (_outmatch[output] >= 0) {
+    if(_outmatch[output] >= 0) {
       *os << output << " -> " << _outmatch[output] << "  ";
     }
   }
@@ -113,13 +112,13 @@ void Allocator::PrintGrants( ostream * os ) const
 //==================================================
 
 DenseAllocator::DenseAllocator( Module *parent, const string& name,
-                                int inputs, int outputs ) :
+				int inputs, int outputs ) :
   Allocator( parent, name, inputs, outputs )
 {
   _request.resize(_inputs);
 
   for ( int i = 0; i < _inputs; ++i ) {
-    _request[i].resize(_outputs);
+    _request[i].resize(_outputs);  
     for ( int j = 0; j < _outputs; ++j ) {
       _request[i][j].label = -1;
     }
@@ -154,8 +153,8 @@ bool DenseAllocator::ReadRequest( sRequest &req, int in, int out ) const
   return ( req.label >= 0 );
 }
 
-void DenseAllocator::AddRequest( int in, int out, int label,
-                                 int in_pri, int out_pri )
+void DenseAllocator::AddRequest( int in, int out, int label, 
+				 int in_pri, int out_pri )
 {
   Allocator::AddRequest(in, out, label, in_pri, out_pri);
   assert( _request[in][out].label == -1 );
@@ -168,15 +167,15 @@ void DenseAllocator::AddRequest( int in, int out, int label,
 void DenseAllocator::RemoveRequest( int in, int out, int label )
 {
   assert( ( in >= 0 ) && ( in < _inputs ) );
-  assert( ( out >= 0 ) && ( out < _outputs ) );
-
+  assert( ( out >= 0 ) && ( out < _outputs ) ); 
+  
   _request[in][out].label = -1;
 }
 
 bool DenseAllocator::InputHasRequests( int in ) const
 {
-  for (int out = 0; out < _outputs; ++out) {
-    if (_request[in][out].label >= 0) {
+  for(int out = 0; out < _outputs; ++out) {
+    if(_request[in][out].label >= 0) {
       return true;
     }
   }
@@ -185,8 +184,8 @@ bool DenseAllocator::InputHasRequests( int in ) const
 
 bool DenseAllocator::OutputHasRequests( int out ) const
 {
-  for (int in = 0; in < _inputs; ++in) {
-    if (_request[in][out].label >= 0) {
+  for(int in = 0; in < _inputs; ++in) {
+    if(_request[in][out].label >= 0) {
       return true;
     }
   }
@@ -196,8 +195,8 @@ bool DenseAllocator::OutputHasRequests( int out ) const
 int DenseAllocator::NumInputRequests( int in ) const
 {
   int result = 0;
-  for (int out = 0; out < _outputs; ++out) {
-    if (_request[in][out].label >= 0) {
+  for(int out = 0; out < _outputs; ++out) {
+    if(_request[in][out].label >= 0) {
       ++result;
     }
   }
@@ -207,8 +206,8 @@ int DenseAllocator::NumInputRequests( int in ) const
 int DenseAllocator::NumOutputRequests( int out ) const
 {
   int result = 0;
-  for (int in = 0; in < _inputs; ++in) {
-    if (_request[in][out].label >= 0) {
+  for(int in = 0; in < _inputs; ++in) {
+    if(_request[in][out].label >= 0) {
       ++result;
     }
   }
@@ -217,7 +216,7 @@ int DenseAllocator::NumOutputRequests( int out ) const
 
 void DenseAllocator::PrintRequests( ostream * os ) const
 {
-  if (!os) os = &cout;
+  if(!os) os = &cout;
 
   *os << "Input requests = [ ";
   for ( int input = 0; input < _inputs; ++input ) {
@@ -226,11 +225,11 @@ void DenseAllocator::PrintRequests( ostream * os ) const
     for ( int output = 0; output < _outputs; ++output ) {
       const sRequest & req = _request[input][output];
       if ( req.label >= 0 ) {
-        print = true;
-        ss << output << "@" << req.in_pri << " ";
+	print = true;
+	ss << output << "@" << req.in_pri << " ";
       }
     }
-    if (print) {
+    if(print) {
       *os << input << " -> [ " << ss.str() << "]  ";
     }
   }
@@ -241,11 +240,11 @@ void DenseAllocator::PrintRequests( ostream * os ) const
     for ( int input = 0; input < _inputs; ++input ) {
       const sRequest & req = _request[input][output];
       if ( req.label >= 0 ) {
-        print = true;
-        ss << input << "@" << req.out_pri << " ";
+	print = true;
+	ss << input << "@" << req.out_pri << " ";
       }
     }
-    if (print) {
+    if(print) {
       *os << output << " -> [ " << ss.str() << "]  ";
     }
   }
@@ -257,7 +256,7 @@ void DenseAllocator::PrintRequests( ostream * os ) const
 //==================================================
 
 SparseAllocator::SparseAllocator( Module *parent, const string& name,
-                                  int inputs, int outputs ) :
+				  int inputs, int outputs ) :
   Allocator( parent, name, inputs, outputs )
 {
   _in_req.resize(_inputs);
@@ -268,12 +267,12 @@ SparseAllocator::SparseAllocator( Module *parent, const string& name,
 void SparseAllocator::Clear( )
 {
   for ( int i = 0; i < _inputs; ++i ) {
-    if (!_in_req[i].empty())
+    if(!_in_req[i].empty())
       _in_req[i].clear( );
   }
 
   for ( int j = 0; j < _outputs; ++j ) {
-    if (!_out_req[j].empty())
+    if(!_out_req[j].empty())
       _out_req[j].clear( );
   }
 
@@ -289,7 +288,7 @@ int SparseAllocator::ReadRequest( int in, int out ) const
 
   if ( ! ReadRequest( r, in, out ) ) {
     r.label = -1;
-  }
+  } 
 
   return r.label;
 }
@@ -312,8 +311,8 @@ bool SparseAllocator::ReadRequest( sRequest &req, int in, int out ) const
   return found;
 }
 
-void SparseAllocator::AddRequest( int in, int out, int label,
-                                  int in_pri, int out_pri )
+void SparseAllocator::AddRequest( int in, int out, int label, 
+				  int in_pri, int out_pri )
 {
   Allocator::AddRequest(in, out, label, in_pri, out_pri);
   assert( _in_req[in].count(out) == 0 );
@@ -346,8 +345,8 @@ void SparseAllocator::AddRequest( int in, int out, int label,
 void SparseAllocator::RemoveRequest( int in, int out, int label )
 {
   assert( ( in >= 0 ) && ( in < _inputs ) );
-  assert( ( out >= 0 ) && ( out < _outputs ) );
-
+  assert( ( out >= 0 ) && ( out < _outputs ) ); 
+  
   assert( _in_req[in].count( out ) > 0 );
   assert( _in_req[in][out].label == label );
   _in_req[in].erase( out );
@@ -391,28 +390,28 @@ int SparseAllocator::NumOutputRequests( int out ) const
 void SparseAllocator::PrintRequests( ostream * os ) const
 {
   map<int, sRequest>::const_iterator iter;
-
-  if (!os) os = &cout;
-
+  
+  if(!os) os = &cout;
+  
   *os << "Input requests = [ ";
   for ( int input = 0; input < _inputs; ++input ) {
-    if (!_in_req[input].empty()) {
+    if(!_in_req[input].empty()) {
       *os << input << " -> [ ";
-      for ( iter = _in_req[input].begin( );
-            iter != _in_req[input].end( ); iter++ ) {
-        *os << iter->second.port << "@" << iter->second.in_pri << " ";
+      for ( iter = _in_req[input].begin( ); 
+	    iter != _in_req[input].end( ); iter++ ) {
+	*os << iter->second.port << "@" << iter->second.in_pri << " ";
       }
       *os << "]  ";
     }
   }
   *os << "], output requests = [ ";
   for ( int output = 0; output < _outputs; ++output ) {
-    if (!_out_req[output].empty()) {
+    if(!_out_req[output].empty()) {
       *os << output << " -> ";
       *os << "[ ";
-      for ( iter = _out_req[output].begin( );
-            iter != _out_req[output].end( ); iter++ ) {
-        *os << iter->second.port << "@" << iter->second.out_pri << " ";
+      for ( iter = _out_req[output].begin( ); 
+	    iter != _out_req[output].end( ); iter++ ) {
+	*os << iter->second.port << "@" << iter->second.out_pri << " ";
       }
       *os << "]  ";
     }
@@ -425,21 +424,21 @@ void SparseAllocator::PrintRequests( ostream * os ) const
 //==================================================
 
 Allocator *Allocator::NewAllocator( Module *parent, const string& name,
-                                    const string &alloc_type,
-                                    int inputs, int outputs,
-                                    Configuration const * const config )
+				    const string &alloc_type, 
+				    int inputs, int outputs, 
+				    Configuration const * const config )
 {
   Allocator *a = 0;
-
+  
   string alloc_name;
   string param_str;
   size_t left = alloc_type.find_first_of('(');
-  if (left == string::npos) {
+  if(left == string::npos) {
     alloc_name = alloc_type;
   } else {
     alloc_name = alloc_type.substr(0, left);
     size_t right = alloc_type.find_last_of(')');
-    if (right == string::npos) {
+    if(right == string::npos) {
       param_str = alloc_type.substr(left+1);
     } else {
       param_str = alloc_type.substr(left+1, right-left-1);
@@ -465,15 +464,15 @@ Allocator *Allocator::NewAllocator( Module *parent, const string& name,
   } else if (alloc_name == "separable_input_first") {
     string arb_type = param_str.empty() ? (config ? config->GetStr("arb_type") : "round_robin") : param_str;
     a = new SeparableInputFirstAllocator( parent, name, inputs, outputs,
-                                          arb_type );
+					  arb_type );
   } else if (alloc_name == "separable_output_first") {
     string arb_type = param_str.empty() ? (config ? config->GetStr("arb_type") : "round_robin") : param_str;
     a = new SeparableOutputFirstAllocator( parent, name, inputs, outputs,
-                                           arb_type );
+					   arb_type );
   }
 
 //==================================================
-// Insert new allocators here, add another else if
+// Insert new allocators here, add another else if 
 //==================================================
 
 

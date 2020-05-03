@@ -29,22 +29,21 @@
 #define memory_h_INCLUDED
 
 #include "../abstract_hardware_model.h"
-#include "../tr1_hash_map.h"
 
+#include "../tr1_hash_map.h"
 #define mem_map tr1_hash_map
 #if tr1_hash_map_ismap == 1
-   #define MEM_MAP_RESIZE(hash_size)
+   #define MEM_MAP_RESIZE(hash_size) 
 #else
    #define MEM_MAP_RESIZE(hash_size) (m_data.rehash(hash_size))
 #endif
 
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-#include <map>
+#include <stdio.h>
 #include <string>
+#include <map>
+#include <stdlib.h>
 
 typedef address_type mem_addr_t;
 
@@ -82,7 +81,7 @@ public:
    {
       unsigned int *i_data = (unsigned int*)m_data;
       for (int d = 0; d < (BSIZE / sizeof(unsigned int)); d++) {
-         if (d % 8 == 0) {
+         if (d % 1 == 0) {
             fprintf(fout, "\n");
          }
          fprintf(fout, format, i_data[d]);
@@ -105,7 +104,8 @@ class memory_space
 public:
    virtual ~memory_space() {}
    virtual void write( mem_addr_t addr, size_t length, const void *data, ptx_thread_info *thd, const ptx_instruction *pI ) = 0;
-   virtual void read( mem_addr_t addr, size_t length, void *data, ptx_thread_info *thd = NULL, const ptx_instruction *pI = NULL ) const = 0;
+   virtual void write_only( mem_addr_t index, mem_addr_t offset,  size_t length, const void *data ) = 0;
+   virtual void read( mem_addr_t addr, size_t length, void *data ) const = 0;
    virtual void print( const char *format, FILE *fout ) const = 0;
    virtual void set_watch( addr_t addr, unsigned watchpoint ) = 0;
 };
@@ -115,12 +115,14 @@ public:
    memory_space_impl( std::string name, unsigned hash_size );
 
    virtual void write( mem_addr_t addr, size_t length, const void *data, ptx_thread_info *thd, const ptx_instruction *pI );
-   virtual void read( mem_addr_t addr, size_t length, void *data, ptx_thread_info *thd = NULL, const ptx_instruction *pI = NULL ) const;
+   virtual void write_only( mem_addr_t index, mem_addr_t offset, size_t length, const void *data);
+   virtual void read( mem_addr_t addr, size_t length, void *data ) const;
    virtual void print( const char *format, FILE *fout ) const;
-   virtual void set_watch( addr_t addr, unsigned watchpoint );
+   
+   virtual void set_watch( addr_t addr, unsigned watchpoint ); 
 
 private:
-   void read_single_block( mem_addr_t blk_idx, mem_addr_t addr, size_t length, void *data) const;
+   void read_single_block( mem_addr_t blk_idx, mem_addr_t addr, size_t length, void *data) const; 
    std::string m_name;
    unsigned m_log2_block_size;
    typedef mem_map<mem_addr_t,mem_storage<BSIZE> > map_t;

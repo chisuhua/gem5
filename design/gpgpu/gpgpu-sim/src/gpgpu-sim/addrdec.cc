@@ -26,16 +26,17 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <cstring>
-
-#include "../option_parser.h"
+#include <string.h>
 #include "addrdec.h"
 #include "gpu-sim.h"
+#include "../option_parser.h"
+
+
 
 static long int powli( long int x, long int y );
 static unsigned int LOGB2_32( unsigned int v );
 static new_addr_type addrdec_packbits( new_addr_type mask, new_addr_type val, unsigned char high, unsigned char low);
-static void addrdec_getmasklimit(new_addr_type mask, unsigned char *high, unsigned char *low);
+static void addrdec_getmasklimit(new_addr_type mask, unsigned char *high, unsigned char *low); 
 
 linear_to_raw_address_translation::linear_to_raw_address_translation()
 {
@@ -58,28 +59,31 @@ void linear_to_raw_address_translation::addrdec_setoption(option_parser_t opp)
    option_parser_register(opp, "-gpgpu_mem_addr_test", OPT_BOOL, &run_test,
       "run sweep test to check address mapping for aliased address",
       "0");
-   option_parser_register(opp, "-gpgpu_mem_address_mask", OPT_INT32, &gpgpu_mem_address_mask,
+   option_parser_register(opp, "-gpgpu_mem_address_mask", OPT_INT32, &gpgpu_mem_address_mask, 
                "0 = old addressing mask, 1 = new addressing mask, 2 = new add. mask + flipped bank sel and chip sel bits",
                "0");
+   option_parser_register(opp, "-memory_partition_indexing", OPT_UINT32, &memory_partition_indexing,
+                  "0 = no indexing, 1 = bitwise xoring, 2 = IPoly, 3 = custom indexing",
+                  "0");
 }
 
-new_addr_type linear_to_raw_address_translation::partition_address( new_addr_type addr ) const
-{
+new_addr_type linear_to_raw_address_translation::partition_address( new_addr_type addr ) const 
+{ 
    if (!gap) {
-      return addrdec_packbits( ~(addrdec_mask[CHIP] | sub_partition_id_mask), addr, 64, 0 );
+      return addrdec_packbits( ~(addrdec_mask[CHIP] | sub_partition_id_mask), addr, 64, 0 ); 
    } else {
-      // see addrdec_tlx for explanation
-      unsigned long long int partition_addr;
-      partition_addr = ( (addr>>ADDR_CHIP_S) / m_n_channel) << ADDR_CHIP_S;
-      partition_addr |= addr & ((1 << ADDR_CHIP_S) - 1);
+      // see addrdec_tlx for explanation 
+      unsigned long long int partition_addr; 
+      partition_addr = ( (addr>>ADDR_CHIP_S) / m_n_channel) << ADDR_CHIP_S; 
+      partition_addr |= addr & ((1 << ADDR_CHIP_S) - 1); 
       // remove the part of address that constributes to the sub partition ID
-      partition_addr = addrdec_packbits( ~sub_partition_id_mask, partition_addr, 64, 0);
-      return partition_addr;
+      partition_addr = addrdec_packbits( ~sub_partition_id_mask, partition_addr, 64, 0); 
+      return partition_addr; 
    }
 }
 
 void linear_to_raw_address_translation::addrdec_tlx(new_addr_type addr, addrdec_t *tlx) const
-{
+{  
    unsigned long long int addr_for_chip,rest_of_addr;
    if (!gap) {
       tlx->chip = addrdec_packbits(addrdec_mask[CHIP], addr, addrdec_mkhigh[CHIP], addrdec_mklow[CHIP]);
@@ -90,17 +94,106 @@ void linear_to_raw_address_translation::addrdec_tlx(new_addr_type addr, addrdec_
    } else {
       // Split the given address at ADDR_CHIP_S into (MSBs,LSBs)
       // - extract chip address using modulus of MSBs
-      // - recreate the rest of the address by stitching the quotient of MSBs and the LSBs
-      addr_for_chip = (addr>>ADDR_CHIP_S) % m_n_channel;
-      rest_of_addr = ( (addr>>ADDR_CHIP_S) / m_n_channel) << ADDR_CHIP_S;
-      rest_of_addr |= addr & ((1 << ADDR_CHIP_S) - 1);
+      // - recreate the rest of the address by stitching the quotient of MSBs and the LSBs 
+      addr_for_chip = (addr>>ADDR_CHIP_S) % m_n_channel; 
+      rest_of_addr = ( (addr>>ADDR_CHIP_S) / m_n_channel) << ADDR_CHIP_S; 
+      rest_of_addr |= addr & ((1 << ADDR_CHIP_S) - 1); 
 
-      tlx->chip = addr_for_chip;
+      tlx->chip = addr_for_chip; 
       tlx->bk   = addrdec_packbits(addrdec_mask[BK], rest_of_addr, addrdec_mkhigh[BK], addrdec_mklow[BK]);
       tlx->row  = addrdec_packbits(addrdec_mask[ROW], rest_of_addr, addrdec_mkhigh[ROW], addrdec_mklow[ROW]);
       tlx->col  = addrdec_packbits(addrdec_mask[COL], rest_of_addr, addrdec_mkhigh[COL], addrdec_mklow[COL]);
       tlx->burst= addrdec_packbits(addrdec_mask[BURST], rest_of_addr, addrdec_mkhigh[BURST], addrdec_mklow[BURST]);
    }
+
+    switch(memory_partition_indexing){
+		case CONSECUTIVE:
+			//Do nothing
+			break;
+		case BITWISE_PERMUTATION:
+		{
+			assert(!gap);
+			tlx->chip = (tlx->chip) ^ (tlx->row & (m_n_channel-1));
+			assert(tlx->chip < m_n_channel);
+			break;
+		}
+		case IPOLY:
+		{
+		    /*
+			* Set Indexing function from "Pseudo-randomly interleaved memory."
+			* Rau, B. R et al.
+			* ISCA 1991
+			*
+			* equations are adopted from:
+			* "Sacat: streaming-aware conflict-avoiding thrashing-resistant gpgpu cache management scheme."
+			* Khairy et al.
+			* IEEE TPDS 2017.
+			*/
+			if(m_n_channel == 32) {
+				std::bitset<64> a(tlx->row);
+				std::bitset<5> chip(tlx->chip);
+				chip[0] = a[13]^a[12]^a[11]^a[10]^a[9]^a[6]^a[5]^a[3]^a[0]^chip[0];
+				chip[1] = a[14]^a[13]^a[12]^a[11]^a[10]^a[7]^a[6]^a[4]^a[1]^chip[1];
+				chip[2] = a[14]^a[10]^a[9]^a[8]^a[7]^a[6]^a[3]^a[2]^a[0]^chip[2];
+				chip[3] = a[11]^a[10]^a[9]^a[8]^a[7]^a[4]^a[3]^a[1]^chip[3];
+				chip[4] = a[12]^a[11]^a[10]^a[9]^a[8]^a[5]^a[4]^a[2]^chip[4];
+				tlx->chip = chip.to_ulong();
+				
+			}
+			else{ /* Else incorrect number of channels for the hashing function */
+            assert("\nGPGPU-Sim memory_partition_indexing error: The number of channels should be "
+                    "32 for the hashing IPOLY index function.\n" && 0);
+			}
+			assert(tlx->chip < m_n_channel);
+			break;
+		}
+		case PAE:
+		{
+			//Page Address Entropy
+			//random selected bits from the page and bank bits
+			//similar to
+			//Liu, Yuxi, et al. "Get Out of the Valley: Power-Efficient Address Mapping for GPUs." ISCA 2018
+			std::bitset<64> a(tlx->row);
+			std::bitset<5> chip(tlx->chip);
+			std::bitset<4> b(tlx->bk);
+			chip[0] = a[13]^a[10]^a[9]^a[5]^a[0]^b[3]^b[0]^chip[0];
+			chip[1] = a[12]^a[11]^a[6]^a[1]^b[3]^b[2]^b[1]^chip[1];
+			chip[2] = a[14]^a[9]^a[8]^a[7]^a[2]^b[1]^chip[2];
+			chip[3] = a[11]^a[10]^a[8]^a[3]^b[2]^b[3]^chip[3];
+			chip[4] = a[12]^a[9]^a[8]^a[5]^a[4]^b[1]^b[0]^chip[4];
+			tlx->chip = chip.to_ulong();
+			assert(tlx->chip < m_n_channel);
+			break;
+		}
+		case RANDOM:
+		{
+			new_addr_type chip_address = (addr>>ADDR_CHIP_S);
+			tr1_hash_map<new_addr_type,unsigned>::const_iterator got = address_random_interleaving.find (chip_address);
+			  if ( got == address_random_interleaving.end() ) {
+				  unsigned new_chip_id = rand() % (m_n_channel*m_n_sub_partition_in_channel);
+				  address_random_interleaving[chip_address] = new_chip_id;
+				  tlx->chip = new_chip_id/m_n_sub_partition_in_channel;
+				  tlx->sub_partition = new_chip_id;
+			  }
+			  else {
+				  unsigned new_chip_id = got->second;
+				  tlx->chip = new_chip_id/m_n_sub_partition_in_channel;
+				  tlx->sub_partition = new_chip_id;
+			  }
+
+			  assert(tlx->chip < m_n_channel);
+			  assert(tlx->sub_partition < m_n_channel*m_n_sub_partition_in_channel);
+			  return;
+			break;
+		}
+		case CUSTOM:
+			/* No custom set function implemented */
+			//Do you custom index here
+			break;
+		default:
+			 assert("\nUndefined set index function.\n" && 0);
+			 break;
+	}
 
    // combine the chip address and the lower bits of DRAM bank address to form the subpartition ID
    unsigned sub_partition_addr_mask = m_n_sub_partition_in_channel - 1;
@@ -117,7 +210,7 @@ void linear_to_raw_address_translation::addrdec_parseoption(const char *option)
    } else {
       ADDR_CHIP_S = -1;
    }
-
+   
    const char *cmapping = strchr(option, ';');
    if (cmapping == NULL) {
       cmapping = option;
@@ -130,11 +223,11 @@ void linear_to_raw_address_translation::addrdec_parseoption(const char *option)
    addrdec_mask[ROW]  = 0x0;
    addrdec_mask[COL]  = 0x0;
    addrdec_mask[BURST]= 0x0;
-
+   
    int ofs = 63;
    while ((*cmapping) != '\0') {
       switch (*cmapping) {
-         case 'D': case 'd':
+         case 'D': case 'd':  
             assert(dramid_parsed != 1); addrdec_mask[CHIP]  |= (1ULL << ofs); ofs--; break;
          case 'B': case 'b':   addrdec_mask[BK]    |= (1ULL << ofs); ofs--; break;
          case 'R': case 'r':   addrdec_mask[ROW]   |= (1ULL << ofs); ofs--; break;
@@ -158,20 +251,20 @@ void linear_to_raw_address_translation::addrdec_parseoption(const char *option)
    }
 }
 
-void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned int n_sub_partition_in_channel)
+void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned int n_sub_partition_in_channel) 
 {
    unsigned i;
    unsigned long long int mask;
    unsigned int nchipbits = ::LOGB2_32(n_channel);
    m_n_channel = n_channel;
-   m_n_sub_partition_in_channel = n_sub_partition_in_channel;
+   m_n_sub_partition_in_channel = n_sub_partition_in_channel; 
 
    gap = (n_channel - ::powli(2,nchipbits));
    if (gap) {
       nchipbits++;
    }
    switch (gpgpu_mem_address_mask) {
-   case 0:
+   case 0: 
       //old, added 2row bits, use #define ADDR_CHIP_S 10
       ADDR_CHIP_S = 10;
       addrdec_mask[CHIP] = 0x0000000000000000;
@@ -235,7 +328,7 @@ void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned in
       addrdec_mask[BK]   = 0x0000000000001800;
       addrdec_mask[ROW]  = 0x0000000007FFE000;
       addrdec_mask[COL]  = 0x00000000000007FF;
-      break;
+      break;                         
    case 100:
       ADDR_CHIP_S = 1;
       addrdec_mask[CHIP] = 0x0000000000000000;
@@ -257,7 +350,7 @@ void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned in
       addrdec_mask[ROW]  = 0x0000000007FFE000;
       addrdec_mask[COL]  = 0x00000000000007FF;
       break;
-   case 160:
+   case 160: 
       //old, added 2row bits, use #define ADDR_CHIP_S 10
       ADDR_CHIP_S = 6;
       addrdec_mask[CHIP] = 0x0000000000000000;
@@ -269,12 +362,12 @@ void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned in
       break;
    }
 
-   if (addrdec_option != NULL)
+   if (addrdec_option != NULL) 
       addrdec_parseoption(addrdec_option);
 
-   if (ADDR_CHIP_S != -1) {
+   if (ADDR_CHIP_S != -1) { 
       if (!gap) {
-         // number of chip is power of two:
+         // number of chip is power of two: 
          // - insert CHIP mask starting at the bit position ADDR_CHIP_S
          mask = ((unsigned long long int)1 << ADDR_CHIP_S) - 1;
          addrdec_mask[BK]   = ((addrdec_mask[BK] & ~mask) << nchipbits) | (addrdec_mask[BK] & mask);
@@ -288,10 +381,10 @@ void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned in
       } // otherwise, no need to change the masks
    } else {
       // make sure n_channel is power of two when explicit dram id mask is used
-      assert((n_channel & (n_channel - 1)) == 0);
+      assert((n_channel & (n_channel - 1)) == 0); 
    }
-   // make sure m_n_sub_partition_in_channel is power of two
-   assert((m_n_sub_partition_in_channel & (m_n_sub_partition_in_channel - 1)) == 0);
+   // make sure m_n_sub_partition_in_channel is power of two 
+   assert((m_n_sub_partition_in_channel & (m_n_sub_partition_in_channel - 1)) == 0); 
 
    addrdec_getmasklimit(addrdec_mask[CHIP],  &addrdec_mkhigh[CHIP],  &addrdec_mklow[CHIP] );
    addrdec_getmasklimit(addrdec_mask[BK],    &addrdec_mkhigh[BK],    &addrdec_mklow[BK]   );
@@ -306,83 +399,87 @@ void linear_to_raw_address_translation::init(unsigned int n_channel, unsigned in
    printf("addr_dec_mask[BURST] = %016llx \thigh:%d low:%d\n", addrdec_mask[BURST], addrdec_mkhigh[BURST], addrdec_mklow[BURST]);
 
    // create the sub partition ID mask (for removing the sub partition ID from the partition address)
-   sub_partition_id_mask = 0;
+   sub_partition_id_mask = 0; 
    if (m_n_sub_partition_in_channel > 1) {
-      unsigned n_sub_partition_log2 = LOGB2_32(m_n_sub_partition_in_channel);
+      unsigned n_sub_partition_log2 = LOGB2_32(m_n_sub_partition_in_channel); 
       unsigned pos=0;
       for (unsigned i=addrdec_mklow[BK];i<addrdec_mkhigh[BK];i++) {
          if ((addrdec_mask[BK] & ((unsigned long long int)1<<i)) != 0) {
             sub_partition_id_mask |= ((unsigned long long int)1<<i);
             pos++;
-            if (pos >= n_sub_partition_log2)
-               break;
+            if (pos >= n_sub_partition_log2) 
+               break; 
          }
       }
    }
    printf("sub_partition_id_mask = %016llx\n", sub_partition_id_mask);
 
    if (run_test) {
-      sweep_test();
+      sweep_test(); 
    }
+
+   if(memory_partition_indexing == RANDOM)
+     srand (1);
+
 }
 
-#include "../tr1_hash_map.h"
+#include "../tr1_hash_map.h" 
 
-bool operator==(const addrdec_t &x, const addrdec_t &y)
+bool operator==(const addrdec_t &x, const addrdec_t &y) 
 {
-   return ( memcmp(&x, &y, sizeof(addrdec_t)) == 0 );
+   return ( memcmp(&x, &y, sizeof(addrdec_t)) == 0 ); 
 }
 
-bool operator<(const addrdec_t &x, const addrdec_t &y)
+bool operator<(const addrdec_t &x, const addrdec_t &y) 
 {
-   if (x.chip >= y.chip) return false;
+   if (x.chip >= y.chip) return false; 
    else if (x.bk >= y.bk) return false;
    else if (x.row >= y.row) return false;
    else if (x.col >= y.col) return false;
    else if (x.burst >= y.burst) return false;
-   else return true;
+   else return true; 
 }
 
 class hash_addrdec_t
 {
-public:
+public: 
    size_t operator()(const addrdec_t &x) const {
-      return (x.chip ^ x.bk ^ x.row ^ x.col ^ x.burst);
+      return (x.chip ^ x.bk ^ x.row ^ x.col ^ x.burst); 
    }
 };
 
-// a simple sweep test to ensure that two linear addresses are not mapped to the same raw address
+// a simple sweep test to ensure that two linear addresses are not mapped to the same raw address 
 void linear_to_raw_address_translation::sweep_test() const
 {
-   new_addr_type sweep_range = 16 * 1024 * 1024;
+   new_addr_type sweep_range = 16 * 1024 * 1024; 
 
 #if tr1_hash_map_ismap == 1
-   typedef tr1_hash_map<addrdec_t, new_addr_type> history_map_t;
+   typedef tr1_hash_map<addrdec_t, new_addr_type> history_map_t; 
 #else
-   typedef tr1_hash_map<addrdec_t, new_addr_type, hash_addrdec_t> history_map_t;
+   typedef tr1_hash_map<addrdec_t, new_addr_type, hash_addrdec_t> history_map_t; 
 #endif
-   history_map_t history_map;
+   history_map_t history_map; 
 
    for (new_addr_type raw_addr = 4; raw_addr < sweep_range; raw_addr += 4) {
-      addrdec_t tlx;
-      addrdec_tlx(raw_addr, &tlx);
+      addrdec_t tlx; 
+      addrdec_tlx(raw_addr, &tlx); 
 
-      history_map_t::iterator h = history_map.find(tlx);
+      history_map_t::iterator h = history_map.find(tlx); 
 
       if (h != history_map.end()) {
-         printf("[AddrDec] ** Error: address decoding mapping aliases two addresses to same partition with same intra-partition address: %llx %llx\n", h->second, raw_addr);
-         abort();
+         printf("[AddrDec] ** Error: address decoding mapping aliases two addresses to same partition with same intra-partition address: %llx %llx\n", h->second, raw_addr); 
+         abort(); 
       } else {
-         assert((int)tlx.chip < m_n_channel);
-         // ensure that partition_address() returns the concatenated address
-         if ((ADDR_CHIP_S != -1 and raw_addr >= (1ULL << ADDR_CHIP_S)) or
+         assert((int)tlx.chip < m_n_channel); 
+         // ensure that partition_address() returns the concatenated address 
+         if ((ADDR_CHIP_S != -1 and raw_addr >= (1ULL << ADDR_CHIP_S)) or 
              (ADDR_CHIP_S == -1 and raw_addr >= (1ULL << addrdec_mklow[CHIP]))) {
-            assert(raw_addr != partition_address(raw_addr));
+            assert(raw_addr != partition_address(raw_addr)); 
          }
-         history_map[tlx] = raw_addr;
+         history_map[tlx] = raw_addr; 
       }
 
-      if ((raw_addr & 0xffff) == 0) printf("%llu scaned\n", raw_addr);
+      if ((raw_addr & 0xffff) == 0) printf("%llu scaned\n", raw_addr); 
    }
 }
 
@@ -394,20 +491,20 @@ void addrdec_t::print( FILE *fp ) const
    fprintf(fp,"\tbk:%x ", bk);
    fprintf(fp,"\tburst:%x ", burst);
    fprintf(fp,"\tsub_partition:%x ", sub_partition);
-}
+} 
 
 
 static long int powli( long int x, long int y ) // compute x to the y
 {
    long int r = 1;
-   int i;
+   int i; 
    for (i = 0; i < y; ++i ) {
       r *= x;
    }
    return r;
 }
 
-static unsigned int LOGB2_32( unsigned int v )
+static unsigned int LOGB2_32( unsigned int v ) 
 {
    unsigned int shift;
    unsigned int r;
@@ -423,7 +520,7 @@ static unsigned int LOGB2_32( unsigned int v )
    return r;
 }
 
-static new_addr_type addrdec_packbits( new_addr_type mask, new_addr_type val, unsigned char high, unsigned char low)
+static new_addr_type addrdec_packbits( new_addr_type mask, new_addr_type val, unsigned char high, unsigned char low) 
 {
    unsigned pos=0;
    new_addr_type result = 0;
@@ -436,7 +533,7 @@ static new_addr_type addrdec_packbits( new_addr_type mask, new_addr_type val, un
    return result;
 }
 
-static void addrdec_getmasklimit(new_addr_type mask, unsigned char *high, unsigned char *low)
+static void addrdec_getmasklimit(new_addr_type mask, unsigned char *high, unsigned char *low) 
 {
    *high = 64;
    *low = 0;

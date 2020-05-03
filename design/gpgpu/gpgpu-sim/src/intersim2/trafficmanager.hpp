@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,13 +28,14 @@
 #ifndef _TRAFFICMANAGER_HPP_
 #define _TRAFFICMANAGER_HPP_
 
-#include <cassert>
 #include <list>
 #include <map>
 #include <set>
+#include <cassert>
 
 #include "module.hpp"
 #include "config_utils.hpp"
+#include "network.hpp"
 #include "flit.hpp"
 #include "buffer_state.hpp"
 #include "stats.hpp"
@@ -42,7 +43,6 @@
 #include "routefunc.hpp"
 #include "outputset.hpp"
 #include "injection.hpp"
-#include "networks/network.hpp"
 
 //register the requests to a node
 class PacketReplyInfo;
@@ -60,10 +60,10 @@ protected:
   int _routers;
   int _vcs;
 
-  vector<ISNetwork *> _net;
+  vector<Network_gpgpu *> _net;
   vector<vector<Router *> > _router;
 
-  // ============ Traffic ============
+  // ============ Traffic ============ 
 
   int    _classes;
 
@@ -86,13 +86,13 @@ protected:
   vector<TrafficPattern *> _traffic_pattern;
   vector<InjectionProcess *> _injection_process;
 
-  // ============ Message priorities ============
+  // ============ Message priorities ============ 
 
   enum ePriority { class_based, age_based, network_age_based, local_age_based, queue_length_based, hop_count_based, sequence_based, none };
 
   ePriority _pri_type;
 
-  // ============ Injection VC states  ============
+  // ============ Injection VC states  ============ 
 
   vector<vector<BufferState *> > _buf_states;
 #ifdef TRACK_FLOWS
@@ -101,13 +101,13 @@ protected:
 #endif
   vector<vector<vector<int> > > _last_vc;
 
-  // ============ Routing ============
+  // ============ Routing ============ 
 
   tRoutingFunction _rf;
   bool _lookahead_routing;
   bool _noq;
 
-  // ============ Injection queues ============
+  // ============ Injection queues ============ 
 
   vector<vector<int> > _qtime;
   vector<vector<bool> > _qdrained;
@@ -139,31 +139,31 @@ protected:
 
   // ============ Statistics ============
 
-  vector<Stats *> _plat_stats;
-  vector<double> _overall_min_plat;
-  vector<double> _overall_avg_plat;
-  vector<double> _overall_max_plat;
+  vector<Stats_gpgpu *> _plat_stats;     
+  vector<double> _overall_min_plat;  
+  vector<double> _overall_avg_plat;  
+  vector<double> _overall_max_plat;  
 
-  vector<Stats *> _nlat_stats;
-  vector<double> _overall_min_nlat;
-  vector<double> _overall_avg_nlat;
-  vector<double> _overall_max_nlat;
+  vector<Stats_gpgpu *> _nlat_stats;     
+  vector<double> _overall_min_nlat;  
+  vector<double> _overall_avg_nlat;  
+  vector<double> _overall_max_nlat;  
 
-  vector<Stats *> _flat_stats;
-  vector<double> _overall_min_flat;
-  vector<double> _overall_avg_flat;
-  vector<double> _overall_max_flat;
+  vector<Stats_gpgpu *> _flat_stats;     
+  vector<double> _overall_min_flat;  
+  vector<double> _overall_avg_flat;  
+  vector<double> _overall_max_flat;  
 
-  vector<Stats *> _frag_stats;
+  vector<Stats_gpgpu *> _frag_stats;
   vector<double> _overall_min_frag;
   vector<double> _overall_avg_frag;
   vector<double> _overall_max_frag;
 
-  vector<vector<Stats *> > _pair_plat;
-  vector<vector<Stats *> > _pair_nlat;
-  vector<vector<Stats *> > _pair_flat;
+  vector<vector<Stats_gpgpu *> > _pair_plat;
+  vector<vector<Stats_gpgpu *> > _pair_nlat;
+  vector<vector<Stats_gpgpu *> > _pair_flat;
 
-  vector<Stats *> _hop_stats;
+  vector<Stats_gpgpu *> _hop_stats;
   vector<double> _overall_hop_stats;
 
   vector<vector<int> > _sent_packets;
@@ -199,9 +199,9 @@ protected:
   vector<int> _slowest_packet;
   vector<int> _slowest_flit;
 
-  map<string, Stats *> _stats;
+  map<string, Stats_gpgpu *> _stats;
 
-  // ============ Simulation parameters ============
+  // ============ Simulation parameters ============ 
 
   enum eSimState { warming_up, running, draining, done };
   eSimState _sim_state;
@@ -259,7 +259,7 @@ protected:
   ostream * _max_credits_out;
 #endif
 
-  // ============ Internal methods ============
+  // ============ Internal methods ============ 
 protected:
 
   virtual void _RetireFlit( Flit *f, int dest );
@@ -268,7 +268,7 @@ protected:
   virtual void _Step( );
 
   bool _PacketsOutstanding( ) const;
-
+  
   virtual int  _IssuePacket( int source, int cl );
   virtual void _GeneratePacket( int source, int size, int cl, int time );
 
@@ -279,7 +279,7 @@ protected:
   virtual bool _SingleSim( );
 
   void _DisplayRemaining( ostream & os = cout ) const;
-
+  
   void _LoadWatchList(const string & filename);
 
   virtual void _UpdateOverallStats();
@@ -291,10 +291,10 @@ protected:
 
 public:
 
-  static TrafficManager * New(Configuration const & config,
-                              vector<ISNetwork *> const & net);
+  static TrafficManager * New(Configuration const & config, 
+			      vector<Network_gpgpu *> const & net);
 
-  TrafficManager( const Configuration &config, const vector<ISNetwork *> & net );
+  TrafficManager( const Configuration &config, const vector<Network_gpgpu *> & net );
   virtual ~TrafficManager( );
 
   bool Run( );
@@ -306,13 +306,13 @@ public:
   virtual void DisplayOverallStatsCSV( ostream & os = cout ) const ;
 
   inline int getTime() { return _time;}
-  Stats * getStats(const string & name) { return _stats[name]; }
+  Stats_gpgpu * getStats(const string & name) { return _stats[name]; }
 
 };
 
 template<class T>
 ostream & operator<<(ostream & os, const vector<T> & v) {
-  for (size_t i = 0; i < v.size() - 1; ++i) {
+  for(size_t i = 0; i < v.size() - 1; ++i) {
     os << v[i] << ",";
   }
   os << v[v.size()-1];

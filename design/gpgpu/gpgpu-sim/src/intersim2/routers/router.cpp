@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -30,7 +30,7 @@
  *The base class of either iq router or event router
  *contains a list of channels and other router configuration variables
  *
- *The older version of the simulator uses an array of flits and credit to
+ *The older version of the simulator uses an array of flits and credit to 
  *simulate the channels. Newer version ueses flitchannel and credit channel
  *which can better model channel delay
  *
@@ -38,10 +38,9 @@
  *which are replaced by iq rotuer and event router in the present form
  */
 
-#include <cassert>
+#include "booksim.hpp"
 #include <iostream>
-
-#include "intersim2/booksim.hpp"
+#include <cassert>
 #include "router.hpp"
 
 //////////////////Sub router types//////////////////////
@@ -57,13 +56,13 @@ int const Router::STALL_BUFFER_RESERVED = -5;
 int const Router::STALL_CROSSBAR_CONFLICT = -6;
 
 Router::Router( const Configuration& config,
-                Module *parent, const string & name, int id,
-                int inputs, int outputs ) :
+		Module *parent, const string & name, int id,
+		int inputs, int outputs ) :
 TimedModule( parent, name ), _id( id ), _inputs( inputs ), _outputs( outputs ),
    _partial_internal_cycles(0.0)
 {
-  _crossbar_delay   = ( config.GetInt( "st_prepare_delay" ) +
-                        config.GetInt( "st_final_delay" ) );
+  _crossbar_delay   = ( config.GetInt( "st_prepare_delay" ) + 
+			config.GetInt( "st_final_delay" ) );
   _credit_delay     = config.GetInt( "credit_delay" );
   _input_speedup    = config.GetInt( "input_speedup" );
   _output_speedup   = config.GetInt( "output_speedup" );
@@ -106,7 +105,7 @@ void Router::AddOutputChannel( FlitChannel *channel, CreditChannel *backchannel 
 void Router::Evaluate( )
 {
   _partial_internal_cycles += _internal_speedup;
-  while ( _partial_internal_cycles >= 1.0 ) {
+  while( _partial_internal_cycles >= 1.0 ) {
     _InternalStep( );
     _partial_internal_cycles -= 1.0;
   }
@@ -128,8 +127,8 @@ bool Router::IsFaultyOutput( int c ) const
 
 /*Router constructor*/
 Router *Router::NewRouter( const Configuration& config,
-                           Module *parent, const string & name, int id,
-                           int inputs, int outputs )
+			   Module *parent, const string & name, int id,
+			   int inputs, int outputs )
 {
   const string type = config.GetStr( "router" );
   Router *r = NULL;
@@ -144,7 +143,7 @@ Router *Router::NewRouter( const Configuration& config,
   }
   /*For additional router, add another else if statement*/
   /*Original booksim specifies the router using "flow_control"
-   *we now simply call these types.
+   *we now simply call these types. 
    */
 
   return r;

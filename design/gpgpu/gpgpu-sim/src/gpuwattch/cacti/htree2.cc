@@ -31,11 +31,10 @@
 
 
 
-#include <cassert>
-#include <iostream>
-
 #include "htree2.h"
 #include "wire.h"
+#include <assert.h>
+#include <iostream>
 
 Htree2::Htree2(
     enum Wire_type wire_model, double mat_w, double mat_h,
@@ -212,22 +211,22 @@ void Htree2::output_buffer(double s1, double s2, double l_eff)
      + gate_C(s1*(min_w_nmos + min_w_pmos), 0)) *
     deviceType->Vdd * deviceType->Vdd*init_wire_bw;
 
-  if (uca_tree) {
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
+  if(uca_tree) {
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
 
-        power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
+	power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
     power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
     power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
     //power.readOp.gate_leakage *=;
   }
   else {
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
-        power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
+	power.readOp.leakage += cmos_Isub_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
 
-        power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
+	power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*tr_size*2, min_w_pmos*tr_size*2, 1, inv)*deviceType->Vdd*wire_bw;/*inverter + output tr*/
     power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nand)*deviceType->Vdd*wire_bw;//nand
     power.readOp.gate_leakage += cmos_Ig_leakage(min_w_nmos*size*3, min_w_pmos*size*3, 2, nor)*deviceType->Vdd*wire_bw;//nor
     //power.readOp.gate_leakage *=deviceType->Vdd*wire_bw;
@@ -523,7 +522,7 @@ void Htree2::out_htree()
     if (wtemp2) delete wtemp2;
     if (wtemp3) delete wtemp3;
 
-    if (h > v) {
+    if(h > v) {
       //the iteration considers only one horizontal link
       wtemp1 = new Wire(wt, len); // hor
       wtemp2 = new Wire(wt, len/2);  // ver

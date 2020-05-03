@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -25,17 +25,17 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <sstream>
+#include "booksim.hpp"
 #include <vector>
+#include <sstream>
 
-#include "intersim2/booksim.hpp"
-#include "intersim2/misc_utils.hpp"
 #include "fly.hpp"
+#include "misc_utils.hpp"
 
 //#define DEBUG_FLY
 
 KNFly::KNFly( const Configuration &config, const string & name ) :
-ISNetwork( config, name )
+Network_gpgpu( config, name )
 {
   _ComputeSize( config );
   _Alloc( );
@@ -71,47 +71,47 @@ void KNFly::_BuildNet( const Configuration &config )
     for ( int addr = 0; addr < per_stage; ++addr ) {
 
       router_name << "router_" << stage << "_" << addr;
-      _routers[node] = Router::NewRouter( config, this, router_name.str( ),
-                                          node, _k, _k );
+      _routers[node] = Router::NewRouter( config, this, router_name.str( ), 
+					  node, _k, _k );
       _timed_modules.push_back(_routers[node]);
       router_name.str("");
 
 #ifdef DEBUG_FLY
       cout << "connecting node " << node << " to:" << endl;
-#endif
+#endif 
 
       for ( int port = 0; port < _k; ++port ) {
-        // Input connections
-        if ( stage == 0 ) {
-          c = addr*_k + port;
-          _routers[node]->AddInputChannel( _inject[c], _inject_cred[c] );
-#ifdef DEBUG_FLY
-          cout << "  injection channel " << c << endl;
-#endif
-        } else {
-          c = _InChannel( stage, addr, port );
-          _routers[node]->AddInputChannel( _chan[c], _chan_cred[c] );
-          _chan[c]->SetLatency( 1 );
+	// Input connections
+	if ( stage == 0 ) {
+	  c = addr*_k + port;
+	  _routers[node]->AddInputChannel( _inject[c], _inject_cred[c] );
+#ifdef DEBUG_FLY	  
+	  cout << "  injection channel " << c << endl;
+#endif 
+	} else {
+	  c = _InChannel( stage, addr, port );
+	  _routers[node]->AddInputChannel( _chan[c], _chan_cred[c] );
+	  _chan[c]->SetLatency( 1 );
 
 #ifdef DEBUG_FLY
-          cout << "  input channel " << c << endl;
-#endif
-        }
+	  cout << "  input channel " << c << endl;
+#endif 
+	}
 
-        // Output connections
-        if ( stage == _n - 1 ) {
-          c = addr*_k + port;
-          _routers[node]->AddOutputChannel( _eject[c], _eject_cred[c] );
+	// Output connections
+	if ( stage == _n - 1 ) {
+	  c = addr*_k + port;
+	  _routers[node]->AddOutputChannel( _eject[c], _eject_cred[c] );
 #ifdef DEBUG_FLY
-          cout << "  ejection channel " << c << endl;
-#endif
-        } else {
-          c = _OutChannel( stage, addr, port );
-          _routers[node]->AddOutputChannel( _chan[c], _chan_cred[c] );
+	  cout << "  ejection channel " << c << endl;
+#endif 
+	} else {
+	  c = _OutChannel( stage, addr, port );
+	  _routers[node]->AddOutputChannel( _chan[c], _chan_cred[c] );
 #ifdef DEBUG_FLY
-          cout << "  output channel " << c << endl;
-#endif
-        }
+	  cout << "  output channel " << c << endl;
+#endif 
+	}
       }
 
       ++node;

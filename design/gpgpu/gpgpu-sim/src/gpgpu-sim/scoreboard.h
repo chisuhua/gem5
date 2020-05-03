@@ -27,10 +27,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <set>
 #include <vector>
-
+#include <set>
 #include "assert.h"
 
 #ifndef SCOREBOARD_H_
@@ -49,7 +47,7 @@ public:
     bool checkCollision(unsigned wid, const inst_t *inst) const;
     bool pendingWrites(unsigned wid) const;
     void printContents() const;
-    // TODO schi const bool islongop(unsigned warp_id, unsigned regnum);
+    // TODO schi compile warn on const const bool islongop(unsigned warp_id, unsigned regnum);
     bool islongop(unsigned warp_id, unsigned regnum);
 private:
     void reserveRegister(unsigned wid, unsigned regnum);

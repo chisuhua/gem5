@@ -18,22 +18,23 @@ l1icache_gem5::access(new_addr_type addr, mem_fetch *mf, unsigned time,
     assert(!mf->get_is_write());
     new_addr_type block_addr = m_config.block_addr(addr);
     unsigned cache_index = (unsigned)-1;
-    enum cache_request_status status = m_tag_array->probe(block_addr,cache_index);
+    enum cache_request_status status = m_tag_array->probe(block_addr,cache_index, mf);
     if ( status == HIT ) {
-        m_tag_array->access(block_addr,time,cache_index); // update LRU state
+        m_tag_array->access(block_addr,time,cache_index, mf); // update LRU state
         return HIT;
     }
     if ( status != RESERVATION_FAIL ) {
         bool mshr_hit = m_mshrs.probe(block_addr);
         bool mshr_avail = !m_mshrs.full(block_addr);
         if ( mshr_hit && mshr_avail ) {
-            m_tag_array->access(addr,time,cache_index);
+            m_tag_array->access(addr,time,cache_index, mf);
             m_mshrs.add(block_addr,mf);
             return MISS;
         } else if ( !mshr_hit && mshr_avail && (m_miss_queue.size() < m_config.m_miss_queue_size) ) {
-            m_tag_array->access(addr,time,cache_index);
+            m_tag_array->access(addr,time,cache_index, mf);
             m_mshrs.add(block_addr,mf);
-            m_extra_mf_fields[mf] = extra_mf_fields(block_addr,cache_index, mf->get_data_size());
+            // TODO schi m_extra_mf_fields[mf] = extra_mf_fields(block_addr,cache_index, mf->get_data_size());
+            m_extra_mf_fields[mf] = extra_mf_fields(block_addr, addr, cache_index, mf->get_data_size(), m_config);
             // @TODO: Can we move this so that it isn't executed each call?
             if (!shaderCore) {
                 shaderCore = abstractGPU->gem5CudaGPU->getCudaCore(m_sid);

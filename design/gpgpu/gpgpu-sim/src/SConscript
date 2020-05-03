@@ -36,7 +36,7 @@ Export('gpgpu_sources')
 
 #SimObject('Bridge.py')
 
-Source('abstract_hardware_model.cc', append={'CXXFLAGS': '-Wno-error=format'})
+Source('abstract_hardware_model.cc', append={'CXXFLAGS': '-Wno-error=format -Wno-error=missing-field-initializers'})
 Source('debug.cc')
 Source('gpgpusim_entrypoint.cc')
 Source('option_parser.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
@@ -46,8 +46,18 @@ Source('trace.cc')
 
 import os
 cuda_sdk = os.environ['CUDAHOME']
-env.Append(CCFLAGS=['-I'+cuda_sdk+'/include', '-I'+cuda_sdk+'/common/inc/'])
-env.Append(CPPDEFINES=['-DCUDART_VERSION=3020', '-DYYDEBUG'])
+#env.Append(CCFLAGS=['-I'+cuda_sdk+'/include', '-I'+cuda_sdk+'/common/inc/'])
+env.Append(CCFLAGS=['-I'+cuda_sdk+'/include'])
+env.Append(CPPDEFINES=['-DCUDART_VERSION=10000', '-DYYDEBUG'])
+
+gpgpusim_path = Dir('./gpgpu-sim').srcnode().abspath
+env.Append(CPPPATH=[gpgpusim_path])
+
+env.Append(CPPDEFINES=['-DHALF_ENABLE_CPP11_TYPE_TRAITS',
+		'-DHALF_ENABLE_CPP11_CSTDINT',
+		'-DHALF_ENABLE_CPP11_HASH',
+		'-DHALF_ENABLE_CPP11_CONSTEXPR',
+		'-DHALF_ENABLE_CPP11_NOEXCEPT'])
 
 #CCFLAGS.append('-g3')
 #CCFLAGS.append('-fPIC')

@@ -34,8 +34,8 @@
 #ifndef __BASIC_CIRCUIT_H__
 #define __BASIC_CIRCUIT_H__
 
-#include "cacti_interface.h"
 #include "const.h"
+#include "cacti_interface.h"
 
 using namespace std;
 
@@ -76,7 +76,7 @@ enum Htree_type {
 enum Gate_type {
     nmos,
     pmos,
-        inv,
+	inv,
     nand,
     nor,
     tri,
@@ -220,29 +220,29 @@ double shortcircuit_simple(
     double vdd);
 //set power point product mask; strictly speaking this is not real point product
 inline void set_pppm(
-        double * pppv,
-        double a=1,
+	double * pppv,
+	double a=1,
     double b=1,
     double c=1,
     double d=1
     ){
-                pppv[0]= a;
-                pppv[1]= b;
-                pppv[2]= c;
-                pppv[3]= d;
+		pppv[0]= a;
+		pppv[1]= b;
+		pppv[2]= c;
+		pppv[3]= d;
 
 }
 
 inline void set_sppm(
-        double * sppv,
-        double a=1,
+	double * sppv,
+	double a=1,
     double b=1,
     double c=1,
     double d=1
     ){
-                sppv[0]= a;
-                sppv[1]= b;
-                sppv[2]= c;
+		sppv[0]= a;
+		sppv[1]= b;
+		sppv[2]= c;
 }
 
 #endif

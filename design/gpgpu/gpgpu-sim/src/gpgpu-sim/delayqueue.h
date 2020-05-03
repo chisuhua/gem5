@@ -25,8 +25,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <assert.h>
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 
 #ifndef DELAYQUEUE_H
@@ -41,10 +41,10 @@ struct fifo_data {
    fifo_data *m_next;
 };
 
-template <class T>
+template <class T> 
 class fifo_pipeline {
 public:
-   fifo_pipeline(const char* nm, unsigned int minlen, unsigned int maxlen )
+   fifo_pipeline(const char* nm, unsigned int minlen, unsigned int maxlen ) 
    {
       assert(maxlen);
       m_name = nm;
@@ -54,11 +54,11 @@ public:
       m_n_element = 0;
       m_head = NULL;
       m_tail = NULL;
-      for (unsigned i=0;i<m_min_len;i++)
+      for (unsigned i=0;i<m_min_len;i++) 
          push(NULL);
    }
 
-   ~fifo_pipeline()
+   ~fifo_pipeline() 
    {
       while (m_head) {
          m_tail = m_head;
@@ -67,7 +67,7 @@ public:
       }
    }
 
-   void push(T* data )
+   void push(T* data ) 
    {
       assert(m_length < m_max_len);
       if (m_head) {
@@ -86,7 +86,7 @@ public:
       m_tail->m_data = data;
    }
 
-   T* pop()
+   T* pop() 
    {
       fifo_data<T>* next;
       T* data;
@@ -95,7 +95,7 @@ public:
         data = m_head->m_data;
         if ( m_head == m_tail ) {
            assert( next == NULL );
-           m_tail = NULL;
+           m_tail = NULL;     
         }
         delete m_head;
         m_head = next;
@@ -104,7 +104,7 @@ public:
            assert( m_head == NULL );
            m_tail = m_head;
         }
-        m_n_element--;
+        m_n_element--; 
          if (m_min_len && m_length < m_min_len) {
             push(NULL);
             m_n_element--; // uncount NULL elements inserted to create delays
@@ -124,10 +124,10 @@ public:
       }
    }
 
-   void set_min_length(unsigned int new_min_len)
+   void set_min_length(unsigned int new_min_len) 
    {
       if (new_min_len == m_min_len) return;
-
+   
       if (new_min_len > m_min_len) {
          m_min_len = new_min_len;
          while (m_length < m_min_len) {
@@ -161,6 +161,7 @@ public:
    }
 
    bool full() const { return (m_max_len && m_length >= m_max_len); }
+   bool is_avilable_size(unsigned size) const { return (m_max_len && m_length+size-1 >= m_max_len); }
    bool empty() const { return m_head == NULL; }
    unsigned get_n_element() const { return m_n_element; }
    unsigned get_length() const { return m_length; }

@@ -31,10 +31,11 @@
 
 
 
-#include <cmath>
 #include <iostream>
+#include <math.h>
 
 #include "uca.h"
+
 
 UCA::UCA(const DynamicParameter & dyn_p)
  :dp(dyn_p), bank(dp), nbanks(g_ip->nbanks), refresh_power(0)
@@ -44,17 +45,17 @@ UCA::UCA(const DynamicParameter & dyn_p)
 
   if (dp.use_inp_params)
   {
-          RWP  = dp.num_rw_ports;
-          ERP  = dp.num_rd_ports;
-          EWP  = dp.num_wr_ports;
-          SCHP = dp.num_search_ports;
+	  RWP  = dp.num_rw_ports;
+	  ERP  = dp.num_rd_ports;
+	  EWP  = dp.num_wr_ports;
+	  SCHP = dp.num_search_ports;
   }
   else
   {
-          RWP  = g_ip->num_rw_ports;
-          ERP  = g_ip->num_rd_ports;
-          EWP  = g_ip->num_wr_ports;
-          SCHP = g_ip->num_search_ports;
+	  RWP  = g_ip->num_rw_ports;
+	  ERP  = g_ip->num_rd_ports;
+	  EWP  = g_ip->num_wr_ports;
+	  SCHP = g_ip->num_search_ports;
   }
 
   num_addr_b_bank = (dp.number_addr_bits_mat + dp.number_subbanks_decode)*(RWP+ERP+EWP);
@@ -66,32 +67,32 @@ UCA::UCA(const DynamicParameter & dyn_p)
   if (!dp.fully_assoc && !dp.pure_cam)
   {
 
-          if (g_ip->fast_access && dp.is_tag == false)
-          {
-                  num_do_b_bank *= g_ip->data_assoc;
-          }
+	  if (g_ip->fast_access && dp.is_tag == false)
+	  {
+		  num_do_b_bank *= g_ip->data_assoc;
+	  }
 
-          htree_in_add   = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank,0, num_do_b_bank,0,num_banks_ver_dir*2, num_banks_hor_dir*2, Add_htree, true);
-          htree_in_data  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank, 0, num_do_b_bank, 0, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
-          htree_out_data = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank, 0, num_do_b_bank, 0, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
+	  htree_in_add   = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank,0, num_do_b_bank,0,num_banks_ver_dir*2, num_banks_hor_dir*2, Add_htree, true);
+	  htree_in_data  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank, 0, num_do_b_bank, 0, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
+	  htree_out_data = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank, 0, num_do_b_bank, 0, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
   }
 
   else
   {
 
-          htree_in_add   = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank, num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Add_htree, true);
-          htree_in_data  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
-          htree_out_data = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
-          htree_in_search  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
-          htree_out_search = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
-                          num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
+	  htree_in_add   = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank, num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Add_htree, true);
+	  htree_in_data  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
+	  htree_out_data = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
+	  htree_in_search  = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_in_htree, true);
+	  htree_out_search = new Htree2(g_ip->wt, bank.area.w, bank.area.h,
+			  num_addr_b_bank, num_di_b_bank,num_si_b_bank, num_do_b_bank, num_so_b_bank, num_banks_ver_dir*2, num_banks_hor_dir*2, Data_out_htree, true);
   }
 
   area.w = htree_in_data->area.w;
@@ -182,13 +183,13 @@ double UCA::compute_delays(double inrisetime)
   }
   else
    {
-          ram_delay_inside_mat = bank.mat.delay_bitline + bank.mat.delay_matchchline;
-          temp = ram_delay_inside_mat + bank.mat.delay_cam_sl_restore + bank.mat.delay_cam_ml_reset + bank.mat.delay_bl_restore
-                 + bank.mat.delay_hit_miss_reset + bank.mat.delay_wl_reset;
+	  ram_delay_inside_mat = bank.mat.delay_bitline + bank.mat.delay_matchchline;
+	  temp = ram_delay_inside_mat + bank.mat.delay_cam_sl_restore + bank.mat.delay_cam_ml_reset + bank.mat.delay_bl_restore
+	         + bank.mat.delay_hit_miss_reset + bank.mat.delay_wl_reset;
 
-          temp = MAX(temp, bank.mat.b_mux_predec->delay);//TODO: Sheng revisit whether distinguish cam and ram bitline etc.
-          temp = MAX(temp, bank.mat.sa_mux_lev_1_predec->delay);
-          temp = MAX(temp, bank.mat.sa_mux_lev_2_predec->delay);
+	  temp = MAX(temp, bank.mat.b_mux_predec->delay);//TODO: Sheng revisit whether distinguish cam and ram bitline etc.
+	  temp = MAX(temp, bank.mat.sa_mux_lev_1_predec->delay);
+	  temp = MAX(temp, bank.mat.sa_mux_lev_2_predec->delay);
    }
 
   // The following is true only if the input parameter "repeaters_in_htree" is set to false --Nav
@@ -239,8 +240,8 @@ void UCA::compute_power_energy()
                                           htree_out_data->power.readOp.gate_leakage;
   if (dp.fully_assoc || dp.pure_cam)
   {
-        power_routing_to_bank.readOp.leakage += htree_in_search->power.readOp.leakage + htree_out_search->power.readOp.leakage;
-        power_routing_to_bank.readOp.gate_leakage += htree_in_search->power.readOp.gate_leakage + htree_out_search->power.readOp.gate_leakage;
+	power_routing_to_bank.readOp.leakage += htree_in_search->power.readOp.leakage + htree_out_search->power.readOp.leakage;
+	power_routing_to_bank.readOp.gate_leakage += htree_in_search->power.readOp.gate_leakage + htree_out_search->power.readOp.gate_leakage;
   }
 
   power.searchOp.dynamic += power_routing_to_bank.searchOp.dynamic;
@@ -365,8 +366,8 @@ void UCA::compute_power_energy()
 
   if (dp.fully_assoc || dp.pure_cam)
   {
-        leak_power_request_and_reply_networks += htree_in_search->power.readOp.leakage + htree_out_search->power.readOp.leakage;
-        leak_power_request_and_reply_networks += htree_in_search->power.readOp.gate_leakage + htree_out_search->power.readOp.gate_leakage;
+	leak_power_request_and_reply_networks += htree_in_search->power.readOp.leakage + htree_out_search->power.readOp.leakage;
+	leak_power_request_and_reply_networks += htree_in_search->power.readOp.gate_leakage + htree_out_search->power.readOp.gate_leakage;
   }
 
 

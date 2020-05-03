@@ -1,4 +1,4 @@
-// $Id: flitchannel.hpp 5188 2012-08-30 00:31:31Z dub $
+// $Id: flitchannel.hpp 5516 2013-10-06 02:14:48Z dub $
 
 /*
  Copyright (c) 2007-2012, Trustees of The Leland Stanford Junior University
@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -29,8 +29,8 @@
 //
 //  File Name: flitchannel.hpp
 //
-//  The FlitChannel models a flit channel with a multi-cycle
-//   transmission delay. The channel latency can be specified as
+//  The FlitChannel models a flit channel with a multi-cycle 
+//   transmission delay. The channel latency can be specified as 
 //   an integer number of simulator cycles.
 // ----------------------------------------------------------------------
 
@@ -40,7 +40,7 @@
 // ----------------------------------------------------------------------
 //  $Author: jbalfour $
 //  $Date: 2007/06/27 23:10:17 $
-//  $Id: flitchannel.hpp 5188 2012-08-30 00:31:31Z dub $
+//  $Id: flitchannel.hpp 5516 2013-10-06 02:14:48Z dub $
 // ----------------------------------------------------------------------
 
 #include "channel.hpp"
@@ -72,14 +72,14 @@ public:
     return _active;
   }
 
-  // Send flit
+  // Send flit 
   virtual void Send(Flit * flit);
 
   virtual void ReadInputs();
   virtual void WriteOutputs();
 
 private:
-
+  
   ////////////////////////////////////////
   //
   // Power Models OBSOLETE
@@ -94,7 +94,6 @@ private:
   // Statistics for Activity Factors
   vector<int> _active;
   int _idle;
-  int _classes;
 };
 
 #endif

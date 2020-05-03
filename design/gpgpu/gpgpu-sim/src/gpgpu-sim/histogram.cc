@@ -25,13 +25,12 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cassert>
-#include <cstdio>
-
 #include "histogram.h"
 
-binned_histogram::binned_histogram (std::string name, int nbins, int* bins)
-   : m_name(name), m_nbins(nbins), m_bins(NULL), m_bin_cnts(new int[m_nbins]), m_maximum(0), m_sum(0)
+#include <assert.h>
+
+binned_histogram::binned_histogram (std::string name, int nbins, int* bins) 
+   : m_name(name), m_nbins(nbins), m_bins(NULL), m_bin_cnts(new int[m_nbins]), m_maximum(0), m_sum(0) 
 {
    if (bins) {
       m_bins = new int[m_nbins];
@@ -44,7 +43,7 @@ binned_histogram::binned_histogram (std::string name, int nbins, int* bins)
 }
 
 binned_histogram::binned_histogram (const binned_histogram& other)
-   : m_name(other.m_name), m_nbins(other.m_nbins), m_bins(NULL),
+   : m_name(other.m_name), m_nbins(other.m_nbins), m_bins(NULL), 
      m_bin_cnts(new int[m_nbins]), m_maximum(0), m_sum(0)
 {
    for (int i = 0; i < m_nbins; i++) {
@@ -84,12 +83,12 @@ binned_histogram::~binned_histogram () {
    delete[] m_bin_cnts;
 }
 
-pow2_histogram::pow2_histogram (std::string name, int nbins, int* bins)
+pow2_histogram::pow2_histogram (std::string name, int nbins, int* bins) 
    : binned_histogram (name, nbins, bins) {}
 
 void pow2_histogram::add2bin (int sample) {
    assert(sample >= 0);
-
+   
    int bin;
    int v = sample;
    register unsigned int shift;
@@ -100,14 +99,14 @@ void pow2_histogram::add2bin (int sample) {
    shift = (v > 0x3   ) << 1; v >>= shift; bin |= shift;
                                            bin |= (v >> 1);
    bin += (sample > 0)? 1:0;
-
+   
    m_bin_cnts[bin] += 1;
-
+   
    m_maximum = (sample > m_maximum)? sample : m_maximum;
    m_sum += sample;
 }
 
-linear_histogram::linear_histogram (int stride, const char *name, int nbins, int* bins)
+linear_histogram::linear_histogram (int stride, const char *name, int nbins, int* bins) 
    : binned_histogram (name, nbins, bins), m_stride(stride)
 {
 }
@@ -115,11 +114,11 @@ linear_histogram::linear_histogram (int stride, const char *name, int nbins, int
 void linear_histogram::add2bin (int sample) {
    assert(sample >= 0);
 
-   int bin = sample / m_stride;
+   int bin = sample / m_stride;      
    if (bin >= m_nbins) bin = m_nbins - 1;
-
+   
    m_bin_cnts[bin] += 1;
-
+   
    m_maximum = (sample > m_maximum)? sample : m_maximum;
    m_sum += sample;
 }

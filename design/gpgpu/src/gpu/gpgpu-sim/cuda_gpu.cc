@@ -603,7 +603,7 @@ void CudaGPU::add_binary( symbol_table *symtab, unsigned fat_cubin_handle )
     m_last_fat_cubin_handle = fat_cubin_handle;
 }
 
-void CudaGPU::add_ptxinfo( const char *deviceFun, const struct gpgpu_ptx_sim_kernel_info info )
+void CudaGPU::add_ptxinfo( const char *deviceFun, const struct gpgpu_ptx_sim_info info )
 {
     symbol *s = m_code[m_last_fat_cubin_handle]->lookup(deviceFun);
     assert( s != NULL );

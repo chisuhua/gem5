@@ -32,12 +32,11 @@
 
 
 
-#include <cassert>
-#include <cmath>
-#include <iostream>
-
 #include "basic_circuit.h"
 #include "parameter.h"
+#include <iostream>
+#include <assert.h>
+#include <cmath>
 
 uint32_t _log2(uint64_t num)
 {
@@ -412,10 +411,10 @@ double simplified_nmos_leakage(
 
 int factorial(int n, int m)
 {
-        int fa = m, i;
-        for (i=m+1; i<=n; i++)
-                fa *=i;
-        return fa;
+	int fa = m, i;
+	for (i=m+1; i<=n; i++)
+		fa *=i;
+	return fa;
 }
 
 int combination(int n, int m)
@@ -504,9 +503,9 @@ double cmos_Isub_leakage(
     bool _is_wl_tr,
     enum Half_net_topology topo)
 {
-        assert (fanin>=1);
-        double nmos_leak = simplified_nmos_leakage(nWidth, _is_dram, _is_cell, _is_wl_tr);
-        double pmos_leak = simplified_pmos_leakage(pWidth, _is_dram, _is_cell, _is_wl_tr);
+	assert (fanin>=1);
+	double nmos_leak = simplified_nmos_leakage(nWidth, _is_dram, _is_cell, _is_wl_tr);
+	double pmos_leak = simplified_pmos_leakage(pWidth, _is_dram, _is_cell, _is_wl_tr);
     double Isub=0;
     int    num_states;
     int    num_off_tx;
@@ -516,84 +515,84 @@ double cmos_Isub_leakage(
     switch (g_type)
     {
     case nmos:
-        if (fanin==1)
-        {
-                Isub = nmos_leak/num_states;
-        }
-        else
-        {
-                if (topo==parallel)
-                {
-                        Isub=nmos_leak*fanin/num_states; //only when all tx are off, leakage power is non-zero. The possibility of this state is 1/num_states
-                }
-                else
-                {
-                        for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) //when num_off_tx ==0 there is no leakage power
-                        {
-                                //Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
-                                Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
-                        }
-                        Isub /=num_states;
-                }
+    	if (fanin==1)
+    	{
+    		Isub = nmos_leak/num_states;
+    	}
+    	else
+    	{
+    		if (topo==parallel)
+    		{
+    			Isub=nmos_leak*fanin/num_states; //only when all tx are off, leakage power is non-zero. The possibility of this state is 1/num_states
+    		}
+    		else
+    		{
+    			for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) //when num_off_tx ==0 there is no leakage power
+    			{
+    				//Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
+    				Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
+    			}
+    			Isub /=num_states;
+    		}
 
-        }
-        break;
+    	}
+    	break;
     case pmos:
-        if (fanin==1)
-        {
-                Isub = pmos_leak/num_states;
-        }
-        else
-        {
-                if (topo==parallel)
-                {
-                        Isub=pmos_leak*fanin/num_states; //only when all tx are off, leakage power is non-zero. The possibility of this state is 1/num_states
-                }
-                else
-                {
-                        for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) //when num_off_tx ==0 there is no leakage power
-                        {
-                                //Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
-                                Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
-                        }
-                        Isub /=num_states;
-                }
+    	if (fanin==1)
+    	{
+    		Isub = pmos_leak/num_states;
+    	}
+    	else
+    	{
+    		if (topo==parallel)
+    		{
+    			Isub=pmos_leak*fanin/num_states; //only when all tx are off, leakage power is non-zero. The possibility of this state is 1/num_states
+    		}
+    		else
+    		{
+    			for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) //when num_off_tx ==0 there is no leakage power
+    			{
+    				//Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
+    				Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
+    			}
+    			Isub /=num_states;
+    		}
 
-        }
-        break;
+    	}
+    	break;
     case inv:
-        Isub = (nmos_leak + pmos_leak)/2;
-        break;
+    	Isub = (nmos_leak + pmos_leak)/2;
+    	break;
     case nand:
-        Isub += fanin*pmos_leak;//the pullup network
-        for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) // the pulldown network
-        {
-                //Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
+    	Isub += fanin*pmos_leak;//the pullup network
+    	for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) // the pulldown network
+    	{
+    		//Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
             Isub += nmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
-        }
-        Isub /=num_states;
-        break;
+    	}
+    	Isub /=num_states;
+    	break;
     case nor:
-        for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) // the pullup network
-        {
-                //Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
-                Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
-        }
-        Isub += fanin*nmos_leak;//the pulldown network
-        Isub /=num_states;
-        break;
+    	for (num_off_tx=1; num_off_tx<=fanin; num_off_tx++) // the pullup network
+    	{
+    		//Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*(factorial(fanin)/(factorial(fanin, num_off_tx)*factorial(num_off_tx)));
+    		Isub += pmos_leak*pow(UNI_LEAK_STACK_FACTOR,(num_off_tx-1))*combination(fanin, num_off_tx);
+    	}
+    	Isub += fanin*nmos_leak;//the pulldown network
+    	Isub /=num_states;
+    	break;
     case tri:
-        Isub += (nmos_leak + pmos_leak)/2;//enabled
-        Isub += nmos_leak*UNI_LEAK_STACK_FACTOR; //disabled upper bound of leakage power
-        Isub /=2;
-        break;
+    	Isub += (nmos_leak + pmos_leak)/2;//enabled
+    	Isub += nmos_leak*UNI_LEAK_STACK_FACTOR; //disabled upper bound of leakage power
+    	Isub /=2;
+    	break;
     case tg:
-        Isub = (nmos_leak + pmos_leak)/2;
-        break;
+    	Isub = (nmos_leak + pmos_leak)/2;
+    	break;
     default:
-        assert(0);
-        break;
-          }
+    	assert(0);
+    	break;
+	  }
 
     return Isub;
 }
@@ -609,118 +608,118 @@ double cmos_Ig_leakage(
     bool _is_wl_tr,
     enum Half_net_topology topo)
 {
-        assert (fanin>=1);
-                double nmos_leak = cmos_Ig_n(nWidth, _is_dram, _is_cell, _is_wl_tr);
-                double pmos_leak = cmos_Ig_p(pWidth, _is_dram, _is_cell, _is_wl_tr);
-            double Ig_on=0;
-            int    num_states;
-            int    num_on_tx;
+	assert (fanin>=1);
+		double nmos_leak = cmos_Ig_n(nWidth, _is_dram, _is_cell, _is_wl_tr);
+		double pmos_leak = cmos_Ig_p(pWidth, _is_dram, _is_cell, _is_wl_tr);
+	    double Ig_on=0;
+	    int    num_states;
+	    int    num_on_tx;
 
-            num_states = int(pow(2.0, fanin));
+	    num_states = int(pow(2.0, fanin));
 
-            switch (g_type)
-            {
-            case nmos:
-                if (fanin==1)
-                {
-                        Ig_on = nmos_leak/num_states;
-                }
-                else
-                {
-                        if (topo==parallel)
-                        {
-                        for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)
-                        {
-                                Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx;
-                        }
-                        }
-                        else
-                        {
-                                Ig_on += nmos_leak * fanin;//pull down network when all TXs are on.
-                            //num_on_tx is the number of on tx
-                                for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
-                                {
-                                        Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
-                                }
-                                Ig_on /=num_states;
-                        }
-                }
-                break;
-            case pmos:
-                if (fanin==1)
-                {
-                        Ig_on = pmos_leak/num_states;
-                }
-                else
-                {
-                        if (topo==parallel)
-                    {
-                  for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)
-                  {
-                          Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx;
-                  }
-                    }
-                    else
-                    {
-                          Ig_on += pmos_leak * fanin;//pull down network when all TXs are on.
-                      //num_on_tx is the number of on tx
-                          for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
-                          {
-                                  Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
-                          }
-                          Ig_on /=num_states;
-                    }
-                }
-                break;
+	    switch (g_type)
+	    {
+	    case nmos:
+	    	if (fanin==1)
+	    	{
+	    		Ig_on = nmos_leak/num_states;
+	    	}
+	    	else
+	    	{
+	    		if (topo==parallel)
+	    		{
+	    	    	for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)
+	    	        {
+	    	    		Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx;
+	    	    	}
+	    		}
+	    		else
+	    		{
+	    			Ig_on += nmos_leak * fanin;//pull down network when all TXs are on.
+	    		    //num_on_tx is the number of on tx
+	    			for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
+	    			{
+	    				Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
+	    			}
+	    			Ig_on /=num_states;
+	    		}
+	    	}
+	    	break;
+	    case pmos:
+	    	if (fanin==1)
+	    	{
+	    		Ig_on = pmos_leak/num_states;
+	    	}
+	    	else
+	    	{
+	    		if (topo==parallel)
+    		    {
+    	    	  for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)
+    	          {
+    	    		  Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx;
+    	    	  }
+    		    }
+    		    else
+    		    {
+    			  Ig_on += pmos_leak * fanin;//pull down network when all TXs are on.
+    		      //num_on_tx is the number of on tx
+    			  for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
+    			  {
+    				  Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
+    			  }
+	    		  Ig_on /=num_states;
+	    	    }
+	    	}
+	    	break;
 
-            case inv:
-                Ig_on = (nmos_leak + pmos_leak)/2;
-                break;
-            case nand:
-                //pull up network
-                for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)//when num_on_tx=[1,n]
-                {
-                        Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx;
-                }
+	    case inv:
+	    	Ig_on = (nmos_leak + pmos_leak)/2;
+	    	break;
+	    case nand:
+	    	//pull up network
+	    	for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)//when num_on_tx=[1,n]
+	        {
+	    		Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx;
+	    	}
 
-                //pull down network
-                Ig_on += nmos_leak * fanin;//pull down network when all TXs are on.
-                //num_on_tx is the number of on tx
-                for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
-                {
-                        Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
-                }
-                Ig_on /=num_states;
-                break;
-            case nor:
-                // num_on_tx is the number of on tx in pull up network
-                Ig_on += pmos_leak * fanin;//pull up network when all TXs are on.
-                for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)
-                {
-                        Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;
+	    	//pull down network
+	    	Ig_on += nmos_leak * fanin;//pull down network when all TXs are on.
+	    	//num_on_tx is the number of on tx
+	    	for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)//when num_on_tx=[1,n-1]
+	    	{
+	    		Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;//TODO: this is a approximation now, a precise computation will be very complicated.
+	    	}
+	    	Ig_on /=num_states;
+	    	break;
+	    case nor:
+	    	// num_on_tx is the number of on tx in pull up network
+	    	Ig_on += pmos_leak * fanin;//pull up network when all TXs are on.
+	    	for (num_on_tx=1; num_on_tx<fanin; num_on_tx++)
+	    	{
+	    		Ig_on += pmos_leak*combination(fanin, num_on_tx)*num_on_tx/2;
 
-                }
-                //pull down network
-                for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)//when num_on_tx=[1,n]
-                {
-                        Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx;
-                }
-                Ig_on /=num_states;
-                break;
-            case tri:
-                Ig_on += (2*nmos_leak + 2*pmos_leak)/2;//enabled
-                Ig_on += (nmos_leak + pmos_leak)/2; //disabled upper bound of leakage power
-                Ig_on /=2;
-                break;
-            case tg:
-                Ig_on = (nmos_leak + pmos_leak)/2;
-                break;
-            default:
-                assert(0);
-                break;
-                  }
+	    	}
+	    	//pull down network
+	    	for (num_on_tx=1; num_on_tx<=fanin; num_on_tx++)//when num_on_tx=[1,n]
+	        {
+	    		Ig_on += nmos_leak*combination(fanin, num_on_tx)*num_on_tx;
+	    	}
+	    	Ig_on /=num_states;
+	    	break;
+	    case tri:
+	    	Ig_on += (2*nmos_leak + 2*pmos_leak)/2;//enabled
+	    	Ig_on += (nmos_leak + pmos_leak)/2; //disabled upper bound of leakage power
+	    	Ig_on /=2;
+	    	break;
+	    case tg:
+	    	Ig_on = (nmos_leak + pmos_leak)/2;
+	    	break;
+	    default:
+	    	assert(0);
+	    	break;
+		  }
 
-            return Ig_on;
+	    return Ig_on;
 }
 
 double shortcircuit_simple(
@@ -737,18 +736,18 @@ double shortcircuit_simple(
     double vdd)
 {
 
-        double p_short_circuit, p_short_circuit_discharge, p_short_circuit_charge, p_short_circuit_discharge_low, p_short_circuit_charge_low;//this is actually energy
-        double fo_n, fo_p, fanout, beta_ratio, vt_to_vdd_ratio;
+	double p_short_circuit, p_short_circuit_discharge, p_short_circuit_charge, p_short_circuit_discharge_low, p_short_circuit_charge_low;//this is actually energy
+	double fo_n, fo_p, fanout, beta_ratio, vt_to_vdd_ratio;
 
-        fo_n	= i_on_n/i_on_n_in;
-        fo_p	= i_on_p/i_on_p_in;
-        fanout	= c_out/c_in;
-        beta_ratio = i_on_p/i_on_n;
-        vt_to_vdd_ratio = vt/vdd;
+	fo_n	= i_on_n/i_on_n_in;
+	fo_p	= i_on_p/i_on_p_in;
+	fanout	= c_out/c_in;
+	beta_ratio = i_on_p/i_on_n;
+	vt_to_vdd_ratio = vt/vdd;
 
-        //p_short_circuit_discharge_low 	= 10/3*(pow(0.5-vt_to_vdd_ratio,3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_p*fo_p/fanout/beta_ratio;
-        p_short_circuit_discharge_low 	= 10/3*(pow(((vdd-vt)-vt_to_vdd_ratio),3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_p*fo_p/fanout/beta_ratio;
-        p_short_circuit_charge_low 		= 10/3*(pow(((vdd-vt)-vt_to_vdd_ratio),3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_n*fo_n/fanout*beta_ratio;
+	//p_short_circuit_discharge_low 	= 10/3*(pow(0.5-vt_to_vdd_ratio,3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_p*fo_p/fanout/beta_ratio;
+	p_short_circuit_discharge_low 	= 10/3*(pow(((vdd-vt)-vt_to_vdd_ratio),3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_p*fo_p/fanout/beta_ratio;
+	p_short_circuit_charge_low 		= 10/3*(pow(((vdd-vt)-vt_to_vdd_ratio),3.0)/pow(velocity_index,2.0)/pow(2.0,3*vt_to_vdd_ratio*vt_to_vdd_ratio))*c_in*vdd*vdd*fo_n*fo_n/fanout*beta_ratio;
 //	double t1, t2, t3, t4, t5;
 //	t1=pow(((vdd-vt)-vt_to_vdd_ratio),3);
 //	t2=pow(velocity_index,2.0);
@@ -764,9 +763,9 @@ double shortcircuit_simple(
 //	p_short_circuit_discharge = 1.0/(1.0/p_short_circuit_discharge_low + 1.0/p_short_circuit_discharge_high);
 //	p_short_circuit_charge = 1/(1/p_short_circuit_charge_low + 1/p_short_circuit_charge_high); //harmmoic mean cannot be applied simple formulas.
 
-        p_short_circuit_discharge = p_short_circuit_discharge_low;
-        p_short_circuit_charge = p_short_circuit_charge_low;
-        p_short_circuit = (p_short_circuit_discharge + p_short_circuit_charge)/2;
+	p_short_circuit_discharge = p_short_circuit_discharge_low;
+	p_short_circuit_charge = p_short_circuit_charge_low;
+	p_short_circuit = (p_short_circuit_discharge + p_short_circuit_charge)/2;
 
   return (p_short_circuit);
 }
@@ -785,6 +784,6 @@ double shortcircuit(
     double vdd)
 {
 
-        double p_short_circuit=0;
+	double p_short_circuit=0; 
   return (p_short_circuit);
 }

@@ -29,20 +29,21 @@
  *
  ***************************************************************************/
 
-#include <pthread.h>
+#include <time.h>
+#include <math.h>
 
-#include <algorithm>
-#include <cmath>
-#include <ctime>
-#include <iostream>
 
-#include "Ucache.h"
 #include "area.h"
 #include "basic_circuit.h"
-#include "cacti_interface.h"
 #include "component.h"
 #include "const.h"
 #include "parameter.h"
+#include "cacti_interface.h"
+#include "Ucache.h"
+
+#include <pthread.h>
+#include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -79,14 +80,14 @@ void uca_org_t::find_delay()
   // and the entire set is sent over the data array h-tree without
   // waiting for the way-select signal --TODO add the corresponding
   // power overhead Nav
-  else if (g_ip->fast_access)
+  else if (g_ip->fast_access == true)
   {
     access_time = MAX(tag_arr->access_time, data_arr->access_time);
   }
   // Tag is accessed first. On a hit, way-select signal along with the
   // address is sent to read/write the appropriate block in the data
   // array
-  else if (g_ip->is_seq_acc)
+  else if (g_ip->is_seq_acc == true)
   {
     access_time = tag_arr->access_time + data_arr->access_time;
   }
@@ -135,10 +136,10 @@ void uca_org_t::adjust_area()
   {
     if (data_array2->area_efficiency/100.0<0.2)
     {
-        //area_adjust = sqrt(area/(area*(data_array2->area_efficiency/100.0)/0.2));
-        area_adjust = sqrt(0.2/(data_array2->area_efficiency/100.0));
-        cache_ht  = cache_ht/area_adjust;
-        cache_len = cache_len/area_adjust;
+    	//area_adjust = sqrt(area/(area*(data_array2->area_efficiency/100.0)/0.2));
+    	area_adjust = sqrt(0.2/(data_array2->area_efficiency/100.0));
+    	cache_ht  = cache_ht/area_adjust;
+    	cache_len = cache_len/area_adjust;
     }
   }
   area = cache_ht * cache_len;
@@ -166,8 +167,8 @@ uca_org_t :: uca_org_t()
 
 void uca_org_t :: cleanup()
 {
-          if (data_array2!=0)
-                  delete data_array2;
-          if (tag_array2!=0)
-                  delete tag_array2;
+	  if (data_array2!=0)
+		  delete data_array2;
+	  if (tag_array2!=0)
+		  delete tag_array2;
 }

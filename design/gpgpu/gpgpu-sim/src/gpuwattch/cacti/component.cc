@@ -32,9 +32,9 @@
 
 
 
-#include <cassert>
-#include <cmath>
+#include <assert.h>
 #include <iostream>
+#include <math.h>
 
 #include "bank.h"
 #include "component.h"

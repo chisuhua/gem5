@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
-# define YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
+#ifndef YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
+# define YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -55,23 +55,29 @@ extern int ptxinfo_debug;
     LMEM = 265,
     SMEM = 266,
     CMEM = 267,
-    IDENTIFIER = 268,
-    PLUS = 269,
-    COMMA = 270,
-    LEFT_SQUARE_BRACKET = 271,
-    RIGHT_SQUARE_BRACKET = 272,
-    COLON = 273,
-    SEMICOLON = 274,
-    QUOTE = 275,
-    LINE = 276,
-    WARNING = 277,
-    FOR = 278
+    GMEM = 268,
+    IDENTIFIER = 269,
+    PLUS = 270,
+    COMMA = 271,
+    LEFT_SQUARE_BRACKET = 272,
+    RIGHT_SQUARE_BRACKET = 273,
+    COLON = 274,
+    SEMICOLON = 275,
+    QUOTE = 276,
+    LINE = 277,
+    WARNING = 278,
+    FOR = 279,
+    TEXTURES = 280,
+    DUPLICATE = 281,
+    FUNCTION = 282,
+    VARIABLE = 283,
+    FATAL = 284
   };
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 30 "ptxinfo.y" /* yacc.c:1909  */
@@ -79,8 +85,10 @@ union YYSTYPE
   int    int_value;
   char * string_value;
 
-#line 83 "ptxinfo.tab.h" /* yacc.c:1909  */
+#line 89 "/mnt/d/source/github/sim/gpgpu-sim_distribution-1/build/gcc-7.4.0/cuda-10000/debug/cuda-sim/ptxinfo.tab.h" /* yacc.c:1909  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -90,4 +98,4 @@ extern YYSTYPE ptxinfo_lval;
 
 int ptxinfo_parse (void);
 
-#endif /* !YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED  */
+#endif /* !YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED  */

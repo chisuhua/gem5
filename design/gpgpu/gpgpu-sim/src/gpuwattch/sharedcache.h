@@ -31,21 +31,20 @@
 
 #ifndef SHAREDCACHE_H_
 #define SHAREDCACHE_H_
-#include <vector>
-
 #include "XML_Parse.h"
-#include "array.h"
-#include "basic_components.h"
 #include "cacti/area.h"
 #include "cacti/parameter.h"
+#include "array.h"
 #include "logic.h"
+#include <vector>
+#include "basic_components.h"
 
 class SharedCache :public Component{
   public:
     ParseXML * XML;
     int ithCache;
-        InputParameter interface_ip;
-        enum cache_level cacheL;
+	InputParameter interface_ip;
+	enum cache_level cacheL;
     DataCache unicache;//Shared cache
     CacheDynParam cachep;
     statsDef   homenode_tdp_stats;
@@ -61,7 +60,7 @@ class SharedCache :public Component{
 
     SharedCache(ParseXML *XML_interface, int ithCache_, InputParameter* interface_ip_,enum cache_level cacheL_ =L2);
     void set_cache_param();
-        void computeEnergy(bool is_tdp=true);
+	void computeEnergy(bool is_tdp=true);
     void displayEnergy(uint32_t indent = 0,bool is_tdp=true);
     ~SharedCache(){};
 };
@@ -70,7 +69,7 @@ class CCdir :public Component{
   public:
     ParseXML * XML;
     int ithCache;
-        InputParameter interface_ip;
+	InputParameter interface_ip;
     DataCache dc;//Shared cache
     ArrayST * shadow_dir;
 //	cache_processor llCache,directory, directory1, inv_dir;

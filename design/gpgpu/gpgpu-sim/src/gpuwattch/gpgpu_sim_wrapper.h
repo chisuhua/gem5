@@ -28,71 +28,70 @@
 #ifndef GPGPU_SIM_WRAPPER_H_
 #define GPGPU_SIM_WRAPPER_H_
 
-#include <assert.h>
+#include "processor.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <zlib.h>
-
-#include <fstream>
-#include <iostream>
+#include <assert.h>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <zlib.h>
+#include <string.h>
 
-#include "processor.h"
 
 using namespace std;
 
 template <typename T>
 struct avg_max_min_counters{
-        T avg;
-        T max;
-        T min;
+	T avg;
+	T max;
+	T min;
 
-        avg_max_min_counters(){avg=0; max=0; min=0;}
+	avg_max_min_counters(){avg=0; max=0; min=0;}
 };
 
 class gpgpu_sim_wrapper {
 public:
-        gpgpu_sim_wrapper(bool power_simulation_enabled, char* xmlfile);
-        ~gpgpu_sim_wrapper();
+	gpgpu_sim_wrapper(bool power_simulation_enabled, char* xmlfile);
+	~gpgpu_sim_wrapper();
 
-        void init_mcpat(char* xmlfile, char* powerfile, char* power_trace_file,char* metric_trace_file,
-                        char * steady_state_file,bool power_sim_enabled,bool trace_enabled,bool steady_state_enabled,
-                        bool power_per_cycle_dump,double steady_power_deviation,double steady_min_period,int zlevel,
-                        double init_val,int stat_sample_freq);
-        void detect_print_steady_state(int position, double init_val);
-        void close_files();
-        void open_files();
-        void compute();
-        void dump();
-        void print_trace_files();
-        void update_components_power();
-        void update_coefficients();
-        void reset_counters();
-        void print_power_kernel_stats(double gpu_sim_cycle, double gpu_tot_sim_cycle, double init_value, const std::string & kernel_info_string, bool print_trace);
-        void power_metrics_calculations();
-        void set_inst_power(bool clk_gated_lanes, double tot_cycles, double busy_cycles, double tot_inst, double int_inst, double fp_inst, double load_inst, double store_inst, double committed_inst);
-        void set_regfile_power(double reads, double writes, double ops);
-        void set_icache_power(double accesses, double misses);
-        void set_ccache_power(double accesses, double misses);
-        void set_tcache_power(double accesses, double misses);
-        void set_shrd_mem_power(double accesses);
-        void set_l1cache_power(double read_accesses, double read_misses, double write_accesses, double write_misses);
-        void set_l2cache_power(double read_accesses, double read_misses, double write_accesses, double write_misses);
-        void set_idle_core_power(double num_idle_core);
-        void set_duty_cycle_power(double duty_cycle);
-        void set_mem_ctrl_power(double reads, double writes, double dram_precharge);
-        void set_exec_unit_power(double fpu_accesses, double ialu_accesses, double sfu_accesses);
-        void set_active_lanes_power(double sp_avg_active_lane, double sfu_avg_active_lane);
-        void set_NoC_power(double noc_tot_reads, double noc_tot_write);
-        bool sanity_check(double a, double b);
+	void init_mcpat(char* xmlfile, char* powerfile, char* power_trace_file,char* metric_trace_file,
+			char * steady_state_file,bool power_sim_enabled,bool trace_enabled,bool steady_state_enabled,
+			bool power_per_cycle_dump,double steady_power_deviation,double steady_min_period,int zlevel,
+			double init_val,int stat_sample_freq);
+	void detect_print_steady_state(int position, double init_val);
+	void close_files();
+	void open_files();
+	void compute();
+	void dump();
+	void print_trace_files();
+	void update_components_power();
+	void update_coefficients();
+	void reset_counters();
+	void print_power_kernel_stats(double gpu_sim_cycle, double gpu_tot_sim_cycle, double init_value, const std::string & kernel_info_string, bool print_trace);
+	void power_metrics_calculations();
+	void set_inst_power(bool clk_gated_lanes, double tot_cycles, double busy_cycles, double tot_inst, double int_inst, double fp_inst, double load_inst, double store_inst, double committed_inst);
+	void set_regfile_power(double reads, double writes, double ops);
+	void set_icache_power(double accesses, double misses);
+	void set_ccache_power(double accesses, double misses);
+	void set_tcache_power(double accesses, double misses);
+	void set_shrd_mem_power(double accesses);
+	void set_l1cache_power(double read_accesses, double read_misses, double write_accesses, double write_misses);
+	void set_l2cache_power(double read_accesses, double read_misses, double write_accesses, double write_misses);
+	void set_idle_core_power(double num_idle_core);
+	void set_duty_cycle_power(double duty_cycle);
+	void set_mem_ctrl_power(double reads, double writes, double dram_precharge);
+	void set_exec_unit_power(double fpu_accesses, double ialu_accesses, double sfu_accesses);
+	void set_active_lanes_power(double sp_avg_active_lane, double sfu_avg_active_lane);
+	void set_NoC_power(double noc_tot_reads, double noc_tot_write);
+	bool sanity_check(double a, double b);
 
 private:
 
-        void print_steady_state(int position, double init_val);
+	void print_steady_state(int position, double init_val);
 
-        Processor* proc;
-        ParseXML * p;
+	Processor* proc;
+	ParseXML * p;
     // power parameters
     double const_dynamic_power;
     double proc_power;
@@ -133,9 +132,9 @@ private:
     bool g_steady_power_levels_enabled;
     bool g_power_trace_enabled;
     bool g_power_per_cycle_dump;
-        double   gpu_steady_power_deviation;
-        double   gpu_steady_min_period;
-        int g_power_trace_zlevel;
+	double   gpu_steady_power_deviation;
+	double   gpu_steady_min_period;
+	int g_power_trace_zlevel;
     double gpu_stat_sample_frequency;
     int gpu_stat_sample_freq;
 

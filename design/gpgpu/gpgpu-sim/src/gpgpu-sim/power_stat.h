@@ -30,9 +30,8 @@
 
 #include <stdio.h>
 #include <zlib.h>
-
-#include "gpu-sim.h"
 #include "mem_latency_stat.h"
+#include "gpu-sim.h"
 
 typedef enum _stat_idx{
     CURRENT_STAT_IDX = 0,    // Current activity count
@@ -133,71 +132,71 @@ public:
    void visualizer_print( gzFile visualizer_file );
    void print (FILE *fout) const;
    void save_stats(){
-           pwr_core_stat->save_stats();
-           pwr_mem_stat->save_stats();
-           *m_average_pipeline_duty_cycle=0;
-           *m_active_sms=0;
+	   pwr_core_stat->save_stats();
+	   pwr_mem_stat->save_stats();
+	   *m_average_pipeline_duty_cycle=0;
+	   *m_active_sms=0;
    }
 
     unsigned get_total_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_decoded_insn[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_decoded_insn[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_total_int_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_INTdecoded_insn[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_INTdecoded_insn[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_total_fp_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_FPdecoded_insn[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_FPdecoded_insn[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_total_load_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_loadqueued_insn[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_loadqueued_insn[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_total_store_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_storequeued_insn[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_storequeued_insn[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_sp_committed_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_sp_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sp_committed[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_sfu_committed_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_sfu_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sfu_committed[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_mem_committed_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_mem_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_mem_committed[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_committed_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_mem_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_mem_committed[PREV_STAT_IDX][i])
                     +(pwr_core_stat->m_num_sfu_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sfu_committed[PREV_STAT_IDX][i])
                     +(pwr_core_stat->m_num_sp_committed[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sp_committed[PREV_STAT_IDX][i]);
@@ -206,14 +205,14 @@ public:
     }
     unsigned get_regfile_reads(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_read_regfile_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_read_regfile_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_regfile_writes(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_write_regfile_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_write_regfile_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -221,7 +220,7 @@ public:
 
     float get_pipeline_duty(){
         float total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_pipeline_duty_cycle[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_pipeline_duty_cycle[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -229,7 +228,7 @@ public:
 
     unsigned get_non_regfile_operands(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_non_rf_operands[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_non_rf_operands[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -237,7 +236,7 @@ public:
 
     unsigned get_sp_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_sp_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sp_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -245,14 +244,14 @@ public:
 
     unsigned get_sfu_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_sfu_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_sfu_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
     }
     unsigned get_trans_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_trans_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_trans_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -260,7 +259,7 @@ public:
 
     unsigned get_mem_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_mem_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_mem_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -268,7 +267,7 @@ public:
 
     unsigned get_intdiv_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_idiv_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_idiv_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -276,7 +275,7 @@ public:
 
     unsigned get_fpdiv_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_fpdiv_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_fpdiv_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -284,7 +283,7 @@ public:
 
     unsigned get_intmul32_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_imul32_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul32_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -292,7 +291,7 @@ public:
 
     unsigned get_intmul24_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_imul24_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul24_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -300,7 +299,7 @@ public:
 
     unsigned get_intmul_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_imul_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul_acesses[PREV_STAT_IDX][i])+
                     (pwr_core_stat->m_num_imul24_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul24_acesses[PREV_STAT_IDX][i])+
                     (pwr_core_stat->m_num_imul32_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul32_acesses[PREV_STAT_IDX][i]);
@@ -310,7 +309,7 @@ public:
 
     unsigned get_fpmul_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_fp_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_fp_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -318,7 +317,7 @@ public:
 
     float get_sp_active_lanes(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_active_sp_lanes[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_active_sp_lanes[PREV_STAT_IDX][i]);
         }
         return (total_inst/m_config->num_shader())/m_config->gpgpu_num_sp_units;
@@ -326,7 +325,7 @@ public:
 
     float get_sfu_active_lanes(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_active_sfu_lanes[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_active_sfu_lanes[PREV_STAT_IDX][i]);
         }
 
@@ -335,7 +334,7 @@ public:
 
     unsigned get_tot_fpu_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_fp_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_fp_acesses[PREV_STAT_IDX][i])+
                     (pwr_core_stat->m_num_fpdiv_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_fpdiv_acesses[PREV_STAT_IDX][i])+
                     (pwr_core_stat->m_num_fpmul_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_fpmul_acesses[PREV_STAT_IDX][i])+
@@ -348,7 +347,7 @@ public:
 
     unsigned get_tot_sfu_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
                 total_inst+= (pwr_core_stat->m_num_idiv_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_idiv_acesses[PREV_STAT_IDX][i])+
                             (pwr_core_stat->m_num_imul32_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_imul32_acesses[PREV_STAT_IDX][i])+
                             (pwr_core_stat->m_num_trans_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_trans_acesses[PREV_STAT_IDX][i]);
@@ -358,7 +357,7 @@ public:
 
     unsigned get_ialu_accessess(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_ialu_acesses[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_ialu_acesses[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -366,7 +365,7 @@ public:
 
     unsigned get_tex_inst(){
         unsigned total_inst=0;
-        for (unsigned i=0; i<m_config->num_shader();i++){
+        for(unsigned i=0; i<m_config->num_shader();i++){
             total_inst+=(pwr_core_stat->m_num_tex_inst[CURRENT_STAT_IDX][i]) - (pwr_core_stat->m_num_tex_inst[PREV_STAT_IDX][i]);
         }
         return total_inst;
@@ -481,7 +480,7 @@ public:
     unsigned get_cache_misses(){
         return get_l1d_read_misses()+get_constant_c_misses()+get_l1d_write_misses()+get_texture_c_misses();
     }
-
+	
     unsigned get_cache_read_misses(){
         return get_l1d_read_misses()+get_constant_c_misses()+get_texture_c_misses();
     }
@@ -492,7 +491,7 @@ public:
 
     unsigned get_shmem_read_access(){
        unsigned total_inst=0;
-       for (unsigned i=0; i<m_config->num_shader();i++){
+       for(unsigned i=0; i<m_config->num_shader();i++){
            total_inst+=(pwr_mem_stat->shmem_read_access[CURRENT_STAT_IDX][i]) - (pwr_mem_stat->shmem_read_access[PREV_STAT_IDX][i]);
        }
        return total_inst;
@@ -546,56 +545,56 @@ public:
     }
     unsigned get_dram_cmd(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_cmd[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_cmd[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_activity(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_activity[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_activity[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_nop(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_nop[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_nop[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_act(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_act[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_act[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_pre(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_pre[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_pre[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_rd(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_rd[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_rd[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_wr(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_wr[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_wr[PREV_STAT_IDX][i]);
         }
         return total;
     }
     unsigned get_dram_req(){
         unsigned total=0;
-        for (unsigned i=0; i<m_mem_config->m_n_mem; ++i){
+        for(unsigned i=0; i<m_mem_config->m_n_mem; ++i){
             total += (pwr_mem_stat->n_req[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_req[PREV_STAT_IDX][i]);
         }
         return total;
@@ -603,7 +602,7 @@ public:
 
     long get_icnt_simt_to_mem(){
         long total=0;
-        for (unsigned i=0; i<m_config->n_simt_clusters; ++i){
+        for(unsigned i=0; i<m_config->n_simt_clusters; ++i){
             total += (pwr_mem_stat->n_simt_to_mem[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_simt_to_mem[PREV_STAT_IDX][i]);
         }
         return total;
@@ -611,7 +610,7 @@ public:
 
     long get_icnt_mem_to_simt(){
         long total=0;
-        for (unsigned i=0; i<m_config->n_simt_clusters; ++i){
+        for(unsigned i=0; i<m_config->n_simt_clusters; ++i){
             total += (pwr_mem_stat->n_mem_to_simt[CURRENT_STAT_IDX][i] - pwr_mem_stat->n_mem_to_simt[PREV_STAT_IDX][i]);
         }
         return total;

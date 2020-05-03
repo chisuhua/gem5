@@ -29,6 +29,17 @@
 
 
 Import('*')
+#import pdb
+
+#pdb.set_trace()
+#env = env.Clone()
+intersim_path = Dir('.').srcnode().abspath
+network_path = Dir('./networks').srcnode().abspath
+router_path = Dir('./routers').srcnode().abspath
+power_path = Dir('./power').srcnode().abspath
+arbiter_path = Dir('./arbiters').srcnode().abspath
+allocator_path = Dir('./allocators').srcnode().abspath
+env.Append(CPPPATH=[intersim_path, network_path, router_path, power_path, arbiter_path, allocator_path])
 
 Source('batchtrafficmanager.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('booksim_config.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})

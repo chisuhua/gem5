@@ -31,9 +31,9 @@
 
 
 
+#include "bank.h"
 #include <iostream>
 
-#include "bank.h"
 
 Bank::Bank(const DynamicParameter & dyn_p):
   dp(dyn_p), mat(dp),
@@ -68,10 +68,10 @@ Bank::Bank(const DynamicParameter & dyn_p):
 
   if (dp.fully_assoc || dp.pure_cam)
   {
-          datainbits   = dp.num_di_b_bank_per_port * (RWP + EWP);
-          dataoutbits  = dp.num_do_b_bank_per_port * (RWP + ERP);
-          searchinbits    = dp.num_si_b_bank_per_port * SCHP;
-          searchoutbits   = dp.num_so_b_bank_per_port * SCHP;
+	  datainbits   = dp.num_di_b_bank_per_port * (RWP + EWP);
+	  dataoutbits  = dp.num_do_b_bank_per_port * (RWP + ERP);
+	  searchinbits    = dp.num_si_b_bank_per_port * SCHP;
+	  searchoutbits   = dp.num_so_b_bank_per_port * SCHP;
   }
 
   if (!(dp.fully_assoc || dp.pure_cam))
@@ -96,16 +96,16 @@ Bank::Bank(const DynamicParameter & dyn_p):
   }
   else
   {
-          htree_in_add   = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
-                          total_addrbits, datainbits, searchinbits,dataoutbits,searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Add_htree);
-          htree_in_data  = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
-                          total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Data_in_htree);
-          htree_out_data = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
-                          total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits,num_mats_ver_dir*2, num_mats_hor_dir*2, Data_out_htree);
-          htree_in_search  = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
-                          total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Data_in_htree,true, true);
-          htree_out_search = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
-                          total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits,num_mats_ver_dir*2, num_mats_hor_dir*2, Data_out_htree,true);
+	  htree_in_add   = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
+			  total_addrbits, datainbits, searchinbits,dataoutbits,searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Add_htree);
+	  htree_in_data  = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
+			  total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Data_in_htree);
+	  htree_out_data = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
+			  total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits,num_mats_ver_dir*2, num_mats_hor_dir*2, Data_out_htree);
+	  htree_in_search  = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
+			  total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits, num_mats_ver_dir*2, num_mats_hor_dir*2, Data_in_htree,true, true);
+	  htree_out_search = new Htree2 (g_ip->wt,(double) mat.area.w, (double)mat.area.h,
+			  total_addrbits, datainbits,searchinbits, dataoutbits, searchoutbits,num_mats_ver_dir*2, num_mats_hor_dir*2, Data_out_htree,true);
 
       area.w = htree_in_data->area.w;
       area.h = htree_in_data->area.h;
@@ -125,8 +125,8 @@ Bank::~Bank()
   delete htree_in_data;
   if (dp.fully_assoc || dp.pure_cam)
   {
-          delete htree_in_search;
-          delete htree_out_search;
+	  delete htree_in_search;
+	  delete htree_out_search;
   }
 }
 
@@ -145,52 +145,52 @@ void Bank::compute_power_energy()
 
   if (!(dp.fully_assoc || dp.pure_cam))
   {
-          power.readOp.dynamic += mat.power.readOp.dynamic * dp.num_act_mats_hor_dir;
-          power.readOp.leakage += mat.power.readOp.leakage * dp.num_mats;
-          power.readOp.gate_leakage += mat.power.readOp.gate_leakage * dp.num_mats;
+	  power.readOp.dynamic += mat.power.readOp.dynamic * dp.num_act_mats_hor_dir;
+	  power.readOp.leakage += mat.power.readOp.leakage * dp.num_mats;
+	  power.readOp.gate_leakage += mat.power.readOp.gate_leakage * dp.num_mats;
 
-          power.readOp.dynamic += htree_in_add->power.readOp.dynamic;
-          power.readOp.dynamic += htree_out_data->power.readOp.dynamic;
+	  power.readOp.dynamic += htree_in_add->power.readOp.dynamic;
+	  power.readOp.dynamic += htree_out_data->power.readOp.dynamic;
 
-          power.readOp.leakage += htree_in_add->power.readOp.leakage;
-          power.readOp.leakage += htree_in_data->power.readOp.leakage;
-          power.readOp.leakage += htree_out_data->power.readOp.leakage;
-          power.readOp.gate_leakage += htree_in_add->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_in_data->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_out_data->power.readOp.gate_leakage;
+	  power.readOp.leakage += htree_in_add->power.readOp.leakage;
+	  power.readOp.leakage += htree_in_data->power.readOp.leakage;
+	  power.readOp.leakage += htree_out_data->power.readOp.leakage;
+	  power.readOp.gate_leakage += htree_in_add->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_in_data->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_out_data->power.readOp.gate_leakage;
   }
   else
   {
 
-          power.readOp.dynamic += mat.power.readOp.dynamic ;//for fa and cam num_act_mats_hor_dir is 1 for plain r/w
-          power.readOp.leakage += mat.power.readOp.leakage * dp.num_mats;
-          power.readOp.gate_leakage += mat.power.readOp.gate_leakage * dp.num_mats;
+	  power.readOp.dynamic += mat.power.readOp.dynamic ;//for fa and cam num_act_mats_hor_dir is 1 for plain r/w
+	  power.readOp.leakage += mat.power.readOp.leakage * dp.num_mats;
+	  power.readOp.gate_leakage += mat.power.readOp.gate_leakage * dp.num_mats;
 
-          power.searchOp.dynamic += mat.power.searchOp.dynamic * dp.num_mats;
-          power.searchOp.dynamic += mat.power_bl_precharge_eq_drv.searchOp.dynamic +
-                                        mat.power_sa.searchOp.dynamic +
-                                        mat.power_bitline.searchOp.dynamic +
-                                        mat.power_subarray_out_drv.searchOp.dynamic+
-                                        mat.ml_to_ram_wl_drv->power.readOp.dynamic;
+	  power.searchOp.dynamic += mat.power.searchOp.dynamic * dp.num_mats;
+	  power.searchOp.dynamic += mat.power_bl_precharge_eq_drv.searchOp.dynamic +
+	  	                        mat.power_sa.searchOp.dynamic +
+	  	                        mat.power_bitline.searchOp.dynamic +
+	  	                        mat.power_subarray_out_drv.searchOp.dynamic+
+	  	                        mat.ml_to_ram_wl_drv->power.readOp.dynamic;
 
-          power.readOp.dynamic += htree_in_add->power.readOp.dynamic;
-          power.readOp.dynamic += htree_out_data->power.readOp.dynamic;
+	  power.readOp.dynamic += htree_in_add->power.readOp.dynamic;
+	  power.readOp.dynamic += htree_out_data->power.readOp.dynamic;
 
-          power.searchOp.dynamic += htree_in_search->power.searchOp.dynamic;
-          power.searchOp.dynamic += htree_out_search->power.searchOp.dynamic;
+	  power.searchOp.dynamic += htree_in_search->power.searchOp.dynamic;
+	  power.searchOp.dynamic += htree_out_search->power.searchOp.dynamic;
 
-          power.readOp.leakage += htree_in_add->power.readOp.leakage;
-          power.readOp.leakage += htree_in_data->power.readOp.leakage;
-          power.readOp.leakage += htree_out_data->power.readOp.leakage;
-          power.readOp.leakage += htree_in_search->power.readOp.leakage;
-          power.readOp.leakage += htree_out_search->power.readOp.leakage;
+	  power.readOp.leakage += htree_in_add->power.readOp.leakage;
+	  power.readOp.leakage += htree_in_data->power.readOp.leakage;
+	  power.readOp.leakage += htree_out_data->power.readOp.leakage;
+	  power.readOp.leakage += htree_in_search->power.readOp.leakage;
+	  power.readOp.leakage += htree_out_search->power.readOp.leakage;
 
 
-          power.readOp.gate_leakage += htree_in_add->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_in_data->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_out_data->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_in_search->power.readOp.gate_leakage;
-          power.readOp.gate_leakage += htree_out_search->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_in_add->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_in_data->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_out_data->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_in_search->power.readOp.gate_leakage;
+	  power.readOp.gate_leakage += htree_out_search->power.readOp.gate_leakage;
 
   }
 

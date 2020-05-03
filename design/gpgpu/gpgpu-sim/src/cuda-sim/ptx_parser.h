@@ -29,11 +29,10 @@
 #define ptx_parser_INCLUDED
 
 #include "../abstract_hardware_model.h"
-
 extern const char *g_filename;
 extern int g_error_detected;
 
-#ifdef __cplusplus
+#ifdef __cplusplus 
 class symbol_table* init_parser(const char*);
 const class ptx_instruction *ptx_instruction_lookup( const char *filename, unsigned linenumber );
 extern "C" {
@@ -44,7 +43,7 @@ void read_parser_environment_variables();
 void start_function( int entry_point );
 void add_function_name( const char *fname );
 void init_directive_state();
-void add_directive();
+void add_directive(); 
 void end_function();
 void add_identifier( const char *s, int array_dim, unsigned array_ident );
 void add_function_arg();
@@ -59,7 +58,9 @@ void add_1vector_operand( const char *d1 );
 void add_2vector_operand( const char *d1, const char *d2 );
 void add_3vector_operand( const char *d1, const char *d2, const char *d3 );
 void add_4vector_operand( const char *d1, const char *d2, const char *d3, const char *d4 );
+void add_8vector_operand( const char *d1, const char *d2, const char *d3, const char *d4 ,const char *d5,const char *d6,const char *d7,const char *d8);
 void add_option(int option );
+void add_wmma_option(int option );
 void add_builtin_operand( int builtin, int dim_modifier );
 void add_memory_operand( );
 void add_literal_int( int value );
@@ -70,7 +71,7 @@ void add_address_operand2( int offset );
 void add_label( const char *idenfiier );
 void add_vector_spec(int spec );
 void add_space_spec( enum _memory_space_t spec, int value );
-void add_ptr_spec( enum _memory_space_t spec );
+void add_ptr_spec( enum _memory_space_t spec ); 
 void add_extern_spec();
 void add_instruction();
 void set_return();
@@ -95,6 +96,10 @@ void change_double_operand_type( int addr_type );
 void change_operand_neg( );
 void set_immediate_operand_type( );
 void version_header(double a);
+void maxnt_id(int x, int y, int z);
+//Jin: handle instructino group for cdp
+void start_inst_group();
+void end_inst_group();
 #ifdef __cplusplus
 }
 #endif

@@ -27,18 +27,26 @@
 #ifndef ptx_sim_h_INCLUDED
 #define ptx_sim_h_INCLUDED
 
-#include <assert.h>
 #include <stdlib.h>
+#include "half.h"
+#include "../abstract_hardware_model.h"
+#include "../tr1_hash_map.h" 
 
-#include <list>
+#include <assert.h>
+#include "opcodes.h"
+
+#include <string>
 #include <map>
 #include <set>
-#include <string>
+#include <list>
 
-#include "../abstract_hardware_model.h"
-#include "../tr1_hash_map.h"
 #include "memory.h"
-#include "opcodes.h"
+
+#define GCC_VERSION (__GNUC__ * 10000 \
+                     + __GNUC_MINOR__ * 100 \
+                     + __GNUC_PATCHLEVEL__)
+
+
 
 struct param_t {
    const void *pdata;
@@ -50,6 +58,8 @@ struct param_t {
 #include <stack>
 
 #include "memory.h"
+
+using half_float::half;
 
 union ptx_reg_t {
    ptx_reg_t() {
@@ -71,7 +81,7 @@ union ptx_reg_t {
       f64=0;
       pred=0;
    }
-   ptx_reg_t(unsigned x)
+   ptx_reg_t(unsigned x) 
    {
       bits.ms = 0;
       bits.ls = 0;
@@ -124,7 +134,12 @@ union ptx_reg_t {
    unsigned short    u16;
    unsigned int      u32;
    unsigned long long   u64;
-   float             f16;
+   //gcc 4.7.0
+   #if GCC_VERSION >= 40700
+   half 		f16; 
+   #else
+   float 		f16; 
+   #endif
    float          f32;
    double            f64;
    struct {
@@ -156,13 +171,28 @@ public:
    void register_thread_exit( ptx_thread_info *thd );
    void register_deleted_thread( ptx_thread_info *thd );
    unsigned get_sm_idx() const;
+   unsigned get_bar_threads() const;
+   void inc_bar_threads();
+   void reset_bar_threads();
 
 private:
+   unsigned           m_bar_threads;
    unsigned long long         m_uid;
    unsigned                m_sm_idx;
    std::set<ptx_thread_info*>    m_threads_in_cta;
    std::set<ptx_thread_info*>  m_threads_that_have_exited;
    std::set<ptx_thread_info*>  m_dangling_pointers;
+};
+
+class ptx_warp_info {
+public:
+	ptx_warp_info(); // add get_core or something, or threads?
+	unsigned get_done_threads() const;
+	void inc_done_threads();
+	void reset_done_threads();
+
+private:
+	unsigned m_done_threads;
 };
 
 class symbol;
@@ -209,7 +239,7 @@ public:
          m_ptx_extensions = 0;
          m_sm_version_valid=false;
          m_texmode_unified=true;
-         m_map_f64_to_f32 = true;
+         m_map_f64_to_f32 = true; 
       }
       ptx_version(float ver, unsigned extensions)
       {
@@ -219,28 +249,28 @@ public:
          m_sm_version_valid=false;
          m_texmode_unified=true;
       }
-      void set_target( const char *sm_ver, const char *ext, const char *ext2 )
-      {
+      void set_target( const char *sm_ver, const char *ext, const char *ext2 ) 
+      { 
          assert( m_valid );
          m_sm_version_str = sm_ver;
-         check_target_extension(ext);
-         check_target_extension(ext2);
+         check_target_extension(ext); 
+         check_target_extension(ext2); 
          sscanf(sm_ver,"%u",&m_sm_version);
-         m_sm_version_valid=true;
+         m_sm_version_valid=true; 
       }
       float    ver() const { assert(m_valid); return m_ptx_version; }
       unsigned target() const { assert(m_valid&&m_sm_version_valid); return m_sm_version; }
       unsigned extensions() const { assert(m_valid); return m_ptx_extensions; }
 private:
-      void check_target_extension( const char *ext )
+      void check_target_extension( const char *ext ) 
       {
-         if ( ext ) {
-            if ( !strcmp(ext,"texmode_independent") )
+         if( ext ) {
+            if( !strcmp(ext,"texmode_independent") ) 
                m_texmode_unified=false;
-            else if ( !strcmp(ext,"texmode_unified") )
+            else if( !strcmp(ext,"texmode_unified") ) 
                m_texmode_unified=true;
-            else if ( !strcmp(ext,"map_f64_to_f32") )
-               m_map_f64_to_f32 = true;
+            else if( !strcmp(ext,"map_f64_to_f32") ) 
+               m_map_f64_to_f32 = true; 
             else abort();
          }
       }
@@ -250,7 +280,7 @@ private:
       unsigned m_sm_version_valid;
       std::string m_sm_version_str;
       bool     m_texmode_unified;
-      bool     m_map_f64_to_f32;
+      bool     m_map_f64_to_f32; 
       unsigned m_sm_version;
       unsigned m_ptx_extensions;
 };
@@ -260,10 +290,10 @@ public:
    ~ptx_thread_info();
    ptx_thread_info( kernel_info_t &kernel );
 
-   void init(gpgpu_t *gpu, core_t *core, unsigned sid, unsigned cta_id, unsigned wid, unsigned tid, bool fsim)
-   {
+   void init(gpgpu_t *gpu, core_t *core, unsigned sid, unsigned cta_id, unsigned wid, unsigned tid, bool fsim) 
+   { 
       m_gpu = gpu;
-      m_core = core;
+      m_core = core; 
       m_hw_sid=sid;
       m_hw_ctaid=cta_id;
       m_hw_wid=wid;
@@ -273,6 +303,7 @@ public:
 
    void ptx_fetch_inst( inst_t &inst ) const;
 
+   // TODO schi add
    int readRegister(const warp_inst_t &inst, unsigned lane_id, char *data, unsigned id = 1);
    void writeRegister(const warp_inst_t &inst, unsigned lane_id, char *data);
 
@@ -280,20 +311,31 @@ public:
 
    const ptx_version &get_ptx_version() const;
    void set_reg( const symbol *reg, const ptx_reg_t &value );
+   void print_reg_thread (char * fname);
+   void resume_reg_thread(char * fname,  symbol_table * symtab);
    ptx_reg_t get_reg( const symbol *reg );
    ptx_reg_t get_operand_value( const operand_info &op, operand_info dstInfo, unsigned opType, ptx_thread_info *thread, int derefFlag );
    void set_operand_value( const operand_info &dst, const ptx_reg_t &data, unsigned type, ptx_thread_info *thread, const ptx_instruction *pI );
    void set_operand_value( const operand_info &dst, const ptx_reg_t &data, unsigned type, ptx_thread_info *thread, const ptx_instruction *pI, int overflow, int carry );
    void get_vector_operand_values( const operand_info &op, ptx_reg_t* ptx_regs, unsigned num_elements );
-   void set_vector_operand_values( const operand_info &dst,
-                                   const ptx_reg_t &data1,
-                                   const ptx_reg_t &data2,
-                                   const ptx_reg_t &data3,
+   void set_vector_operand_values( const operand_info &dst, 
+                                   const ptx_reg_t &data1, 
+                                   const ptx_reg_t &data2, 
+                                   const ptx_reg_t &data3, 
                                    const ptx_reg_t &data4 );
+   void set_wmma_vector_operand_values( const operand_info &dst, 
+                                        const ptx_reg_t &data1, 
+                                        const ptx_reg_t &data2, 
+                                        const ptx_reg_t &data3, 
+                                        const ptx_reg_t &data4, 
+                                        const ptx_reg_t &data5, 
+                                        const ptx_reg_t &data6, 
+                                        const ptx_reg_t &data7, 
+                                        const ptx_reg_t &data8 );
 
    function_info *func_info()
    {
-      return m_func_info;
+      return m_func_info; 
    }
    void print_insn( unsigned pc, FILE * fp ) const;
    void set_info( function_info *func );
@@ -341,7 +383,7 @@ public:
    void set_ntid( dim3 tid ) { m_ntid = tid; }
    void set_nctaid( dim3 cta_size ) { m_nctaid = cta_size; }
 
-   unsigned get_builtin( int builtin_id, unsigned dim_mod );
+   unsigned get_builtin( int builtin_id, unsigned dim_mod ); 
 
    void set_done();
    bool is_done() { return m_thread_done;}
@@ -410,25 +452,34 @@ public:
    void exitCore()
    {
        //m_core is not used in case of functional simulation mode
-       if (!m_functionalSimulationMode)
+       if(!m_functionalSimulationMode)
            m_core->warp_exit(m_hw_wid);
    }
-
+   
    void registerExit(){m_cta_info->register_thread_exit(this);}
+   unsigned get_reduction_value(unsigned ctaid, unsigned barid) {return m_core->get_reduction_value(ctaid,barid);}
+   void and_reduction(unsigned ctaid, unsigned barid, bool value) {m_core->and_reduction(ctaid,barid,value);}
+   void or_reduction(unsigned ctaid, unsigned barid, bool value) {m_core->or_reduction(ctaid,barid,value);}
+   void popc_reduction(unsigned ctaid, unsigned barid, bool value) {m_core->popc_reduction(ctaid,barid,value);}
+
+   //Jin: get corresponding kernel grid for CDP purpose
+   kernel_info_t & get_kernel() { return m_kernel; }
 
 public:
    addr_t         m_last_effective_address;
    bool        m_branch_taken;
    memory_space_t m_last_memory_space;
-   dram_callback_t   m_last_dram_callback;
+   dram_callback_t   m_last_dram_callback; 
    memory_space   *m_shared_mem;
+   memory_space   *m_sstarr_mem;
    memory_space   *m_local_mem;
+   ptx_warp_info  *m_warp_info;
    ptx_cta_info   *m_cta_info;
    ptx_reg_t m_last_set_operand_value;
 
 private:
 
-   bool m_functionalSimulationMode;
+   bool m_functionalSimulationMode; 
    unsigned m_uid;
    kernel_info_t &m_kernel;
    core_t *m_core;
@@ -468,7 +519,7 @@ private:
    std::list<reg_map_t> m_debug_trace_regs_read;
    bool m_enable_debug_trace;
 
-   std::stack<class operand_info> m_breakaddrs;
+   std::stack<class operand_info, std::vector<operand_info> > m_breakaddrs;
 };
 
 addr_t generic_to_local( unsigned smid, unsigned hwtid, addr_t addr );

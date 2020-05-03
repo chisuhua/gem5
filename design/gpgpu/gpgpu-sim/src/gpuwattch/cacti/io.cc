@@ -35,15 +35,15 @@
 #include <iostream>
 #include <sstream>
 
-#include "Ucache.h"
-#include "arbiter.h"
+
+#include "io.h"
 #include "area.h"
 #include "basic_circuit.h"
-#include "crossbar.h"
-#include "io.h"
-#include "nuca.h"
 #include "parameter.h"
-
+#include "Ucache.h"
+#include "nuca.h"
+#include "crossbar.h"
+#include "arbiter.h"
 //#include "highradix.h"
 
 using namespace std;
@@ -58,12 +58,12 @@ InputParameter::parse_cfg(const string & in_file)
   char jk[5000];
   char temp_var[5000];
 
-  if (!fp) {
+  if(!fp) {
     cout << in_file << " is missing!\n";
     exit(-1);
   }
 
-  while (fscanf(fp, "%[^\n]\n", line) != EOF) {
+  while(fscanf(fp, "%[^\n]\n", line) != EOF) {
 
     if (!strncmp("-size", line, strlen("-size"))) {
       sscanf(line, "-size %[(:-~)*]%u", jk, &(cache_sz));
@@ -105,7 +105,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-exclusive write", line, strlen("-exclusive write"))) {
+    if(!strncmp("-exclusive write", line, strlen("-exclusive write"))) {
       sscanf(line, "-exclusive write port %d", &(num_wr_ports));
       continue;
     }
@@ -171,10 +171,10 @@ InputParameter::parse_cfg(const string & in_file)
         pure_ram = true;
       }
       else {
-          if (!is_main_mem)
-                  pure_ram = false;
-          else
-                  pure_ram = true;
+    	  if (!is_main_mem)
+    		  pure_ram = false;
+    	  else
+    		  pure_ram = true;
       }
 
       continue;
@@ -204,7 +204,7 @@ InputParameter::parse_cfg(const string & in_file)
       else if (!strncmp("sequential", temp_var, strlen("sequential"))) {
         access_mode = 1;
       }
-      else if (!strncmp("normal", temp_var, strlen("normal"))) {
+      else if(!strncmp("normal", temp_var, strlen("normal"))) {
         access_mode = 0;
       }
       else {
@@ -217,19 +217,19 @@ InputParameter::parse_cfg(const string & in_file)
     if (!strncmp("-Data array cell type", line, strlen("-Data array cell type"))) {
       sscanf(line, "-Data array cell type %[^\"]\"%[^\"]\"", jk, temp_var);
 
-      if (!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
+      if(!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
         data_arr_ram_cell_tech_type = 0;
       }
-      else if (!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
+      else if(!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
         data_arr_ram_cell_tech_type = 1;
       }
-      else if (!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
+      else if(!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
         data_arr_ram_cell_tech_type = 2;
       }
-      else if (!strncmp("lp-dram", temp_var, strlen("lp-dram"))) {
+      else if(!strncmp("lp-dram", temp_var, strlen("lp-dram"))) {
         data_arr_ram_cell_tech_type = 3;
       }
-      else if (!strncmp("comm-dram", temp_var, strlen("comm-dram"))) {
+      else if(!strncmp("comm-dram", temp_var, strlen("comm-dram"))) {
         data_arr_ram_cell_tech_type = 4;
       }
       else {
@@ -242,13 +242,13 @@ InputParameter::parse_cfg(const string & in_file)
     if (!strncmp("-Data array peripheral type", line, strlen("-Data array peripheral type"))) {
       sscanf(line, "-Data array peripheral type %[^\"]\"%[^\"]\"", jk, temp_var);
 
-      if (!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
+      if(!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
         data_arr_peri_global_tech_type = 0;
       }
-      else if (!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
+      else if(!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
         data_arr_peri_global_tech_type = 1;
       }
-      else if (!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
+      else if(!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
         data_arr_peri_global_tech_type = 2;
       }
       else {
@@ -261,19 +261,19 @@ InputParameter::parse_cfg(const string & in_file)
     if (!strncmp("-Tag array cell type", line, strlen("-Tag array cell type"))) {
       sscanf(line, "-Tag array cell type %[^\"]\"%[^\"]\"", jk, temp_var);
 
-      if (!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
+      if(!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
         tag_arr_ram_cell_tech_type = 0;
       }
-      else if (!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
+      else if(!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
         tag_arr_ram_cell_tech_type = 1;
       }
-      else if (!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
+      else if(!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
         tag_arr_ram_cell_tech_type = 2;
       }
-      else if (!strncmp("lp-dram", temp_var, strlen("lp-dram"))) {
+      else if(!strncmp("lp-dram", temp_var, strlen("lp-dram"))) {
         tag_arr_ram_cell_tech_type = 3;
       }
-      else if (!strncmp("comm-dram", temp_var, strlen("comm-dram"))) {
+      else if(!strncmp("comm-dram", temp_var, strlen("comm-dram"))) {
         tag_arr_ram_cell_tech_type = 4;
       }
       else {
@@ -286,13 +286,13 @@ InputParameter::parse_cfg(const string & in_file)
     if (!strncmp("-Tag array peripheral type", line, strlen("-Tag array peripheral type"))) {
       sscanf(line, "-Tag array peripheral type %[^\"]\"%[^\"]\"", jk, temp_var);
 
-      if (!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
+      if(!strncmp("itrs-hp", temp_var, strlen("itrs-hp"))) {
         tag_arr_peri_global_tech_type = 0;
       }
-      else if (!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
+      else if(!strncmp("itrs-lstp", temp_var, strlen("itrs-lstp"))) {
         tag_arr_peri_global_tech_type = 1;
       }
-      else if (!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
+      else if(!strncmp("itrs-lop", temp_var, strlen("itrs-lop"))) {
         tag_arr_peri_global_tech_type = 2;
       }
       else {
@@ -301,7 +301,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
       continue;
     }
-    if (!strncmp("-design", line, strlen("-design"))) {
+    if(!strncmp("-design", line, strlen("-design"))) {
       sscanf(line, "-%[((:-~)| |,)*]%d:%d:%d:%d:%d", jk,
           &(delay_wt), &(dynamic_power_wt),
           &(leakage_power_wt),
@@ -309,7 +309,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-deviate", line, strlen("-deviate"))) {
+    if(!strncmp("-deviate", line, strlen("-deviate"))) {
       sscanf(line, "-%[((:-~)| |,)*]%d:%d:%d:%d:%d", jk,
           &(delay_dev), &(dynamic_power_dev),
           &(leakage_power_dev),
@@ -317,13 +317,13 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Optimize", line, strlen("-Optimize"))) {
+    if(!strncmp("-Optimize", line, strlen("-Optimize"))) {
       sscanf(line, "-Optimize  %[^\"]\"%[^\"]\"", jk, temp_var);
 
-      if (!strncmp("ED^2", temp_var, strlen("ED^2"))) {
+      if(!strncmp("ED^2", temp_var, strlen("ED^2"))) {
         ed = 2;
       }
-      else if (!strncmp("ED", temp_var, strlen("ED"))) {
+      else if(!strncmp("ED", temp_var, strlen("ED"))) {
         ed = 1;
       }
       else {
@@ -331,7 +331,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-NUCAdesign", line, strlen("-NUCAdesign"))) {
+    if(!strncmp("-NUCAdesign", line, strlen("-NUCAdesign"))) {
       sscanf(line, "-%[((:-~)| |,)*]%d:%d:%d:%d:%d", jk,
           &(delay_wt_nuca), &(dynamic_power_wt_nuca),
           &(leakage_power_wt_nuca),
@@ -339,7 +339,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-NUCAdeviate", line, strlen("-NUCAdeviate"))) {
+    if(!strncmp("-NUCAdeviate", line, strlen("-NUCAdeviate"))) {
       sscanf(line, "-%[((:-~)| |,)*]%d:%d:%d:%d:%d", jk,
           &(delay_dev_nuca), &(dynamic_power_dev_nuca),
           &(leakage_power_dev_nuca),
@@ -347,7 +347,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Cache model", line, strlen("-cache model"))) {
+    if(!strncmp("-Cache model", line, strlen("-cache model"))) {
       sscanf(line, "-Cache model %[^\"]\"%[^\"]\"", jk, temp_var);
 
       if (!strncmp("UCA", temp_var, strlen("UCA"))) {
@@ -359,7 +359,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-NUCA bank", line, strlen("-NUCA bank"))) {
+    if(!strncmp("-NUCA bank", line, strlen("-NUCA bank"))) {
       sscanf(line, "-NUCA bank count %d", &(nuca_bank_count));
 
       if (nuca_bank_count != 0) {
@@ -368,7 +368,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Wire inside mat", line, strlen("-Wire inside mat"))) {
+    if(!strncmp("-Wire inside mat", line, strlen("-Wire inside mat"))) {
       sscanf(line, "-Wire%[^\"]\"%[^\"]\"", jk, temp_var);
 
       if (!strncmp("global", temp_var, strlen("global"))) {
@@ -385,7 +385,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-Wire outside mat", line, strlen("-Wire outside mat"))) {
+    if(!strncmp("-Wire outside mat", line, strlen("-Wire outside mat"))) {
       sscanf(line, "-Wire%[^\"]\"%[^\"]\"", jk, temp_var);
 
       if (!strncmp("global", temp_var, strlen("global"))) {
@@ -397,7 +397,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Interconnect projection", line, strlen("-Interconnect projection"))) {
+    if(!strncmp("-Interconnect projection", line, strlen("-Interconnect projection"))) {
       sscanf(line, "-Interconnect projection%[^\"]\"%[^\"]\"", jk, temp_var);
 
       if (!strncmp("aggressive", temp_var, strlen("aggressive"))) {
@@ -409,7 +409,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Wire signalling", line, strlen("-wire signalling"))) {
+    if(!strncmp("-Wire signalling", line, strlen("-wire signalling"))) {
       sscanf(line, "-Wire%[^\"]\"%[^\"]\"", jk, temp_var);
 
       if (!strncmp("default", temp_var, strlen("default"))) {
@@ -445,7 +445,7 @@ InputParameter::parse_cfg(const string & in_file)
 
 
 
-    if (!strncmp("-Core", line, strlen("-Core"))) {
+    if(!strncmp("-Core", line, strlen("-Core"))) {
       sscanf(line, "-Core count %d\n", &(cores));
       if (cores > 16) {
         printf("No. of cores should be less than 16!\n");
@@ -453,7 +453,7 @@ InputParameter::parse_cfg(const string & in_file)
       continue;
     }
 
-    if (!strncmp("-Cache level", line, strlen("-Cache level"))) {
+    if(!strncmp("-Cache level", line, strlen("-Cache level"))) {
       sscanf(line, "-Cache l%[^\"]\"%[^\"]\"", jk, temp_var);
       if (!strncmp("L2", temp_var, strlen("L2"))) {
         cache_level = 0;
@@ -463,7 +463,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-Print level", line, strlen("-Print level"))) {
+    if(!strncmp("-Print level", line, strlen("-Print level"))) {
       sscanf(line, "-Print l%[^\"]\"%[^\"]\"", jk, temp_var);
       if (!strncmp("DETAILED", temp_var, strlen("DETAILED"))) {
         print_detail = 1;
@@ -473,7 +473,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
 
     }
-    if (!strncmp("-Add ECC", line, strlen("-Add ECC"))) {
+    if(!strncmp("-Add ECC", line, strlen("-Add ECC"))) {
       sscanf(line, "-Add ECC %[^\"]\"%[^\"]\"", jk, temp_var);
       if (!strncmp("true", temp_var, strlen("true"))) {
         add_ecc_b_ = true;
@@ -483,7 +483,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-Print input parameters", line, strlen("-Print input parameters"))) {
+    if(!strncmp("-Print input parameters", line, strlen("-Print input parameters"))) {
       sscanf(line, "-Print input %[^\"]\"%[^\"]\"", jk, temp_var);
       if (!strncmp("true", temp_var, strlen("true"))) {
         print_input_args = true;
@@ -493,7 +493,7 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-Force cache config", line, strlen("-Force cache config"))) {
+    if(!strncmp("-Force cache config", line, strlen("-Force cache config"))) {
       sscanf(line, "-Force cache %[^\"]\"%[^\"]\"", jk, temp_var);
       if (!strncmp("true", temp_var, strlen("true"))) {
         force_cache_config = true;
@@ -503,27 +503,27 @@ InputParameter::parse_cfg(const string & in_file)
       }
     }
 
-    if (!strncmp("-Ndbl", line, strlen("-Ndbl"))) {
+    if(!strncmp("-Ndbl", line, strlen("-Ndbl"))) {
       sscanf(line, "-Ndbl %d\n", &(ndbl));
       continue;
     }
-    if (!strncmp("-Ndwl", line, strlen("-Ndwl"))) {
+    if(!strncmp("-Ndwl", line, strlen("-Ndwl"))) {
       sscanf(line, "-Ndwl %d\n", &(ndwl));
       continue;
     }
-    if (!strncmp("-Nspd", line, strlen("-Nspd"))) {
+    if(!strncmp("-Nspd", line, strlen("-Nspd"))) {
       sscanf(line, "-Nspd %d\n", &(nspd));
       continue;
     }
-    if (!strncmp("-Ndsam1", line, strlen("-Ndsam1"))) {
+    if(!strncmp("-Ndsam1", line, strlen("-Ndsam1"))) {
       sscanf(line, "-Ndsam1 %d\n", &(ndsam1));
       continue;
     }
-    if (!strncmp("-Ndsam2", line, strlen("-Ndsam2"))) {
+    if(!strncmp("-Ndsam2", line, strlen("-Ndsam2"))) {
       sscanf(line, "-Ndsam2 %d\n", &(ndsam2));
       continue;
     }
-   if (!strncmp("-Ndcm", line, strlen("-Ndcm"))) {
+   if(!strncmp("-Ndcm", line, strlen("-Ndcm"))) {
       sscanf(line, "-Ndcm %d\n", &(ndcm));
       continue;
     }
@@ -545,7 +545,7 @@ InputParameter::display_ip()
   cout << "Single ended read ports       : " << num_se_rd_ports << endl;
   if (fully_assoc||pure_cam)
   {
-          cout << "Search ports                  : " << num_search_ports << endl;
+	  cout << "Search ports                  : " << num_search_ports << endl;
   }
   cout << "Cache banks (UCA)             : " << nbanks << endl;
   cout << "Technology                    : " << F_sz_um << endl;
@@ -666,8 +666,8 @@ uca_org_t cacti_interface(const string & infile_name)
 
   g_ip = new InputParameter();
   g_ip->parse_cfg(infile_name);
-  if (!g_ip->error_checking())
-          exit(0);
+  if(!g_ip->error_checking())
+	  exit(0);
   if (g_ip->print_input_args)
     g_ip->display_ip();
 
@@ -865,7 +865,7 @@ uca_org_t cacti_interface(
   g_ip->cycle_time_dev_nuca    = nuca_dev_func_cycle_time;
   g_ip->nuca = is_nuca;
   g_ip->nuca_bank_count = nuca_bank_count;
-  if (nuca_bank_count > 0) {
+  if(nuca_bank_count > 0) {
     g_ip->force_nuca_bank = 1;
   }
   g_ip->cores = core_count;
@@ -1034,56 +1034,56 @@ uca_org_t cacti_interface(
 
   if (force_wiretype == 0)
   {
-          g_ip->wt = Global;
+	  g_ip->wt = Global;
       g_ip->force_wiretype = false;
   }
   else
   {   g_ip->force_wiretype = true;
-          if (wiretype==10) {
-                  g_ip->wt = Global_10;
-                }
-          if (wiretype==20) {
-                  g_ip->wt = Global_20;
-                }
-          if (wiretype==30) {
-                  g_ip->wt = Global_30;
-                }
-          if (wiretype==5) {
-              g_ip->wt = Global_5;
-                }
-          if (wiretype==0) {
-                  g_ip->wt = Low_swing;
-          }
+	  if (wiretype==10) {
+		  g_ip->wt = Global_10;
+	        }
+	  if (wiretype==20) {
+		  g_ip->wt = Global_20;
+	        }
+	  if (wiretype==30) {
+		  g_ip->wt = Global_30;
+	        }
+	  if (wiretype==5) {
+	      g_ip->wt = Global_5;
+	        }
+	  if (wiretype==0) {
+		  g_ip->wt = Low_swing;
+	  }
   }
   //g_ip->wt = Global_5;
   if (force_config == 0)
     {
-          g_ip->force_cache_config = false;
+  	  g_ip->force_cache_config = false;
     }
     else
     {
-        g_ip->force_cache_config = true;
-        g_ip->ndbl=ndbl;
-        g_ip->ndwl=ndwl;
-        g_ip->nspd=nspd;
-        g_ip->ndcm=ndcm;
-        g_ip->ndsam1=ndsam1;
-        g_ip->ndsam2=ndsam2;
+    	g_ip->force_cache_config = true;
+    	g_ip->ndbl=ndbl;
+    	g_ip->ndwl=ndwl;
+    	g_ip->nspd=nspd;
+    	g_ip->ndcm=ndcm;
+    	g_ip->ndsam1=ndsam1;
+    	g_ip->ndsam2=ndsam2;
 
 
     }
 
   if (ecc==0){
-          g_ip->add_ecc_b_=false;
+	  g_ip->add_ecc_b_=false;
   }
   else
   {
-          g_ip->add_ecc_b_=true;
+	  g_ip->add_ecc_b_=true;
   }
 
 
-  if (!g_ip->error_checking())
-          exit(0);
+  if(!g_ip->error_checking())
+	  exit(0);
 
   init_tech_params(g_ip->F_sz_um, false);
   Wire winit; // Do not delete this line. It initializes wires.
@@ -1225,9 +1225,9 @@ bool InputParameter::error_checking()
       break;
   }
 
-  if (is_main_mem)
+  if(is_main_mem)
   {
-    if (ic_proj_type == 0)
+    if(ic_proj_type == 0)
     {
       cerr << "DRAM model supports only conservative interconnect projection!\n\n";
       return false;
@@ -1310,7 +1310,7 @@ bool InputParameter::error_checking()
   }
 
 //TODO: revisit this
-//   if (pure_ram && assoc!=1)
+//   if (pure_ram==true && assoc!=1)
 //    {
 //  	  cerr << "Pure RAM must have assoc as 1" << endl;
 //  	  return false;
@@ -1318,53 +1318,53 @@ bool InputParameter::error_checking()
 
     //fully assoc and cam check
     if (is_cache && assoc==0)
-        fully_assoc =true;
+    	fully_assoc =true;
     else
-        fully_assoc = false;
+    	fully_assoc = false;
 
-    if (pure_cam && assoc!=0)
+    if (pure_cam==true && assoc!=0)
     {
-          cerr << "Pure CAM must have associativity as 0" << endl;
-          return false;
+  	  cerr << "Pure CAM must have associativity as 0" << endl;
+  	  return false;
     }
 
     if (assoc==0 && (pure_cam==false && is_cache ==false))
     {
-          cerr << "Only CAM or Fully associative cache can have associativity as 0" << endl;
-          return false;
+  	  cerr << "Only CAM or Fully associative cache can have associativity as 0" << endl;
+  	  return false;
     }
 
-    if ((fully_assoc || pure_cam)
-                  &&  (data_arr_ram_cell_tech_type!= tag_arr_ram_cell_tech_type
-                                 || data_arr_peri_global_tech_type != tag_arr_peri_global_tech_type  ))
+    if ((fully_assoc==true || pure_cam==true)
+  		  &&  (data_arr_ram_cell_tech_type!= tag_arr_ram_cell_tech_type
+  				 || data_arr_peri_global_tech_type != tag_arr_peri_global_tech_type  ))
     {
-          cerr << "CAM and fully associative cache must have same device type for both data and tag array" << endl;
-          return false;
+  	  cerr << "CAM and fully associative cache must have same device type for both data and tag array" << endl;
+  	  return false;
     }
 
-    if ((fully_assoc || pure_cam)
-                  &&  (data_arr_ram_cell_tech_type== lp_dram || data_arr_ram_cell_tech_type== comm_dram))
+    if ((fully_assoc==true || pure_cam==true)
+  		  &&  (data_arr_ram_cell_tech_type== lp_dram || data_arr_ram_cell_tech_type== comm_dram))
     {
-          cerr << "DRAM based CAM and fully associative cache are not supported" << endl;
-          return false;
+  	  cerr << "DRAM based CAM and fully associative cache are not supported" << endl;
+  	  return false;
     }
 
-    if ((fully_assoc || pure_cam)
-                  &&  (is_main_mem))
+    if ((fully_assoc==true || pure_cam==true)
+  		  &&  (is_main_mem==true))
     {
-          cerr << "CAM and fully associative cache cannot be as main memory" << endl;
-          return false;
+  	  cerr << "CAM and fully associative cache cannot be as main memory" << endl;
+  	  return false;
     }
 
     if ((fully_assoc || pure_cam) && SCHP<1)
     {
-          cerr << "CAM and fully associative must have at least 1 search port" << endl;
-          return false;
+	  cerr << "CAM and fully associative must have at least 1 search port" << endl;
+	  return false;
     }
 
    if (RWP==0 && ERP==0 && SCHP>0 && ((fully_assoc || pure_cam)))
     {
-          ERP=SCHP;
+  	  ERP=SCHP;
     }
 
 //    if ((!(fully_assoc || pure_cam)) && SCHP>=1)
@@ -1408,7 +1408,7 @@ bool InputParameter::error_checking()
   block_sz = B;
 
   /*dt: testing sequential access mode*/
-  if (seq_access)
+  if(seq_access)
   {
     tag_assoc  = A;
     data_assoc = 1;
@@ -1458,13 +1458,13 @@ void output_data_csv(const uca_org_t & fin_res)
   file.close();
 
   file.open("out.csv", ios::out|ios::app);
-  if (file.fail())
+  if (file.fail() == true)
   {
     cerr << "File out.csv could not be opened successfully" << endl;
   }
   else
   {
-    if (print_index)
+    if (print_index == true)
     {
       file << "Tech node (nm), ";
       file << "Capacity (bytes), ";
@@ -1562,11 +1562,11 @@ void output_data_csv(const uca_org_t & fin_res)
 //    file << fin_res.data_array2->dram_array_availability <<  ", ";
     if (g_ip->fully_assoc || g_ip->pure_cam)
     {
-        file << fin_res.power.searchOp.dynamic*1e+9 << ", ";
+    	file << fin_res.power.searchOp.dynamic*1e+9 << ", ";
     }
-        else
+    	else
     {
-                file << "N/A" << ", ";
+    		file << "N/A" << ", ";
     }
     file << fin_res.power.readOp.dynamic*1e+9 << ", ";
     file << fin_res.power.writeOp.dynamic*1e+9 << ", ";
@@ -1612,13 +1612,13 @@ void output_data_csv(const uca_org_t & fin_res)
     }
     else
     {
-        file << "N/A" << ", ";
-        file << "N/A"<< ", ";
-        file << "N/A" << ", ";
-        file << "N/A" << ", ";
-        file << "N/A" << ", ";
-        file << "N/A" << ", ";
-        file << "N/A" << ", ";
+    	file << "N/A" << ", ";
+    	file << "N/A"<< ", ";
+    	file << "N/A" << ", ";
+    	file << "N/A" << ", ";
+    	file << "N/A" << ", ";
+    	file << "N/A" << ", ";
+    	file << "N/A" << ", ";
     }
 
 //    file << g_tp.wire_inside_mat.R_per_um << ", ";
@@ -1695,8 +1695,8 @@ void output_UCA(uca_org_t *fr)
   cout << "    Write ports: " <<
     g_ip->num_wr_ports << endl;
   if (g_ip->fully_assoc|| g_ip->pure_cam)
-          cout << "    search ports: " <<
-              g_ip->num_search_ports << endl;
+	  cout << "    search ports: " <<
+	      g_ip->num_search_ports << endl;
   cout << "    Technology size (nm): " <<
     g_ip->F_sz_nm << endl << endl;
 
@@ -1715,26 +1715,26 @@ void output_UCA(uca_org_t *fr)
       fr->data_array2->refresh_power*1e3 << endl;
   }
   else {
-          if ((g_ip->fully_assoc|| g_ip->pure_cam))
-          {
-                  cout << "    Total dynamic associative search energy per access (nJ): " <<
-                  fr->power.searchOp.dynamic*1e9 << endl;
+	  if ((g_ip->fully_assoc|| g_ip->pure_cam))
+	  {
+		  cout << "    Total dynamic associative search energy per access (nJ): " <<
+		  fr->power.searchOp.dynamic*1e9 << endl;
 //		  cout << "    Total dynamic read energy per access (nJ): " <<
 //		  fr->power.readOp.dynamic*1e9 << endl;
 //		  cout << "    Total dynamic write energy per access (nJ): " <<
 //		  fr->power.writeOp.dynamic*1e9 << endl;
-          }
+	  }
 //	  else
 //	  {
-                  cout << "    Total dynamic read energy per access (nJ): " <<
-                  fr->power.readOp.dynamic*1e9 << endl;
-                  cout << "    Total dynamic write energy per access (nJ): " <<
-                  fr->power.writeOp.dynamic*1e9 << endl;
+		  cout << "    Total dynamic read energy per access (nJ): " <<
+		  fr->power.readOp.dynamic*1e9 << endl;
+		  cout << "    Total dynamic write energy per access (nJ): " <<
+		  fr->power.writeOp.dynamic*1e9 << endl;
 //	  }
-          cout << "    Total leakage power of a bank"
-          " (mW): " << fr->power.readOp.leakage*1e3 << endl;
-          cout << "    Total gate leakage power of a bank"
-          " (mW): " << fr->power.readOp.gate_leakage*1e3 << endl;
+	  cout << "    Total leakage power of a bank"
+	  " (mW): " << fr->power.readOp.leakage*1e3 << endl;
+	  cout << "    Total gate leakage power of a bank"
+	  " (mW): " << fr->power.readOp.gate_leakage*1e3 << endl;
   }
 
   if (g_ip->data_arr_ram_cell_tech_type ==3 || g_ip->data_arr_ram_cell_tech_type ==4)
@@ -1813,7 +1813,7 @@ void output_UCA(uca_org_t *fr)
 
   if (g_ip->print_detail)
   {
-    //if (g_ip->fully_assoc) return;
+    //if(g_ip->fully_assoc) return;
 
     /* Delay stats */
     /* data array stats */
@@ -1884,182 +1884,182 @@ void output_UCA(uca_org_t *fr)
 
     if (!(g_ip->pure_cam || g_ip->fully_assoc))
     {
-        cout << "  Data array: Total dynamic read energy/access  (nJ): " <<
-              fr->data_array2->power.readOp.dynamic * 1e9 << endl;
-        cout << "\tTotal leakage read/write power of a bank (mW): " <<
-                fr->data_array2->power.readOp.leakage * 1e3 << endl;
+    	cout << "  Data array: Total dynamic read energy/access  (nJ): " <<
+    	      fr->data_array2->power.readOp.dynamic * 1e9 << endl;
+    	cout << "\tTotal leakage read/write power of a bank (mW): " <<
+    	        fr->data_array2->power.readOp.leakage * 1e3 << endl;
 
-        cout << "\tTotal energy in H-tree (that includes both "
-              "address and data transfer) (nJ): " <<
-                (fr->data_array2->power_addr_input_htree.readOp.dynamic +
-                 fr->data_array2->power_data_output_htree.readOp.dynamic +
-                 fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
+    	cout << "\tTotal energy in H-tree (that includes both "
+    	      "address and data transfer) (nJ): " <<
+    	        (fr->data_array2->power_addr_input_htree.readOp.dynamic +
+    	         fr->data_array2->power_data_output_htree.readOp.dynamic +
+    	         fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
 
-        cout << "\tTotal leakage power in H-tree (that includes both "
-              "address and data network) ((mW)): " <<
-                (fr->data_array2->power_addr_input_htree.readOp.leakage +
-                 fr->data_array2->power_data_output_htree.readOp.leakage +
-                 fr->data_array2->power_routing_to_bank.readOp.leakage) * 1e3 << endl;
+    	cout << "\tTotal leakage power in H-tree (that includes both "
+    	      "address and data network) ((mW)): " <<
+    	        (fr->data_array2->power_addr_input_htree.readOp.leakage +
+    	         fr->data_array2->power_data_output_htree.readOp.leakage +
+    	         fr->data_array2->power_routing_to_bank.readOp.leakage) * 1e3 << endl;
 
-        cout << "\tTotal gate leakage power in H-tree (that includes both "
-              "address and data network) ((mW)): " <<
-                (fr->data_array2->power_addr_input_htree.readOp.gate_leakage +
-                 fr->data_array2->power_data_output_htree.readOp.gate_leakage +
-                 fr->data_array2->power_routing_to_bank.readOp.gate_leakage) * 1e3 << endl;
+    	cout << "\tTotal gate leakage power in H-tree (that includes both "
+    	      "address and data network) ((mW)): " <<
+    	        (fr->data_array2->power_addr_input_htree.readOp.gate_leakage +
+    	         fr->data_array2->power_data_output_htree.readOp.gate_leakage +
+    	         fr->data_array2->power_routing_to_bank.readOp.gate_leakage) * 1e3 << endl;
 
-        cout << "\tOutput Htree inside bank Energy (nJ): " <<
-           fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tDecoder (nJ): " <<
-           fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
-           fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tWordline (nJ): " <<
-           fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tBitline mux & associated drivers (nJ): " <<
-           fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
-           fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
-           fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tSense amp mux & associated drivers (nJ): " <<
-           fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
-           fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
-           fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
-           fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
-           fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
-           fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
+    	cout << "\tOutput Htree inside bank Energy (nJ): " <<
+    	   fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tDecoder (nJ): " <<
+    	   fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tWordline (nJ): " <<
+    	   fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tBitline mux & associated drivers (nJ): " <<
+    	   fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tSense amp mux & associated drivers (nJ): " <<
+    	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
+    	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
+    	   fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
 
-        cout <<  "\tBitlines precharge and equalization circuit (nJ): " <<
-                   fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tBitlines (nJ): " <<
-           fr->data_array2->power_bitlines.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tSense amplifier energy (nJ): " <<
-           fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
-        cout <<  "\tSub-array output driver (nJ): " <<
-           fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tBitlines precharge and equalization circuit (nJ): " <<
+    	    	   fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tBitlines (nJ): " <<
+    	   fr->data_array2->power_bitlines.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tSense amplifier energy (nJ): " <<
+    	   fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
+    	cout <<  "\tSub-array output driver (nJ): " <<
+    	   fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
     }
 
         else if (g_ip->pure_cam)
         {
 
-                cout << "  CAM array:"<<endl;
-                cout << "  Total dynamic associative search energy/access  (nJ): " <<
+           	cout << "  CAM array:"<<endl;
+            	cout << "  Total dynamic associative search energy/access  (nJ): " <<
                       fr->data_array2->power.searchOp.dynamic * 1e9 << endl;
-                cout << "\tTotal energy in H-tree (that includes both "
-                              "match key and data transfer) (nJ): " <<
-                      (fr->data_array2->power_htree_in_search.searchOp.dynamic +
-                       fr->data_array2->power_htree_out_search.searchOp.dynamic +
-                       fr->data_array2->power_routing_to_bank.searchOp.dynamic) * 1e9 << endl;
-                cout << "\tKeyword input and result output Htrees inside bank Energy (nJ): " <<
-                      (fr->data_array2->power_htree_in_search.searchOp.dynamic +
-                               fr->data_array2->power_htree_out_search.searchOp.dynamic) * 1e9 << endl;
-                cout <<  "\tSearchlines (nJ): " <<
-                           fr->data_array2->power_searchline.searchOp.dynamic * 1e9 +
-                           fr->data_array2->power_searchline_precharge.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tMatchlines  (nJ): " <<
-                       fr->data_array2->power_matchlines.searchOp.dynamic * 1e9 +
-                           fr->data_array2->power_matchline_precharge.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tSub-array output driver (nJ): " <<
-                           fr->data_array2->power_output_drivers_at_subarray.searchOp.dynamic * 1e9 << endl;
+    	        cout << "\tTotal energy in H-tree (that includes both "
+    	            	      "match key and data transfer) (nJ): " <<
+    	              (fr->data_array2->power_htree_in_search.searchOp.dynamic +
+    	               fr->data_array2->power_htree_out_search.searchOp.dynamic +
+    	               fr->data_array2->power_routing_to_bank.searchOp.dynamic) * 1e9 << endl;
+    	        cout << "\tKeyword input and result output Htrees inside bank Energy (nJ): " <<
+    	              (fr->data_array2->power_htree_in_search.searchOp.dynamic +
+    	       	               fr->data_array2->power_htree_out_search.searchOp.dynamic) * 1e9 << endl;
+    	        cout <<  "\tSearchlines (nJ): " <<
+    	          	   fr->data_array2->power_searchline.searchOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_searchline_precharge.searchOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tMatchlines  (nJ): " <<
+    	               fr->data_array2->power_matchlines.searchOp.dynamic * 1e9 +
+    	        	   fr->data_array2->power_matchline_precharge.searchOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tSub-array output driver (nJ): " <<
+    	          	   fr->data_array2->power_output_drivers_at_subarray.searchOp.dynamic * 1e9 << endl;
 
 
-                cout <<endl<< "  Total dynamic read energy/access  (nJ): " <<
-                      fr->data_array2->power.readOp.dynamic * 1e9 << endl;
-                cout << "\tTotal energy in H-tree (that includes both "
-                              "address and data transfer) (nJ): " <<
-                      (fr->data_array2->power_addr_input_htree.readOp.dynamic +
-                       fr->data_array2->power_data_output_htree.readOp.dynamic +
-                       fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
-                cout << "\tOutput Htree inside bank Energy (nJ): " <<
-                           fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tDecoder (nJ): " <<
-                           fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tWordline (nJ): " <<
-                           fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tBitline mux & associated drivers (nJ): " <<
-                           fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tSense amp mux & associated drivers (nJ): " <<
-                           fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
-                           fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tBitlines (nJ): " <<
-                           fr->data_array2->power_bitlines.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9<< endl;
-                cout <<  "\tSense amplifier energy (nJ): " <<
-                           fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tSub-array output driver (nJ): " <<
-                           fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
+            	cout <<endl<< "  Total dynamic read energy/access  (nJ): " <<
+            	      fr->data_array2->power.readOp.dynamic * 1e9 << endl;
+    	        cout << "\tTotal energy in H-tree (that includes both "
+    	            	      "address and data transfer) (nJ): " <<
+    	              (fr->data_array2->power_addr_input_htree.readOp.dynamic +
+    	               fr->data_array2->power_data_output_htree.readOp.dynamic +
+    	               fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
+    	        cout << "\tOutput Htree inside bank Energy (nJ): " <<
+    	          	   fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tDecoder (nJ): " <<
+    	          	   fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tWordline (nJ): " <<
+    	          	   fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tBitline mux & associated drivers (nJ): " <<
+    	          	   fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
+    	           	   fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tSense amp mux & associated drivers (nJ): " <<
+    	         	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
+    	           	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
+    	           	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tBitlines (nJ): " <<
+    	          	   fr->data_array2->power_bitlines.readOp.dynamic * 1e9 +
+    	          	   fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9<< endl;
+    	        cout <<  "\tSense amplifier energy (nJ): " <<
+    	          	   fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
+    	        cout <<  "\tSub-array output driver (nJ): " <<
+    	          	   fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
 
-                cout << endl <<"  Total leakage power of a bank (mW): " <<
+            	cout << endl <<"  Total leakage power of a bank (mW): " <<
                       fr->data_array2->power.readOp.leakage * 1e3 << endl;
         }
         else
         {
-                cout << "  Fully associative array:"<<endl;
-                cout << "  Total dynamic associative search energy/access  (nJ): " <<
+        	cout << "  Fully associative array:"<<endl;
+        	cout << "  Total dynamic associative search energy/access  (nJ): " <<
                   fr->data_array2->power.searchOp.dynamic * 1e9 << endl;
-                cout << "\tTotal energy in H-tree (that includes both "
-                              "match key and data transfer) (nJ): " <<
-                      (fr->data_array2->power_htree_in_search.searchOp.dynamic +
-                       fr->data_array2->power_htree_out_search.searchOp.dynamic +
-                       fr->data_array2->power_routing_to_bank.searchOp.dynamic) * 1e9 << endl;
-                cout << "\tKeyword input and result output Htrees inside bank Energy (nJ): " <<
-                      (fr->data_array2->power_htree_in_search.searchOp.dynamic +
-                               fr->data_array2->power_htree_out_search.searchOp.dynamic) * 1e9 << endl;
-                cout <<  "\tSearchlines (nJ): " <<
-                           fr->data_array2->power_searchline.searchOp.dynamic * 1e9 +
-                           fr->data_array2->power_searchline_precharge.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tMatchlines  (nJ): " <<
-                       fr->data_array2->power_matchlines.searchOp.dynamic * 1e9 +
-                           fr->data_array2->power_matchline_precharge.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tData portion wordline (nJ): " <<
-                           fr->data_array2->power_matchline_to_wordline_drv.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tData Bitlines (nJ): " <<
-                           fr->data_array2->power_bitlines.searchOp.dynamic * 1e9 +
-                           fr->data_array2->power_prechg_eq_drivers.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tSense amplifier energy (nJ): " <<
-                           fr->data_array2->power_sense_amps.searchOp.dynamic * 1e9 << endl;
-                cout <<  "\tSub-array output driver (nJ): " <<
-                           fr->data_array2->power_output_drivers_at_subarray.searchOp.dynamic * 1e9 << endl;
+	        cout << "\tTotal energy in H-tree (that includes both "
+	            	      "match key and data transfer) (nJ): " <<
+	              (fr->data_array2->power_htree_in_search.searchOp.dynamic +
+	               fr->data_array2->power_htree_out_search.searchOp.dynamic +
+	               fr->data_array2->power_routing_to_bank.searchOp.dynamic) * 1e9 << endl;
+	        cout << "\tKeyword input and result output Htrees inside bank Energy (nJ): " <<
+	              (fr->data_array2->power_htree_in_search.searchOp.dynamic +
+	       	               fr->data_array2->power_htree_out_search.searchOp.dynamic) * 1e9 << endl;
+	        cout <<  "\tSearchlines (nJ): " <<
+	          	   fr->data_array2->power_searchline.searchOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_searchline_precharge.searchOp.dynamic * 1e9 << endl;
+	        cout <<  "\tMatchlines  (nJ): " <<
+	               fr->data_array2->power_matchlines.searchOp.dynamic * 1e9 +
+	        	   fr->data_array2->power_matchline_precharge.searchOp.dynamic * 1e9 << endl;
+	        cout <<  "\tData portion wordline (nJ): " <<
+	          	   fr->data_array2->power_matchline_to_wordline_drv.searchOp.dynamic * 1e9 << endl;
+	        cout <<  "\tData Bitlines (nJ): " <<
+	          	   fr->data_array2->power_bitlines.searchOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_prechg_eq_drivers.searchOp.dynamic * 1e9 << endl;
+	        cout <<  "\tSense amplifier energy (nJ): " <<
+	          	   fr->data_array2->power_sense_amps.searchOp.dynamic * 1e9 << endl;
+	        cout <<  "\tSub-array output driver (nJ): " <<
+	          	   fr->data_array2->power_output_drivers_at_subarray.searchOp.dynamic * 1e9 << endl;
 
 
-                cout <<endl<< "  Total dynamic read energy/access  (nJ): " <<
-                      fr->data_array2->power.readOp.dynamic * 1e9 << endl;
-                cout << "\tTotal energy in H-tree (that includes both "
-                              "address and data transfer) (nJ): " <<
-                      (fr->data_array2->power_addr_input_htree.readOp.dynamic +
-                       fr->data_array2->power_data_output_htree.readOp.dynamic +
-                       fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
-                cout << "\tOutput Htree inside bank Energy (nJ): " <<
-                           fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tDecoder (nJ): " <<
-                           fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tWordline (nJ): " <<
-                           fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tBitline mux & associated drivers (nJ): " <<
-                           fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tSense amp mux & associated drivers (nJ): " <<
-                           fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
-                           fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tBitlines (nJ): " <<
-                           fr->data_array2->power_bitlines.readOp.dynamic * 1e9 +
-                           fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9<< endl;
-                cout <<  "\tSense amplifier energy (nJ): " <<
-                           fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
-                cout <<  "\tSub-array output driver (nJ): " <<
-                           fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
+        	cout <<endl<< "  Total dynamic read energy/access  (nJ): " <<
+        	      fr->data_array2->power.readOp.dynamic * 1e9 << endl;
+	        cout << "\tTotal energy in H-tree (that includes both "
+	            	      "address and data transfer) (nJ): " <<
+	              (fr->data_array2->power_addr_input_htree.readOp.dynamic +
+	               fr->data_array2->power_data_output_htree.readOp.dynamic +
+	               fr->data_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
+	        cout << "\tOutput Htree inside bank Energy (nJ): " <<
+	          	   fr->data_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tDecoder (nJ): " <<
+	          	   fr->data_array2->power_row_predecoder_drivers.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_row_predecoder_blocks.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tWordline (nJ): " <<
+	          	   fr->data_array2->power_row_decoders.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tBitline mux & associated drivers (nJ): " <<
+	          	   fr->data_array2->power_bit_mux_predecoder_drivers.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_bit_mux_predecoder_blocks.readOp.dynamic * 1e9 +
+	           	   fr->data_array2->power_bit_mux_decoders.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tSense amp mux & associated drivers (nJ): " <<
+	         	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_drivers.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_senseamp_mux_lev_1_predecoder_blocks.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_senseamp_mux_lev_1_decoders.readOp.dynamic * 1e9  +
+	           	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_drivers.readOp.dynamic * 1e9 +
+	           	   fr->data_array2->power_senseamp_mux_lev_2_predecoder_blocks.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_senseamp_mux_lev_2_decoders.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tBitlines (nJ): " <<
+	          	   fr->data_array2->power_bitlines.readOp.dynamic * 1e9 +
+	          	   fr->data_array2->power_prechg_eq_drivers.readOp.dynamic * 1e9<< endl;
+	        cout <<  "\tSense amplifier energy (nJ): " <<
+	          	   fr->data_array2->power_sense_amps.readOp.dynamic * 1e9 << endl;
+	        cout <<  "\tSub-array output driver (nJ): " <<
+	          	   fr->data_array2->power_output_drivers_at_subarray.readOp.dynamic * 1e9 << endl;
 
-                cout << endl <<"  Total leakage power of a bank (mW): " <<
+        	cout << endl <<"  Total leakage power of a bank (mW): " <<
                   fr->data_array2->power.readOp.leakage * 1e3 << endl;
       }
 
@@ -2077,16 +2077,16 @@ void output_UCA(uca_org_t *fr)
            fr->tag_array2->power_routing_to_bank.readOp.dynamic) * 1e9 << endl;
 
       cout << "\tTotal leakage power in H-tree (that includes both "
-              "address and data network) ((mW)): " <<
-                (fr->tag_array2->power_addr_input_htree.readOp.leakage +
-                 fr->tag_array2->power_data_output_htree.readOp.leakage +
-                 fr->tag_array2->power_routing_to_bank.readOp.leakage) * 1e3 << endl;
+  	      "address and data network) ((mW)): " <<
+  	        (fr->tag_array2->power_addr_input_htree.readOp.leakage +
+  	         fr->tag_array2->power_data_output_htree.readOp.leakage +
+  	         fr->tag_array2->power_routing_to_bank.readOp.leakage) * 1e3 << endl;
 
-          cout << "\tTotal gate leakage power in H-tree (that includes both "
-              "address and data network) ((mW)): " <<
-                (fr->tag_array2->power_addr_input_htree.readOp.gate_leakage +
-                 fr->tag_array2->power_data_output_htree.readOp.gate_leakage +
-                 fr->tag_array2->power_routing_to_bank.readOp.gate_leakage) * 1e3 << endl;
+  	  cout << "\tTotal gate leakage power in H-tree (that includes both "
+  	      "address and data network) ((mW)): " <<
+  	        (fr->tag_array2->power_addr_input_htree.readOp.gate_leakage +
+  	         fr->tag_array2->power_data_output_htree.readOp.gate_leakage +
+  	         fr->tag_array2->power_routing_to_bank.readOp.gate_leakage) * 1e3 << endl;
 
       cout << "\tOutput Htree inside a bank Energy (nJ): " <<
         fr->tag_array2->power_data_output_htree.readOp.dynamic * 1e9 << endl;
@@ -2119,11 +2119,11 @@ void output_UCA(uca_org_t *fr)
     cout << endl << endl <<  "Area Components:" << endl << endl;
     /* Data array area stats */
     if (!(g_ip->pure_cam || g_ip->fully_assoc))
-        cout <<  "  Data array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
+    	cout <<  "  Data array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
     else if (g_ip->pure_cam)
-        cout <<  "  CAM array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
+    	cout <<  "  CAM array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
     else
-        cout <<  "  Fully associative cache array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
+    	cout <<  "  Fully associative cache array: Area (mm2): " << fr->data_array2->area * 1e-6 << endl;
     cout <<  "\tHeight (mm): " <<
       fr->data_array2->all_banks_height*1e-3 << endl;
     cout <<  "\tWidth (mm): " <<

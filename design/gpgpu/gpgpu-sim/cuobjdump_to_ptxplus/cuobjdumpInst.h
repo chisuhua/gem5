@@ -29,10 +29,9 @@
 #define _CUOBJDUMPINST_H_
 
 // External includes
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
 #include <list>
 
 // Local includes
@@ -41,52 +40,52 @@
 class cuobjdumpInst
 {
 protected:
-        //instruction data
-        std::string m_label; //instruction label
-        std::list<std::string>* m_predicate; //instruction predicate
-        std::string m_base; //instruction mnemonic
-        std::list<std::string>* m_baseModifiers; //base modifiers
-        std::list<std::string>* m_typeModifiers; //operand types
-        std::list<std::string>* m_operands; //operands
-        std::list<std::string>* m_predicateModifiers; //predicate modifiers
+	//instruction data
+	std::string m_label; //instruction label
+	std::list<std::string>* m_predicate; //instruction predicate
+	std::string m_base; //instruction mnemonic
+	std::list<std::string>* m_baseModifiers; //base modifiers
+	std::list<std::string>* m_typeModifiers; //operand types
+	std::list<std::string>* m_operands; //operands
+	std::list<std::string>* m_predicateModifiers; //predicate modifiers
 
 public:
-        //Constructor
-        cuobjdumpInst();
-        ~cuobjdumpInst();
+	//Constructor
+	cuobjdumpInst();
+	~cuobjdumpInst();
 
-        //accessors
-        const std::string getBase();
-        std::list<std::string>* getTypeModifiers();
+	//accessors
+	const std::string getBase();
+	std::list<std::string>* getTypeModifiers();
 
-        //Mutators
-        void setLabel(const char* setLabelValue);
-        void setPredicate(const char* setPredicateValue);
-        void addPredicateModifier(const char* addPredicateMod);
-        void setBase(const char* setBaseValue);
-        void addBaseModifier(const char* addBaseMod);
-        void addTypeModifier(const char* addTypeMod);
-        void addOperand(const char* addOp);
+	//Mutators
+	void setLabel(const char* setLabelValue);
+	void setPredicate(const char* setPredicateValue);
+	void addPredicateModifier(const char* addPredicateMod);
+	void setBase(const char* setBaseValue);
+	void addBaseModifier(const char* addBaseMod);
+	void addTypeModifier(const char* addTypeMod);
+	void addOperand(const char* addOp);
 
-        bool checkCubojdumpLabel(std::list<std::string> labelList, std::string label);
+	bool checkCubojdumpLabel(std::list<std::string> labelList, std::string label);
 
-        void printCuobjdumpLabel(std::list<std::string> labelList);
-        void printCuobjdumpPredicate();
-        void printCuobjdumpTypeModifiers();
-        void printCuobjdumpOutputModifiers(const char* defaultMod);
-        void printCuobjdumpBaseModifiers();
-        void printCuobjdumpOperand(std::string currentPiece, std::string operandDelimiter, std::string base);
-        void printCuobjdumpOperandlohi(std::string op);
-        void printCuobjdumpOperands();
+	void printCuobjdumpLabel(std::list<std::string> labelList);
+	void printCuobjdumpPredicate();
+	void printCuobjdumpTypeModifiers();
+	void printCuobjdumpOutputModifiers(const char* defaultMod);
+	void printCuobjdumpBaseModifiers();
+	void printCuobjdumpOperand(std::string currentPiece, std::string operandDelimiter, std::string base);
+	void printCuobjdumpOperandlohi(std::string op);
+	void printCuobjdumpOperands();
 
-        void printCuobjdumpPtxPlus(std::list<std::string> labelList, std::list<std::string> texList);
+	void printCuobjdumpPtxPlus(std::list<std::string> labelList, std::list<std::string> texList);
 
-        //print representation
-        bool printHeaderInst();
-        void printCuobjdumpInst();
-        void printHeaderPtx();
+	//print representation
+	bool printHeaderInst();
+	void printCuobjdumpInst();
+	void printHeaderPtx();
 
-        static void printStringList(std::list<std::string>* strlist);
+	static void printStringList(std::list<std::string>* strlist);
 };
 
 #endif //_CUOBJDUMPINST_H_

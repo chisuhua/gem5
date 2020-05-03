@@ -32,11 +32,11 @@
 #ifndef __CONST_H__
 #define __CONST_H__
 
-#include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <math.h>
 
 /*  The following are things you might want to change
  *  when compiling

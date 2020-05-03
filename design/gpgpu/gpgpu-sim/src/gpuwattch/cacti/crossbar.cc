@@ -127,14 +127,14 @@ void Crossbar::compute_power()
   power.readOp.dynamic = (w1.power.readOp.dynamic + w2.power.readOp.dynamic + (tri_inp_cap * n_out + tri_out_cap * n_inp + tri_ctr_cap + tri_int_cap) * Vdd*Vdd)*flit_size;
   power.readOp.leakage      =  n_inp * n_out * flit_size * (
     cmos_Isub_leakage(g_tp.min_w_nmos_*TriS2*2, min_w_pmos*TriS2*2, 1, inv) *Vdd+
-        cmos_Isub_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nand)*Vdd+
-        cmos_Isub_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nor) *Vdd+
+	cmos_Isub_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nand)*Vdd+
+	cmos_Isub_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nor) *Vdd+
     w1.power.readOp.leakage + w2.power.readOp.leakage);
   power.readOp.gate_leakage = n_inp * n_out * flit_size * (
-          cmos_Ig_leakage(g_tp.min_w_nmos_*TriS2*2, min_w_pmos*TriS2*2, 1, inv) *Vdd+
-          cmos_Ig_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nand)*Vdd+
-          cmos_Ig_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nor) *Vdd+
-          w1.power.readOp.gate_leakage + w2.power.readOp.gate_leakage);
+	  cmos_Ig_leakage(g_tp.min_w_nmos_*TriS2*2, min_w_pmos*TriS2*2, 1, inv) *Vdd+
+	  cmos_Ig_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nand)*Vdd+
+	  cmos_Ig_leakage(g_tp.min_w_nmos_*TriS1*3, min_w_pmos*TriS1*3, 2, nor) *Vdd+
+	  w1.power.readOp.gate_leakage + w2.power.readOp.gate_leakage);
 
   // delay calculation
   double l_eff = n_inp*flit_size*g_tp.wire_outside_mat.pitch;

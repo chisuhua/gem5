@@ -33,16 +33,16 @@
 #ifndef __HTREE2_H__
 #define __HTREE2_H__
 
-#include "assert.h"
 #include "basic_circuit.h"
-#include "cacti_interface.h"
 #include "component.h"
 #include "parameter.h"
+#include "assert.h"
 #include "subarray.h"
+#include "cacti_interface.h"
 #include "wire.h"
 
 // leakge power includes entire htree in a bank (when uca_tree == false)
-// leakge power includes only part to one bank when uca_tree
+// leakge power includes only part to one bank when uca_tree == true
 
 class Htree2 : public Component
 {

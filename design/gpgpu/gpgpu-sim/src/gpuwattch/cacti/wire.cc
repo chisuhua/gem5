@@ -30,7 +30,6 @@
  ***************************************************************************/
 
 #include "wire.h"
-
 #include "cmath"
 // use this constructor to calculate wire stats
 Wire::Wire(
@@ -143,63 +142,63 @@ Wire::calculate_wire_stats()
 
   if (wt != Low_swing) {
 
-          //    delay_optimal_wire();
+	  //    delay_optimal_wire();
 
-          if (wt == Global) {
-                  delay = global.delay * wire_length;
-                  power.readOp.dynamic = global.power.readOp.dynamic * wire_length;
-                  power.readOp.leakage = global.power.readOp.leakage * wire_length;
-                  power.readOp.gate_leakage = global.power.readOp.gate_leakage * wire_length;
-                  repeater_spacing = global.area.w;
-                  repeater_size = global.area.h;
-                  area.set_area((wire_length/repeater_spacing) *
-                                  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
-                                                  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
-          }
-          else if (wt == Global_5) {
-                  delay = global_5.delay * wire_length;
-                  power.readOp.dynamic = global_5.power.readOp.dynamic * wire_length;
-                  power.readOp.leakage = global_5.power.readOp.leakage * wire_length;
-                  power.readOp.gate_leakage = global_5.power.readOp.gate_leakage * wire_length;
-                  repeater_spacing = global_5.area.w;
-                  repeater_size = global_5.area.h;
-                  area.set_area((wire_length/repeater_spacing) *
-                                  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
-                                                  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
-          }
-          else if (wt == Global_10) {
-                  delay = global_10.delay * wire_length;
-                  power.readOp.dynamic = global_10.power.readOp.dynamic * wire_length;
-                  power.readOp.leakage = global_10.power.readOp.leakage * wire_length;
-                  power.readOp.gate_leakage = global_10.power.readOp.gate_leakage * wire_length;
-                  repeater_spacing = global_10.area.w;
-                  repeater_size = global_10.area.h;
-                  area.set_area((wire_length/repeater_spacing) *
-                                  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
-                                                  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
-          }
-          else if (wt == Global_20) {
-                  delay = global_20.delay * wire_length;
-                  power.readOp.dynamic = global_20.power.readOp.dynamic * wire_length;
-                  power.readOp.leakage = global_20.power.readOp.leakage * wire_length;
-                  power.readOp.gate_leakage = global_20.power.readOp.gate_leakage * wire_length;
-                  repeater_spacing = global_20.area.w;
-                  repeater_size = global_20.area.h;
-                  area.set_area((wire_length/repeater_spacing) *
-                                  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
-                                                  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
-          }
-          else if (wt == Global_30) {
-                  delay = global_30.delay * wire_length;
-                  power.readOp.dynamic = global_30.power.readOp.dynamic * wire_length;
-                  power.readOp.leakage = global_30.power.readOp.leakage * wire_length;
-                  power.readOp.gate_leakage = global_30.power.readOp.gate_leakage * wire_length;
-                  repeater_spacing = global_30.area.w;
-                  repeater_size = global_30.area.h;
-                  area.set_area((wire_length/repeater_spacing) *
-                                  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
-                                                  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
-          }
+	  if (wt == Global) {
+		  delay = global.delay * wire_length;
+		  power.readOp.dynamic = global.power.readOp.dynamic * wire_length;
+		  power.readOp.leakage = global.power.readOp.leakage * wire_length;
+		  power.readOp.gate_leakage = global.power.readOp.gate_leakage * wire_length;
+		  repeater_spacing = global.area.w;
+		  repeater_size = global.area.h;
+		  area.set_area((wire_length/repeater_spacing) *
+				  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
+						  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
+	  }
+	  else if (wt == Global_5) {
+		  delay = global_5.delay * wire_length;
+		  power.readOp.dynamic = global_5.power.readOp.dynamic * wire_length;
+		  power.readOp.leakage = global_5.power.readOp.leakage * wire_length;
+		  power.readOp.gate_leakage = global_5.power.readOp.gate_leakage * wire_length;
+		  repeater_spacing = global_5.area.w;
+		  repeater_size = global_5.area.h;
+		  area.set_area((wire_length/repeater_spacing) *
+				  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
+						  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
+	  }
+	  else if (wt == Global_10) {
+		  delay = global_10.delay * wire_length;
+		  power.readOp.dynamic = global_10.power.readOp.dynamic * wire_length;
+		  power.readOp.leakage = global_10.power.readOp.leakage * wire_length;
+		  power.readOp.gate_leakage = global_10.power.readOp.gate_leakage * wire_length;
+		  repeater_spacing = global_10.area.w;
+		  repeater_size = global_10.area.h;
+		  area.set_area((wire_length/repeater_spacing) *
+				  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
+						  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
+	  }
+	  else if (wt == Global_20) {
+		  delay = global_20.delay * wire_length;
+		  power.readOp.dynamic = global_20.power.readOp.dynamic * wire_length;
+		  power.readOp.leakage = global_20.power.readOp.leakage * wire_length;
+		  power.readOp.gate_leakage = global_20.power.readOp.gate_leakage * wire_length;
+		  repeater_spacing = global_20.area.w;
+		  repeater_size = global_20.area.h;
+		  area.set_area((wire_length/repeater_spacing) *
+				  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
+						  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
+	  }
+	  else if (wt == Global_30) {
+		  delay = global_30.delay * wire_length;
+		  power.readOp.dynamic = global_30.power.readOp.dynamic * wire_length;
+		  power.readOp.leakage = global_30.power.readOp.leakage * wire_length;
+		  power.readOp.gate_leakage = global_30.power.readOp.gate_leakage * wire_length;
+		  repeater_spacing = global_30.area.w;
+		  repeater_size = global_30.area.h;
+		  area.set_area((wire_length/repeater_spacing) *
+				  compute_gate_area(INV, 1, min_w_pmos * repeater_size,
+						  g_tp.min_w_nmos_ * repeater_size, g_tp.cell_h_def));
+	  }
     out_rise_time = delay*repeater_spacing/deviceType->Vth;
   }
   else if (wt == Low_swing) {
@@ -285,7 +284,7 @@ double Wire::signal_rise_time ()
 
 double Wire::wire_cap (double len /* in m */, bool call_from_outside)
 {
-        //TODO: this should be consistent with the wire_res in technology file
+	//TODO: this should be consistent with the wire_res in technology file
   double sidewall, adj, tot_cap;
   double wire_height;
   double epsilon0 = 8.8542e-12;
@@ -294,38 +293,38 @@ double Wire::wire_cap (double len /* in m */, bool call_from_outside)
   switch (wire_placement)
   {
     case outside_mat:
-        {
-                aspect_ratio = g_tp.wire_outside_mat.aspect_ratio;
-                horiz_dielectric_constant = g_tp.wire_outside_mat.horiz_dielectric_constant;
-                vert_dielectric_constant = g_tp.wire_outside_mat.vert_dielectric_constant;
-                miller_value = g_tp.wire_outside_mat.miller_value;
-                ild_thickness = g_tp.wire_outside_mat.ild_thickness;
-                break;
-        }
+    	{
+    		aspect_ratio = g_tp.wire_outside_mat.aspect_ratio;
+    		horiz_dielectric_constant = g_tp.wire_outside_mat.horiz_dielectric_constant;
+    		vert_dielectric_constant = g_tp.wire_outside_mat.vert_dielectric_constant;
+    		miller_value = g_tp.wire_outside_mat.miller_value;
+    		ild_thickness = g_tp.wire_outside_mat.ild_thickness;
+    		break;
+    	}
     case inside_mat :
-        {
-                aspect_ratio = g_tp.wire_inside_mat.aspect_ratio;
-                horiz_dielectric_constant = g_tp.wire_inside_mat.horiz_dielectric_constant;
-                vert_dielectric_constant = g_tp.wire_inside_mat.vert_dielectric_constant;
-                miller_value = g_tp.wire_inside_mat.miller_value;
-                ild_thickness = g_tp.wire_inside_mat.ild_thickness;
-                break;
-        }
+    	{
+    		aspect_ratio = g_tp.wire_inside_mat.aspect_ratio;
+    		horiz_dielectric_constant = g_tp.wire_inside_mat.horiz_dielectric_constant;
+    		vert_dielectric_constant = g_tp.wire_inside_mat.vert_dielectric_constant;
+    		miller_value = g_tp.wire_inside_mat.miller_value;
+    		ild_thickness = g_tp.wire_inside_mat.ild_thickness;
+    		break;
+    	}
     default:
-        {
-                aspect_ratio = g_tp.wire_local.aspect_ratio;
-                horiz_dielectric_constant = g_tp.wire_local.horiz_dielectric_constant;
-                vert_dielectric_constant = g_tp.wire_local.vert_dielectric_constant;
-                miller_value = g_tp.wire_local.miller_value;
-                ild_thickness = g_tp.wire_local.ild_thickness;
-                break;
-        }
+    	{
+    		aspect_ratio = g_tp.wire_local.aspect_ratio;
+    		horiz_dielectric_constant = g_tp.wire_local.horiz_dielectric_constant;
+    		vert_dielectric_constant = g_tp.wire_local.vert_dielectric_constant;
+    		miller_value = g_tp.wire_local.miller_value;
+    		ild_thickness = g_tp.wire_local.ild_thickness;
+    		break;
+    	}
   }
 
   if (call_from_outside)
   {
-          wire_width       *= 1e-6;
-          wire_spacing     *= 1e-6;
+	  wire_width       *= 1e-6;
+	  wire_spacing     *= 1e-6;
   }
   wire_height = wire_width/w_scale*aspect_ratio;
   /*
@@ -353,8 +352,8 @@ double Wire::wire_cap (double len /* in m */, bool call_from_outside)
 
   if (call_from_outside)
   {
-          wire_width       *= 1e6;
-          wire_spacing     *= 1e6;
+	  wire_width       *= 1e6;
+	  wire_spacing     *= 1e6;
   }
   return (tot_cap*len); // (F)
 }
@@ -364,30 +363,30 @@ double Wire::wire_cap (double len /* in m */, bool call_from_outside)
 Wire::wire_res (double len /*(in m)*/)
 {
 
-          double aspect_ratio,alpha_scatter =1.05, dishing_thickness=0, barrier_thickness=0;
-          //TODO: this should be consistent with the wire_res in technology file
-          //The whole computation should be consistent with the wire_res in technology.cc too!
+	  double aspect_ratio,alpha_scatter =1.05, dishing_thickness=0, barrier_thickness=0;
+	  //TODO: this should be consistent with the wire_res in technology file
+	  //The whole computation should be consistent with the wire_res in technology.cc too!
 
-          switch (wire_placement)
-          {
-          case outside_mat:
-          {
-                  aspect_ratio = g_tp.wire_outside_mat.aspect_ratio;
-                  break;
-          }
-          case inside_mat :
-          {
-                  aspect_ratio = g_tp.wire_inside_mat.aspect_ratio;
-                  break;
-          }
-          default:
-          {
-                  aspect_ratio = g_tp.wire_local.aspect_ratio;
-                  break;
-          }
-          }
-          return (alpha_scatter * resistivity * 1e-6 * len/((aspect_ratio*wire_width/w_scale-dishing_thickness - barrier_thickness)*
-                          (wire_width-2*barrier_thickness)));
+	  switch (wire_placement)
+	  {
+	  case outside_mat:
+	  {
+		  aspect_ratio = g_tp.wire_outside_mat.aspect_ratio;
+		  break;
+	  }
+	  case inside_mat :
+	  {
+		  aspect_ratio = g_tp.wire_inside_mat.aspect_ratio;
+		  break;
+	  }
+	  default:
+	  {
+		  aspect_ratio = g_tp.wire_local.aspect_ratio;
+		  break;
+	  }
+	  }
+	  return (alpha_scatter * resistivity * 1e-6 * len/((aspect_ratio*wire_width/w_scale-dishing_thickness - barrier_thickness)*
+			  (wire_width-2*barrier_thickness)));
 }
 
 /*
@@ -428,7 +427,7 @@ Wire::low_swing_model()
   nsize = MIN(nsize, g_tp.max_w_nmos_);
   nsize = MAX(nsize, g_tp.min_w_nmos_);
 
-  if (rwire*cwire > 8*g_tp.FO4)
+  if(rwire*cwire > 8*g_tp.FO4)
   {
     nsize = g_tp.max_w_nmos_;
   }
@@ -679,7 +678,7 @@ void Wire::update_fullswing()
       else {
         ncost = citer->power.readOp.dynamic/global.power.readOp.dynamic +
                 citer->power.readOp.leakage/global.power.readOp.leakage;
-        if (ncost < cost)
+        if(ncost < cost)
         {
           cost = ncost;
           if (i == 4) {
@@ -692,12 +691,12 @@ void Wire::update_fullswing()
             global_20.power = citer->power;
             global_20.area  = citer->area;
           }
-          else if (i==2) {
+          else if(i==2) {
             global_10.delay = citer->delay;
             global_10.power = citer->power;
             global_10.area  = citer->area;
           }
-          else if (i==1) {
+          else if(i==1) {
             global_5.delay = citer->delay;
             global_5.power = citer->power;
             global_5.area  = citer->area;

@@ -25,18 +25,18 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <zlib.h>
-
-#include <algorithm>
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <list>
-#include <map>
-#include <string>
-#include <vector>
-
 #include "stat-tool.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <zlib.h>
+#include <string>
+#include <list>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -63,16 +63,16 @@ void try_snap_shot (unsigned long long  current_cycle)
 {
    if (min_snap_shot_interval == 0) return;
    if (current_cycle != next_snap_shot_cycle) return;
-
+   
    std::list<snap_shot_trigger*>::iterator ss_trigger_iter = list_ss_trigger.begin();
-   for (; ss_trigger_iter != list_ss_trigger.end(); ++ss_trigger_iter) {
+   for(; ss_trigger_iter != list_ss_trigger.end(); ++ss_trigger_iter) {
       (*ss_trigger_iter)->snap_shot(current_cycle); // WF: should be try_snap_shot
    }
    next_snap_shot_cycle = current_cycle + min_snap_shot_interval; // WF: stateful testing, maybe bad
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
+ 
 static unsigned long long  spill_interval = 0;
 static unsigned long long  next_spill_cycle = 0;
 static std::list<spill_log_interface*> list_spill_log;
@@ -100,8 +100,8 @@ void spill_log_to_file (FILE *fout, int final, unsigned long long  current_cycle
 
    fprintf(fout, "\n"); // ensure that the spill occurs at a new line
    std::list<spill_log_interface*>::iterator i_spill_log = list_spill_log.begin();
-   for (; i_spill_log != list_spill_log.end(); ++i_spill_log) {
-      (*i_spill_log)->spill(fout, final);
+   for(; i_spill_log != list_spill_log.end(); ++i_spill_log) {
+      (*i_spill_log)->spill(fout, final); 
    }
    fflush(fout);
 
@@ -115,10 +115,10 @@ unsigned translate_pc_to_ptxlineno(unsigned pc);
 static int n_thread_CFloggers = 0;
 static thread_CFlocality** thread_CFlogger = NULL;
 
-void create_thread_CFlogger( int n_loggers, int n_threads, address_type start_pc, unsigned long long  logging_interval)
+void create_thread_CFlogger( int n_loggers, int n_threads, address_type start_pc, unsigned long long  logging_interval) 
 {
    destroy_thread_CFlogger();
-
+   
    n_thread_CFloggers = n_loggers;
    thread_CFlogger = new thread_CFlocality*[n_loggers];
 
@@ -134,7 +134,7 @@ void create_thread_CFlogger( int n_loggers, int n_threads, address_type start_pc
    }
 }
 
-void destroy_thread_CFlogger( )
+void destroy_thread_CFlogger( ) 
 {
    if (thread_CFlogger != NULL) {
       for (int i = 0; i < n_thread_CFloggers; i++) {
@@ -147,38 +147,38 @@ void destroy_thread_CFlogger( )
    }
 }
 
-void cflog_update_thread_pc( int logger_id, int thread_id, address_type pc )
+void cflog_update_thread_pc( int logger_id, int thread_id, address_type pc ) 
 {
-   if (thread_CFlogger == NULL) return;  // this means no visualizer output
+   if (thread_CFlogger == NULL) return;  // this means no visualizer output 
    if (thread_id < 0) return;
    thread_CFlogger[logger_id]->update_thread_pc(thread_id, pc);
 }
 
-// deprecated
-void cflog_snapshot( int logger_id, unsigned long long  cycle )
+// deprecated 
+void cflog_snapshot( int logger_id, unsigned long long  cycle ) 
 {
    thread_CFlogger[logger_id]->snap_shot(cycle);
 }
 
-void cflog_print(FILE *fout)
+void cflog_print(FILE *fout) 
 {
-   if (thread_CFlogger == NULL) return;  // this means no visualizer output
+   if (thread_CFlogger == NULL) return;  // this means no visualizer output 
    for (int i = 0; i < n_thread_CFloggers; i++) {
       thread_CFlogger[i]->print_histo(fout);
    }
 }
 
-void cflog_visualizer_print(FILE *fout)
+void cflog_visualizer_print(FILE *fout) 
 {
-   if (thread_CFlogger == NULL) return;  // this means no visualizer output
+   if (thread_CFlogger == NULL) return;  // this means no visualizer output 
    for (int i = 0; i < n_thread_CFloggers; i++) {
       thread_CFlogger[i]->print_visualizer(fout);
    }
 }
 
-void cflog_visualizer_gzprint(gzFile fout)
+void cflog_visualizer_gzprint(gzFile fout) 
 {
-   if (thread_CFlogger == NULL) return;  // this means no visualizer output
+   if (thread_CFlogger == NULL) return;  // this means no visualizer output 
    for (int i = 0; i < n_thread_CFloggers; i++) {
       thread_CFlogger[i]->print_visualizer(fout);
    }
@@ -225,7 +225,7 @@ static std::vector<linear_histogram_logger> s_warp_occ_logger;
 void shader_warp_occ_create( int n_loggers, int simd_width, unsigned long long  logging_interval)
 {
    // simd_width + 1 to include the case with full warp
-   s_warp_occ_logger.assign(n_loggers,
+   s_warp_occ_logger.assign(n_loggers, 
                             linear_histogram_logger(simd_width + 1, logging_interval, "ShdrWarpOcc"));
    for (unsigned i = 0; i < s_warp_occ_logger.size(); i++) {
       s_warp_occ_logger[i].set_id(i);
@@ -263,7 +263,7 @@ static std::vector<linear_histogram_logger> s_mem_acc_logger;
 void shader_mem_acc_create( int n_loggers, int n_dram, int n_bank, unsigned long long  logging_interval)
 {
    // (n_bank + 1) to space data out; 2x to separate read and write
-   s_mem_acc_logger.assign(n_loggers,
+   s_mem_acc_logger.assign(n_loggers, 
                            linear_histogram_logger(2 * n_dram * (n_bank + 1), logging_interval, "ShdrMemAcc"));
 
    s_mem_acc_logger_n_dram = n_dram;
@@ -310,7 +310,7 @@ static std::vector<linear_histogram_logger> s_mem_lat_logger;
 
 void shader_mem_lat_create( int n_loggers, unsigned long long  logging_interval)
 {
-   s_mem_lat_logger.assign(n_loggers,
+   s_mem_lat_logger.assign(n_loggers, 
                            linear_histogram_logger(s_mem_lat_logger_nbins, logging_interval, "ShdrMemLat"));
 
    for (unsigned i = 0; i < s_mem_lat_logger.size(); i++) {
@@ -318,7 +318,7 @@ void shader_mem_lat_create( int n_loggers, unsigned long long  logging_interval)
       add_snap_shot_trigger(&(s_mem_lat_logger[i]));
       add_spill_log(&(s_mem_lat_logger[i]));
    }
-
+   
    s_mem_lat_logger_used = true;
 }
 
@@ -327,9 +327,9 @@ void shader_mem_lat_log( int logger_id, int latency)
    if (s_mem_lat_logger_used == false) return;
    if (latency > (1<<(s_mem_lat_logger_nbins/2))) assert(0); // guard for out of bound bin
    assert(latency > 0);
-
+   
    int latency_bin;
-
+   
    int bin; // LOG_2(latency)
    int v = latency;
    register unsigned int shift;
@@ -379,7 +379,7 @@ int get_shader_instruction_cache_id() { return INSTRUCTION; }
 void shader_cache_access_create( int n_loggers, int n_types, unsigned long long  logging_interval)
 {
    // There are different type of cache (x2 for recording accesses and misses)
-   s_cache_access_logger.assign(n_loggers,
+   s_cache_access_logger.assign(n_loggers, 
                                 linear_histogram_logger(n_types * 2, logging_interval, "ShdrCacheMiss"));
 
    s_cache_access_logger_n_types = n_types;
@@ -396,7 +396,7 @@ void shader_cache_access_log( int logger_id, int type, int miss)
    if (logger_id < 0) return;
    assert(type == NORMAL || type == TEXTURE || type == CONSTANT || type == INSTRUCTION);
    assert(miss == 0 || miss == 1);
-
+   
    s_cache_access_logger[logger_id].log(2 * type + miss);
 }
 
@@ -406,7 +406,7 @@ void shader_cache_access_unlog( int logger_id, int type, int miss)
    if (logger_id < 0) return;
    assert(type == NORMAL || type == TEXTURE || type == CONSTANT || type == INSTRUCTION);
    assert(miss == 0 || miss == 1);
-
+   
    s_cache_access_logger[logger_id].unlog(2 * type + miss);
 }
 
@@ -440,7 +440,7 @@ void shader_CTA_count_create( int n_shaders, unsigned long long  logging_interva
 void shader_CTA_count_log( int shader_id, int nCTAadded )
 {
    if (s_CTA_count_logger == NULL) return;
-
+   
    for (int i = 0; i < nCTAadded; i++) {
       s_CTA_count_logger->log(shader_id);
    }
@@ -449,7 +449,7 @@ void shader_CTA_count_log( int shader_id, int nCTAadded )
 void shader_CTA_count_unlog( int shader_id, int nCTAdone )
 {
    if (s_CTA_count_logger == NULL) return;
-
+   
    for (int i = 0; i < nCTAdone; i++) {
       s_CTA_count_logger->unlog(shader_id);
    }
@@ -480,21 +480,21 @@ void shader_CTA_count_visualizer_gzprint( gzFile fout )
 thread_insn_span::thread_insn_span(unsigned long long  cycle)
   : m_cycle(cycle),
 #if (tr1_hash_map_ismap == 1)
-     m_insn_span_count()
-#else
-     m_insn_span_count(32*1024)
+     m_insn_span_count() 
+#else 
+     m_insn_span_count(32*1024) 
 #endif
-{
+{ 
 }
 
 thread_insn_span::~thread_insn_span() { }
-
+   
 thread_insn_span::thread_insn_span(const thread_insn_span& other)
       : m_cycle(other.m_cycle),
-        m_insn_span_count(other.m_insn_span_count)
-{
+        m_insn_span_count(other.m_insn_span_count) 
+{ 
 }
-
+      
 thread_insn_span& thread_insn_span::operator=(const thread_insn_span& other)
 {
    printf("thread_insn_span& operator=\n");
@@ -504,7 +504,7 @@ thread_insn_span& thread_insn_span::operator=(const thread_insn_span& other)
    }
    return *this;
 }
-
+   
 thread_insn_span& thread_insn_span::operator+=(const thread_insn_span& other)
 {
    span_count_map::const_iterator i_sc = other.m_insn_span_count.begin();
@@ -513,19 +513,19 @@ thread_insn_span& thread_insn_span::operator+=(const thread_insn_span& other)
    }
    return *this;
 }
-
-void thread_insn_span::set_span( address_type pc )
+   
+void thread_insn_span::set_span( address_type pc ) 
 {
-   if ( ((int)pc) >= 0 )
+   if( ((int)pc) >= 0 )
       m_insn_span_count[pc] += 1;
 }
-
-void thread_insn_span::reset(unsigned long long  cycle)
+   
+void thread_insn_span::reset(unsigned long long  cycle) 
 {
    m_cycle = cycle;
-   m_insn_span_count.clear();
+   m_insn_span_count.clear(); 
 }
-
+   
 void thread_insn_span::print_span(FILE *fout) const
 {
    fprintf(fout, "%d: ", (int)m_cycle);
@@ -578,10 +578,10 @@ void thread_insn_span::print_sparse_histo(gzFile fout) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-thread_CFlocality::thread_CFlocality(std::string name,
-                                     unsigned long long  snap_shot_interval,
-                                     int nthreads,
-                                     address_type start_pc,
+thread_CFlocality::thread_CFlocality(std::string name, 
+                                     unsigned long long  snap_shot_interval, 
+                                     int nthreads, 
+                                     address_type start_pc, 
                                      unsigned long long  start_cycle)
       : snap_shot_trigger(snap_shot_interval), m_name(name),
         m_nthreads(nthreads), m_thread_pc(nthreads, start_pc), m_cycle(start_cycle),
@@ -589,18 +589,18 @@ thread_CFlocality::thread_CFlocality(std::string name,
 {
    std::fill(m_thread_pc.begin(), m_thread_pc.end(), -1); // so that hw thread with no work assigned will not clobber results
 }
-
-thread_CFlocality::~thread_CFlocality()
+   
+thread_CFlocality::~thread_CFlocality() 
 {
-}
-
-void thread_CFlocality::update_thread_pc( int thread_id, address_type pc )
+} 
+   
+void thread_CFlocality::update_thread_pc( int thread_id, address_type pc ) 
 {
    m_thread_pc[thread_id] = pc;
    m_thd_span.set_span(pc);
 }
-
-void thread_CFlocality::snap_shot(unsigned long long  current_cycle)
+   
+void thread_CFlocality::snap_shot(unsigned long long  current_cycle) 
 {
    m_thd_span_archive.push_back(m_thd_span);
    m_thd_span.reset(current_cycle);
@@ -608,8 +608,8 @@ void thread_CFlocality::snap_shot(unsigned long long  current_cycle)
       m_thd_span.set_span(m_thread_pc[i]);
    }
 }
-
-void thread_CFlocality::spill(FILE *fout, bool final)
+   
+void thread_CFlocality::spill(FILE *fout, bool final) 
 {
    std::list<thread_insn_span>::iterator lit = m_thd_span_archive.begin();
    for (; lit != m_thd_span_archive.end(); lit = m_thd_span_archive.erase(lit) ) {
@@ -622,43 +622,43 @@ void thread_CFlocality::spill(FILE *fout, bool final)
       m_thd_span.print_histo(fout);
    }
 }
-
-
-void thread_CFlocality::print_visualizer(FILE *fout)
+   
+      
+void thread_CFlocality::print_visualizer(FILE *fout)  
 {
    fprintf(fout, "%s: ", m_name.c_str());
    if (m_thd_span_archive.empty()) {
-
+   
       // visualizer do no require snap_shots
       m_thd_span.print_sparse_histo(fout);
-
+      
       // clean the thread span
       m_thd_span.reset(0);
-      for (int i = 0; i < (int)m_thread_pc.size(); i++)
+      for (int i = 0; i < (int)m_thread_pc.size(); i++) 
          m_thd_span.set_span(m_thread_pc[i]);
-   } else {
+   } else { 
       assert(0); // TODO: implement fall back so that visualizer can work with snap shots
    }
 }
-
+   
 void thread_CFlocality::print_visualizer(gzFile fout)
 {
    gzprintf(fout, "%s: ", m_name.c_str());
    if (m_thd_span_archive.empty()) {
-
+   
       // visualizer do no require snap_shots
       m_thd_span.print_sparse_histo(fout);
-
+      
       // clean the thread span
       m_thd_span.reset(0);
       for (int i = 0; i < (int)m_thread_pc.size(); i++) {
          m_thd_span.set_span(m_thread_pc[i]);
       }
-   } else {
+   } else { 
       assert(0); // TODO: implement fall back so that visualizer can work with snap shots
    }
 }
-
+   
 void thread_CFlocality::print_span(FILE *fout) const
 {
    std::list<thread_insn_span>::const_iterator lit = m_thd_span_archive.begin();
@@ -683,40 +683,40 @@ void thread_CFlocality::print_histo(FILE *fout) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-linear_histogram_logger::linear_histogram_logger(int n_bins,
-                           unsigned long long  snap_shot_interval,
-                           const char *name,
-                           bool reset_at_snap_shot,
+linear_histogram_logger::linear_histogram_logger(int n_bins, 
+                           unsigned long long  snap_shot_interval, 
+                           const char *name, 
+                           bool reset_at_snap_shot, 
                            unsigned long long  start_cycle )
-      : snap_shot_trigger(snap_shot_interval),
-        m_n_bins(n_bins),
+      : snap_shot_trigger(snap_shot_interval), 
+        m_n_bins(n_bins), 
         m_curr_lin_hist(m_n_bins, start_cycle),
         m_lin_hist_archive(),
         m_cycle(start_cycle),
-        m_reset_at_snap_shot(reset_at_snap_shot),
+        m_reset_at_snap_shot(reset_at_snap_shot), 
         m_name(name),
-        m_id(s_ids++)
+        m_id(s_ids++) 
 {
 }
 
-linear_histogram_logger::linear_histogram_logger(const linear_histogram_logger& other)
-      : snap_shot_trigger(other.get_interval()),
-        m_n_bins(other.m_n_bins),
+linear_histogram_logger::linear_histogram_logger(const linear_histogram_logger& other) 
+      : snap_shot_trigger(other.get_interval()), 
+        m_n_bins(other.m_n_bins), 
         m_curr_lin_hist(m_n_bins, other.m_cycle),
         m_lin_hist_archive(),
         m_cycle(other.m_cycle),
-        m_reset_at_snap_shot(other.m_reset_at_snap_shot),
+        m_reset_at_snap_shot(other.m_reset_at_snap_shot), 
         m_name(other.m_name),
-        m_id(s_ids++)
+        m_id(s_ids++) 
 {
 }
 
-linear_histogram_logger::~linear_histogram_logger()
+linear_histogram_logger::~linear_histogram_logger() 
 {
       remove_snap_shot_trigger(this);
       remove_spill_log(this);
 }
-
+   
 void linear_histogram_logger::snap_shot(unsigned long long  current_cycle) {
    m_lin_hist_archive.push_back(m_curr_lin_hist);
    if (m_reset_at_snap_shot) {
@@ -725,8 +725,8 @@ void linear_histogram_logger::snap_shot(unsigned long long  current_cycle) {
       m_curr_lin_hist.set_cycle(current_cycle);
    }
 }
-
-void linear_histogram_logger::spill(FILE *fout, bool final)
+   
+void linear_histogram_logger::spill(FILE *fout, bool final) 
 {
    std::list<linear_histogram_snapshot>::iterator iter = m_lin_hist_archive.begin();
    for (; iter != m_lin_hist_archive.end(); iter = m_lin_hist_archive.erase(iter) ) {
@@ -741,7 +741,7 @@ void linear_histogram_logger::spill(FILE *fout, bool final)
       fprintf(fout, "\n");
    }
 }
-
+   
 void linear_histogram_logger::print(FILE *fout) const
 {
    std::list<linear_histogram_snapshot>::const_iterator iter = m_lin_hist_archive.begin();
@@ -768,7 +768,7 @@ void linear_histogram_logger::print_visualizer(FILE *fout)
    fprintf(fout, "\n");
    if (m_reset_at_snap_shot) {
       m_curr_lin_hist.reset(0);
-   }
+   } 
 }
 
 void linear_histogram_logger::print_visualizer(gzFile fout)
@@ -784,6 +784,6 @@ void linear_histogram_logger::print_visualizer(gzFile fout)
    gzprintf(fout, "\n");
    if (m_reset_at_snap_shot) {
       m_curr_lin_hist.reset(0);
-   }
+   } 
 }
 

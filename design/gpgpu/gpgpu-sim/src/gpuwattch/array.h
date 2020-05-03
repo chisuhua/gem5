@@ -32,14 +32,13 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
+#include "basic_components.h"
+#include "cacti/const.h"
+#include "cacti/cacti_interface.h"
+#include "cacti/parameter.h"
+#include "cacti/component.h"
 #include <iostream>
 #include <string>
-
-#include "basic_components.h"
-#include "cacti/cacti_interface.h"
-#include "cacti/component.h"
-#include "cacti/const.h"
-#include "cacti/parameter.h"
 
 using namespace std;
 
@@ -64,7 +63,7 @@ class ArrayST :public Component{
   virtual void optimize_array();
   virtual void compute_base_power();
   virtual ~ArrayST();
-
+  
   void leakage_feedback(double temperature);
 };
 
@@ -77,14 +76,14 @@ public:
   powerDef power_t;//temp value holder for both (max) power and runtime power
   InstCache(){caches=0;missb=0;ifb=0;prefetchb=0;};
   ~InstCache(){
-          if (caches)    {//caches->local_result.cleanup();
-                                          delete caches; caches=0;}
-          if (missb)     {//missb->local_result.cleanup();
-                                          delete missb; missb=0;}
-          if (ifb)       {//ifb->local_result.cleanup();
-                                          delete ifb; ifb=0;}
-          if (prefetchb) {//prefetchb->local_result.cleanup();
-                                          delete prefetchb; prefetchb=0;}
+	  if (caches)    {//caches->local_result.cleanup();
+					  delete caches; caches=0;}
+	  if (missb)     {//missb->local_result.cleanup();
+					  delete missb; missb=0;}
+	  if (ifb)       {//ifb->local_result.cleanup();
+					  delete ifb; ifb=0;}
+	  if (prefetchb) {//prefetchb->local_result.cleanup();
+					  delete prefetchb; prefetchb=0;}
    };
 };
 
@@ -93,8 +92,8 @@ public:
   ArrayST* wbb;
   DataCache(){wbb=0;};
   ~DataCache(){
-          if (wbb) {//wbb->local_result.cleanup();
-                                delete wbb; wbb=0;}
+	  if (wbb) {//wbb->local_result.cleanup();
+				delete wbb; wbb=0;}
    };
 };
 

@@ -247,8 +247,8 @@ MCPAT_Router::get_router_power()
 
 //  arb_stats();
   power.readOp.dynamic = ((buffer.power.readOp.dynamic+buffer.power.writeOp.dynamic) +
-                  crossbar.power.readOp.dynamic +
-                  arbiter.power.readOp.dynamic)*MIN(I, O)*M;
+		  crossbar.power.readOp.dynamic +
+		  arbiter.power.readOp.dynamic)*MIN(I, O)*M;
   double pppm_t[4]    = {1,I,I,1};
   power = power + (buffer.power*pppm_t + crossbar.power + arbiter.power)*pppm_lkg;
 

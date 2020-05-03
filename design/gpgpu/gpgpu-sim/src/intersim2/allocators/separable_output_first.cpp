@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -31,39 +31,40 @@
 //
 // ----------------------------------------------------------------------
 
-#include <cstring>
-#include <iostream>
-#include <vector>
-
-#include "intersim2/booksim.hpp"
-#include "intersim2/arbiters/arbiter.hpp"
 #include "separable_output_first.hpp"
+
+#include "booksim.hpp"
+#include "arbiter.hpp"
+
+#include <vector>
+#include <iostream>
+#include <cstring>
 
 SeparableOutputFirstAllocator::
 SeparableOutputFirstAllocator( Module* parent, const string& name, int inputs,
-                               int outputs, const string& arb_type )
+			       int outputs, const string& arb_type )
   : SeparableAllocator( parent, name, inputs, outputs, arb_type )
 {}
 
 void SeparableOutputFirstAllocator::Allocate() {
-
+  
   set<int>::const_iterator port_iter = _out_occ.begin();
-  while (port_iter != _out_occ.end()) {
-
+  while(port_iter != _out_occ.end()) {
+    
     const int & output = *port_iter;
 
     // add requests to the output arbiter
 
     map<int, sRequest>::const_iterator req_iter = _out_req[output].begin();
-    while (req_iter != _out_req[output].end()) {
-
+    while(req_iter != _out_req[output].end()) {
+      
       const sRequest & req = req_iter->second;
 
       _output_arb[output]->AddRequest(req.port, req.label, req.out_pri);
 
       ++req_iter;
     }
-
+    
     // Execute the output arbiter and propagate the grants to the
     // input arbiters.
 
@@ -78,17 +79,17 @@ void SeparableOutputFirstAllocator::Allocate() {
 
     ++port_iter;
   }
-
+  
   port_iter = _in_occ.begin();
-  while (port_iter != _in_occ.end()) {
-
+  while(port_iter != _in_occ.end()) {
+    
     const int & input = *port_iter;
 
     // Execute the input arbiters.
-
+    
     const int output = _input_arb[input]->Arbitrate(NULL, NULL);
-
-    if (output > -1) {
+  
+    if(output > -1) {
       assert((_inmatch[input] == -1) && (_outmatch[output] == -1));
 
       _inmatch[input] = output;
@@ -96,7 +97,7 @@ void SeparableOutputFirstAllocator::Allocate() {
       _input_arb[input]->UpdateState() ;
       _output_arb[output]->UpdateState() ;
     }
-
+    
     ++port_iter;
   }
 }

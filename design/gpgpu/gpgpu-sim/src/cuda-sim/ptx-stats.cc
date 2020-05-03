@@ -25,14 +25,13 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cstdio>
-#include <map>
-
-#include "../option_parser.h"
-#include "../tr1_hash_map.h"
-#include "ptx-stats.h"
 #include "ptx_ir.h"
 #include "ptx_sim.h"
+#include "ptx-stats.h"
+#include "../option_parser.h"
+#include <stdio.h>
+#include <map>
+#include "../tr1_hash_map.h"
 
 // options
 bool enable_ptx_file_line_stats;
@@ -40,34 +39,34 @@ char * ptx_line_stats_filename = NULL;
 
 void ptx_file_line_stats_options(option_parser_t opp)
 {
-    option_parser_register(opp, "-enable_ptx_file_line_stats", OPT_BOOL,
-                           &enable_ptx_file_line_stats,
+    option_parser_register(opp, "-enable_ptx_file_line_stats", OPT_BOOL, 
+                           &enable_ptx_file_line_stats, 
                            "Turn on PTX source line statistic profiling. (1 = On)", "1");
-    option_parser_register(opp, "-ptx_line_stats_filename", OPT_CSTR,
-                           &ptx_line_stats_filename,
+    option_parser_register(opp, "-ptx_line_stats_filename", OPT_CSTR, 
+                           &ptx_line_stats_filename, 
                            "Output file for PTX source line statistics.", "gpgpu_inst_stats.txt");
 }
 
 // implementations
 
 // defining a PTX source line = filename + line number
-class ptx_file_line
+class ptx_file_line 
 {
 public:
     ptx_file_line(const char* s, int l) {
-        if ( s == NULL )
+        if( s == NULL ) 
             st = "NULL_NAME";
-        else
+        else 
             st = s;
         line = l;
     }
 
     bool operator<(const ptx_file_line &other) const {
-        if ( st == other.st ) {
-            if ( line < other.line )
+        if( st == other.st ) {
+            if( line < other.line ) 
                 return true;
             else
-                return false;
+                return false; 
         } else {
             return st < other.st;
         }
@@ -85,13 +84,13 @@ public:
 class ptx_file_line_stats
 {
 public:
-    ptx_file_line_stats()
-        : exec_count(0), latency(0), dram_traffic(0),
+    ptx_file_line_stats() 
+        : exec_count(0), latency(0), dram_traffic(0), 
           smem_n_way_bank_conflict_total(0), smem_warp_count(0),
           gmem_n_access_total(0), gmem_warp_count(0), exposed_latency(0),
           warp_divergence(0)
     { }
-
+    
     unsigned long exec_count;
     unsigned long long latency;
     unsigned long long dram_traffic;
@@ -129,7 +128,7 @@ void ptx_file_line_stats_write_file()
 
     pfile = fopen(ptx_line_stats_filename, "w");
     fprintf(pfile,"kernel line : count latency dram_traffic smem_bk_conflicts smem_warp gmem_access_generated gmem_warp exposed_latency warp_divergence\n");
-    for ( it=ptx_file_line_stats_tracker.begin(); it != ptx_file_line_stats_tracker.end(); it++ ) {
+    for( it=ptx_file_line_stats_tracker.begin(); it != ptx_file_line_stats_tracker.end(); it++ ) {
         fprintf(pfile, "%s %i : ", it->first.st.c_str(), it->first.line);
         fprintf(pfile, "%lu ", it->second.exec_count);
         fprintf(pfile, "%llu ", it->second.latency);
@@ -158,16 +157,16 @@ void ptx_file_line_stats_add_exec_count(const ptx_instruction *pInsn)
 void ptx_file_line_stats_add_latency(unsigned pc, unsigned latency)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
-
+    
     ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())].latency += latency;
 }
 
 // attribute dram traffic to this ptx instruction (specified by the pc)
-// dram traffic is counted in number of requests
+// dram traffic is counted in number of requests 
 void ptx_file_line_stats_add_dram_traffic(unsigned pc, unsigned dram_traffic)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
-
+    
     ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())].dram_traffic += dram_traffic;
 }
 
@@ -176,25 +175,25 @@ void ptx_file_line_stats_add_dram_traffic(unsigned pc, unsigned dram_traffic)
 void ptx_file_line_stats_add_smem_bank_conflict(unsigned pc, unsigned n_way_bkconflict)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
-
+    
     ptx_file_line_stats& line_stats = ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())];
     line_stats.smem_n_way_bank_conflict_total += n_way_bkconflict;
     line_stats.smem_warp_count += 1;
 }
 
-// attribute a non-coalesced mem access to a ptx instruction
+// attribute a non-coalesced mem access to a ptx instruction 
 // counts both the number of warps causing this and the number of memory requests generated
 void ptx_file_line_stats_add_uncoalesced_gmem(unsigned pc, unsigned n_access)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
-
+    
     ptx_file_line_stats& line_stats = ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())];
     line_stats.gmem_n_access_total += n_access;
     line_stats.gmem_warp_count += 1;
 }
 
-// a class that tracks the inflight memory instructions of a shader core
-// and attributes exposed latency to those instructions when signaled to do so
+// a class that tracks the inflight memory instructions of a shader core 
+// and attributes exposed latency to those instructions when signaled to do so 
 class ptx_inflight_memory_insn_tracker
 {
 public:
@@ -207,7 +206,7 @@ public:
 
     void sub_count(const ptx_instruction * pInsn, int count = 1)
     {
-        insn_count_map::iterator i_insncount;
+        insn_count_map::iterator i_insncount; 
         i_insncount = ptx_inflight_memory_insns.find(pInsn);
 
         assert(i_insncount != ptx_inflight_memory_insns.end());
@@ -269,7 +268,7 @@ void ptx_file_line_stats_commit_exposed_latency(int sc_id, int exposed_latency)
 void ptx_file_line_stats_add_warp_divergence(unsigned pc, unsigned n_way_divergence)
 {
     const ptx_instruction *pInsn = function_info::pc_to_instruction(pc);
-
+    
     ptx_file_line_stats& line_stats = ptx_file_line_stats_tracker[ptx_file_line(pInsn->source_file(), pInsn->source_line())];
     line_stats.warp_divergence += n_way_divergence;
 }

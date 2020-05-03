@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2011, Tor M. Aamodt, Ali Bakhoda, Wilson W.L. Fung,
-// George L. Yuan
+// George L. Yuan 
 // The University of British Columbia
 // All rights reserved.
 //
@@ -26,18 +26,18 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <algorithm>
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <list>
-
-#include "assert.h"
-#include "cuda-sim.h"
-#include "opcodes.h"
-#include "ptx.tab.h"
-#include "ptx_ir.h"
 #include "ptx_parser.h"
+#include "ptx_ir.h"
+#include "ptx.tab.h"
+#include "opcodes.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <list>
+#include <assert.h>
+#include <algorithm>
+#include "assert.h"
+
+#include "cuda-sim.h"
 
 #define STR_SIZE 1024
 
@@ -57,29 +57,29 @@ void symbol::add_initializer( const std::list<operand_info> &init )
 void symbol::print_info(FILE *fp) const
 {
    fprintf(fp,"uid:%u, decl:%s, type:%p, ", m_uid, m_decl_location.c_str(), m_type );
-   if ( m_address_valid )
+   if( m_address_valid ) 
       fprintf(fp,"<address valid>, ");
-   if ( m_is_label )
+   if( m_is_label )
       fprintf(fp," is_label ");
-   if ( m_is_shared )
+   if( m_is_shared )
       fprintf(fp," is_shared ");
-   if ( m_is_const )
+   if( m_is_const )
       fprintf(fp," is_const ");
-   if ( m_is_global )
+   if( m_is_global )
       fprintf(fp," is_global ");
-   if ( m_is_local )
+   if( m_is_local )
       fprintf(fp," is_local ");
-   if ( m_is_tex )
+   if( m_is_tex )
       fprintf(fp," is_tex ");
-   if ( m_is_func_addr )
+   if( m_is_func_addr )
       fprintf(fp," is_func_addr ");
-   if ( m_function )
+   if( m_function ) 
       fprintf(fp," %p ", m_function );
 }
 
-symbol_table::symbol_table()
-{
-   assert(0);
+symbol_table::symbol_table() 
+{ 
+   assert(0); 
 }
 
 symbol_table::symbol_table( const char *scope_name, unsigned entry_point, symbol_table *parent )
@@ -90,6 +90,11 @@ symbol_table::symbol_table( const char *scope_name, unsigned entry_point, symbol
    m_const_next  = 0;
    m_global_next = 0x100;
    m_local_next  = 0;
+   m_tex_next = 0;
+
+   //Jin: handle instruction group for cdp
+   m_inst_group_id = 0;
+
    m_parent = parent;
    if ( m_parent ) {
       m_shared_next = m_parent->m_shared_next;
@@ -102,22 +107,22 @@ void symbol_table::set_name( const char *name )
    m_scope_name = std::string(name);
 }
 
-const ptx_version &symbol_table::get_ptx_version() const
-{
-   if ( m_parent == NULL ) return m_ptx_version;
-   else return m_parent->get_ptx_version();
+const ptx_version &symbol_table::get_ptx_version() const 
+{ 
+   if( m_parent == NULL ) return m_ptx_version;
+   else return m_parent->get_ptx_version(); 
 }
 
-unsigned symbol_table::get_sm_target() const
-{
-   if ( m_parent == NULL )
+unsigned symbol_table::get_sm_target() const 
+{ 
+   if( m_parent == NULL ) 
       return m_ptx_version.target();
-   else return m_parent->get_sm_target();
+   else return m_parent->get_sm_target(); 
 }
 
-void symbol_table::set_ptx_version( float ver, unsigned ext )
-{
-   m_ptx_version = ptx_version(ver,ext);
+void symbol_table::set_ptx_version( float ver, unsigned ext ) 
+{ 
+   m_ptx_version = ptx_version(ver,ext); 
 }
 
 void symbol_table::set_sm_target( const char *target, const char *ext, const char *ext2 )
@@ -125,7 +130,7 @@ void symbol_table::set_sm_target( const char *target, const char *ext, const cha
    m_ptx_version.set_target(target,ext,ext2);
 }
 
-symbol *symbol_table::lookup( const char *identifier )
+symbol *symbol_table::lookup( const char *identifier ) 
 {
    std::string key(identifier);
    std::map<std::string, symbol *>::iterator i = m_symbols.find(key);
@@ -160,7 +165,7 @@ symbol *symbol_table::add_variable( const char *identifier, const type_info *typ
 void symbol_table::add_function( function_info *func, const char *filename, unsigned linenumber )
 {
    std::map<std::string, symbol *>::iterator i = m_symbols.find( func->get_name() );
-   if ( i != m_symbols.end() )
+   if( i != m_symbols.end() )
       return;
    char buf[1024];
    snprintf(buf,1024,"%s:%u",filename,linenumber);
@@ -170,28 +175,64 @@ void symbol_table::add_function( function_info *func, const char *filename, unsi
    m_symbols[ func->get_name() ] = s;
 }
 
+//Jin: handle instruction group for cdp
+symbol_table* symbol_table::start_inst_group() {
+   char inst_group_name[1024];
+   snprintf(inst_group_name, 1024, "%s_inst_group_%u", m_scope_name.c_str(), m_inst_group_id);
+
+   //previous added
+   assert(m_inst_group_symtab.find(std::string(inst_group_name)) == m_inst_group_symtab.end());
+   symbol_table *sym_table = new symbol_table(inst_group_name, 3/*inst group*/, this );
+ 
+   sym_table->m_global_next = m_global_next;
+   sym_table->m_shared_next = m_shared_next;
+   sym_table->m_local_next = m_local_next;
+   sym_table->m_reg_allocator = m_reg_allocator;
+   sym_table->m_tex_next = m_tex_next;
+   sym_table->m_const_next = m_const_next;
+
+   m_inst_group_symtab[std::string(inst_group_name)] = sym_table;
+
+   return sym_table;
+}
+
+symbol_table * symbol_table::end_inst_group() {
+   symbol_table * sym_table = m_parent;
+   
+   sym_table->m_global_next = m_global_next;
+   sym_table->m_shared_next = m_shared_next;
+   sym_table->m_local_next = m_local_next;
+   sym_table->m_reg_allocator = m_reg_allocator;
+   sym_table->m_tex_next = m_tex_next;
+   sym_table->m_const_next = m_const_next;
+   sym_table->m_inst_group_id++;
+
+   return sym_table;
+}
+
 void register_ptx_function( const char *name, function_info *impl ); // either libcuda or libopencl
 
 bool symbol_table::add_function_decl( const char *name, int entry_point, function_info **func_info, symbol_table **sym_table )
 {
    std::string key = std::string(name);
    bool prior_decl = false;
-   if ( m_function_info_lookup.find(key) != m_function_info_lookup.end() ) {
+   if( m_function_info_lookup.find(key) != m_function_info_lookup.end() ) {
       *func_info = m_function_info_lookup[key];
       prior_decl = true;
    } else {
       *func_info = new function_info(entry_point);
       (*func_info)->set_name(name);
+      (*func_info)->set_maxnt_id(0);
       m_function_info_lookup[key] = *func_info;
    }
 
-   if ( m_function_symtab_lookup.find(key) != m_function_symtab_lookup.end() ) {
+   if( m_function_symtab_lookup.find(key) != m_function_symtab_lookup.end() ) {
       assert( prior_decl );
       *sym_table = m_function_symtab_lookup[key];
    } else {
       assert( !prior_decl );
       *sym_table = new symbol_table( "", entry_point, this );
-
+      
       // Initial setup code to support a register represented as "_".
       // This register is used when an instruction operand is
       // not read or written.  However, the parser must recognize it
@@ -205,9 +246,9 @@ bool symbol_table::add_function_decl( const char *name, int entry_point, functio
       // However, the first parameter is actually unread in the constructor...
       // TODO - remove the symbol_table* from type_info
       type_info* null_type_info = new type_info( NULL, null_key );
-      symbol *null_reg = (*sym_table)->add_variable( "_", null_type_info, 0, "", 0 );
+      symbol *null_reg = (*sym_table)->add_variable( "_", null_type_info, 0, "", 0 ); 
       null_reg->set_regno(0, 0);
-
+      
       (*sym_table)->set_name(name);
       (*func_info)->set_symtab(*sym_table);
       m_function_symtab_lookup[key] = *sym_table;
@@ -217,9 +258,17 @@ bool symbol_table::add_function_decl( const char *name, int entry_point, functio
    return prior_decl;
 }
 
+function_info *symbol_table::lookup_function( std::string name )
+{
+   std::string key = std::string(name);
+   std::map<std::string,function_info*>::iterator it = m_function_info_lookup.find(key);
+   assert ( it != m_function_info_lookup.end() );
+   return it->second;
+}
+
 type_info *symbol_table::add_type( memory_space_t space_spec, int scalar_type_spec, int vector_spec, int alignment_spec, int extern_spec )
 {
-   if ( space_spec == param_space_unclassified )
+   if( space_spec == param_space_unclassified ) 
       space_spec = param_space_local;
    type_info_key t(space_spec,scalar_type_spec,vector_spec,alignment_spec,extern_spec,0);
    type_info *pt;
@@ -236,12 +285,14 @@ type_info *symbol_table::add_type( function_info *func )
    return pt;
 }
 
-type_info *symbol_table::get_array_type( type_info *base_type, unsigned array_dim )
+type_info *symbol_table::get_array_type( type_info *base_type, unsigned array_dim ) 
 {
    type_info_key t = base_type->get_key();
    t.set_array_dim(array_dim);
-   type_info *pt;
-   pt = m_types[t] = new type_info(this,t);
+   type_info *pt = new type_info(this,t);
+   //Where else is m_types being used? As of now, I dont find any use of it and causing seg fault. So disabling m_types.
+   //TODO: find where m_types can be used in future and solve the seg fault.
+   //pt = m_types[t] = new type_info(this,t);
    return pt;
 }
 
@@ -258,9 +309,9 @@ void symbol_table::dump()
    printf("\n\n");
    printf("Symbol table for \"%s\":\n", m_scope_name.c_str() );
    std::map<std::string, symbol *>::iterator i;
-   for ( i=m_symbols.begin(); i!=m_symbols.end(); i++ ) {
+   for( i=m_symbols.begin(); i!=m_symbols.end(); i++ ) {
       printf("%30s : ", i->first.c_str() );
-      if ( i->second )
+      if( i->second ) 
          i->second->print_info(stdout);
       else
          printf(" <no symbol object> ");
@@ -279,7 +330,7 @@ unsigned operand_info::get_uid()
 
 std::list<ptx_instruction*>::iterator function_info::find_next_real_instruction( std::list<ptx_instruction*>::iterator i)
 {
-   while ( (i != m_instructions.end()) && (*i)->is_label() )
+   while( (i != m_instructions.end()) && (*i)->is_label() ) 
       i++;
    return i;
 }
@@ -293,24 +344,24 @@ void function_info::create_basic_blocks()
    i=m_instructions.begin();
    leaders.push_back(*i);
    i++;
-   while ( i!=m_instructions.end() ) {
+   while( i!=m_instructions.end() ) {
       ptx_instruction *pI = *i;
-      if ( pI->is_label() ) {
+      if( pI->is_label() ) {
          leaders.push_back(pI);
          i = find_next_real_instruction(++i);
       } else {
          switch( pI->get_opcode() ) {
-         case BRA_OP: case RET_OP: case EXIT_OP: case RETP_OP: case BREAK_OP:
+         case BRA_OP: case RET_OP: case EXIT_OP: case RETP_OP: case BREAK_OP: 
             i++;
-            if ( i != m_instructions.end() )
+            if( i != m_instructions.end() ) 
                leaders.push_back(*i);
             i = find_next_real_instruction(i);
             break;
          case CALL_OP: case CALLP_OP:
-            if ( pI->has_pred() ) {
+            if( pI->has_pred() ) {
                printf("GPGPU-Sim PTX: Warning found predicated call\n");
                i++;
-               if ( i != m_instructions.end() )
+               if( i != m_instructions.end() ) 
                   leaders.push_back(*i);
                i = find_next_real_instruction(i);
             } else i++;
@@ -318,10 +369,10 @@ void function_info::create_basic_blocks()
          default:
             i++;
          }
-      }
+      } 
    }
 
-   if ( leaders.empty() ) {
+   if( leaders.empty() ) {
       printf("GPGPU-Sim PTX: Function \'%s\' has no basic blocks\n", m_name.c_str());
       return;
    }
@@ -332,12 +383,12 @@ void function_info::create_basic_blocks()
    m_basic_blocks.push_back( new basic_block_t(bb_id++,*find_next_real_instruction(i),NULL,1,0) );
    ptx_instruction *last_real_inst=*(l++);
 
-   for ( ; i!=m_instructions.end(); i++ ) {
+   for( ; i!=m_instructions.end(); i++ ) {
       ptx_instruction *pI = *i;
-      if ( l != leaders.end() && *i == *l ) {
+      if( l != leaders.end() && *i == *l ) {
          // found start of next basic block
          m_basic_blocks.back()->ptx_end = last_real_inst;
-         if ( find_next_real_instruction(i) != m_instructions.end() ) { // if not bogus trailing label
+         if( find_next_real_instruction(i) != m_instructions.end() ) { // if not bogus trailing label
             m_basic_blocks.push_back( new basic_block_t(bb_id++,*find_next_real_instruction(i),NULL,0,0) );
             last_real_inst = *find_next_real_instruction(i);
          }
@@ -345,7 +396,7 @@ void function_info::create_basic_blocks()
          l++;
       }
       pI->assign_bb( m_basic_blocks.back() );
-      if ( !pI->is_label() ) last_real_inst = pI;
+      if( !pI->is_label() ) last_real_inst = pI;
    }
    m_basic_blocks.back()->ptx_end = last_real_inst;
    m_basic_blocks.push_back( /*exit basic block*/ new basic_block_t(bb_id,NULL,NULL,0,1) );
@@ -357,8 +408,8 @@ void function_info::print_basic_blocks()
    std::list<ptx_instruction*>::iterator ptx_itr;
    unsigned last_bb=0;
    for (ptx_itr = m_instructions.begin();ptx_itr != m_instructions.end(); ptx_itr++) {
-      if ( (*ptx_itr)->get_bb() ) {
-         if ( (*ptx_itr)->get_bb()->bb_id != last_bb ) {
+      if( (*ptx_itr)->get_bb() ) {
+         if( (*ptx_itr)->get_bb()->bb_id != last_bb ) {
             printf("\n");
             last_bb = (*ptx_itr)->get_bb()->bb_id;
          }
@@ -406,39 +457,39 @@ void function_info::print_basic_block_links()
       printf("\n");
    }
 }
-operand_info* function_info::find_break_target( ptx_instruction * p_break_insn ) //find the target of a break instruction
+operand_info* function_info::find_break_target( ptx_instruction * p_break_insn ) //find the target of a break instruction 
 {
-   const basic_block_t *break_bb = p_break_insn->get_bb();
-   // go through the dominator tree
-   for (const basic_block_t *p_bb = break_bb;
-       p_bb->immediatedominator_id != -1;
-       p_bb = m_basic_blocks[p_bb->immediatedominator_id])
+   const basic_block_t *break_bb = p_break_insn->get_bb(); 
+   // go through the dominator tree 
+   for(const basic_block_t *p_bb = break_bb; 
+       p_bb->immediatedominator_id != -1; 
+       p_bb = m_basic_blocks[p_bb->immediatedominator_id]) 
    {
-      // reverse search through instructions in basic block for breakaddr instruction
-      unsigned insn_addr = p_bb->ptx_end->get_m_instr_mem_index();
-      while (insn_addr >= p_bb->ptx_begin->get_m_instr_mem_index()) {
-         ptx_instruction *pI = m_instr_mem[insn_addr];
-         insn_addr -= 1;
-         if (pI == NULL) continue; // temporary solution for variable size instructions
+      // reverse search through instructions in basic block for breakaddr instruction 
+      unsigned insn_addr = p_bb->ptx_end->get_m_instr_mem_index(); 
+      while (insn_addr >= p_bb->ptx_begin->get_m_instr_mem_index()) { 
+         ptx_instruction *pI = m_instr_mem[insn_addr]; 
+         insn_addr -= 1; 
+         if (pI == NULL) continue; // temporary solution for variable size instructions 
          if (pI->get_opcode() == BREAKADDR_OP) {
-            return &(pI->dst());
+            return &(pI->dst()); 
          }
       }
    }
 
-   assert(0);
+   assert(0); 
 
-   // lazy fallback: just traverse backwards?
-   for (int insn_addr = p_break_insn->get_m_instr_mem_index();
-        insn_addr >= 0; insn_addr--)
-   {
-      ptx_instruction *pI = m_instr_mem[insn_addr];
+   // lazy fallback: just traverse backwards? 
+   for (int insn_addr = p_break_insn->get_m_instr_mem_index(); 
+        insn_addr >= 0; insn_addr--) 
+   { 
+      ptx_instruction *pI = m_instr_mem[insn_addr]; 
       if (pI->get_opcode() == BREAKADDR_OP) {
-         return &(pI->dst());
+         return &(pI->dst()); 
       }
    }
 
-   return NULL;
+   return NULL; 
 }
 void function_info::connect_basic_blocks( ) //iterate across m_basic_blocks of function, connecting basic blocks together
 {
@@ -447,19 +498,19 @@ void function_info::connect_basic_blocks( ) //iterate across m_basic_blocks of f
    basic_block_t* exit_bb = m_basic_blocks.back();
 
    //start from first basic block, which we know is the entry point
-   bb_itr = m_basic_blocks.begin();
+   bb_itr = m_basic_blocks.begin(); 
    for (bb_itr = m_basic_blocks.begin();bb_itr != m_basic_blocks.end(); bb_itr++) {
       ptx_instruction *pI = (*bb_itr)->ptx_end;
-      if ((*bb_itr)->is_exit) //reached last basic block, no successors to link
+      if ((*bb_itr)->is_exit) //reached last basic block, no successors to link 
          continue;
       if (pI->get_opcode() == RETP_OP || pI->get_opcode() == RET_OP || pI->get_opcode() == EXIT_OP ) {
          (*bb_itr)->successor_ids.insert(exit_bb->bb_id);
          exit_bb->predecessor_ids.insert((*bb_itr)->bb_id);
-         if ( pI->has_pred() ) {
+         if( pI->has_pred() ) {
             printf("GPGPU-Sim PTX: Warning detected predicated return/exit.\n");
             // if predicated, add link to next block
-            unsigned next_addr = pI->get_m_instr_mem_index() + 1;
-            if ( next_addr < m_instr_mem_size && m_instr_mem[next_addr] ) {
+            unsigned next_addr = pI->get_m_instr_mem_index() + pI->inst_size();
+            if( next_addr < m_instr_mem_size && m_instr_mem[next_addr] ) {
                basic_block_t *next_bb = m_instr_mem[next_addr]->get_bb();
                (*bb_itr)->successor_ids.insert(next_bb->bb_id);
                next_bb->predecessor_ids.insert((*bb_itr)->bb_id);
@@ -474,10 +525,10 @@ void function_info::connect_basic_blocks( ) //iterate across m_basic_blocks of f
          basic_block_t *target_bb = target_pI->get_bb();
          (*bb_itr)->successor_ids.insert(target_bb->bb_id);
          target_bb->predecessor_ids.insert((*bb_itr)->bb_id);
-      }
+      } 
 
-      if ( !(pI->get_opcode()==BRA_OP && (!pI->has_pred())) ) {
-         // if basic block does not end in an unpredicated branch,
+      if ( !(pI->get_opcode()==BRA_OP && (!pI->has_pred())) ) { 
+         // if basic block does not end in an unpredicated branch, 
          // then next basic block is also successor
          // (this is better than testing for .uni)
          unsigned next_addr = pI->get_m_instr_mem_index() + pI->inst_size();
@@ -492,29 +543,29 @@ bool function_info::connect_break_targets() //connecting break instructions with
 {
    std::vector<basic_block_t*>::iterator bb_itr;
    std::vector<basic_block_t*>::iterator bb_target_itr;
-   bool modified = false;
+   bool modified = false; 
 
    //start from first basic block, which we know is the entry point
-   bb_itr = m_basic_blocks.begin();
+   bb_itr = m_basic_blocks.begin(); 
    for (bb_itr = m_basic_blocks.begin();bb_itr != m_basic_blocks.end(); bb_itr++) {
-      basic_block_t *p_bb = *bb_itr;
+      basic_block_t *p_bb = *bb_itr; 
       ptx_instruction *pI = p_bb->ptx_end;
-      if (p_bb->is_exit) //reached last basic block, no successors to link
+      if (p_bb->is_exit) //reached last basic block, no successors to link 
          continue;
       if (pI->get_opcode() == BREAK_OP) {
          // backup existing successor_ids for stability check
-         std::set<int> orig_successor_ids = p_bb->successor_ids;
+         std::set<int> orig_successor_ids = p_bb->successor_ids; 
 
-         // erase the previous linkage with old successors
-         for (std::set<int>::iterator succ_ids = p_bb->successor_ids.begin(); succ_ids != p_bb->successor_ids.end(); ++succ_ids) {
+         // erase the previous linkage with old successors 
+         for(std::set<int>::iterator succ_ids = p_bb->successor_ids.begin(); succ_ids != p_bb->successor_ids.end(); ++succ_ids) {
             basic_block_t *successor_bb = m_basic_blocks[*succ_ids];
-            successor_bb->predecessor_ids.erase(p_bb->bb_id);
+            successor_bb->predecessor_ids.erase(p_bb->bb_id); 
          }
-         p_bb->successor_ids.clear();
+         p_bb->successor_ids.clear(); 
 
          //find successor and link that basic_block to this one
-         //successor of a break is set by an preceeding breakaddr instruction
-         operand_info *target = find_break_target(pI);
+         //successor of a break is set by an preceeding breakaddr instruction 
+         operand_info *target = find_break_target(pI); 
          unsigned addr = labels[ target->name() ];
          ptx_instruction *target_pI = m_instr_mem[addr];
          basic_block_t *target_bb = target_pI->get_bb();
@@ -529,32 +580,66 @@ bool function_info::connect_break_targets() //connecting break instructions with
             next_bb->predecessor_ids.insert(p_bb->bb_id);
          }
 
-         modified = modified || (orig_successor_ids != p_bb->successor_ids);
+         modified = modified || (orig_successor_ids != p_bb->successor_ids); 
       }
    }
 
-   return modified;
+   return modified; 
+}
+void function_info::do_pdom() 
+{
+   create_basic_blocks();
+   connect_basic_blocks();
+   bool modified = false; 
+   do {
+      find_dominators();
+      find_idominators();
+      modified = connect_break_targets(); 
+   } while (modified == true);
+
+   if ( g_debug_execution>=50 ) {
+      print_basic_blocks();
+      print_basic_block_links();
+      print_basic_block_dot();
+   }
+   if ( g_debug_execution>=2 ) {
+      print_dominators();
+   }
+   find_postdominators();
+   find_ipostdominators();
+   if ( g_debug_execution>=50 ) {
+      print_postdominators();
+      print_ipostdominators();
+   }
+   printf("GPGPU-Sim PTX: pre-decoding instructions for \'%s\'...\n", m_name.c_str() );
+   for ( unsigned ii=0; ii < m_n; ii += m_instr_mem[ii]->inst_size() ) { // handle branch instructions
+      ptx_instruction *pI = m_instr_mem[ii];
+      pI->pre_decode();
+   }
+   printf("GPGPU-Sim PTX: ... done pre-decoding instructions for \'%s\'.\n", m_name.c_str() );
+   fflush(stdout);
+   m_assembled = true;
 }
 void intersect( std::set<int> &A, const std::set<int> &B )
 {
    // return intersection of A and B in A
-   for ( std::set<int>::iterator a=A.begin(); a!=A.end(); ) {
+   for( std::set<int>::iterator a=A.begin(); a!=A.end(); ) {    
       std::set<int>::iterator a_next = a;
       a_next++;
-      if ( B.find(*a) == B.end() ) {
+      if( B.find(*a) == B.end() ) {
          A.erase(*a);
          a = a_next;
-      } else
+      } else 
          a++;
    }
 }
 
 bool is_equal( const std::set<int> &A, const std::set<int> &B )
 {
-   if ( A.size() != B.size() )
+   if( A.size() != B.size() ) 
       return false;
-   for ( std::set<int>::iterator b=B.begin(); b!=B.end(); b++ )
-      if ( A.find(*b) == A.end() )
+   for( std::set<int>::iterator b=B.begin(); b!=B.end(); b++ ) 
+      if( A.find(*b) == A.end() ) 
          return false;
    return true;
 }
@@ -569,16 +654,16 @@ void print_set(const std::set<int> &A)
 }
 
 void function_info::find_dominators( )
-{
-   // find dominators using algorithm of Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14
+{  
+   // find dominators using algorithm of Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14 
    printf("GPGPU-Sim PTX: Finding dominators for \'%s\'...\n", m_name.c_str() );
    fflush(stdout);
    assert( m_basic_blocks.size() >= 2 ); // must have a distinquished entry block
    std::vector<basic_block_t*>::iterator bb_itr = m_basic_blocks.begin();
    (*bb_itr)->dominator_ids.insert((*bb_itr)->bb_id);  // the only dominator of the entry block is the entry
    //copy all basic blocks to all dominator lists EXCEPT for the entry block
-   for (++bb_itr;bb_itr != m_basic_blocks.end(); bb_itr++) {
-      for (unsigned i = 0; i < m_basic_blocks.size(); i++)
+   for (++bb_itr;bb_itr != m_basic_blocks.end(); bb_itr++) { 
+      for (unsigned i = 0; i < m_basic_blocks.size(); i++) 
          (*bb_itr)->dominator_ids.insert(i);
    }
    bool change = true;
@@ -587,9 +672,9 @@ void function_info::find_dominators( )
       for ( int h = 1/*skip entry*/; h < m_basic_blocks.size(); ++h ) {
          assert( m_basic_blocks[h]->bb_id == (unsigned)h );
          std::set<int> T;
-         for (unsigned i=0;i< m_basic_blocks.size();i++)
+         for (unsigned i=0;i< m_basic_blocks.size();i++) 
             T.insert(i);
-         for ( std::set<int>::iterator s = m_basic_blocks[h]->predecessor_ids.begin();s != m_basic_blocks[h]->predecessor_ids.end();s++)
+         for ( std::set<int>::iterator s = m_basic_blocks[h]->predecessor_ids.begin();s != m_basic_blocks[h]->predecessor_ids.end();s++) 
             intersect(T, m_basic_blocks[*s]->dominator_ids);
          T.insert(h);
          if (!is_equal(T, m_basic_blocks[h]->dominator_ids)) {
@@ -601,21 +686,21 @@ void function_info::find_dominators( )
    //clean the basic block of dominators of it has no predecessors -- except for entry block
    bb_itr = m_basic_blocks.begin();
    for (++bb_itr;bb_itr != m_basic_blocks.end(); bb_itr++) {
-          if ((*bb_itr)->predecessor_ids.empty())
+	  if ((*bb_itr)->predecessor_ids.empty())
          (*bb_itr)->dominator_ids.clear();
    }
 }
 
 void function_info::find_postdominators( )
-{
-   // find postdominators using algorithm of Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14
+{  
+   // find postdominators using algorithm of Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14 
    printf("GPGPU-Sim PTX: Finding postdominators for \'%s\'...\n", m_name.c_str() );
    fflush(stdout);
    assert( m_basic_blocks.size() >= 2 ); // must have a distinquished exit block
    std::vector<basic_block_t*>::reverse_iterator bb_itr = m_basic_blocks.rbegin();
    (*bb_itr)->postdominator_ids.insert((*bb_itr)->bb_id);  // the only postdominator of the exit block is the exit
    for (++bb_itr;bb_itr != m_basic_blocks.rend();bb_itr++) { //copy all basic blocks to all postdominator lists EXCEPT for the exit block
-      for (unsigned i=0; i<m_basic_blocks.size(); i++)
+      for (unsigned i=0; i<m_basic_blocks.size(); i++) 
          (*bb_itr)->postdominator_ids.insert(i);
    }
    bool change = true;
@@ -624,9 +709,9 @@ void function_info::find_postdominators( )
       for ( int h = m_basic_blocks.size()-2/*skip exit*/; h >= 0 ; --h ) {
          assert( m_basic_blocks[h]->bb_id == (unsigned)h );
          std::set<int> T;
-         for (unsigned i=0;i< m_basic_blocks.size();i++)
+         for (unsigned i=0;i< m_basic_blocks.size();i++) 
             T.insert(i);
-         for ( std::set<int>::iterator s = m_basic_blocks[h]->successor_ids.begin();s != m_basic_blocks[h]->successor_ids.end();s++)
+         for ( std::set<int>::iterator s = m_basic_blocks[h]->successor_ids.begin();s != m_basic_blocks[h]->successor_ids.end();s++) 
             intersect(T, m_basic_blocks[*s]->postdominator_ids);
          T.insert(h);
          if (!is_equal(T,m_basic_blocks[h]->postdominator_ids)) {
@@ -638,9 +723,9 @@ void function_info::find_postdominators( )
 }
 
 void function_info::find_ipostdominators( )
-{
+{  
    // find immediate postdominator blocks, using algorithm of
-   // Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15
+   // Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15 
    printf("GPGPU-Sim PTX: Finding immediate postdominators for \'%s\'...\n", m_name.c_str() );
    fflush(stdout);
    assert( m_basic_blocks.size() >= 2 ); // must have a distinquished exit block
@@ -651,16 +736,16 @@ void function_info::find_ipostdominators( )
    }
    for ( int n = m_basic_blocks.size()-2; n >=0;--n) {
       // point iterator to basic block before the exit
-      for ( std::set<int>::iterator s=m_basic_blocks[n]->Tmp_ids.begin(); s != m_basic_blocks[n]->Tmp_ids.end(); s++ ) {
+      for( std::set<int>::iterator s=m_basic_blocks[n]->Tmp_ids.begin(); s != m_basic_blocks[n]->Tmp_ids.end(); s++ ) {
          int bb_s = *s;
-         for ( std::set<int>::iterator t=m_basic_blocks[n]->Tmp_ids.begin(); t != m_basic_blocks[n]->Tmp_ids.end(); ) {
+         for( std::set<int>::iterator t=m_basic_blocks[n]->Tmp_ids.begin(); t != m_basic_blocks[n]->Tmp_ids.end(); ) {
             std::set<int>::iterator t_next = t; t_next++; // might erase thing pointed to be t, invalidating iterator t
-            if ( *s == *t ) {
+            if( *s == *t ) {
                t = t_next;
                continue;
             }
             int bb_t = *t;
-            if ( m_basic_blocks[bb_s]->postdominator_ids.find(bb_t) != m_basic_blocks[bb_s]->postdominator_ids.end() )
+            if( m_basic_blocks[bb_s]->postdominator_ids.find(bb_t) != m_basic_blocks[bb_s]->postdominator_ids.end() ) 
                 m_basic_blocks[n]->Tmp_ids.erase(bb_t);
             t = t_next;
          }
@@ -668,22 +753,22 @@ void function_info::find_ipostdominators( )
    }
    unsigned num_ipdoms=0;
    for ( int n = m_basic_blocks.size()-1; n >=0;--n) {
-      assert( m_basic_blocks[n]->Tmp_ids.size() <= 1 );
-         // if the above assert fails we have an error in either postdominator
+      assert( m_basic_blocks[n]->Tmp_ids.size() <= 1 ); 
+         // if the above assert fails we have an error in either postdominator 
          // computation, the flow graph does not have a unique exit, or some other error
-      if ( !m_basic_blocks[n]->Tmp_ids.empty() ) {
+      if( !m_basic_blocks[n]->Tmp_ids.empty() ) {
          m_basic_blocks[n]->immediatepostdominator_id = *m_basic_blocks[n]->Tmp_ids.begin();
          num_ipdoms++;
       }
    }
-   assert( num_ipdoms == m_basic_blocks.size()-1 );
+   assert( num_ipdoms == m_basic_blocks.size()-1 ); 
       // the exit node does not have an immediate post dominator, but everyone else should
 }
 
 void function_info::find_idominators( )
-{
+{  
    // find immediate dominator blocks, using algorithm of
-   // Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15
+   // Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15 
    printf("GPGPU-Sim PTX: Finding immediate dominators for \'%s\'...\n", m_name.c_str() );
    fflush(stdout);
    assert( m_basic_blocks.size() >= 2 ); // must have a distinquished entry block
@@ -694,16 +779,16 @@ void function_info::find_idominators( )
    }
    for ( int n = 0; n < m_basic_blocks.size(); ++n) {
       // point iterator to basic block before the exit
-      for ( std::set<int>::iterator s=m_basic_blocks[n]->Tmp_ids.begin(); s != m_basic_blocks[n]->Tmp_ids.end(); s++ ) {
+      for( std::set<int>::iterator s=m_basic_blocks[n]->Tmp_ids.begin(); s != m_basic_blocks[n]->Tmp_ids.end(); s++ ) {
          int bb_s = *s;
-         for ( std::set<int>::iterator t=m_basic_blocks[n]->Tmp_ids.begin(); t != m_basic_blocks[n]->Tmp_ids.end(); ) {
+         for( std::set<int>::iterator t=m_basic_blocks[n]->Tmp_ids.begin(); t != m_basic_blocks[n]->Tmp_ids.end(); ) {
             std::set<int>::iterator t_next = t; t_next++; // might erase thing pointed to be t, invalidating iterator t
-            if ( *s == *t ) {
+            if( *s == *t ) {
                t = t_next;
                continue;
             }
             int bb_t = *t;
-            if ( m_basic_blocks[bb_s]->dominator_ids.find(bb_t) != m_basic_blocks[bb_s]->dominator_ids.end() )
+            if( m_basic_blocks[bb_s]->dominator_ids.find(bb_t) != m_basic_blocks[bb_s]->dominator_ids.end() ) 
                 m_basic_blocks[n]->Tmp_ids.erase(bb_t);
             t = t_next;
          }
@@ -715,11 +800,11 @@ void function_info::find_idominators( )
       //assert( m_basic_blocks[n]->Tmp_ids.size() <= 1 );
          // if the above assert fails we have an error in either dominator
          // computation, the flow graph does not have a unique entry, or some other error
-      if ( !m_basic_blocks[n]->Tmp_ids.empty() ) {
+      if( !m_basic_blocks[n]->Tmp_ids.empty() ) {
          m_basic_blocks[n]->immediatedominator_id = *m_basic_blocks[n]->Tmp_ids.begin();
          num_idoms++;
       } else if (m_basic_blocks[n]->predecessor_ids.empty()) {
-          num_nopred += 1;
+    	  num_nopred += 1;
       }
    }
    assert( num_idoms == m_basic_blocks.size()-num_nopred );
@@ -732,7 +817,7 @@ void function_info::print_dominators()
    std::vector<int>::iterator bb_itr;
    for (unsigned i = 0; i < m_basic_blocks.size(); i++) {
       printf("ID: %d\t:", i);
-      for ( std::set<int>::iterator j=m_basic_blocks[i]->dominator_ids.begin(); j!=m_basic_blocks[i]->dominator_ids.end(); j++)
+      for( std::set<int>::iterator j=m_basic_blocks[i]->dominator_ids.begin(); j!=m_basic_blocks[i]->dominator_ids.end(); j++) 
          printf(" %d", *j );
       printf("\n");
    }
@@ -744,7 +829,7 @@ void function_info::print_postdominators()
    std::vector<int>::iterator bb_itr;
    for (unsigned i = 0; i < m_basic_blocks.size(); i++) {
       printf("ID: %d\t:", i);
-      for ( std::set<int>::iterator j=m_basic_blocks[i]->postdominator_ids.begin(); j!=m_basic_blocks[i]->postdominator_ids.end(); j++)
+      for( std::set<int>::iterator j=m_basic_blocks[i]->postdominator_ids.begin(); j!=m_basic_blocks[i]->postdominator_ids.end(); j++) 
          printf(" %d", *j );
       printf("\n");
    }
@@ -773,7 +858,7 @@ void function_info::print_idominators()
 unsigned function_info::get_num_reconvergence_pairs()
 {
    if (!num_reconvergence_pairs) {
-      if ( m_basic_blocks.size() == 0 )
+      if( m_basic_blocks.size() == 0 ) 
          return 0;
       for (unsigned i=0; i< (m_basic_blocks.size()-1); i++) { //last basic block containing exit obviously won't have a pair
          if (m_basic_blocks[i]->ptx_end->get_opcode() == BRA_OP) {
@@ -787,7 +872,7 @@ unsigned function_info::get_num_reconvergence_pairs()
 void function_info::get_reconvergence_pairs(gpgpu_recon_t* recon_points)
 {
    unsigned idx=0; //array index
-   if ( m_basic_blocks.size() == 0 )
+   if( m_basic_blocks.size() == 0 ) 
        return;
    for (unsigned i=0; i< (m_basic_blocks.size()-1); i++) { //last basic block containing exit obviously won't have a pair
 #ifdef DEBUG_GET_RECONVERG_PAIRS
@@ -805,7 +890,7 @@ void function_info::get_reconvergence_pairs(gpgpu_recon_t* recon_points)
 #ifdef DEBUG_GET_RECONVERG_PAIRS
          printf("\trecon_points[idx].source_pc=%d\n", recon_points[idx].source_pc);
 #endif
-         if ( m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin ) {
+         if( m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin ) {
             recon_points[idx].target_pc = m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin->get_PC();
             recon_points[idx].target_inst = m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin;
          } else {
@@ -843,14 +928,14 @@ void function_info::print_basic_block_dot()
 unsigned ptx_kernel_shmem_size( void *kernel_impl )
 {
    function_info *f = (function_info*)kernel_impl;
-   const struct gpgpu_ptx_sim_kernel_info *kernel_info = f->get_kernel_info();
+   const struct gpgpu_ptx_sim_info *kernel_info = f->get_kernel_info();
    return kernel_info->smem;
 }
 
 unsigned ptx_kernel_nregs( void *kernel_impl )
 {
    function_info *f = (function_info*)kernel_impl;
-   const struct gpgpu_ptx_sim_kernel_info *kernel_info = f->get_kernel_info();
+   const struct gpgpu_ptx_sim_info *kernel_info = f->get_kernel_info();
    return kernel_info->regs;
 }
 
@@ -884,16 +969,16 @@ unsigned type_info_key::type_decode( int type, size_t &size, int &basic_type )
    case BB128_TYPE: size=128; basic_type=0; return 16;
    case TEXREF_TYPE: case SAMPLERREF_TYPE: case SURFREF_TYPE:
       size=32; basic_type=3; return 16;
-   default:
-      printf("ERROR ** type_decode() does not know about \"%s\"\n", decode_token(type) );
-      assert(0);
+   default: 
+      printf("ERROR ** type_decode() does not know about \"%s\"\n", decode_token(type) ); 
+      assert(0); 
       return 0xDEADBEEF;
    }
 }
 
 arg_buffer_t copy_arg_to_buffer(ptx_thread_info * thread, operand_info actual_param_op, const symbol * formal_param)
 {
-   if ( actual_param_op.is_reg() )  {
+   if( actual_param_op.is_reg() )  {
       ptx_reg_t value = thread->get_reg(actual_param_op.get_symbol());
       return arg_buffer_t(formal_param,actual_param_op,value);
    } else if ( actual_param_op.is_param_local() ) {
@@ -901,7 +986,7 @@ arg_buffer_t copy_arg_to_buffer(ptx_thread_info * thread, operand_info actual_pa
       addr_t frame_offset = actual_param_op.get_symbol()->get_address();
       addr_t from_addr = thread->get_local_mem_stack_pointer() + frame_offset;
       char buffer[1024];
-      assert(size<1024);
+      assert(size<1024); 
       thread->m_local_mem->read(from_addr,size,buffer);
       return arg_buffer_t(formal_param,actual_param_op,buffer,size);
    } else {
@@ -910,27 +995,27 @@ arg_buffer_t copy_arg_to_buffer(ptx_thread_info * thread, operand_info actual_pa
    }
 }
 
-void copy_args_into_buffer_list( const ptx_instruction * pI,
-                                 ptx_thread_info * thread,
-                                 const function_info * target_func,
-                                 arg_buffer_list_t &arg_values )
+void copy_args_into_buffer_list( const ptx_instruction * pI, 
+                                 ptx_thread_info * thread, 
+                                 const function_info * target_func, 
+                                 arg_buffer_list_t &arg_values ) 
 {
    unsigned n_return = target_func->has_return();
    unsigned n_args = target_func->num_args();
-   for ( unsigned arg=0; arg < n_args; arg ++ ) {
+   for( unsigned arg=0; arg < n_args; arg ++ ) {
       const operand_info &actual_param_op = pI->operand_lookup(n_return+1+arg);
       const symbol *formal_param = target_func->get_arg(arg);
       arg_values.push_back( copy_arg_to_buffer(thread, actual_param_op, formal_param) );
    }
 }
 
-void copy_buffer_to_frame(ptx_thread_info * thread, const arg_buffer_t &a)
+void copy_buffer_to_frame(ptx_thread_info * thread, const arg_buffer_t &a) 
 {
-   if ( a.is_reg() ) {
+   if( a.is_reg() ) {
       ptx_reg_t value = a.get_reg();
-      operand_info dst_reg = operand_info(a.get_dst());
+      operand_info dst_reg = operand_info(a.get_dst()); 
       thread->set_reg(dst_reg.get_symbol(),value);
-   } else {
+   } else {  
       const void *buffer = a.get_param_buffer();
       size_t size = a.get_param_buffer_size();
       const symbol *dst = a.get_dst();
@@ -940,10 +1025,10 @@ void copy_buffer_to_frame(ptx_thread_info * thread, const arg_buffer_t &a)
    }
 }
 
-void copy_buffer_list_into_frame(ptx_thread_info * thread, arg_buffer_list_t &arg_values)
+void copy_buffer_list_into_frame(ptx_thread_info * thread, arg_buffer_list_t &arg_values) 
 {
    arg_buffer_list_t::iterator a;
-   for ( a=arg_values.begin(); a != arg_values.end(); a++ ) {
+   for( a=arg_values.begin(); a != arg_values.end(); a++ ) {
       copy_buffer_to_frame(thread, *a);
    }
 }
@@ -955,13 +1040,13 @@ static std::list<operand_info> check_operands( int opcode,
                                         const std::list<operand_info> &operands )
 {
    static int g_warn_literal_operands_two_type_inst;
-    if ( (opcode == CVT_OP) || (opcode == SET_OP) || (opcode == SLCT_OP) || (opcode == TEX_OP) ) {
-        // just make sure these do not have have const operands...
-        if ( !g_warn_literal_operands_two_type_inst ) {
+    if( (opcode == CVT_OP) || (opcode == SET_OP) || (opcode == SLCT_OP) || (opcode == TEX_OP) || (opcode==MMA_OP) || (opcode == DP4A_OP)) {
+        // just make sure these do not have have const operands... 
+        if( !g_warn_literal_operands_two_type_inst ) {
             std::list<operand_info>::const_iterator o;
-            for ( o = operands.begin(); o != operands.end(); o++ ) {
+            for( o = operands.begin(); o != operands.end(); o++ ) {
                 const operand_info &op = *o;
-                if ( op.is_literal() ) {
+                if( op.is_literal() ) {
                     printf("GPGPU-Sim PTX: PTX uses two scalar type intruction with literal operand.\n");
                     g_warn_literal_operands_two_type_inst = 1;
                 }
@@ -969,14 +1054,14 @@ static std::list<operand_info> check_operands( int opcode,
         }
     } else {
         assert( scalar_type.size() < 2 );
-        if ( scalar_type.size() == 1 ) {
+        if( scalar_type.size() == 1 ) {
             std::list<operand_info> result;
             int inst_type = scalar_type.front();
             std::list<operand_info>::const_iterator o;
-            for ( o = operands.begin(); o != operands.end(); o++ ) {
+            for( o = operands.begin(); o != operands.end(); o++ ) {
                 const operand_info &op = *o;
-                if ( op.is_literal() ) {
-                    if ( (op.get_type() == double_op_t) && (inst_type == F32_TYPE) ) {
+                if( op.is_literal() ) {
+                    if( (op.get_type() == double_op_t) && (inst_type == F32_TYPE) ) {
                         ptx_reg_t v = op.get_literal_value();
                         float u = (float)v.f64;
                         operand_info n(u);
@@ -989,23 +1074,24 @@ static std::list<operand_info> check_operands( int opcode,
                 }
             }
             return result;
-        }
+        } 
     }
     return operands;
 }
 
 
-ptx_instruction::ptx_instruction( int opcode,
-                                  const symbol *pred,
-                                  int neg_pred,
+ptx_instruction::ptx_instruction( int opcode, 
+                                  const symbol *pred, 
+                                  int neg_pred, 
                                   int pred_mod,
                                   symbol *label,
-                                  const std::list<operand_info> &operands,
+                                  const std::list<operand_info> &operands, 
                                   const operand_info &return_var,
-                                  const std::list<int> &options,
+                                  const std::list<int> &options, 
+                                  const std::list<int> &wmma_options, 
                                   const std::list<int> &scalar_type,
                                   memory_space_t space_spec,
-                                  const char *file,
+                                  const char *file, 
                                   unsigned line,
                                   const char *source,
                                   const core_config *config ) : warp_inst_t(config)
@@ -1021,6 +1107,7 @@ ptx_instruction::ptx_instruction( int opcode,
    m_operands.insert(m_operands.begin(), checked_operands.begin(), checked_operands.end() );
    m_return_var = return_var;
    m_options = options;
+   m_wmma_options = wmma_options;
    m_wide = false;
    m_hi = false;
    m_lo = false;
@@ -1038,12 +1125,41 @@ ptx_instruction::ptx_instruction( int opcode,
    m_atomic_spec = 0;
    m_membar_level = 0;
    m_inst_size = 8; // bytes
-
+   int rr=0;
    std::list<int>::const_iterator i;
    unsigned n=1;
+   for ( i=wmma_options.begin(); i!= wmma_options.end(); i++, n++ ) {
+      int last_ptx_inst_option = *i;
+      switch ( last_ptx_inst_option ) {
+      		case SYNC_OPTION:
+      		case LOAD_A:
+      		case LOAD_B:
+      		case LOAD_C:
+      		case STORE_D:
+      		case MMA:
+      		  m_wmma_type=last_ptx_inst_option;
+      		  break;
+      		case ROW:
+      		case COL:
+      		  m_wmma_layout[rr++]=last_ptx_inst_option;
+      		  break;
+      		case M16N16K16:
+			break;
+      		default:
+      		   assert(0);
+      		   break;
+	}
+   }
+   rr=0;
+   n=1;
    for ( i=options.begin(); i!= options.end(); i++, n++ ) {
       int last_ptx_inst_option = *i;
       switch ( last_ptx_inst_option ) {
+      case SYNC_OPTION:
+      case ARRIVE_OPTION:
+      case RED_OPTION:
+          m_barrier_op = last_ptx_inst_option;
+          break;
       case EQU_OPTION:
       case NEU_OPTION:
       case LTU_OPTION:
@@ -1062,7 +1178,7 @@ ptx_instruction::ptx_instruction( int opcode,
          break;
       case NUM_OPTION:
       case NAN_OPTION:
-          m_compare_op = last_ptx_inst_option;
+    	  m_compare_op = last_ptx_inst_option;
         // assert(0); // finish this
          break;
       case SAT_OPTION:
@@ -1081,7 +1197,7 @@ ptx_instruction::ptx_instruction( int opcode,
       case HI_OPTION:
          m_compare_op = last_ptx_inst_option;
          m_hi = true;
-         assert( !m_lo );
+         assert( !m_lo ); 
          assert( !m_wide );
          break;
       case LO_OPTION:
@@ -1092,8 +1208,8 @@ ptx_instruction::ptx_instruction( int opcode,
          break;
       case WIDE_OPTION:
          m_wide = true;
-         assert( !m_lo );
-         assert( !m_hi );
+         assert( !m_lo ); 
+         assert( !m_hi ); 
          break;
       case UNI_OPTION:
          m_uni = true; // don't care... < now we DO care when constructing flowgraph>
@@ -1162,6 +1278,25 @@ ptx_instruction::ptx_instruction( int opcode,
       case HALF_OPTION:
          m_inst_size = 4; // bytes
          break;
+      case EXTP_OPTION:
+             break;
+      case NC_OPTION:
+             m_cache_option = last_ptx_inst_option;
+             break;
+      case UP_OPTION:
+      case DOWN_OPTION:
+      case BFLY_OPTION:
+      case IDX_OPTION:
+		  m_shfl_op = last_ptx_inst_option;
+		  break;
+      case PRMT_F4E_MODE:
+      case PRMT_B4E_MODE:
+      case PRMT_RC8_MODE:
+      case PRMT_ECL_MODE:
+      case PRMT_ECR_MODE:
+      case PRMT_RC16_MODE:
+		  m_prmt_op = last_ptx_inst_option;
+		  break;
       default:
          assert(0);
          break;
@@ -1169,17 +1304,17 @@ ptx_instruction::ptx_instruction( int opcode,
    }
    m_scalar_type = scalar_type;
    m_space_spec = space_spec;
-   if ( ( opcode == ST_OP || opcode == LD_OP || opcode == LDU_OP ) && (space_spec == undefined_space) ) {
+   if( ( opcode == ST_OP || opcode == LD_OP || opcode == LDU_OP ) && (space_spec == undefined_space) ) {
       m_space_spec = generic_space;
-   }
-   for ( std::vector<operand_info>::const_iterator i=m_operands.begin(); i!=m_operands.end(); ++i) {
+   } 
+   for( std::vector<operand_info>::const_iterator i=m_operands.begin(); i!=m_operands.end(); ++i) {
        const operand_info &op = *i;
-       if ( op.get_addr_space() != undefined_space )
+       if( op.get_addr_space() != undefined_space ) 
            m_space_spec = op.get_addr_space(); // TODO: can have more than one memory space for ptxplus (g8x) inst
    }
-   if ( opcode == TEX_OP )
+   if( opcode == TEX_OP ) 
        m_space_spec = tex_space;
-
+   
    m_source_file = file?file:"<unknown>";
    m_source_line = line;
    m_source = source;
@@ -1196,6 +1331,12 @@ ptx_instruction::ptx_instruction( int opcode,
        if (fname =="vprintf"){
            m_is_printf = true;
        }
+       if(fname == "cudaStreamCreateWithFlags")
+           m_is_cdp = 1;
+       if(fname == "cudaGetParameterBufferV2")
+           m_is_cdp = 2;
+       if(fname == "cudaLaunchDeviceV2")
+           m_is_cdp = 4;
 
    }
 }
@@ -1215,7 +1356,7 @@ std::string ptx_instruction::to_string() const
 {
    char buf[ STR_SIZE ];
    unsigned used_bytes = 0;
-   if ( !is_label() ) {
+   if( !is_label() ) {
       used_bytes += snprintf( buf + used_bytes, STR_SIZE - used_bytes, " PC=0x%03x ", m_PC );
    } else {
       used_bytes += snprintf( buf + used_bytes, STR_SIZE - used_bytes, "                " );
@@ -1229,7 +1370,7 @@ std::string ptx_instruction::to_string() const
 
 unsigned function_info::sm_next_uid = 1;
 
-function_info::function_info(int entry_point )
+function_info::function_info(int entry_point ) 
 {
    m_uid = sm_next_uid++;
    m_entry_point = (entry_point==1)?true:false;
@@ -1237,12 +1378,14 @@ function_info::function_info(int entry_point )
    num_reconvergence_pairs = 0;
    m_symtab = NULL;
    m_assembled = false;
-   m_return_var_sym = NULL;
+   m_return_var_sym = NULL; 
    m_kernel_info.cmem = 0;
    m_kernel_info.lmem = 0;
    m_kernel_info.regs = 0;
    m_kernel_info.smem = 0;
    m_local_mem_framesize = 0;
+   m_args_aligned_size = -1;
+   pdom_done = false; //initialize it to false
 }
 
 unsigned function_info::print_insn( unsigned pc, FILE * fp ) const
@@ -1251,11 +1394,15 @@ unsigned function_info::print_insn( unsigned pc, FILE * fp ) const
    unsigned index = pc - m_start_PC;
    char command[1024];
    char buffer[1024];
+   memset(command, 0, 1024);
+   memset(buffer, 0, 1024);
    snprintf(command,1024,"c++filt -p %s",m_name.c_str());
    FILE *p = popen(command,"r");
    buffer[0]=0;
-   int scanned = fscanf(p,"%1023s",buffer);
-   if (!scanned) assert(!scanned);
+   fgets(buffer, 1023, p);
+   // Remove trailing "\n" in buffer
+   char *c;
+   if ((c=strchr(buffer, '\n')) != NULL) *c = '\0';
    fprintf(fp,"%s",buffer);
    if ( index >= m_instr_mem_size ) {
       fprintf(fp, "<past last instruction (max pc=%u)>", m_start_PC + m_instr_mem_size - 1 );
@@ -1293,11 +1440,11 @@ std::string function_info::get_insn_str( unsigned pc ) const
 void gpgpu_ptx_assemble( std::string kname, void *kinfo )
 {
     function_info *func_info = (function_info *)kinfo;
-    if ((function_info *)kinfo == NULL) {
+    if((function_info *)kinfo == NULL) {
        printf("GPGPU-Sim PTX: Warning - missing function definition \'%s\'\n", kname.c_str());
        return;
     }
-    if ( func_info->is_extern() ) {
+    if( func_info->is_extern() ) {
        printf("GPGPU-Sim PTX: skipping assembly for extern declared function \'%s\'\n", func_info->get_name().c_str() );
        return;
     }

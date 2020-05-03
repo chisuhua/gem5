@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,23 +28,24 @@
 #ifndef _NETWORK_HPP_
 #define _NETWORK_HPP_
 
-#include <deque>
 #include <vector>
+#include <deque>
 
-#include "intersim2/credit.hpp"
-#include "intersim2/channel.hpp"
-#include "intersim2/config_utils.hpp"
-#include "intersim2/flit.hpp"
-#include "intersim2/flitchannel.hpp"
-#include "intersim2/globals.hpp"
-#include "intersim2/module.hpp"
-#include "intersim2/timed_module.hpp"
-#include "intersim2/routers/router.hpp"
+#include "module.hpp"
+#include "flit.hpp"
+#include "credit.hpp"
+#include "router.hpp"
+#include "module.hpp"
+#include "timed_module.hpp"
+#include "flitchannel.hpp"
+#include "channel.hpp"
+#include "config_utils.hpp"
+#include "globals.hpp"
 
 typedef Channel<Credit> CreditChannel;
 
 
-class ISNetwork : public TimedModule {
+class Network_gpgpu : public TimedModule {
 protected:
 
   int _size;
@@ -71,10 +72,10 @@ protected:
   void _Alloc( );
 
 public:
-  ISNetwork( const Configuration &config, const string & name );
-  virtual ~ISNetwork( );
+  Network_gpgpu( const Configuration &config, const string & name );
+  virtual ~Network_gpgpu( );
 
-  static ISNetwork *New( const Configuration &config, const string & name );
+  static Network_gpgpu *New( const Configuration &config, const string & name );
 
   virtual void WriteFlit( Flit *f, int source );
   virtual Flit *ReadFlit( int dest );
@@ -113,5 +114,5 @@ public:
   int NumRouters() const {return _size;}
 };
 
-#endif
+#endif 
 

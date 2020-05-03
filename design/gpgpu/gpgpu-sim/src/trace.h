@@ -70,11 +70,11 @@ namespace Trace_gpgpu {
 } while (0)
 
 
-#else
+#else 
 
 #define GPGPUSIM_DTRACE(x) (false)
 #define GPGPUSIM_DPRINTF(x, ...) do {} while (0)
 
-#endif
+#endif  
 
-#endif
+#endif 

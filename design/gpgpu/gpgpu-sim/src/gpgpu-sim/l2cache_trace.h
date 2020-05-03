@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2011, Tor M. Aamodt, Tim Rogers, Wilson W. L. Fung
+// Copyright (c) 2009-2011, Tor M. Aamodt, Tim Rogers, Wilson W. L. Fung 
 // The University of British Columbia
 // All rights reserved.
 //
@@ -25,7 +25,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#pragma once 
 
 #include "../trace.h"
 
@@ -33,6 +33,9 @@
 
 #define MEMPART_PRINT_STR SIM_PRINT_STR " %d - "
 #define MEMPART_DTRACE(x)  ( GPGPUSIM_DTRACE(x) && (Trace_gpgpu::sampling_memory_partition == -1 || Trace_gpgpu::sampling_memory_partition == (int)get_mpid()) )
+
+#define MEM_SUBPART_PRINT_STR SIM_PRINT_STR " %d - "
+#define MEM_SUBPART_DTRACE(x)  ( GPGPUSIM_DTRACE(x) && (Trace_gpgpu::sampling_memory_partition == -1 || Trace_gpgpu::sampling_memory_partition == (int)m_id) )
 
 // Intended to be called from inside components of a memory partition
 // Depends on a get_mpid() function
@@ -46,10 +49,23 @@
     }\
 } while (0)
 
+#define MEM_SUBPART_DPRINTF(...) do {\
+    if (MEM_SUBPART_DTRACE(MEMORY_PARTITION_UNIT)) {\
+        printf( MEM_SUBPART_PRINT_STR,\
+                gpu_sim_cycle + gpu_tot_sim_cycle,\
+                Trace_gpgpu::trace_streams_str[Trace_gpgpu::MEMORY_SUBPARTITION_UNIT],\
+                m_id );\
+        printf(__VA_ARGS__);\
+    }\
+} while (0)
+
 #else
 
 #define MEMPART_DTRACE(x)  (false)
 #define MEMPART_DPRINTF(x, ...) do {} while (0)
+
+#define MEM_SUBPART_DTRACE(x)  (false)
+#define MEM_SUBPART_DPRINTF(x, ...) do {} while (0)
 
 #endif
 

@@ -156,12 +156,10 @@
 
 #ifdef _XMLWINDOWS
 #include <tchar.h>
-
 #else
 #define XMLDLLENTRY
 #ifndef XML_NO_WIDE_CHAR
 #include <wchar.h> // to have 'wcsrtombs' for ANSI version
-
                    // to have 'mbsrtowcs' for WIDECHAR version
 #endif
 #endif

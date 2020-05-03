@@ -34,10 +34,10 @@
 #define __UCACHE_H__
 
 #include <list>
-
 #include "area.h"
-#include "nuca.h"
 #include "router.h"
+#include "nuca.h"
+
 
 class min_values_t
 {

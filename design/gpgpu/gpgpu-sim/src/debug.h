@@ -28,9 +28,9 @@
 #ifndef PTX_DEBUG_INCLUDED
 #define PTX_DEBUG_INCLUDED
 
-#include <string>
-
 #include "abstract_hardware_model.h"
+
+#include <string>
 
 class brk_pt {
 public:
@@ -56,9 +56,9 @@ public:
    bool is_watchpoint() const { return m_watch; }
    bool is_equal( const std::string &fileline, unsigned uid ) const
    {
-      if ( m_watch )
-         return false;
-      if ( (m_thread_uid != (unsigned)-1) && (uid != m_thread_uid) )
+      if( m_watch ) 
+         return false; 
+      if( (m_thread_uid != (unsigned)-1) && (uid != m_thread_uid) ) 
          return false;
       return m_fileline == fileline;
    }
@@ -87,7 +87,7 @@ extern int gpgpu_ptx_instruction_classification ;
 
 class ptx_thread_info;
 class ptx_instruction;
-bool thread_at_brkpt( ptx_thread_info *thd_info, const struct brk_pt &b );
+bool thread_at_brkpt( ptx_thread_info *thd_info, const class brk_pt &b );
 void hit_watchpoint( unsigned watchpoint_num, ptx_thread_info *thd, const ptx_instruction *pI );
 
 #endif

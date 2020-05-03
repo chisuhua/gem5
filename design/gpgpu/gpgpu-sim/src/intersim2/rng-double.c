@@ -98,7 +98,6 @@ double ranf_arr_cycle()
 }
 
 #include <stdio.h>
-
 int main()
 {
   register int m; double a[2009]; /* a rudimentary test */

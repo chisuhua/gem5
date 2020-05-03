@@ -28,14 +28,13 @@
 #ifndef CUDASIM_H_INCLUDED
 #define CUDASIM_H_INCLUDED
 
-#include <stdlib.h>
-
-#include <map>
-#include <string>
-
 #include "../abstract_hardware_model.h"
-#include "../gpgpu-sim/shader.h"
-#include "ptx_sim.h"
+#include"../gpgpu-sim/shader.h"
+#include <stdlib.h>
+#include <map>
+#include <vector>
+#include <string>
+#include"ptx_sim.h"
 
 class memory_space;
 class function_info;
@@ -47,19 +46,24 @@ extern int g_debug_execution;
 extern int g_debug_thread_uid;
 extern void ** g_inst_classification_stat;
 extern void ** g_inst_op_classification_stat;
-extern int g_ptx_kernel_count; // used for classification stat collection purposes
+extern int g_ptx_kernel_count; // used for classification stat collection purposes 
+extern char *opcode_latency_int, *opcode_latency_fp, *opcode_latency_dp,*opcode_latency_sfu,*opcode_latency_tensor;
+
 
 void ptx_opcocde_latency_options (option_parser_t opp);
 extern class kernel_info_t *gpgpu_opencl_ptx_sim_init_grid(class function_info *entry,
-                                            gpgpu_ptx_sim_arg_list_t args,
-                                            struct dim3 gridDim,
-                                            struct dim3 blockDim,
+                                            gpgpu_ptx_sim_arg_list_t args, 
+                                            struct dim3 gridDim, 
+                                            struct dim3 blockDim, 
                                                           class gpgpu_t *gpu );
 extern void gpgpu_cuda_ptx_sim_main_func( kernel_info_t &kernel, bool openCL = false );
 extern void   print_splash();
 extern void   gpgpu_ptx_sim_register_const_variable(void*, const char *deviceName, size_t size );
 extern void   gpgpu_ptx_sim_register_global_variable(void *hostVar, const char *deviceName, size_t size );
+
+// TODO schi 
 extern std::string gpgpu_ptx_sim_hostvar_to_sym_name(const char *hostVar);
+
 extern void   gpgpu_ptx_sim_memcpy_symbol(const char *hostVar, const void *src, size_t count, size_t offset, int to, gpgpu_t *gpu );
 
 extern void read_sim_environment_variables();
@@ -69,24 +73,24 @@ unsigned ptx_sim_init_thread( kernel_info_t &kernel,
                               int sid,
                               unsigned tid,
                               unsigned threads_left,
-                              unsigned num_threads,
-                              class core_t *core,
-                              unsigned hw_cta_id,
+                              unsigned num_threads, 
+                              class core_t *core, 
+                              unsigned hw_cta_id, 
                               unsigned hw_warp_id,
                               gpgpu_t *gpu,
                               bool functionalSimulationMode = false);
 const warp_inst_t *ptx_fetch_inst( address_type pc );
-const struct gpgpu_ptx_sim_kernel_info* ptx_sim_kernel_info(const class function_info *kernel);
+const struct gpgpu_ptx_sim_info* ptx_sim_kernel_info(const class function_info *kernel);
 void ptx_print_insn( address_type pc, FILE *fp );
 std::string ptx_get_insn_str( address_type pc );
 void set_param_gpgpu_num_shaders(int num_shaders);
 
 
 /*!
- * This class functionally executes a kernel. It uses the basic data structures and procedures in core_t
+ * This class functionally executes a kernel. It uses the basic data structures and procedures in core_t 
  */
 class functionalCoreSim: public core_t
-{
+{    
 public:
     functionalCoreSim(kernel_info_t * kernel, gpgpu_sim *g, unsigned warp_size)
         : core_t( g, kernel, warp_size, kernel->threads_per_cta() )
@@ -99,28 +103,28 @@ public:
         delete[] m_liveThreadCount;
         delete[] m_warpAtBarrier;
     }
-    //! executes all warps till completion
-    void execute();
+    //! executes all warps till completion 
+    void execute(int inst_count, unsigned ctaid_cp);
     virtual void warp_exit( unsigned warp_id );
-    virtual bool warp_waiting_at_barrier( unsigned warp_id ) const
+    virtual bool warp_waiting_at_barrier( unsigned warp_id ) const  
     {
         return (m_warpAtBarrier[warp_id] || !(m_liveThreadCount[warp_id]>0));
     }
-
+    
 private:
     void executeWarp(unsigned, bool &, bool &);
     //initializes threads in the CTA block which we are executing
-    void initializeCTA();
+    void initializeCTA(unsigned ctaid_cp);
     virtual void checkExecutionStatusAndUpdate(warp_inst_t &inst, unsigned t, unsigned tid)
     {
-    if (m_thread[tid]==NULL || m_thread[tid]->is_done()){
+    if(m_thread[tid]==NULL || m_thread[tid]->is_done()){
         m_liveThreadCount[tid/m_warp_size]--;
         }
     }
-
+    
     // lunches the stack and set the threads count
     void  createWarp(unsigned warpId);
-
+    
     //each warp live thread count and barrier indicator
     unsigned * m_liveThreadCount;
     bool* m_warpAtBarrier;
@@ -132,6 +136,6 @@ address_type get_return_pc( void *thd );
 const char *get_ptxinfo_kname();
 void print_ptxinfo();
 void clear_ptxinfo();
-struct gpgpu_ptx_sim_kernel_info get_ptxinfo_kinfo();
+struct gpgpu_ptx_sim_info get_ptxinfo();
 
 #endif

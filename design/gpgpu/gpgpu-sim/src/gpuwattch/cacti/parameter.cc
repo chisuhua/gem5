@@ -31,12 +31,12 @@
 
 
 
-#include <iomanip>
 #include <iostream>
 #include <string>
+#include <iomanip>
 
-#include "area.h"
 #include "parameter.h"
+#include "area.h"
 
 using namespace std;
 
@@ -208,18 +208,18 @@ DynamicParameter::DynamicParameter(
   is_main_mem(is_main_mem_), cell(), is_valid(false)
 {
 
-        num_di_b_bank_per_port=0;
-        num_do_b_bank_per_port=0;
-        num_di_b_mat=0;
-        num_do_b_mat=0;
-        num_di_b_subbank=0;
-        num_do_b_subbank=0;
-        num_si_b_mat=0;
-        num_so_b_mat=0;
-        num_si_b_subbank=0;
-        num_so_b_subbank=0;
-        num_si_b_bank_per_port=0;
-        num_so_b_bank_per_port=0;
+	num_di_b_bank_per_port=0;
+	num_do_b_bank_per_port=0;
+	num_di_b_mat=0;
+	num_do_b_mat=0;
+	num_di_b_subbank=0;
+	num_do_b_subbank=0;
+	num_si_b_mat=0;
+	num_so_b_mat=0;
+	num_si_b_subbank=0;
+	num_so_b_subbank=0;
+	num_si_b_bank_per_port=0;
+	num_so_b_bank_per_port=0;
 
 
   ram_cell_tech_type = (is_tag) ? g_ip->tag_arr_ram_cell_tech_type : g_ip->data_arr_ram_cell_tech_type;
@@ -235,20 +235,20 @@ DynamicParameter::DynamicParameter(
 
   if (fully_assoc || pure_cam)
   { // fully-assocative cache -- ref: CACTi 2.0 report
-          if (Ndwl != 1 ||            //Ndwl is fixed to 1 for FA
-                          Ndcm != 1 ||            //Ndcm is fixed to 1 for FA
-                          Nspd < 1 || Nspd > 1 || //Nspd is fixed to 1 for FA
-                          Ndsam_lev_1 != 1 ||     //Ndsam_lev_1 is fixed to one
-                          Ndsam_lev_2 != 1 ||     //Ndsam_lev_2 is fixed to one
-                          Ndbl < 2)
-          {
+	  if (Ndwl != 1 ||            //Ndwl is fixed to 1 for FA
+			  Ndcm != 1 ||            //Ndcm is fixed to 1 for FA
+			  Nspd < 1 || Nspd > 1 || //Nspd is fixed to 1 for FA
+			  Ndsam_lev_1 != 1 ||     //Ndsam_lev_1 is fixed to one
+			  Ndsam_lev_2 != 1 ||     //Ndsam_lev_2 is fixed to one
+			  Ndbl < 2)
+	  {
           return;
-          }
+	  }
   }
 
   if ((is_dram) && (!is_tag) && (Ndcm > 1))
   {
-          return;  // For a DRAM array, each bitline has its own sense-amp
+	  return;  // For a DRAM array, each bitline has its own sense-amp
   }
 
   // If it's not an FA tag/data array, Ndwl should be at least two and Ndbl should be
@@ -256,100 +256,100 @@ DynamicParameter::DynamicParameter(
   // is formed out of two horizontal subarrays and two vertical subarrays
   if (fully_assoc == false && (Ndwl < 1 || Ndbl < 1))
   {
-          return;
+	  return;
   }
 
   //***********compute row, col of an subarray
   if (!(fully_assoc || pure_cam))//Not fully_asso nor cam
   {
-          // if data array, let tagbits = 0
-          if (is_tag)
-          {
-                  if (g_ip->specific_tag)
-                  {
-                          tagbits = g_ip->tag_w;
-                  }
-                  else
-                  {
-                          tagbits = ADDRESS_BITS + EXTRA_TAG_BITS - _log2(capacity_per_die) +
-                          _log2(g_ip->tag_assoc*2 - 1) - _log2(g_ip->nbanks);
+	  // if data array, let tagbits = 0
+	  if (is_tag)
+	  {
+		  if (g_ip->specific_tag)
+		  {
+			  tagbits = g_ip->tag_w;
+		  }
+		  else
+		  {
+			  tagbits = ADDRESS_BITS + EXTRA_TAG_BITS - _log2(capacity_per_die) +
+			  _log2(g_ip->tag_assoc*2 - 1) - _log2(g_ip->nbanks);
 
-                  }
-                  tagbits = (((tagbits + 3) >> 2) << 2);
+		  }
+		  tagbits = (((tagbits + 3) >> 2) << 2);
 
-                  num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks *
-                                  g_ip->block_sz * g_ip->tag_assoc * Ndbl * Nspd));// + EPSILON);
-                  num_c_subarray = (int)ceil((tagbits * g_ip->tag_assoc * Nspd / Ndwl));// + EPSILON);
-                  //burst_length = 1;
-          }
-          else
-          {
-                  num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks *
-                                  g_ip->block_sz * g_ip->data_assoc * Ndbl * Nspd));// + EPSILON);
-                  num_c_subarray = (int)ceil((8 * g_ip->block_sz * g_ip->data_assoc * Nspd / Ndwl));// + EPSILON); + EPSILON);
-                  // burst_length = g_ip->block_sz * 8 / g_ip->out_w;
-          }
+		  num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks *
+				  g_ip->block_sz * g_ip->tag_assoc * Ndbl * Nspd));// + EPSILON);
+		  num_c_subarray = (int)ceil((tagbits * g_ip->tag_assoc * Nspd / Ndwl));// + EPSILON);
+		  //burst_length = 1;
+	  }
+	  else
+	  {
+		  num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks *
+				  g_ip->block_sz * g_ip->data_assoc * Ndbl * Nspd));// + EPSILON);
+		  num_c_subarray = (int)ceil((8 * g_ip->block_sz * g_ip->data_assoc * Nspd / Ndwl));// + EPSILON); + EPSILON);
+		  // burst_length = g_ip->block_sz * 8 / g_ip->out_w;
+	  }
 
-          if (num_r_subarray < MINSUBARRAYROWS) return;
-          if (num_r_subarray == 0) return;
-          if (num_r_subarray > MAXSUBARRAYROWS) return;
-          if (num_c_subarray < MINSUBARRAYCOLS) return;
-          if (num_c_subarray > MAXSUBARRAYCOLS) return;
+	  if (num_r_subarray < MINSUBARRAYROWS) return;
+	  if (num_r_subarray == 0) return;
+	  if (num_r_subarray > MAXSUBARRAYROWS) return;
+	  if (num_c_subarray < MINSUBARRAYCOLS) return;
+	  if (num_c_subarray > MAXSUBARRAYCOLS) return;
 
   }
 
   else
   {//either fully-asso or cam
-          if (pure_cam)
-          {
-                  if (g_ip->specific_tag)
-                  {
-                          tagbits = int(ceil(g_ip->tag_w/8.0)*8);
-                  }
-                  else
-                  {
-                          tagbits = int(ceil((ADDRESS_BITS + EXTRA_TAG_BITS)/8.0)*8);
+	  if (pure_cam)
+	  {
+		  if (g_ip->specific_tag)
+		  {
+			  tagbits = int(ceil(g_ip->tag_w/8.0)*8);
+		  }
+		  else
+		  {
+			  tagbits = int(ceil((ADDRESS_BITS + EXTRA_TAG_BITS)/8.0)*8);
 //			  cout<<"Pure CAM needs tag width to be specified"<<endl;
 //			  exit(0);
-                  }
-                  //tagbits = (((tagbits + 3) >> 2) << 2);
+		  }
+		  //tagbits = (((tagbits + 3) >> 2) << 2);
 
-                  tag_num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks*tagbits/8.0 * Ndbl));//TODO: error check input of tagbits and blocksize //TODO: for pure CAM, g_ip->block should be number of entries.
-                  //tag_num_c_subarray = (int)(tagbits  + EPSILON);
-                  tag_num_c_subarray = tagbits;
-                  if (tag_num_r_subarray == 0) return;
-                  if (tag_num_r_subarray > MAXSUBARRAYROWS) return;
-                  if (tag_num_c_subarray < MINSUBARRAYCOLS) return;
-                  if (tag_num_c_subarray > MAXSUBARRAYCOLS) return;
-                  num_r_subarray = tag_num_r_subarray;
-          }
-          else //fully associative
-          {
-                  if (g_ip->specific_tag)
-                  {
-                          tagbits = g_ip->tag_w;
-                  }
-                  else
-                  {
-                          tagbits = ADDRESS_BITS + EXTRA_TAG_BITS - _log2(g_ip->block_sz);//TODO: should be the page_offset=log2(page size), but this info is not avail with CACTI, for McPAT this is no problem.
-                  }
-                  tagbits = (((tagbits + 3) >> 2) << 2);
+		  tag_num_r_subarray = (int)ceil(capacity_per_die / (g_ip->nbanks*tagbits/8.0 * Ndbl));//TODO: error check input of tagbits and blocksize //TODO: for pure CAM, g_ip->block should be number of entries.
+		  //tag_num_c_subarray = (int)(tagbits  + EPSILON);
+		  tag_num_c_subarray = tagbits;
+		  if (tag_num_r_subarray == 0) return;
+		  if (tag_num_r_subarray > MAXSUBARRAYROWS) return;
+		  if (tag_num_c_subarray < MINSUBARRAYCOLS) return;
+		  if (tag_num_c_subarray > MAXSUBARRAYCOLS) return;
+		  num_r_subarray = tag_num_r_subarray;
+	  }
+	  else //fully associative
+	  {
+		  if (g_ip->specific_tag)
+		  {
+			  tagbits = g_ip->tag_w;
+		  }
+		  else
+		  {
+			  tagbits = ADDRESS_BITS + EXTRA_TAG_BITS - _log2(g_ip->block_sz);//TODO: should be the page_offset=log2(page size), but this info is not avail with CACTI, for McPAT this is no problem.
+		  }
+		  tagbits = (((tagbits + 3) >> 2) << 2);
 
-                  tag_num_r_subarray = (int)(capacity_per_die / (g_ip->nbanks*g_ip->block_sz * Ndbl));
-                  tag_num_c_subarray = (int)ceil((tagbits * Nspd / Ndwl));// + EPSILON);
-                  if (tag_num_r_subarray == 0) return;
-                  if (tag_num_r_subarray > MAXSUBARRAYROWS) return;
-                  if (tag_num_c_subarray < MINSUBARRAYCOLS) return;
-                  if (tag_num_c_subarray > MAXSUBARRAYCOLS) return;
+		  tag_num_r_subarray = (int)(capacity_per_die / (g_ip->nbanks*g_ip->block_sz * Ndbl));
+		  tag_num_c_subarray = (int)ceil((tagbits * Nspd / Ndwl));// + EPSILON);
+		  if (tag_num_r_subarray == 0) return;
+		  if (tag_num_r_subarray > MAXSUBARRAYROWS) return;
+		  if (tag_num_c_subarray < MINSUBARRAYCOLS) return;
+		  if (tag_num_c_subarray > MAXSUBARRAYCOLS) return;
 
-                  data_num_r_subarray = tag_num_r_subarray;
-                  data_num_c_subarray = 8 * g_ip->block_sz;
-                  if (data_num_r_subarray == 0) return;
-                  if (data_num_r_subarray > MAXSUBARRAYROWS) return;
-                  if (data_num_c_subarray < MINSUBARRAYCOLS) return;
-                  if (data_num_c_subarray > MAXSUBARRAYCOLS) return;
-                  num_r_subarray = tag_num_r_subarray;
-          }
+		  data_num_r_subarray = tag_num_r_subarray;
+		  data_num_c_subarray = 8 * g_ip->block_sz;
+		  if (data_num_r_subarray == 0) return;
+		  if (data_num_r_subarray > MAXSUBARRAYROWS) return;
+		  if (data_num_c_subarray < MINSUBARRAYCOLS) return;
+		  if (data_num_c_subarray > MAXSUBARRAYCOLS) return;
+		  num_r_subarray = tag_num_r_subarray;
+	  }
   }
 
   num_subarrays = Ndwl * Ndbl;
@@ -358,42 +358,42 @@ DynamicParameter::DynamicParameter(
   // calculate wire parameters
   if (fully_assoc || pure_cam)
   {
-          cam_cell.h = g_tp.cam.b_h + 2 * wire_local.pitch * (g_ip->num_rw_ports-1 + g_ip->num_rd_ports + g_ip->num_wr_ports)
-          + 2 * wire_local.pitch*(g_ip->num_search_ports-1) + wire_local.pitch * g_ip->num_se_rd_ports;
-          cam_cell.w = g_tp.cam.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports-1 + g_ip->num_rd_ports + g_ip->num_wr_ports)
-          + 2 * wire_local.pitch*(g_ip->num_search_ports-1) + wire_local.pitch * g_ip->num_se_rd_ports;
+	  cam_cell.h = g_tp.cam.b_h + 2 * wire_local.pitch * (g_ip->num_rw_ports-1 + g_ip->num_rd_ports + g_ip->num_wr_ports)
+	  + 2 * wire_local.pitch*(g_ip->num_search_ports-1) + wire_local.pitch * g_ip->num_se_rd_ports;
+	  cam_cell.w = g_tp.cam.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports-1 + g_ip->num_rd_ports + g_ip->num_wr_ports)
+	  + 2 * wire_local.pitch*(g_ip->num_search_ports-1) + wire_local.pitch * g_ip->num_se_rd_ports;
 
-          cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_wr_ports +g_ip->num_rw_ports-1 + g_ip->num_rd_ports)
-          + 2 * wire_local.pitch*(g_ip->num_search_ports-1);
-          cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports -1 + (g_ip->num_rd_ports - g_ip->num_se_rd_ports)
-                          + g_ip->num_wr_ports) + g_tp.wire_local.pitch * g_ip->num_se_rd_ports + 2 * wire_local.pitch*(g_ip->num_search_ports-1);
+	  cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_wr_ports +g_ip->num_rw_ports-1 + g_ip->num_rd_ports)
+	  + 2 * wire_local.pitch*(g_ip->num_search_ports-1);
+	  cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports -1 + (g_ip->num_rd_ports - g_ip->num_se_rd_ports)
+			  + g_ip->num_wr_ports) + g_tp.wire_local.pitch * g_ip->num_se_rd_ports + 2 * wire_local.pitch*(g_ip->num_search_ports-1);
   }
   else
   {
-          if (is_tag)
-          {
-                  cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 + g_ip->num_rd_ports +
-                                  g_ip->num_wr_ports);
-                  cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 + g_ip->num_wr_ports +
-                                  (g_ip->num_rd_ports - g_ip->num_se_rd_ports)) +
-                                  wire_local.pitch * g_ip->num_se_rd_ports;
-          }
-          else
-          {
-                  if (is_dram)
-                  {
-                          cell.h = g_tp.dram.b_h;
-                          cell.w = g_tp.dram.b_w;
-                  }
-                  else
-                  {
-                          cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_wr_ports +
-                                          g_ip->num_rw_ports - 1 + g_ip->num_rd_ports);
-                          cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 +
-                                          (g_ip->num_rd_ports - g_ip->num_se_rd_ports) +
-                                          g_ip->num_wr_ports) + g_tp.wire_local.pitch * g_ip->num_se_rd_ports;
-                  }
-          }
+	  if(is_tag)
+	  {
+		  cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 + g_ip->num_rd_ports +
+				  g_ip->num_wr_ports);
+		  cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 + g_ip->num_wr_ports +
+				  (g_ip->num_rd_ports - g_ip->num_se_rd_ports)) +
+				  wire_local.pitch * g_ip->num_se_rd_ports;
+	  }
+	  else
+	  {
+		  if (is_dram)
+		  {
+			  cell.h = g_tp.dram.b_h;
+			  cell.w = g_tp.dram.b_w;
+		  }
+		  else
+		  {
+			  cell.h = g_tp.sram.b_h + 2 * wire_local.pitch * (g_ip->num_wr_ports +
+					  g_ip->num_rw_ports - 1 + g_ip->num_rd_ports);
+			  cell.w = g_tp.sram.b_w + 2 * wire_local.pitch * (g_ip->num_rw_ports - 1 +
+					  (g_ip->num_rd_ports - g_ip->num_se_rd_ports) +
+					  g_ip->num_wr_ports) + g_tp.wire_local.pitch * g_ip->num_se_rd_ports;
+		  }
+	  }
   }
 
   double c_b_metal = cell.h * wire_local.C_per_um;
@@ -401,57 +401,57 @@ DynamicParameter::DynamicParameter(
 
   if (!(fully_assoc || pure_cam))
   {
-          if (is_dram)
-          {
-                  deg_bl_muxing = 1;
-                  if (ram_cell_tech_type == comm_dram)
-                  {
-                          C_bl  = num_r_subarray * c_b_metal;
-                          V_b_sense = (g_tp.dram_cell_Vdd/2) * g_tp.dram_cell_C / (g_tp.dram_cell_C + C_bl);
-                          if (V_b_sense < VBITSENSEMIN)
-                          {
-                                  return;
-                          }
-                          V_b_sense = VBITSENSEMIN;  // in any case, we fix sense amp input signal to a constant value
-                          dram_refresh_period = 64e-3;
-                  }
-                  else
-                  {
-                          double Cbitrow_drain_cap = drain_C_(g_tp.dram.cell_a_w, NCH, 1, 0, cell.w, true, true) / 2.0;
-                          C_bl  = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
-                          V_b_sense = (g_tp.dram_cell_Vdd/2) * g_tp.dram_cell_C /(g_tp.dram_cell_C + C_bl);
+	  if (is_dram)
+	  {
+		  deg_bl_muxing = 1;
+		  if (ram_cell_tech_type == comm_dram)
+		  {
+			  C_bl  = num_r_subarray * c_b_metal;
+			  V_b_sense = (g_tp.dram_cell_Vdd/2) * g_tp.dram_cell_C / (g_tp.dram_cell_C + C_bl);
+			  if (V_b_sense < VBITSENSEMIN)
+			  {
+				  return;
+			  }
+			  V_b_sense = VBITSENSEMIN;  // in any case, we fix sense amp input signal to a constant value
+			  dram_refresh_period = 64e-3;
+		  }
+		  else
+		  {
+			  double Cbitrow_drain_cap = drain_C_(g_tp.dram.cell_a_w, NCH, 1, 0, cell.w, true, true) / 2.0;
+			  C_bl  = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
+			  V_b_sense = (g_tp.dram_cell_Vdd/2) * g_tp.dram_cell_C /(g_tp.dram_cell_C + C_bl);
 
-                          if (V_b_sense < VBITSENSEMIN)
-                          {
-                                  return; //Sense amp input signal is smaller that minimum allowable sense amp input signal
-                          }
-                          V_b_sense = VBITSENSEMIN; // in any case, we fix sense amp input signal to a constant value
-                          //v_storage_worst = g_tp.dram_cell_Vdd / 2 - VBITSENSEMIN * (g_tp.dram_cell_C + C_bl) / g_tp.dram_cell_C;
-                          //dram_refresh_period = 1.1 * g_tp.dram_cell_C * v_storage_worst / g_tp.dram_cell_I_off_worst_case_len_temp;
-                          dram_refresh_period = 0.9 * g_tp.dram_cell_C * VDD_STORAGE_LOSS_FRACTION_WORST * g_tp.dram_cell_Vdd / g_tp.dram_cell_I_off_worst_case_len_temp;
-                  }
-          }
-          else
-          { //SRAM
-                  V_b_sense = (0.05 * g_tp.sram_cell.Vdd > VBITSENSEMIN) ? 0.05 * g_tp.sram_cell.Vdd : VBITSENSEMIN;
-                  deg_bl_muxing = Ndcm;
-                  // "/ 2.0" below is due to the fact that two adjacent access transistors share drain
-                  // contacts in a physical layout
-                  double Cbitrow_drain_cap = drain_C_(g_tp.sram.cell_a_w, NCH, 1, 0, cell.w, false, true) / 2.0;
-                  C_bl = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
-                  dram_refresh_period = 0;
-          }
+			  if (V_b_sense < VBITSENSEMIN)
+			  {
+				  return; //Sense amp input signal is smaller that minimum allowable sense amp input signal
+			  }
+			  V_b_sense = VBITSENSEMIN; // in any case, we fix sense amp input signal to a constant value
+			  //v_storage_worst = g_tp.dram_cell_Vdd / 2 - VBITSENSEMIN * (g_tp.dram_cell_C + C_bl) / g_tp.dram_cell_C;
+			  //dram_refresh_period = 1.1 * g_tp.dram_cell_C * v_storage_worst / g_tp.dram_cell_I_off_worst_case_len_temp;
+			  dram_refresh_period = 0.9 * g_tp.dram_cell_C * VDD_STORAGE_LOSS_FRACTION_WORST * g_tp.dram_cell_Vdd / g_tp.dram_cell_I_off_worst_case_len_temp;
+		  }
+	  }
+	  else
+	  { //SRAM
+		  V_b_sense = (0.05 * g_tp.sram_cell.Vdd > VBITSENSEMIN) ? 0.05 * g_tp.sram_cell.Vdd : VBITSENSEMIN;
+		  deg_bl_muxing = Ndcm;
+		  // "/ 2.0" below is due to the fact that two adjacent access transistors share drain
+		  // contacts in a physical layout
+		  double Cbitrow_drain_cap = drain_C_(g_tp.sram.cell_a_w, NCH, 1, 0, cell.w, false, true) / 2.0;
+		  C_bl = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
+		  dram_refresh_period = 0;
+	  }
   }
   else
   {
-          c_b_metal = cam_cell.h * wire_local.C_per_um;//IBM and SUN design, SRAM array uses dummy cells to fill the blank space due to mismatch on CAM-RAM
-          V_b_sense = (0.05 * g_tp.sram_cell.Vdd > VBITSENSEMIN) ? 0.05 * g_tp.sram_cell.Vdd : VBITSENSEMIN;
-          deg_bl_muxing = 1;//FA fix as 1
-          // "/ 2.0" below is due to the fact that two adjacent access transistors share drain
-          // contacts in a physical layout
-          double Cbitrow_drain_cap = drain_C_(g_tp.cam.cell_a_w, NCH, 1, 0, cam_cell.w, false, true) / 2.0;//TODO: comment out these two lines
-          C_bl = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
-          dram_refresh_period = 0;
+	  c_b_metal = cam_cell.h * wire_local.C_per_um;//IBM and SUN design, SRAM array uses dummy cells to fill the blank space due to mismatch on CAM-RAM
+	  V_b_sense = (0.05 * g_tp.sram_cell.Vdd > VBITSENSEMIN) ? 0.05 * g_tp.sram_cell.Vdd : VBITSENSEMIN;
+	  deg_bl_muxing = 1;//FA fix as 1
+	  // "/ 2.0" below is due to the fact that two adjacent access transistors share drain
+	  // contacts in a physical layout
+	  double Cbitrow_drain_cap = drain_C_(g_tp.cam.cell_a_w, NCH, 1, 0, cam_cell.w, false, true) / 2.0;//TODO: comment out these two lines
+	  C_bl = num_r_subarray * (Cbitrow_drain_cap + c_b_metal);
+	  dram_refresh_period = 0;
   }
 
 
@@ -462,47 +462,47 @@ DynamicParameter::DynamicParameter(
 
   if (fully_assoc || pure_cam)
   {
-            switch (Ndbl) {
-              case (0):
-                cout <<  "   Invalid Ndbl \n"<<endl;
-                exit(0);
-                break;
-              case (1):
-                  num_mats_h_dir = 1;//one subarray per mat
-                  num_mats_v_dir = 1;
-                break;
-              case (2):
-                  num_mats_h_dir = 1;//two subarrays per mat
-                  num_mats_v_dir = 1;
-                  break;
-              default:
-                  num_mats_h_dir = int(floor(sqrt(Ndbl/4.0)));//4 subbarrys per mat
-                  num_mats_v_dir = int(Ndbl/4.0 / num_mats_h_dir);
-            }
-            num_mats = num_mats_h_dir * num_mats_v_dir;
+	    switch (Ndbl) {
+	      case (0):
+	        cout <<  "   Invalid Ndbl \n"<<endl;
+	        exit(0);
+	        break;
+	      case (1):
+	    	  num_mats_h_dir = 1;//one subarray per mat
+	    	  num_mats_v_dir = 1;
+	        break;
+	      case (2):
+	    	  num_mats_h_dir = 1;//two subarrays per mat
+	    	  num_mats_v_dir = 1;
+	    	  break;
+	      default:
+	    	  num_mats_h_dir = int(floor(sqrt(Ndbl/4.0)));//4 subbarrys per mat
+	    	  num_mats_v_dir = int(Ndbl/4.0 / num_mats_h_dir);
+	    }
+	    num_mats = num_mats_h_dir * num_mats_v_dir;
 
-            if (fully_assoc)
-            {
-                num_so_b_mat   = data_num_c_subarray;
-                num_do_b_mat   = data_num_c_subarray + tagbits;
-            }
-            else
-            {
-                num_so_b_mat = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));//the address contains the matched data
-                num_do_b_mat = tagbits;
-            }
+	    if (fully_assoc)
+	    {
+	    	num_so_b_mat   = data_num_c_subarray;
+	    	num_do_b_mat   = data_num_c_subarray + tagbits;
+	    }
+	    else
+	    {
+	    	num_so_b_mat = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));//the address contains the matched data
+	    	num_do_b_mat = tagbits;
+	    }
   }
   else
   {
-          num_mats_h_dir = MAX(Ndwl / 2, 1);
-          num_mats_v_dir = MAX(Ndbl / 2, 1);
-          num_mats       = num_mats_h_dir * num_mats_v_dir;
-          num_do_b_mat   = MAX((num_subarrays/num_mats) * num_c_subarray / (deg_bl_muxing * Ndsam_lev_1 * Ndsam_lev_2), 1);
+	  num_mats_h_dir = MAX(Ndwl / 2, 1);
+	  num_mats_v_dir = MAX(Ndbl / 2, 1);
+	  num_mats       = num_mats_h_dir * num_mats_v_dir;
+	  num_do_b_mat   = MAX((num_subarrays/num_mats) * num_c_subarray / (deg_bl_muxing * Ndsam_lev_1 * Ndsam_lev_2), 1);
   }
 
   if (!(fully_assoc|| pure_cam) && (num_do_b_mat < (num_subarrays/num_mats)))
   {
-          return;
+	  return;
   }
 
 
@@ -510,140 +510,140 @@ DynamicParameter::DynamicParameter(
   //TODO:the i/o for subbank is not necessary and should be removed.
   if (!(fully_assoc || pure_cam))
   {
-          if (!is_tag)
-          {
-                  if (is_main_mem)
-                  {
-                          num_do_b_subbank = g_ip->int_prefetch_w * g_ip->out_w;
-                          deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
-                  }
-                  else
-                  {
-                          if (g_ip->fast_access)
-                          {
-                                  num_do_b_subbank = g_ip->out_w * g_ip->data_assoc;
-                                  deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
-                          }
-                          else
-                          {
+	  if (!is_tag)
+	  {
+		  if (is_main_mem == true)
+		  {
+			  num_do_b_subbank = g_ip->int_prefetch_w * g_ip->out_w;
+			  deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
+		  }
+		  else
+		  {
+			  if (g_ip->fast_access == true)
+			  {
+				  num_do_b_subbank = g_ip->out_w * g_ip->data_assoc;
+				  deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
+			  }
+			  else
+			  {
 
-                                  num_do_b_subbank = g_ip->out_w;
-                                  deg_sa_mux_l1_non_assoc = Ndsam_lev_1 / g_ip->data_assoc;
-                                  if (deg_sa_mux_l1_non_assoc < 1)
-                                  {
-                                          return;
-                                  }
+				  num_do_b_subbank = g_ip->out_w;
+				  deg_sa_mux_l1_non_assoc = Ndsam_lev_1 / g_ip->data_assoc;
+				  if (deg_sa_mux_l1_non_assoc < 1)
+				  {
+					  return;
+				  }
 
-                          }
-                  }
-          }
-          else
-          {
-                  num_do_b_subbank = tagbits * g_ip->tag_assoc;
-                  if (num_do_b_mat < tagbits)
-                  {
-                          return;
-                  }
-                  deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
-                  //num_do_b_mat = g_ip->tag_assoc / num_mats_h_dir;
-          }
+			  }
+		  }
+	  }
+	  else
+	  {
+		  num_do_b_subbank = tagbits * g_ip->tag_assoc;
+		  if (num_do_b_mat < tagbits)
+		  {
+			  return;
+		  }
+		  deg_sa_mux_l1_non_assoc = Ndsam_lev_1;
+		  //num_do_b_mat = g_ip->tag_assoc / num_mats_h_dir;
+	  }
   }
   else
   {
-          if (fully_assoc)
-          {
-                  num_so_b_subbank = 8 * g_ip->block_sz;//TODO:internal perfetch should be considered also for fa
-                  num_do_b_subbank = num_so_b_subbank + tag_num_c_subarray;
-          }
-          else
-          {
-                  num_so_b_subbank = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));//the address contains the matched data
-                  num_do_b_subbank = tag_num_c_subarray;
-          }
+	  if (fully_assoc)
+	  {
+		  num_so_b_subbank = 8 * g_ip->block_sz;//TODO:internal perfetch should be considered also for fa
+		  num_do_b_subbank = num_so_b_subbank + tag_num_c_subarray;
+	  }
+	  else
+	  {
+		  num_so_b_subbank = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));//the address contains the matched data
+		  num_do_b_subbank = tag_num_c_subarray;
+	  }
 
-          deg_sa_mux_l1_non_assoc = 1;
+	  deg_sa_mux_l1_non_assoc = 1;
   }
 
   deg_senseamp_muxing_non_associativity = deg_sa_mux_l1_non_assoc;
 
   if (fully_assoc || pure_cam)
   {
-          num_act_mats_hor_dir = 1;
-          num_act_mats_hor_dir_sl = num_mats_h_dir;//TODO: this is unnecessary, since search op, num_mats is used
+	  num_act_mats_hor_dir = 1;
+	  num_act_mats_hor_dir_sl = num_mats_h_dir;//TODO: this is unnecessary, since search op, num_mats is used
   }
   else
   {
-          num_act_mats_hor_dir = num_do_b_subbank / num_do_b_mat;
-          if (num_act_mats_hor_dir == 0)
-          {
-                  return;
-          }
+	  num_act_mats_hor_dir = num_do_b_subbank / num_do_b_mat;
+	  if (num_act_mats_hor_dir == 0)
+	  {
+		  return;
+	  }
   }
 
   //compute num_do_mat for tag
   if (is_tag)
   {
-          if (!(fully_assoc || pure_cam))
-          {
-                  num_do_b_mat     = g_ip->tag_assoc / num_act_mats_hor_dir;
-                  num_do_b_subbank = num_act_mats_hor_dir * num_do_b_mat;
-          }
+	  if (!(fully_assoc || pure_cam))
+	  {
+		  num_do_b_mat     = g_ip->tag_assoc / num_act_mats_hor_dir;
+		  num_do_b_subbank = num_act_mats_hor_dir * num_do_b_mat;
+	  }
   }
 
   if ((g_ip->is_cache == false && is_main_mem == true) || (PAGE_MODE == 1 && is_dram))
   {
-          if (num_act_mats_hor_dir * num_do_b_mat * Ndsam_lev_1 * Ndsam_lev_2 != (int)g_ip->page_sz_bits)
-          {
-                  return;
-          }
+	  if (num_act_mats_hor_dir * num_do_b_mat * Ndsam_lev_1 * Ndsam_lev_2 != (int)g_ip->page_sz_bits)
+	  {
+		  return;
+	  }
   }
 
 //  if (is_tag == false && g_ip->is_cache == true && !fully_assoc && !pure_cam && //TODO: TODO burst transfer should also apply to RAM arrays
   if (is_tag == false && g_ip->is_main_mem == true &&
-                  num_act_mats_hor_dir*num_do_b_mat*Ndsam_lev_1*Ndsam_lev_2 < ((int) g_ip->out_w * (int) g_ip->burst_len * (int) g_ip->data_assoc))
+		  num_act_mats_hor_dir*num_do_b_mat*Ndsam_lev_1*Ndsam_lev_2 < ((int) g_ip->out_w * (int) g_ip->burst_len * (int) g_ip->data_assoc))
   {
-          return;
+	  return;
   }
 
   if (num_act_mats_hor_dir > num_mats_h_dir)
   {
-          return;
+	  return;
   }
 
 
   //compute di for mat subbank and bank
   if (!(fully_assoc ||pure_cam))
   {
-          if (!is_tag)
-          {
-                  if (g_ip->fast_access)
-                  {
-                          num_di_b_mat = num_do_b_mat / g_ip->data_assoc;
-                  }
-                  else
-                  {
-                          num_di_b_mat = num_do_b_mat;
-                  }
-          }
-          else
-          {
-                  num_di_b_mat = tagbits;
-          }
+	  if(!is_tag)
+	  {
+		  if(g_ip->fast_access == true)
+		  {
+			  num_di_b_mat = num_do_b_mat / g_ip->data_assoc;
+		  }
+		  else
+		  {
+			  num_di_b_mat = num_do_b_mat;
+		  }
+	  }
+	  else
+	  {
+		  num_di_b_mat = tagbits;
+	  }
   }
   else
   {
-          if (fully_assoc)
-          {
-                  num_di_b_mat = num_do_b_mat;
-                  //*num_subarrays/num_mats; bits per mat of CAM/FA is as same as cache,
-                  //but inside the mat wire tracks need to be reserved for search data bus
-                  num_si_b_mat = tagbits;
-          }
-          else
-          {
-                  num_di_b_mat = tagbits;
-                  num_si_b_mat = tagbits;//*num_subarrays/num_mats;
-          }
+	  if (fully_assoc)
+	  {
+		  num_di_b_mat = num_do_b_mat;
+		  //*num_subarrays/num_mats; bits per mat of CAM/FA is as same as cache,
+		  //but inside the mat wire tracks need to be reserved for search data bus
+		  num_si_b_mat = tagbits;
+	  }
+	  else
+	  {
+		  num_di_b_mat = tagbits;
+		  num_si_b_mat = tagbits;//*num_subarrays/num_mats;
+	  }
 
   }
 
@@ -651,8 +651,8 @@ DynamicParameter::DynamicParameter(
   num_si_b_subbank       = num_si_b_mat; //* num_act_mats_hor_dir_sl; inside the data is broadcast
 
   int num_addr_b_row_dec     = _log2(num_r_subarray);
-  if ((fully_assoc ||pure_cam))
-          num_addr_b_row_dec     +=_log2(num_subarrays/num_mats);
+  if  ((fully_assoc ||pure_cam))
+	  num_addr_b_row_dec     +=_log2(num_subarrays/num_mats);
   int number_subbanks        = num_mats / num_act_mats_hor_dir;
   number_subbanks_decode = _log2(number_subbanks);//TODO: add log2(num_subarray_per_bank) to FA/CAM
 
@@ -664,67 +664,67 @@ DynamicParameter::DynamicParameter(
 
   if (is_dram && is_main_mem)
   {
-          number_addr_bits_mat = MAX((unsigned int) num_addr_b_row_dec,
-                          _log2(deg_bl_muxing) + _log2(deg_sa_mux_l1_non_assoc) + _log2(Ndsam_lev_2));
+	  number_addr_bits_mat = MAX((unsigned int) num_addr_b_row_dec,
+			  _log2(deg_bl_muxing) + _log2(deg_sa_mux_l1_non_assoc) + _log2(Ndsam_lev_2));
   }
   else
   {
-          number_addr_bits_mat = num_addr_b_row_dec + _log2(deg_bl_muxing) +
-          _log2(deg_sa_mux_l1_non_assoc) + _log2(Ndsam_lev_2);
+	  number_addr_bits_mat = num_addr_b_row_dec + _log2(deg_bl_muxing) +
+	  _log2(deg_sa_mux_l1_non_assoc) + _log2(Ndsam_lev_2);
   }
 
   if (!(fully_assoc ||pure_cam))
   {
-          if (is_tag)
-          {
-                  num_di_b_bank_per_port = tagbits;
-                  num_do_b_bank_per_port = g_ip->data_assoc;
-          }
-          else
-          {
-                  num_di_b_bank_per_port = g_ip->out_w + g_ip->data_assoc;
-                  num_do_b_bank_per_port = g_ip->out_w;
-          }
+	  if (is_tag)
+	  {
+		  num_di_b_bank_per_port = tagbits;
+		  num_do_b_bank_per_port = g_ip->data_assoc;
+	  }
+	  else
+	  {
+		  num_di_b_bank_per_port = g_ip->out_w + g_ip->data_assoc;
+		  num_do_b_bank_per_port = g_ip->out_w;
+	  }
   }
   else
   {
-          if (fully_assoc)
-          {
-                  num_di_b_bank_per_port = g_ip->out_w + tagbits;//TODO: out_w or block_sz?
-                  num_si_b_bank_per_port = tagbits;
-                  num_do_b_bank_per_port = g_ip->out_w + tagbits;
-                  num_so_b_bank_per_port = g_ip->out_w;
-          }
-          else
-          {
-                  num_di_b_bank_per_port = tagbits;
-                  num_si_b_bank_per_port = tagbits;
-                  num_do_b_bank_per_port = tagbits;
-                  num_so_b_bank_per_port = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));
-          }
+	  if (fully_assoc)
+	  {
+		  num_di_b_bank_per_port = g_ip->out_w + tagbits;//TODO: out_w or block_sz?
+		  num_si_b_bank_per_port = tagbits;
+		  num_do_b_bank_per_port = g_ip->out_w + tagbits;
+		  num_so_b_bank_per_port = g_ip->out_w;
+	  }
+	  else
+	  {
+		  num_di_b_bank_per_port = tagbits;
+		  num_si_b_bank_per_port = tagbits;
+		  num_do_b_bank_per_port = tagbits;
+		  num_so_b_bank_per_port = int(ceil(log2(num_r_subarray)) + ceil(log2(num_subarrays)));
+	  }
   }
 
   if ((!is_tag) && (g_ip->data_assoc > 1) && (!g_ip->fast_access))
   {
-          number_way_select_signals_mat = g_ip->data_assoc;
+	  number_way_select_signals_mat = g_ip->data_assoc;
   }
 
   // add ECC adjustment to all data signals that traverse on H-trees.
-  if (g_ip->add_ecc_b_)
+  if (g_ip->add_ecc_b_ == true)
   {
-          num_do_b_mat += (int) (ceil(num_do_b_mat / num_bits_per_ecc_b_));
-          num_di_b_mat += (int) (ceil(num_di_b_mat / num_bits_per_ecc_b_));
-          num_di_b_subbank += (int) (ceil(num_di_b_subbank / num_bits_per_ecc_b_));
-          num_do_b_subbank += (int) (ceil(num_do_b_subbank / num_bits_per_ecc_b_));
-          num_di_b_bank_per_port += (int) (ceil(num_di_b_bank_per_port / num_bits_per_ecc_b_));
-          num_do_b_bank_per_port += (int) (ceil(num_do_b_bank_per_port / num_bits_per_ecc_b_));
+	  num_do_b_mat += (int) (ceil(num_do_b_mat / num_bits_per_ecc_b_));
+	  num_di_b_mat += (int) (ceil(num_di_b_mat / num_bits_per_ecc_b_));
+	  num_di_b_subbank += (int) (ceil(num_di_b_subbank / num_bits_per_ecc_b_));
+	  num_do_b_subbank += (int) (ceil(num_do_b_subbank / num_bits_per_ecc_b_));
+	  num_di_b_bank_per_port += (int) (ceil(num_di_b_bank_per_port / num_bits_per_ecc_b_));
+	  num_do_b_bank_per_port += (int) (ceil(num_do_b_bank_per_port / num_bits_per_ecc_b_));
 
-          num_so_b_mat += (int) (ceil(num_so_b_mat / num_bits_per_ecc_b_));
-          num_si_b_mat += (int) (ceil(num_si_b_mat / num_bits_per_ecc_b_));
-          num_si_b_subbank += (int) (ceil(num_si_b_subbank / num_bits_per_ecc_b_));
-          num_so_b_subbank += (int) (ceil(num_so_b_subbank / num_bits_per_ecc_b_));
-          num_si_b_bank_per_port += (int) (ceil(num_si_b_bank_per_port / num_bits_per_ecc_b_));
-          num_so_b_bank_per_port += (int) (ceil(num_so_b_bank_per_port / num_bits_per_ecc_b_));
+	  num_so_b_mat += (int) (ceil(num_so_b_mat / num_bits_per_ecc_b_));
+	  num_si_b_mat += (int) (ceil(num_si_b_mat / num_bits_per_ecc_b_));
+	  num_si_b_subbank += (int) (ceil(num_si_b_subbank / num_bits_per_ecc_b_));
+	  num_so_b_subbank += (int) (ceil(num_so_b_subbank / num_bits_per_ecc_b_));
+	  num_si_b_bank_per_port += (int) (ceil(num_si_b_bank_per_port / num_bits_per_ecc_b_));
+	  num_so_b_bank_per_port += (int) (ceil(num_so_b_bank_per_port / num_bits_per_ecc_b_));
   }
 
   is_valid = true;
