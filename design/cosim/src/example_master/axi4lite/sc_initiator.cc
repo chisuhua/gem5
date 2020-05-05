@@ -1,16 +1,18 @@
-#include "base/random.hh"
-#include "traffic_generator.hh"
+// #include "base/random.hh"
+// #include "traffic_generator.hh"
+#include "sc_initiator.hh"
+#include "top.hh"
 
-Initiator::Initiator(sc_core::sc_module_name name)
+Initiator::Initiator(sc_core::sc_module_name name, Top &top)
   : sc_core::sc_module(name),
-    top("top"),
+    top(top),
     bridge_to_socket("bridge_to_socket"),
     requestInProgress(0),
     peq(this, &Initiator::peq_cb)
 {
     socket.register_nb_transport_bw(this, &Initiator::nb_transport_bw);
 
-    bridge_to_socket.bind(top.bridge.socket);
+    bridge_to_socket.bind(top.master_bridge.socket);
     // top.bridge.socket.bind(bridge_to_socket);
     bridge_to_socket.register_nb_transport_fw(this, &Initiator::nb_transport_fw);
 
@@ -22,7 +24,7 @@ tlm::tlm_sync_enum Initiator::nb_transport_fw(tlm::tlm_generic_payload& trans,
                                            tlm::tlm_phase& phase,
                                            sc_time& delay)
 {
-    auto status = socket->nb_transport_fw(*trans, phase, delay);
+    auto status = socket->nb_transport_fw(trans, phase, delay);
     return tlm::TLM_ACCEPTED;
 }
 

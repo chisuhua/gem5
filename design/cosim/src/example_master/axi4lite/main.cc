@@ -25,10 +25,11 @@ sc_main(int argc, char **argv)
                                            parser.getSimulationEnd(),
                                            parser.getDebugFlags());
 
+    Top top("top");
     // Master Transactor
-    Gem5SystemC::Gem5MasterTransactor master_transactor("master_transactor", "transactor");
+    Gem5SystemC::Gem5MasterTransactor master_transactor("master_transactor", "master_transactor");
 
-    Initiator initiator("traffic_generator");
+    Initiator initiator("traffic_generator", top);
     initiator.socket.bind(master_transactor.socket);
 
     master_transactor.sim_control.bind(sim_control);
@@ -37,8 +38,8 @@ sc_main(int argc, char **argv)
     // Slave Transactor
     // unsigned long long int memorySize = 512*1024*1024ULL;
     unsigned long long int memorySize = 16ULL;
-    Gem5SystemC::Gem5SlaveTransactor  slave_transactor("slave_transactor", "transactor");
-    Target memory("memory",
+    Gem5SystemC::Gem5SlaveTransactor  slave_transactor("slave_transactor", "slave_transactor");
+    Target memory("memory", top,
                   parser.getVerboseFlag(),
                   memorySize,
                   parser.getMemoryOffset());
@@ -46,16 +47,17 @@ sc_main(int argc, char **argv)
     memory.socket.bind(slave_transactor.socket);
     slave_transactor.sim_control.bind(sim_control);
 
-    memory.top.signals.Trace(trace_fp);
-    sc_trace(trace_fp, memory.top.rst_n, "rst_n");
-    sc_trace(trace_fp, memory.top.clk, "clk");
-    sc_trace(trace_fp, memory.top.bridge.resetn, "bridge.resetn");
-    sc_trace(trace_fp, memory.top.bridge.clk, "bridge.clk");
+    top.master_signals.Trace(trace_fp);
+    top.slave_signals.Trace(trace_fp);
+    sc_trace(trace_fp, top.rst_n, "rst_n");
+    sc_trace(trace_fp, top.clk, "clk");
+    // sc_trace(trace_fp, top.bridge.resetn, "bridge.resetn");
+    // sc_trace(trace_fp, top.bridge.clk, "bridge.clk");
 
     // Reset is active low. Emit a reset cycle.
-    memory.top.rst_n.write(false);
+    top.rst_n.write(false);
     sc_start(10, SC_NS);
-    memory.top.rst_n.write(true);
+    top.rst_n.write(true);
 
     SC_REPORT_INFO("sc_main", "Start of Simulation");
 

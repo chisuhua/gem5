@@ -42,7 +42,7 @@
 #include <systemc>
 #include <tlm>
 
-#include "target_to_axi4lite.hh"
+#include "top.hh"
 #include "tlm_utils/simple_initiator_socket.h"
 
 using namespace sc_core;
@@ -50,7 +50,8 @@ using namespace std;
 
 struct Target: sc_module
 {
-    Top top;
+  public:
+    Top &top;
 
     /** TLM interface socket: */
     tlm_utils::simple_target_socket<Target> socket;
@@ -71,6 +72,7 @@ struct Target: sc_module
     unsigned char *mem;
 
     Target(sc_core::sc_module_name name,
+        Top &top,
         bool debug,
         unsigned long long int size,
         unsigned int offset);

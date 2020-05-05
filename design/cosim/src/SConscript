@@ -161,10 +161,10 @@ design.append(SConscript('example_slave/axi4lite/SConscript',
                         exports=['env', 'deps', 'compile_design'])
              )
 
-#design.append(SConscript('example_master/axi4lite/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
+design.append(SConscript('example_master/axi4lite/SConscript',
+                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
+                        exports=['env', 'deps', 'compile_design'])
+             )
 
 
 
