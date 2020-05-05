@@ -56,7 +56,7 @@
 #include "ppu/minor/dyn_inst.hh"
 #include "ppu/base.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** Forward data betwen Execute and Fetch1 carrying change-of-address/stream
@@ -121,13 +121,13 @@ class BranchData /* : public ReportIF, public BubbleIF */
     ThePpuISA::PCState target;
 
     /** Instruction which caused this branch */
-    MinorDynInstPtr inst;
+    PpuMinorDynInstPtr inst;
 
   public:
     BranchData() :
         reason(NoBranch), threadId(InvalidThreadID), newStreamSeqNum(0),
         newPredictionSeqNum(0), target(ThePpuISA::PCState(0)),
-        inst(MinorDynInst::bubble())
+        inst(PpuMinorDynInst::bubble())
     { }
 
     BranchData(
@@ -136,7 +136,7 @@ class BranchData /* : public ReportIF, public BubbleIF */
         InstSeqNum new_stream_seq_num,
         InstSeqNum new_prediction_seq_num,
         ThePpuISA::PCState target,
-        MinorDynInstPtr inst_) :
+        PpuMinorDynInstPtr inst_) :
         reason(reason_),
         threadId(thread_id),
         newStreamSeqNum(new_stream_seq_num),
@@ -163,7 +163,7 @@ class BranchData /* : public ReportIF, public BubbleIF */
 std::ostream &operator <<(std::ostream &os, BranchData::Reason reason);
 
 /** Print BranchData contents in a format suitable for DPRINTF comments, not
- *  for MinorTrace */
+ *  for PpuMinorTrace */
 std::ostream &operator <<(std::ostream &os, const BranchData &branch);
 
 /** Line fetch data in the forward direction.  Contains a single cache line
@@ -256,7 +256,7 @@ class ForwardInstData /* : public ReportIF, public BubbleIF */
 {
   public:
     /** Array of carried insts, ref counted */
-    MinorDynInstPtr insts[MAX_FORWARD_INSTS];
+    PpuMinorDynInstPtr insts[MAX_FORWARD_INSTS];
 
     /** The number of insts slots that can be expected to be valid insts */
     unsigned int numInsts;

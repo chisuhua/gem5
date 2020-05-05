@@ -47,7 +47,7 @@
 /**
  * @file
  *
- *  ExecContext bears the exec_context interface for Minor.
+ *  ExecContext bears the exec_context interface for PpuMinor.
  */
 
 #ifndef __PPU_MINOR_EXEC_CONTEXT_HH__
@@ -61,20 +61,20 @@
 #include "mem/request.hh"
 #include "debug/PpuMinorExecute.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /* Forward declaration of Execute */
 class Execute;
 
-/** ExecContext bears the exec_context interface for Minor.  This nicely
- *  separates that interface from other classes such as Pipeline, MinorPPU
- *  and DynMinorInst and makes it easier to see what state is accessed by it.
+/** ExecContext bears the exec_context interface for PpuMinor.  This nicely
+ *  separates that interface from other classes such as Pipeline, PpuMinorPPU
+ *  and DynPpuMinorInst and makes it easier to see what state is accessed by it.
  */
 class ExecContext : public ::ExecContext
 {
   public:
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
 
     /** ThreadState object, provides all the architectural state. */
     SimpleThread &thread;
@@ -83,12 +83,12 @@ class ExecContext : public ::ExecContext
     Execute &execute;
 
     /** Instruction for the benefit of memory operations and for PC */
-    MinorDynInstPtr inst;
+    PpuMinorDynInstPtr inst;
 
     ExecContext (
-        MinorPPU &cpu_,
+        PpuMinorPPU &cpu_,
         SimpleThread &thread_, Execute &execute_,
-        MinorDynInstPtr inst_) :
+        PpuMinorDynInstPtr inst_) :
         cpu(cpu_),
         thread(thread_),
         execute(execute_),

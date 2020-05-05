@@ -92,12 +92,13 @@ def compile_verilator(env, gen_dir, out_dir, srcs, binary, cmd):
     #env.Clean(cmd, csrc_dir)
     return [verilated_o, verilated_obj, verilated_header]
 
-def compile_design(env, vfiles, verilator_top, design):
+def compile_design(env, vfiles, verilator_top, design, VFLAGS = ""):
 
     env['VERILATOR_TOP'] = verilator_top
     env['DESIGN'] = design
     env['VENV'] = "SYSTEMC_INCLUDE=" + env['SYSTEMC_INCLUDE'] + " SYSTEMC_LIBDIR=" + env['SYSTEMC_LIBDIR']
     env['VERILATOR_ROOT']=os.popen('verilator --getenv VERILATOR_ROOT').readline().strip()
+    env['VERILATOR_FLAGS'].append(VFLAGS)
 
     def _compile(env, suffix=''):
         return compile_verilator(
@@ -137,7 +138,6 @@ env.Append(
         '++2.12.4'
     ]),
     VERILATOR='verilator --cc',
-    #VERILATOR='verilator --cc --exe',
     VERILATOR_FLAGS=[],
     GEN_DIR=os.path.abspath('generated-src'),
     OUT_DIR=os.path.abspath('output')
@@ -156,10 +156,16 @@ env.Append(CPPPATH=[gem5_root + '/ext/libsystemctlm-soc',
                    ])
 
 design = []
-design.append(SConscript('slave_axi4lite/SConscript',
-                        variant_dir=env['OUT_DIR'] + '/slave-axi4lite',
+design.append(SConscript('example_slave/axi4lite/SConscript',
+                        variant_dir=env['OUT_DIR'] + '/example_slave/axi4lite',
                         exports=['env', 'deps', 'compile_design'])
              )
+
+design.append(SConscript('example_master/axi4lite/SConscript',
+                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
+                        exports=['env', 'deps', 'compile_design'])
+             )
+
 
 
 Return('design')

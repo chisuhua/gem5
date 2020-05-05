@@ -26,6 +26,7 @@ env.Append(CPPPATH=[gem5_root + '/build/' + gem5_arch,
                     gem5_root + '/util/systemc/gem5_within_systemc',
                     gem5_root + '/ext/systemc/src',
                     gem5_root + '/ext/libsystemctlm-soc',
+                    gem5_root + '/ext/axi',
                     gem5_tlm + '/src',
                     gem5_tlm + '/examples/common',
                     ])

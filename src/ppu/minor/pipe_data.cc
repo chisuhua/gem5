@@ -39,7 +39,7 @@
 
 #include "ppu/minor/pipe_data.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 std::ostream &
@@ -255,7 +255,7 @@ void
 ForwardInstData::bubbleFill()
 {
     for (unsigned int i = 0; i < numInsts; i++)
-        insts[i] = MinorDynInst::bubble();
+        insts[i] = PpuMinorDynInst::bubble();
 }
 
 void

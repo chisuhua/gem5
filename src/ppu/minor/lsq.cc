@@ -53,10 +53,10 @@
 #include "debug/PpuActivity.hh"
 #include "debug/PpuMinorMem.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
-LSQ::LSQRequest::LSQRequest(LSQ &port_, MinorDynInstPtr inst_, bool isLoad_,
+LSQ::LSQRequest::LSQRequest(LSQ &port_, PpuMinorDynInstPtr inst_, bool isLoad_,
     PacketDataPtr data_, uint64_t *res_) :
     SenderState(),
     port(port_),
@@ -255,7 +255,7 @@ operator <<(std::ostream &os, LSQ::LSQRequest::LSQRequestState state)
 }
 
 void
-LSQ::clearMemBarrier(MinorDynInstPtr inst)
+LSQ::clearMemBarrier(PpuMinorDynInstPtr inst)
 {
     bool is_last_barrier =
         inst->id.execSeqNum >= lastMemBarrier[inst->id.threadId];
@@ -390,7 +390,7 @@ LSQ::SplitDataRequest::finish(const Fault &fault_, const RequestPtr &request_,
     }
 }
 
-LSQ::SplitDataRequest::SplitDataRequest(LSQ &port_, MinorDynInstPtr inst_,
+LSQ::SplitDataRequest::SplitDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_,
     bool isLoad_, PacketDataPtr data_, uint64_t *res_) :
     LSQRequest(port_, inst_, isLoad_, data_, res_),
     translationEvent([this]{ sendNextFragmentToTranslation(); },
@@ -918,7 +918,7 @@ LSQ::StoreBuffer::step()
 }
 
 void
-LSQ::completeMemBarrierInst(MinorDynInstPtr inst,
+LSQ::completeMemBarrierInst(PpuMinorDynInstPtr inst,
     bool committed)
 {
     if (committed) {
@@ -1399,7 +1399,7 @@ LSQ::recvReqRetry()
 }
 
 LSQ::LSQ(std::string name_, std::string dcache_port_name_,
-    MinorPPU &cpu_, Execute &execute_,
+    PpuMinorPPU &cpu_, Execute &execute_,
     unsigned int in_memory_system_limit, unsigned int line_width,
     unsigned int requests_queue_size, unsigned int transfers_queue_size,
     unsigned int store_buffer_size,
@@ -1482,7 +1482,7 @@ LSQ::step()
 }
 
 LSQ::LSQRequestPtr
-LSQ::findResponse(MinorDynInstPtr inst)
+LSQ::findResponse(PpuMinorDynInstPtr inst)
 {
     LSQ::LSQRequestPtr ret = NULL;
 
@@ -1579,7 +1579,7 @@ LSQ::needsToTick()
 }
 
 Fault
-LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
+LSQ::pushRequest(PpuMinorDynInstPtr inst, bool isLoad, uint8_t *data,
                  unsigned int size, Addr addr, Request::Flags flags,
                  uint64_t *res, AtomicOpFunctorPtr amo_op,
                  const std::vector<bool>& byte_enable)
@@ -1654,7 +1654,7 @@ LSQ::pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
 }
 
 void
-LSQ::pushFailedRequest(MinorDynInstPtr inst)
+LSQ::pushFailedRequest(PpuMinorDynInstPtr inst)
 {
     LSQRequestPtr request = new FailedDataRequest(*this, inst);
     requests.push(request);
@@ -1705,7 +1705,7 @@ makePacketForRequest(const RequestPtr &request, bool isLoad,
 }
 
 void
-LSQ::issuedMemBarrierInst(MinorDynInstPtr inst)
+LSQ::issuedMemBarrierInst(PpuMinorDynInstPtr inst)
 {
     assert(inst->isInst() && inst->staticInst->isMemBarrier());
     assert(inst->id.execSeqNum > lastMemBarrier[inst->id.threadId]);
@@ -1752,7 +1752,7 @@ operator <<(std::ostream &os, LSQ::MemoryState state)
 void
 LSQ::recvTimingSnoopReq(PacketPtr pkt)
 {
-    /* LLSC operations in Minor can't be speculative and are executed from
+    /* LLSC operations in PpuMinor can't be speculative and are executed from
      * the head of the requests queue.  We shouldn't need to do more than
      * this action on snoops. */
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
@@ -1772,7 +1772,7 @@ LSQ::recvTimingSnoopReq(PacketPtr pkt)
 void
 LSQ::threadSnoop(LSQRequestPtr request)
 {
-    /* LLSC operations in Minor can't be speculative and are executed from
+    /* LLSC operations in PpuMinor can't be speculative and are executed from
      * the head of the requests queue.  We shouldn't need to do more than
      * this action on snoops. */
     ThreadID req_tid = request->inst->id.threadId;

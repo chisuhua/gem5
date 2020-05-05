@@ -46,37 +46,37 @@
 #include "debug/PpuMinorTiming.hh"
 #include "enums/OpClass.hh"
 
-MinorOpClass *
-MinorOpClassParams::create()
+PpuMinorOpClass *
+PpuMinorOpClassParams::create()
 {
-    return new MinorOpClass(this);
+    return new PpuMinorOpClass(this);
 }
 
-MinorOpClassSet *
-MinorOpClassSetParams::create()
+PpuMinorOpClassSet *
+PpuMinorOpClassSetParams::create()
 {
-    return new MinorOpClassSet(this);
+    return new PpuMinorOpClassSet(this);
 }
 
-MinorFUTiming *
-MinorFUTimingParams::create()
+PpuMinorFUTiming *
+PpuMinorFUTimingParams::create()
 {
-    return new MinorFUTiming(this);
+    return new PpuMinorFUTiming(this);
 }
 
-MinorFU *
-MinorFUParams::create()
+PpuMinorFU *
+PpuMinorFUParams::create()
 {
-    return new MinorFU(this);
+    return new PpuMinorFU(this);
 }
 
-MinorFUPool *
-MinorFUPoolParams::create()
+PpuMinorFUPool *
+PpuMinorFUPoolParams::create()
 {
-    return new MinorFUPool(this);
+    return new PpuMinorFUPool(this);
 }
 
-MinorOpClassSet::MinorOpClassSet(const MinorOpClassSetParams *params) :
+PpuMinorOpClassSet::PpuMinorOpClassSet(const PpuMinorOpClassSetParams *params) :
     SimObject(params),
     opClasses(params->opClasses),
     /* Initialise to true for an empty list so that 'fully capable' is
@@ -87,8 +87,8 @@ MinorOpClassSet::MinorOpClassSet(const MinorOpClassSetParams *params) :
         capabilityList[opClasses[i]->opClass] = true;
 }
 
-MinorFUTiming::MinorFUTiming(
-    const MinorFUTimingParams *params) :
+PpuMinorFUTiming::PpuMinorFUTiming(
+    const PpuMinorFUTimingParams *params) :
     SimObject(params),
     mask(params->mask),
     match(params->match),
@@ -101,7 +101,7 @@ MinorFUTiming::MinorFUTiming(
     opClasses(params->opClasses)
 { }
 
-namespace Minor
+namespace PpuMinor
 {
 
 void
@@ -110,7 +110,7 @@ QueuedInst::reportData(std::ostream &os) const
     inst->reportData(os);
 }
 
-FUPipeline::FUPipeline(const std::string &name, const MinorFU &description_,
+FUPipeline::FUPipeline(const std::string &name, const PpuMinorFU &description_,
     ClockedObject &timeSource_) :
     FUPipelineBase(name, "insts", description_.opLat),
     description(description_),
@@ -119,12 +119,12 @@ FUPipeline::FUPipeline(const std::string &name, const MinorFU &description_,
 {
     /* Issue latencies are set to 1 in calls to addCapability here.
      * Issue latencies are associated with the pipeline as a whole,
-     * rather than instruction classes in Minor */
+     * rather than instruction classes in PpuMinor */
 
     /* All pipelines should be able to execute No_OpClass instructions */
     addCapability(No_OpClass, description.opLat, 1);
 
-    /* Add the capabilities listed in the MinorFU for this functional unit */
+    /* Add the capabilities listed in the PpuMinorFU for this functional unit */
     for (unsigned int i = 0; i < description.opClasses->opClasses.size();
          i++)
     {
@@ -133,7 +133,7 @@ FUPipeline::FUPipeline(const std::string &name, const MinorFU &description_,
     }
 
     for (unsigned int i = 0; i < description.timings.size(); i++) {
-        MinorFUTiming &timing = *(description.timings[i]);
+        PpuMinorFUTiming &timing = *(description.timings[i]);
 
         if (DTRACE(PpuMinorTiming)) {
             std::ostringstream lats;
@@ -199,7 +199,7 @@ FUPipeline::advance()
     FUPipelineBase::advance();
 }
 
-MinorFUTiming *
+PpuMinorFUTiming *
 FUPipeline::findTiming(const StaticInstPtr &inst)
 {
 #if THE_PPU_ISA == ARM_ISA
@@ -214,12 +214,12 @@ FUPipeline::findTiming(const StaticInstPtr &inst)
     uint64_t mach_inst = 0;
 #endif
 
-    const std::vector<MinorFUTiming *> &timings =
+    const std::vector<PpuMinorFUTiming *> &timings =
         description.timings;
     unsigned int num_timings = timings.size();
 
     for (unsigned int i = 0; i < num_timings; i++) {
-        MinorFUTiming &timing = *timings[i];
+        PpuMinorFUTiming &timing = *timings[i];
 
         if (timing.provides(inst->opClass()) &&
             (mach_inst & timing.mask) == timing.match)

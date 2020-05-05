@@ -55,7 +55,7 @@
 #include "ppu/minor/trace.hh"
 #include "ppu/timebuf.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** Interface class for data with reporting/tracing facilities.  This
@@ -147,21 +147,21 @@ class BubbleTraitsPtrAdaptor
     static PtrType bubble() { return ElemType::bubble(); }
 };
 
-/** TimeBuffer with MinorTrace and Named interfaces */
+/** TimeBuffer with PpuMinorTrace and Named interfaces */
 template <typename ElemType,
     typename ReportTraits = ReportTraitsAdaptor<ElemType>,
     typename BubbleTraits = BubbleTraitsAdaptor<ElemType> >
-class MinorBuffer : public Named, public TimeBuffer<ElemType>
+class PpuMinorBuffer : public Named, public TimeBuffer<ElemType>
 {
   protected:
     /** The range of elements that should appear in trace lines */
     int reportLeft, reportRight;
 
-    /** Name to use for the data in a MinorTrace line */
+    /** Name to use for the data in a PpuMinorTrace line */
     std::string dataName;
 
   public:
-    MinorBuffer(const std::string &name,
+    PpuMinorBuffer(const std::string &name,
         const std::string &data_name,
         int num_past, int num_future,
         int report_left = -1, int report_right = -1) :
@@ -211,13 +211,13 @@ class MinorBuffer : public Named, public TimeBuffer<ElemType>
     }
 };
 
-/** Wraps a MinorBuffer with Input/Output interfaces to ensure that units
+/** Wraps a PpuMinorBuffer with Input/Output interfaces to ensure that units
  *  within the model can only see the right end of buffers between them. */
 template <typename Data>
 class Latch
 {
   public:
-    typedef MinorBuffer<Data> Buffer;
+    typedef PpuMinorBuffer<Data> Buffer;
 
   protected:
     /** Delays, in cycles, writing data into the latch and seeing it on the
@@ -286,7 +286,7 @@ class Latch
 template <typename ElemType,
     typename ReportTraits,
     typename BubbleTraits = BubbleTraitsAdaptor<ElemType> >
-class SelfStallingPipeline : public MinorBuffer<ElemType, ReportTraits>
+class SelfStallingPipeline : public PpuMinorBuffer<ElemType, ReportTraits>
 {
   protected:
     /** Wire at the input end of the pipeline (for convenience) */
@@ -305,7 +305,7 @@ class SelfStallingPipeline : public MinorBuffer<ElemType, ReportTraits>
     SelfStallingPipeline(const std::string &name,
         const std::string &data_name,
         unsigned depth) :
-        MinorBuffer<ElemType, ReportTraits>
+        PpuMinorBuffer<ElemType, ReportTraits>
             (name, data_name, depth, 0, -1, -depth),
         pushWire(this->getWire(0)),
         popWire(this->getWire(-depth)),
@@ -408,7 +408,7 @@ class Queue : public Named, public Reservable
     /** Need this here as queues usually don't have a limited capacity */
     unsigned int capacity;
 
-    /** Name to use for the data in MinorTrace */
+    /** Name to use for the data in PpuMinorTrace */
     std::string dataName;
 
   public:

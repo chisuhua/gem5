@@ -53,7 +53,7 @@
 #include "ppu/base.hh"
 #include "mem/packet.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** A stage responsible for fetching "lines" from memory and passing
@@ -62,15 +62,15 @@ class Fetch1 : public Named
 {
   protected:
     /** Exposable fetch port */
-    class IcachePort : public MinorPPU::MinorPPUPort
+    class IcachePort : public PpuMinorPPU::PpuMinorPPUPort
     {
       protected:
         /** My owner */
         Fetch1 &fetch;
 
       public:
-        IcachePort(std::string name, Fetch1 &fetch_, MinorPPU &cpu) :
-            MinorPPU::MinorPPUPort(name, cpu), fetch(fetch_)
+        IcachePort(std::string name, Fetch1 &fetch_, PpuMinorPPU &cpu) :
+            PpuMinorPPU::PpuMinorPPUPort(name, cpu), fetch(fetch_)
         { }
 
       protected:
@@ -195,7 +195,7 @@ class Fetch1 : public Named
     /** Construction-assigned data members */
 
     /** Pointer back to the containing CPU */
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
 
     /** Input port carrying branch requests from Execute */
     Latch<BranchData>::Output inp;
@@ -379,7 +379,7 @@ class Fetch1 : public Named
      *  in-memory system fetches */
     unsigned int numInFlightFetches();
 
-    /** Print the appropriate MinorLine line for a fetch response */
+    /** Print the appropriate PpuMinorLine line for a fetch response */
     void minorTraceResponseLine(const std::string &name,
         FetchRequestPtr response) const;
 
@@ -389,8 +389,8 @@ class Fetch1 : public Named
 
   public:
     Fetch1(const std::string &name_,
-        MinorPPU &cpu_,
-        MinorPPUParams &params,
+        PpuMinorPPU &cpu_,
+        PpuMinorPPUParams &params,
         Latch<BranchData>::Output inp_,
         Latch<ForwardLineData>::Input out_,
         Latch<BranchData>::Output prediction_,
@@ -398,7 +398,7 @@ class Fetch1 : public Named
 
   public:
     /** Returns the IcachePort owned by this Fetch1 */
-    MinorPPU::MinorPPUPort &getIcachePort() { return icachePort; }
+    PpuMinorPPU::PpuMinorPPUPort &getIcachePort() { return icachePort; }
 
     /** Pass on input/buffer data to the output if you can */
     void evaluate();

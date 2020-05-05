@@ -43,11 +43,11 @@
 
 #include "ppu/minor/trace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 void
-MinorActivityRecorder::minorTrace() const
+PpuMinorActivityRecorder::minorTrace() const
 {
     std::ostringstream stages;
     unsigned int num_stages = getNumStages();

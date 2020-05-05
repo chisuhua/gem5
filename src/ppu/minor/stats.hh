@@ -40,7 +40,7 @@
 /**
  * @file
  *
- * The stats for MinorPPU separated from the CPU definition.
+ * The stats for PpuMinorPPU separated from the CPU definition.
  */
 
 #ifndef __PPU_MINOR_STATS_HH__
@@ -50,11 +50,11 @@
 #include "ppu/base.hh"
 #include "sim/ticked_object.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** Currently unused stats class. */
-class MinorStats
+class PpuMinorStats
 {
   public:
     /** Number of simulated instructions */
@@ -80,7 +80,7 @@ class MinorStats
     Stats::Vector2d committedInstType;
 
   public:
-    MinorStats();
+    PpuMinorStats();
 
   public:
     void regStats(const std::string &name, PpuBaseCPU &baseCpu);

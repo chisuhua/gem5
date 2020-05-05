@@ -55,7 +55,7 @@ OPTION="${OPTION} $2"
 
 
 #OPTION="${OPTION} --list-sim-objects"
-RUN=./build/PPU/gem5.debug
+RUN=./build/X86_VI_hammer/gem5.debug
 
 
 OPTION="${OPTION} --debug-file=run_debug.log"
@@ -98,7 +98,7 @@ CMD="tests/test-progs/threads/bin/X86/linux/threads"
 
 CONF="configs/example/ppu/fs_simple_ppu.py"
 #CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
-CMD="-b /mnt/d/yunpan/source/github/sim/zephyreproject/zephyr/build_ppu32/zephyr/zephyr.elf"
+CMD="-b /mnt/d/source/github/sim/zephyreproject/zephyr/build_ppu32/zephyr/zephyr.elf"
 CMD="${CMD} -w"
 
 echo $RUN $OPTION $CONF $CMD

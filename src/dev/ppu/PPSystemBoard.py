@@ -59,7 +59,6 @@ class PpuSystemBoard(Platform):
 
     timer_cpu = PpuTimerCpu(pio_addr=0x70014000) # defult BasicPioDevice pio_size is 0x10
 
-    pdb.set_trace()
 
     term = Terminal()
     uart = Uart8250(pio_addr=0x70013000, pio_size=0x20)

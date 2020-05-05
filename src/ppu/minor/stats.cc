@@ -39,14 +39,14 @@
 
 #include "ppu/minor/stats.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
-MinorStats::MinorStats()
+PpuMinorStats::PpuMinorStats()
 { }
 
 void
-MinorStats::regStats(const std::string &name, PpuBaseCPU &baseCpu)
+PpuMinorStats::regStats(const std::string &name, PpuBaseCPU &baseCpu)
 {
     numInsts
         .name(name + ".committedInsts")

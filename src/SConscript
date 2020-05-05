@@ -961,7 +961,10 @@ if GetOption('with_cxx_config'):
                     [File('params/%s.hh' % name), File('sim/cxx_config.hh')])
         env.Depends(cxx_config_cc_file, depends + extra_deps +
                     [cxx_config_hh_file])
-        Source(cxx_config_cc_file)
+        if env['BUILD_PPU'] and re.search(r'(Ppu|PPU)', name):
+            Source(cxx_config_cc_file, append={'CXXFLAGS': '-DBUILD_PPU'})
+        else:
+            Source(cxx_config_cc_file)
 
     cxx_config_init_cc_file = File('cxx_config/init.cc')
 

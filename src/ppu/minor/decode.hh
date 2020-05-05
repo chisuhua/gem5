@@ -52,7 +52,7 @@
 #include "ppu/minor/dyn_inst.hh"
 #include "ppu/minor/pipe_data.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /* Decode takes instructions from Fetch2 and decomposes them into micro-ops
@@ -63,7 +63,7 @@ class Decode : public Named
 {
   protected:
     /** Pointer back to the containing CPU */
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
 
     /** Input port carrying macro instructions from Fetch2 */
     Latch<ForwardInstData>::Output inp;
@@ -139,8 +139,8 @@ class Decode : public Named
     ThreadID getScheduledThread();
   public:
     Decode(const std::string &name,
-        MinorPPU &cpu_,
-        MinorPPUParams &params,
+        PpuMinorPPU &cpu_,
+        PpuMinorPPUParams &params,
         Latch<ForwardInstData>::Output inp_,
         Latch<ForwardInstData>::Input out_,
         std::vector<InputBuffer<ForwardInstData>> &next_stage_input_buffer);

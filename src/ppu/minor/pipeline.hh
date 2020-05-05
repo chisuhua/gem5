@@ -40,7 +40,7 @@
 /**
  * @file
  *
- *  The constructed pipeline.  Kept out of MinorPPU to keep the interface
+ *  The constructed pipeline.  Kept out of PpuMinorPPU to keep the interface
  *  between the CPU and its grubby implementation details clean.
  */
 
@@ -53,25 +53,25 @@
 #include "ppu/minor/execute.hh"
 #include "ppu/minor/fetch1.hh"
 #include "ppu/minor/fetch2.hh"
-#include "params/MinorPPU.hh"
+#include "params/PpuMinorPPU.hh"
 #include "sim/ticked_object.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /**
- * @namespace Minor
+ * @namespace PpuMinor
  *
- * Minor contains all the definitions within the MinorPPU apart from the CPU
+ * PpuMinor contains all the definitions within the PpuMinorPPU apart from the CPU
  * class itself
  */
 
-/** The constructed pipeline.  Kept out of MinorPPU to keep the interface
+/** The constructed pipeline.  Kept out of PpuMinorPPU to keep the interface
  *  between the CPU and its grubby implementation details clean. */
 class Pipeline : public Ticked
 {
   protected:
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
 
     /** Allow cycles to be skipped when the pipeline is idle */
     bool allow_idling;
@@ -90,7 +90,7 @@ class Pipeline : public Ticked
     /** Activity recording for the pipeline.  This is access through the CPU
      *  by the pipeline stages but belongs to the Pipeline as it is the
      *  cleanest place to initialise it */
-    MinorActivityRecorder activityRecorder;
+    PpuMinorActivityRecorder activityRecorder;
 
   public:
     /** Enumerated ids of the 'stages' for the activity recorder */
@@ -107,7 +107,7 @@ class Pipeline : public Ticked
     bool needToSignalDrained;
 
   public:
-    Pipeline(MinorPPU &cpu_, MinorPPUParams &params);
+    Pipeline(PpuMinorPPU &cpu_, PpuMinorPPUParams &params);
 
   public:
     /** Wake up the Fetch unit.  This is needed on thread activation esp.
@@ -135,12 +135,12 @@ class Pipeline : public Ticked
      *  stages */
 
     /** Return the IcachePort belonging to Fetch1 for the CPU */
-    MinorPPU::MinorPPUPort &getInstPort();
+    PpuMinorPPU::PpuMinorPPUPort &getInstPort();
     /** Return the DcachePort belonging to Execute for the CPU */
-    MinorPPU::MinorPPUPort &getDataPort();
+    PpuMinorPPU::PpuMinorPPUPort &getDataPort();
 
     /** To give the activity recorder to the CPU */
-    MinorActivityRecorder *getActivityRecorder() { return &activityRecorder; }
+    PpuMinorActivityRecorder *getActivityRecorder() { return &activityRecorder; }
 };
 
 }

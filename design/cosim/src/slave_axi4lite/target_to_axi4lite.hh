@@ -51,38 +51,15 @@ using namespace std;
 // Top simulation module.
 SC_MODULE(Top)
 {
-        sc_clock clk;
-        sc_signal<bool> rst_n; // Active low.
+    sc_clock clk;
+    sc_signal<bool> rst_n; // Active low.
 
-        AXILiteSignals<4, 32 > signals;
-        tlm2axilite_bridge<4, 32 > bridge;
+    AXILiteSignals<4, 32 > signals;
+    tlm2axilite_bridge<4, 32 > bridge;
     AXILiteProtocolChecker<4, 32 > checker;
-        // dut is the RTL AXI4Lite device we're testing.
-        Vaxilite_dev dut;
+    // dut is the RTL AXI4Lite device we're testing.
+    Vaxilite_dev dut;
 
-        Top(sc_module_name name);
+    Top(sc_module_name name);
 };
-/*
-int sc_main(int argc, char *argv[])
-{
-        Verilated::commandArgs(argc, argv);
-        Top top("Top");
 
-        sc_trace_file *trace_fp = sc_create_vcd_trace_file(argv[0]);
-
-        top.signals.Trace(trace_fp);
-
-        // Reset is active low. Emit a reset cycle.
-        top.rst_n.write(false);
-        sc_start(4, SC_US);
-        top.rst_n.write(true);
-
-        sc_start(140, SC_US);
-        sc_stop();
-
-        if (trace_fp) {
-                sc_close_vcd_trace_file(trace_fp);
-        }
-        return 0;
-}
-*/

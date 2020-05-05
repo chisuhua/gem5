@@ -52,7 +52,7 @@
 #include "ppu/minor/pipe_data.hh"
 #include "ppu/minor/trace.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /* Forward declaration */
@@ -62,7 +62,7 @@ class LSQ : public Named
 {
   protected:
     /** My owner(s) */
-    MinorPPU &cpu;
+    PpuMinorPPU &cpu;
     Execute &execute;
 
   protected:
@@ -86,15 +86,15 @@ class LSQ : public Named
     };
 
     /** Exposable data port */
-    class DcachePort : public MinorPPU::MinorPPUPort
+    class DcachePort : public PpuMinorPPU::PpuMinorPPUPort
     {
       protected:
         /** My owner */
         LSQ &lsq;
 
       public:
-        DcachePort(std::string name, LSQ &lsq_, MinorPPU &cpu) :
-            MinorPPU::MinorPPUPort(name, cpu), lsq(lsq_)
+        DcachePort(std::string name, LSQ &lsq_, PpuMinorPPU &cpu) :
+            PpuMinorPPU::PpuMinorPPUPort(name, cpu), lsq(lsq_)
         { }
 
       protected:
@@ -126,7 +126,7 @@ class LSQ : public Named
         LSQ &port;
 
         /** Instruction which made this request */
-        MinorDynInstPtr inst;
+        PpuMinorDynInstPtr inst;
 
         /** Load/store indication used for building packet.  This isn't
          *  carried by Request so we need to keep it here */
@@ -196,7 +196,7 @@ class LSQ : public Named
         void completeDisabledMemAccess();
 
       public:
-        LSQRequest(LSQ &port_, MinorDynInstPtr inst_, bool isLoad_,
+        LSQRequest(LSQ &port_, PpuMinorDynInstPtr inst_, bool isLoad_,
             PacketDataPtr data_ = NULL, uint64_t *res_ = NULL);
 
         virtual ~LSQRequest();
@@ -261,7 +261,7 @@ class LSQ : public Named
          *  of preceding faults */
         bool isComplete() const;
 
-        /** MinorTrace report interface */
+        /** PpuMinorTrace report interface */
         void reportData(std::ostream &os) const;
     };
 
@@ -310,7 +310,7 @@ class LSQ : public Named
         void retireResponse(PacketPtr packet_) { }
 
       public:
-        SpecialDataRequest(LSQ &port_, MinorDynInstPtr inst_) :
+        SpecialDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_) :
             /* Say this is a load, not actually relevant */
             LSQRequest(port_, inst_, true, NULL, 0)
         { }
@@ -322,7 +322,7 @@ class LSQ : public Named
     class FailedDataRequest : public SpecialDataRequest
     {
       public:
-        FailedDataRequest(LSQ &port_, MinorDynInstPtr inst_) :
+        FailedDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_) :
             SpecialDataRequest(port_, inst_)
         { state = Failed; }
     };
@@ -335,7 +335,7 @@ class LSQ : public Named
         bool isBarrier() { return true; }
 
       public:
-        BarrierDataRequest(LSQ &port_, MinorDynInstPtr inst_) :
+        BarrierDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_) :
             SpecialDataRequest(port_, inst_)
         { state = Complete; }
     };
@@ -382,7 +382,7 @@ class LSQ : public Named
         void retireResponse(PacketPtr packet_);
 
       public:
-        SingleDataRequest(LSQ &port_, MinorDynInstPtr inst_,
+        SingleDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_,
             bool isLoad_, PacketDataPtr data_ = NULL, uint64_t *res_ = NULL) :
             LSQRequest(port_, inst_, isLoad_, data_, res_),
             packetInFlight(false),
@@ -432,7 +432,7 @@ class LSQ : public Named
         };
 
       public:
-        SplitDataRequest(LSQ &port_, MinorDynInstPtr inst_,
+        SplitDataRequest(LSQ &port_, PpuMinorDynInstPtr inst_,
             bool isLoad_, PacketDataPtr data_ = NULL,
             uint64_t *res_ = NULL);
 
@@ -539,7 +539,7 @@ class LSQ : public Named
         /** Try to issue more stores to memory */
         void step();
 
-        /** Report queue contents for MinorTrace */
+        /** Report queue contents for PpuMinorTrace */
         void minorTrace() const;
     };
 
@@ -642,7 +642,7 @@ class LSQ : public Named
     bool tryToSend(LSQRequestPtr request);
 
     /** Clear a barrier (if it's the last one marked up in lastMemBarrier) */
-    void clearMemBarrier(MinorDynInstPtr inst);
+    void clearMemBarrier(PpuMinorDynInstPtr inst);
 
     /** Move a request between queues */
     void moveFromRequestsToTransfers(LSQRequestPtr request);
@@ -655,7 +655,7 @@ class LSQ : public Named
 
   public:
     LSQ(std::string name_, std::string dcache_port_name_,
-        MinorPPU &cpu_, Execute &execute_,
+        PpuMinorPPU &cpu_, Execute &execute_,
         unsigned int max_accesses_in_memory_system, unsigned int line_width,
         unsigned int requests_queue_size, unsigned int transfers_queue_size,
         unsigned int store_buffer_size,
@@ -681,7 +681,7 @@ class LSQ : public Named
      *  it's either complete or can be sent on to the store buffer.  After
      *  calling, the request still remains on the transfer queue until
      *  popResponse is called */
-    LSQRequestPtr findResponse(MinorDynInstPtr inst);
+    LSQRequestPtr findResponse(PpuMinorDynInstPtr inst);
 
     /** Sanity check and pop the head response */
     void popResponse(LSQRequestPtr response);
@@ -701,7 +701,7 @@ class LSQ : public Named
     /** A memory barrier instruction has been issued, remember its
      *  execSeqNum that we can avoid issuing memory ops until it is
      *  committed */
-    void issuedMemBarrierInst(MinorDynInstPtr inst);
+    void issuedMemBarrierInst(PpuMinorDynInstPtr inst);
 
     /** Get the execSeqNum of the last issued memory barrier */
     InstSeqNum getLastMemBarrier(ThreadID thread_id) const
@@ -716,12 +716,12 @@ class LSQ : public Named
 
     /** Complete a barrier instruction.  Where committed, makes a
      *  BarrierDataRequest and pushed it into the store buffer */
-    void completeMemBarrierInst(MinorDynInstPtr inst,
+    void completeMemBarrierInst(PpuMinorDynInstPtr inst,
         bool committed);
 
     /** Single interface for readMem/writeMem/amoMem to issue requests into
      *  the LSQ */
-    Fault pushRequest(MinorDynInstPtr inst, bool isLoad, uint8_t *data,
+    Fault pushRequest(PpuMinorDynInstPtr inst, bool isLoad, uint8_t *data,
                       unsigned int size, Addr addr, Request::Flags flags,
                       uint64_t *res, AtomicOpFunctorPtr amo_op,
                       const std::vector<bool>& byte_enable =
@@ -729,7 +729,7 @@ class LSQ : public Named
 
     /** Push a predicate failed-representing request into the queues just
      *  to maintain commit order */
-    void pushFailedRequest(MinorDynInstPtr inst);
+    void pushFailedRequest(PpuMinorDynInstPtr inst);
 
     /** Memory interface */
     bool recvTimingResp(PacketPtr pkt);
@@ -737,7 +737,7 @@ class LSQ : public Named
     void recvTimingSnoopReq(PacketPtr pkt);
 
     /** Return the raw-bindable port */
-    MinorPPU::MinorPPUPort &getDcachePort() { return dcachePort; }
+    PpuMinorPPU::PpuMinorPPUPort &getDcachePort() { return dcachePort; }
 
     void minorTrace() const;
 };

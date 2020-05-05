@@ -49,11 +49,11 @@
 
 #include "ppu/activity.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 /** ActivityRecorder with a Ticked interface */
-class MinorActivityRecorder : public ActivityRecorder
+class PpuMinorActivityRecorder : public ActivityRecorder
 {
   public:
     /** Ticked interface */
@@ -61,7 +61,7 @@ class MinorActivityRecorder : public ActivityRecorder
     void minorTrace() const;
 
   public:
-    MinorActivityRecorder(const std::string &name, int num_stages,
+    PpuMinorActivityRecorder(const std::string &name, int num_stages,
         int longest_latency) :
         ActivityRecorder(name, num_stages, longest_latency, 0)
     { }

@@ -42,12 +42,12 @@
 #include "ppu/minor/pipeline.hh"
 #include "debug/PpuDecode.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 Decode::Decode(const std::string &name,
-    MinorPPU &cpu_,
-    MinorPPUParams &params,
+    PpuMinorPPU &cpu_,
+    PpuMinorPPUParams &params,
     Latch<ForwardInstData>::Output inp_,
     Latch<ForwardInstData>::Input out_,
     std::vector<InputBuffer<ForwardInstData>> &next_stage_input_buffer) :
@@ -106,8 +106,8 @@ Decode::popInput(ThreadID tid)
  *  decode because this is the first place that execSeqNums are known
  *  (these are used as the 'FetchSeq' in tracing data) */
 static void
-dynInstAddTracing(MinorDynInstPtr inst, StaticInstPtr static_inst,
-    MinorPPU &cpu)
+dynInstAddTracing(PpuMinorDynInstPtr inst, StaticInstPtr static_inst,
+    PpuMinorPPU &cpu)
 {
     inst->traceData = cpu.getTracer()->getInstRecord(curTick(),
         cpu.getContext(inst->id.threadId),
@@ -148,7 +148,7 @@ Decode::evaluate()
            decode_info.inputIndex < insts_in->width() && /* Still more input */
            output_index < outputWidth /* Still more output to fill */)
         {
-            MinorDynInstPtr inst = insts_in->insts[decode_info.inputIndex];
+            PpuMinorDynInstPtr inst = insts_in->insts[decode_info.inputIndex];
 
             if (inst->isBubble()) {
                 /* Skip */
@@ -158,7 +158,7 @@ Decode::evaluate()
                 StaticInstPtr static_inst = inst->staticInst;
                 /* Static inst of a macro-op above the output_inst */
                 StaticInstPtr parent_static_inst = NULL;
-                MinorDynInstPtr output_inst = inst;
+                PpuMinorDynInstPtr output_inst = inst;
 
                 if (inst->isFault()) {
                     DPRINTF(PpuDecode, "Fault being passed: %d\n",
@@ -182,7 +182,7 @@ Decode::evaluate()
                         static_inst->fetchMicroop(
                                 decode_info.microopPC.microPC());
 
-                    output_inst = new MinorDynInst(inst->id);
+                    output_inst = new PpuMinorDynInst(inst->id);
                     output_inst->pc = decode_info.microopPC;
                     output_inst->staticInst = static_micro_inst;
                     output_inst->fault = NoFault;

@@ -50,10 +50,10 @@
 #include "debug/PpuMinorTrace.hh"
 #include "debug/PpuQuiesce.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
-Pipeline::Pipeline(MinorPPU &cpu_, MinorPPUParams &params) :
+Pipeline::Pipeline(PpuMinorPPU &cpu_, PpuMinorPPUParams &params) :
     Ticked(cpu_, &(cpu_.PpuBaseCPU::numCycles)),
     cpu(cpu_),
     allow_idling(params.enableIdling),
@@ -183,13 +183,13 @@ Pipeline::evaluate()
     }
 }
 
-MinorPPU::MinorPPUPort &
+PpuMinorPPU::PpuMinorPPUPort &
 Pipeline::getInstPort()
 {
     return fetch1.getIcachePort();
 }
 
-MinorPPU::MinorPPUPort &
+PpuMinorPPU::PpuMinorPPUPort &
 Pipeline::getDataPort()
 {
     return execute.getDcachePort();

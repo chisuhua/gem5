@@ -56,12 +56,12 @@
 #include "debug/PpuMinorTrace.hh"
 #include "debug/PpuPCEvent.hh"
 
-namespace Minor
+namespace PpuMinor
 {
 
 Execute::Execute(const std::string &name_,
-    MinorPPU &cpu_,
-    MinorPPUParams &params,
+    PpuMinorPPU &cpu_,
+    PpuMinorPPUParams &params,
     Latch<ForwardInstData>::Output inp_,
     Latch<BranchData>::Input out_) :
     Named(name_),
@@ -128,10 +128,10 @@ Execute::Execute(const std::string &name_,
      *  queue */
     unsigned int total_slots = 0;
 
-    /* Make FUPipelines for each MinorFU */
+    /* Make FUPipelines for each PpuMinorFU */
     for (unsigned int i = 0; i < numFuncUnits; i++) {
         std::ostringstream fu_name;
-        MinorFU *fu_description = fuDescriptions.funcUnits[i];
+        PpuMinorFU *fu_description = fuDescriptions.funcUnits[i];
 
         /* Note the total number of instruction slots (for sizing
          *  the inFlightInst queue) and the maximum latency of any FU
@@ -213,7 +213,7 @@ Execute::popInput(ThreadID tid)
 }
 
 void
-Execute::tryToBranch(MinorDynInstPtr inst, Fault fault, BranchData &branch)
+Execute::tryToBranch(PpuMinorDynInstPtr inst, Fault fault, BranchData &branch)
 {
     PpuThreadContext *thread = dynamic_cast<PpuThreadContext*>(cpu.getContext(inst->id.threadId));
     const ThePpuISA::PCState &pc_before = inst->pc;
@@ -295,7 +295,7 @@ void
 Execute::updateBranchData(
     ThreadID tid,
     BranchData::Reason reason,
-    MinorDynInstPtr inst, const ThePpuISA::PCState &target,
+    PpuMinorDynInstPtr inst, const ThePpuISA::PCState &target,
     BranchData &branch)
 {
     if (reason != BranchData::NoBranch) {
@@ -318,7 +318,7 @@ Execute::updateBranchData(
 }
 
 void
-Execute::handleMemResponse(MinorDynInstPtr inst,
+Execute::handleMemResponse(PpuMinorDynInstPtr inst,
     LSQ::LSQRequestPtr response, BranchData &branch, Fault &fault)
 {
     ThreadID thread_id = inst->id.threadId;
@@ -437,7 +437,7 @@ Execute::takeInterrupt(ThreadID thread_id, BranchData &branch)
         /* Assume that an interrupt *must* cause a branch.  Assert this? */
 
         updateBranchData(thread_id, BranchData::Interrupt,
-            MinorDynInst::bubble(), cpu.getContext(thread_id)->pcState(),
+            PpuMinorDynInst::bubble(), cpu.getContext(thread_id)->pcState(),
             branch);
     }
 
@@ -445,7 +445,7 @@ Execute::takeInterrupt(ThreadID thread_id, BranchData &branch)
 }
 
 bool
-Execute::executeMemRefInst(MinorDynInstPtr inst, BranchData &branch,
+Execute::executeMemRefInst(PpuMinorDynInstPtr inst, BranchData &branch,
     bool &passed_predicate, Fault &fault)
 {
     bool issued = false;
@@ -572,7 +572,7 @@ Execute::issue(ThreadID thread_id)
     unsigned num_insts_discarded = 0;
 
     do {
-        MinorDynInstPtr inst = insts_in->insts[thread.inputIndex];
+        PpuMinorDynInstPtr inst = insts_in->insts[thread.inputIndex];
         Fault fault = inst->fault;
         bool discarded = false;
         bool issued_mem_ref = false;
@@ -660,7 +660,7 @@ Execute::issue(ThreadID thread_id)
                         " for another: %d cycles\n",
                         *inst, fu->cyclesBeforeInsert());
                 } else {
-                    MinorFUTiming *timing = (!inst->isFault() ?
+                    PpuMinorFUTiming *timing = (!inst->isFault() ?
                         fu->findTiming(inst->staticInst) : NULL);
 
                     const std::vector<Cycles> *src_latencies =
@@ -778,7 +778,7 @@ Execute::issue(ThreadID thread_id)
         }
 
         if (issued) {
-            /* Generate MinorTrace's MinorInst lines.  Do this at commit
+            /* Generate PpuMinorTrace's PpuMinorInst lines.  Do this at commit
              *  to allow better instruction annotation? */
             if (DTRACE(PpuMinorTrace) && !inst->isBubble())
                 inst->minorTraceInst(*this);
@@ -857,11 +857,11 @@ Execute::tryPpuPCEvents(ThreadID thread_id)
 }
 
 void
-Execute::doInstCommitAccounting(MinorDynInstPtr inst)
+Execute::doInstCommitAccounting(PpuMinorDynInstPtr inst)
 {
     assert(!inst->isFault());
 
-    MinorThread *thread = cpu.threads[inst->id.threadId];
+    PpuMinorThread *thread = cpu.threads[inst->id.threadId];
 
     /* Increment the many and various inst and op counts in the
      *  thread and system */
@@ -889,7 +889,7 @@ Execute::doInstCommitAccounting(MinorDynInstPtr inst)
 }
 
 bool
-Execute::commitInst(MinorDynInstPtr inst, bool early_memory_issue,
+Execute::commitInst(PpuMinorDynInstPtr inst, bool early_memory_issue,
     BranchData &branch, Fault &fault, bool &committed,
     bool &completed_mem_issue)
 {
@@ -1092,7 +1092,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
         /* The instruction we actually process if completed_inst
          *  remains true to the end of the loop body.
          *  Start by considering the the head of the in flight insts queue */
-        MinorDynInstPtr inst = head_inflight_inst->inst;
+        PpuMinorDynInstPtr inst = head_inflight_inst->inst;
 
         bool committed_inst = false;
         bool discard_inst = false;
@@ -1122,7 +1122,7 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
 
             /* Branch as there was a change in PC */
             updateBranchData(thread_id, BranchData::UnpredictedBranch,
-                MinorDynInst::bubble(), thread->pcState(), branch);
+                PpuMinorDynInst::bubble(), thread->pcState(), branch);
         } else if (mem_response &&
             num_mem_refs_committed < memoryCommitLimit)
         {
@@ -1166,10 +1166,10 @@ Execute::commit(ThreadID thread_id, bool only_commit_microops, bool discard,
             if (!ex_info.inFUMemInsts->empty() && lsq.canRequest()) {
                 DPRINTF(PpuMinorExecute, "Trying to commit from mem FUs\n");
 
-                const MinorDynInstPtr head_mem_ref_inst =
+                const PpuMinorDynInstPtr head_mem_ref_inst =
                     ex_info.inFUMemInsts->front().inst;
                 FUPipeline *fu = funcUnits[head_mem_ref_inst->fuIndex];
-                const MinorDynInstPtr &fu_inst = fu->front().inst;
+                const PpuMinorDynInstPtr &fu_inst = fu->front().inst;
 
                 /* Use this, possibly out of order, inst as the one
                  *  to 'commit'/send to the LSQ */
@@ -1477,7 +1477,7 @@ Execute::evaluate()
              *  the bag */
             if (commit_info.drainState == DrainHaltFetch) {
                 updateBranchData(commit_tid, BranchData::HaltFetch,
-                        MinorDynInst::bubble(), ThePpuISA::PCState(0), branch);
+                        PpuMinorDynInst::bubble(), ThePpuISA::PCState(0), branch);
 
                 cpu.wakeupOnEvent(Pipeline::ExecuteStageId);
                 setDrainState(commit_tid, DrainAllInsts);
@@ -1496,7 +1496,7 @@ Execute::evaluate()
 
     /* Run logic to step functional units + decide if we are active on the next
      * clock cycle */
-    std::vector<MinorDynInstPtr> next_issuable_insts;
+    std::vector<PpuMinorDynInstPtr> next_issuable_insts;
     bool can_issue_next = false;
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
@@ -1504,7 +1504,7 @@ Execute::evaluate()
            be issued */
         if (getInput(tid)) {
             unsigned int input_index = executeInfo[tid].inputIndex;
-            MinorDynInstPtr inst = getInput(tid)->insts[input_index];
+            PpuMinorDynInstPtr inst = getInput(tid)->insts[input_index];
             if (inst->isFault()) {
                 can_issue_next = true;
             } else if (!inst->isBubble()) {
@@ -1699,7 +1699,7 @@ Execute::getCommittingThread()
         bool can_commit_insts = !ex_info.inFlightInsts->empty();
         if (can_commit_insts) {
             QueuedInst *head_inflight_inst = &(ex_info.inFlightInsts->front());
-            MinorDynInstPtr inst = head_inflight_inst->inst;
+            PpuMinorDynInstPtr inst = head_inflight_inst->inst;
 
             can_commit_insts = can_commit_insts &&
                 (!inst->inLSQ || (lsq.findResponse(inst) != NULL));
@@ -1707,10 +1707,10 @@ Execute::getCommittingThread()
             if (!inst->inLSQ) {
                 bool can_transfer_mem_inst = false;
                 if (!ex_info.inFUMemInsts->empty() && lsq.canRequest()) {
-                    const MinorDynInstPtr head_mem_ref_inst =
+                    const PpuMinorDynInstPtr head_mem_ref_inst =
                         ex_info.inFUMemInsts->front().inst;
                     FUPipeline *fu = funcUnits[head_mem_ref_inst->fuIndex];
-                    const MinorDynInstPtr &fu_inst = fu->front().inst;
+                    const PpuMinorDynInstPtr &fu_inst = fu->front().inst;
                     can_transfer_mem_inst =
                         !fu_inst->isBubble() &&
                          fu_inst->id.threadId == tid &&
@@ -1774,7 +1774,7 @@ Execute::getIssuingThread()
 void
 Execute::drainResume()
 {
-    DPRINTF(PpuDrain, "MinorExecute drainResume\n");
+    DPRINTF(PpuDrain, "PpuMinorExecute drainResume\n");
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         setDrainState(tid, NotDraining);
@@ -1817,7 +1817,7 @@ Execute::setDrainState(ThreadID thread_id, DrainState state)
 unsigned int
 Execute::drain()
 {
-    DPRINTF(PpuDrain, "MinorExecute drain\n");
+    DPRINTF(PpuDrain, "PpuMinorExecute drain\n");
 
     for (ThreadID tid = 0; tid < cpu.numThreads; tid++) {
         if (executeInfo[tid].drainState == NotDraining) {
@@ -1863,13 +1863,13 @@ Execute::~Execute()
 }
 
 bool
-Execute::instIsRightStream(MinorDynInstPtr inst)
+Execute::instIsRightStream(PpuMinorDynInstPtr inst)
 {
     return inst->id.streamSeqNum == executeInfo[inst->id.threadId].streamSeqNum;
 }
 
 bool
-Execute::instIsHeadInst(MinorDynInstPtr inst)
+Execute::instIsHeadInst(PpuMinorDynInstPtr inst)
 {
     bool ret = false;
 
@@ -1879,7 +1879,7 @@ Execute::instIsHeadInst(MinorDynInstPtr inst)
     return ret;
 }
 
-MinorPPU::MinorPPUPort &
+PpuMinorPPU::PpuMinorPPUPort &
 Execute::getDcachePort()
 {
     return lsq.getDcachePort();

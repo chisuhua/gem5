@@ -36,7 +36,7 @@ sc_main(int argc, char **argv)
     memory.socket.bind(transactor.socket);
     transactor.sim_control.bind(sim_control);
 
-        memory.top.signals.Trace(trace_fp);
+    memory.top.signals.Trace(trace_fp);
 
     sc_trace(trace_fp, memory.top.rst_n, "rst_n");
     sc_trace(trace_fp, memory.top.clk, "clk");

@@ -67,7 +67,7 @@
 #include "sim/byteswap.hh"
 #include "sim/eventq.hh"
 #include "sim/full_system.hh"
-#include "ppu_sim/process.hh"
+// #include "ppu_sim/process.hh"
 #include "sim/serialize.hh"
 #include "ppu_sim/system.hh"
 
@@ -641,7 +641,8 @@ class SimpleThread : public ThreadState, public PpuThreadContext
     void
     syscall(Fault *fault) override
     {
-        process->syscall(this, fault);
+        panic("don't call syscall in Ppu\n");
+        // process->syscall(this, fault);
     }
 
     RegVal readIntRegFlat(RegIndex idx) const override { return intRegs[idx]; }
