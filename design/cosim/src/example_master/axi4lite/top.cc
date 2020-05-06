@@ -33,7 +33,7 @@ using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
 
-#include "target_to_axi4lite.hh"
+#include "top.hh"
 
 // using namespace utils;
 
@@ -54,30 +54,30 @@ Top::Top(sc_module_name name) :
             rst_n("rst_n"),
             slave_signals("slave_signals"),
             master_signals("master_signals"),
-            tlm2axilite_bridge("tlm2axilite_bridge"),
-            axilite2tlm_bridge("bridge"),
+            slave_bridge("slave_bridge"),
+            master_bridge("bridge"),
             master_checker("master_checker", checker_config()),
             slave_checker("slave_checker", checker_config()),
             dut("dut")
 {
         // Wire up the clock and reset signals.
-        tlm2axilite_bridge.clk(clk);
-        tlm2axilite_bridge.resetn(rst_n);
+        slave_bridge.clk(clk);
+        slave_bridge.resetn(rst_n);
 
-        axilite2tlm_bridge.clk(clk);
-        axilite2tlm_bridge.resetn(rst_n);
+        master_bridge.clk(clk);
+        master_bridge.resetn(rst_n);
 
         slave_checker.clk(clk);
         slave_checker.resetn(rst_n);
         dut.s00_axi_aclk(clk);
         dut.s00_axi_aresetn(rst_n);
 
-        // Wire-up the tlm2axilite_bridge and checker.
-        slave_signals.connect(tlm2axilite_bridge);
+        // Wire-up the slave_bridge and checker.
+        slave_signals.connect(slave_bridge);
         slave_signals.connect(slave_checker);
 
-        // Wire-up the axilite2tlm_bridge and checker.
-        master_signals.connect(axilite2tlm_bridge);
+        // Wire-up the master_bridge and checker.
+        master_signals.connect(master_bridge);
         master_signals.connect(master_checker);
 
 

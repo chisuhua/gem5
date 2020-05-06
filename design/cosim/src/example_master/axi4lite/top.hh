@@ -43,10 +43,11 @@ using namespace std;
 
 // #include "test-modules/utils.h"
 
-#include "Vaxilite_dev.h"
+#include "Vaxilite_join.h"
 
 // using namespace utils;
-
+#define ADDR_WIDTH 29
+#define DATA_WIDTH 32
 
 
 // Top simulation module.
@@ -55,17 +56,17 @@ SC_MODULE(Top)
     sc_clock clk;
     sc_signal<bool> rst_n; // Active low.
 
-    AXILiteSignals<4, 32 > slave_signals;
-    tlm2axilite_bridge<4, 32 > tlm2axilite_bridge;
-    AXILiteProtocolChecker<4, 32 > slave_checker;
+    AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > slave_signals;
+    tlm2axilite_bridge<ADDR_WIDTH29, DATA_WIDTH > slave_bridge;
+    AXILiteProtocolChecker<ADDR_WIDTH29, DATA_WIDTH > slave_checker;
 
 
-    AXILiteSignals<4, 32 > master_signals;
-    axilite2tlm_bridge<4, 32 > axilite2tlm_bridge;
-    AXILiteProtocolChecker<4, 32 > master_checker;
+    AXILiteSignals<ADDR_WIDTH29, DATA_WIDTH > master_signals;
+    axilite2tlm_bridge<ADDR_WIDTH29, DATA_WIDTH > master_bridge;
+    AXILiteProtocolChecker<ADDR_WIDTH29, DATA_WIDTH > master_checker;
 
     // dut is the RTL AXI4Lite device we're testing.
-    Vaxilite_dev dut;
+    Vaxilite_join dut;
 
     Top(sc_module_name name);
 };

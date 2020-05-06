@@ -33,16 +33,15 @@
  */
 
 #include "sc_target.hh"
-#include "target_to_axi4lite.hh"
 
 using namespace sc_core;
 using namespace std;
 
-Target::Target(sc_core::sc_module_name name,
+Target::Target(sc_core::sc_module_name name, Top &top,
     bool debug,
     unsigned long long int size,
     unsigned int offset) :
-    top("top"),
+    top(top),
     socket("socket"),
     socket_to_bridge("socket_to_bridge"),
     transaction_in_progress(0),
@@ -59,7 +58,7 @@ Target::Target(sc_core::sc_module_name name,
     socket.register_transport_dbg(this, &Target::transport_dbg);
     socket.register_nb_transport_fw(this, &Target::nb_transport_fw);
 
-    socket_to_bridge.bind(top.bridge.tgt_socket);
+    socket_to_bridge.bind(top.slave_bridge.tgt_socket);
 
     /* allocate storage memory */
     // mem = new unsigned char[size];
