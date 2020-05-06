@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -34,22 +34,22 @@
  */
 
 #include "booksim.hpp"
+#include <iostream>
+#include <sstream>
+#include <limits>
 #include <cmath>
 #include <cstdio>
-#include <iostream>
-#include <limits>
-#include <sstream>
 
 #include "stats.hpp"
 
-Stats::Stats( Module *parent, const string &name,
-              double bin_size, int num_bins ) :
+Stats_gpgpu::Stats_gpgpu( Module *parent, const string &name,
+	      double bin_size, int num_bins ) :
   Module( parent, name ), _num_bins( num_bins ), _bin_size( bin_size )
 {
   Clear();
 }
 
-void Stats::Clear( )
+void Stats_gpgpu::Clear( )
 {
   _num_samples = 0;
   _sample_sum  = 0.0;
@@ -59,46 +59,46 @@ void Stats::Clear( )
 
   _min = numeric_limits<double>::quiet_NaN();
   _max = -numeric_limits<double>::quiet_NaN();
-
+  
   //  _reset = true;
 }
 
-double Stats::Average( ) const
+double Stats_gpgpu::Average( ) const
 {
   return _sample_sum / (double)_num_samples;
 }
 
-double Stats::Variance( ) const
+double Stats_gpgpu::Variance( ) const
 {
   return (_sample_squared_sum * (double)_num_samples - _sample_sum * _sample_sum) / ((double)_num_samples * (double)_num_samples);
 }
 
-double Stats::Min( ) const
+double Stats_gpgpu::Min( ) const
 {
   return _min;
 }
 
-double Stats::Max( ) const
+double Stats_gpgpu::Max( ) const
 {
   return _max;
 }
 
-double Stats::Sum( ) const
+double Stats_gpgpu::Sum( ) const
 {
   return _sample_sum;
 }
 
-double Stats::SquaredSum( ) const
+double Stats_gpgpu::SquaredSum( ) const
 {
   return _sample_squared_sum;
 }
 
-int Stats::NumSamples( ) const
+int Stats_gpgpu::NumSamples( ) const
 {
   return _num_samples;
 }
 
-void Stats::AddSample( double val )
+void Stats_gpgpu::AddSample( double val )
 {
   ++_num_samples;
   _sample_sum += val;
@@ -114,15 +114,15 @@ void Stats::AddSample( double val )
   _hist[b]++;
 }
 
-void Stats::Display( ostream & os ) const
+void Stats_gpgpu::Display( ostream & os ) const
 {
   os << *this << endl;
 }
 
-ostream & operator<<(ostream & os, const Stats & s) {
+ostream & operator<<(ostream & os, const Stats_gpgpu & s) {
   vector<int> const & v = s._hist;
   os << "[ ";
-  for (size_t i = 0; i < v.size(); ++i) {
+  for(size_t i = 0; i < v.size(); ++i) {
     os << v[i] << " ";
   }
   os << "]";

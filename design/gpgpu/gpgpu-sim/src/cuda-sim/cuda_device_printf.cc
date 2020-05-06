@@ -37,10 +37,10 @@ void my_cuda_printf(const char *fmtstr,const char *arg_list)
    unsigned arg_offset=0;
    char buf[64];
    bool in_fmt=false;
-   while ( fmtstr[i] ) {
+   while( fmtstr[i] ) {
       char c = fmtstr[i++];
-      if ( !in_fmt ) {
-         if ( c != '%' ) {
+      if( !in_fmt ) {
+         if( c != '%' ) {
             fprintf(fp,"%c",c);
          } else {
             in_fmt=true;
@@ -48,7 +48,7 @@ void my_cuda_printf(const char *fmtstr,const char *arg_list)
             j=1;
          }
       } else {
-         if (!( c == 'u' || c == 'f' || c == 'd' )) {
+         if(!( c == 'u' || c == 'f' || c == 'd' )) {
             printf("GPGPU-Sim PTX: ERROR ** printf parsing support is limited to %%u, %%f, %%d at present");
             abort();
          }
@@ -56,9 +56,9 @@ void my_cuda_printf(const char *fmtstr,const char *arg_list)
          buf[j+1] = 0;
          void* ptr = (void*)&arg_list[arg_offset];
          //unsigned long long value = ((unsigned long long*)arg_list)[arg_offset];
-         if ( c == 'u' || c == 'd' ) {
+         if( c == 'u' || c == 'd' ) {
             fprintf(fp,buf,*((unsigned long long*)ptr));
-         } else if ( c == 'f' ) {
+         } else if( c == 'f' ) {
             double tmp = *((double*)ptr);
             fprintf(fp,buf,tmp);
          }
@@ -68,14 +68,14 @@ void my_cuda_printf(const char *fmtstr,const char *arg_list)
    }
 }
 
-void gpgpusim_cuda_vprintf(const ptx_instruction * pI, ptx_thread_info * thread, const function_info * target_func )
+void gpgpusim_cuda_vprintf(const ptx_instruction * pI, ptx_thread_info * thread, const function_info * target_func ) 
 {
       char *fmtstr = NULL;
       char *arg_list = NULL;
       unsigned n_return = target_func->has_return();
       unsigned n_args = target_func->num_args();
       assert( n_args == 2 );
-      for ( unsigned arg=0; arg < n_args; arg ++ ) {
+      for( unsigned arg=0; arg < n_args; arg ++ ) {
          const operand_info &actual_param_op = pI->operand_lookup(n_return+1+arg);
          const symbol *formal_param = target_func->get_arg(arg);
          unsigned size=formal_param->get_size_in_bytes();
@@ -89,21 +89,21 @@ void gpgpusim_cuda_vprintf(const ptx_instruction * pI, ptx_thread_info * thread,
          memory_space *mem=NULL;
          memory_space_t space = generic_space;
          decode_space(space,thread,actual_param_op,mem,addr); // figure out which space
-         if ( arg == 0 ) {
+         if( arg == 0 ) {
             unsigned len = 0;
             char b = 0;
             do { // figure out length
                mem->read(addr+len,1,&b);
                len++;
-            } while (b);
+            } while(b);
             fmtstr = (char*)malloc(len+64);
-            for ( int i=0; i < len; i++ )
+            for( int i=0; i < len; i++ ) 
                mem->read(addr+i,1,fmtstr+i);
             //mem->read(addr,len,fmtstr);
          } else {
             unsigned len = thread->get_finfo()->local_mem_framesize();
             arg_list = (char*)malloc(len+64);
-            for ( int i=0; i < len; i++ )
+            for( int i=0; i < len; i++ ) 
                mem->read(addr+i,1,arg_list+i);
             //mem->read(addr,len,arg_list);
          }

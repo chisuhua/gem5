@@ -37,6 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 %token <string_value> STRING
 %token <int_value>  OPCODE
+%token <int_value>  WMMA_DIRECTIVE
+%token <int_value>  LAYOUT 
+%token <int_value>  CONFIGURATION 
 %token  ALIGN_DIRECTIVE
 %token  BRANCHTARGETS_DIRECTIVE
 %token  BYTE_DIRECTIVE
@@ -63,6 +66,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token  SECTION_DIRECTIVE
 %token  SHARED_DIRECTIVE
 %token  SREG_DIRECTIVE
+%token	SSTARR_DIRECTIVE
 %token  STRUCT_DIRECTIVE
 %token  SURF_DIRECTIVE
 %token  TARGET_DIRECTIVE
@@ -71,6 +75,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token  VERSION_DIRECTIVE
 %token  ADDRESS_SIZE_DIRECTIVE
 %token  VISIBLE_DIRECTIVE
+%token  WEAK_DIRECTIVE
 %token  <string_value> IDENTIFIER
 %token  <int_value> INT_OPERAND
 %token  <float_value> FLOAT_OPERAND
@@ -103,6 +108,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token  COMMA
 %token  PRED
 %token  HALF_OPTION
+%token  EXTP_OPTION
 %token  EQ_OPTION
 %token  NE_OPTION
 %token  LT_OPTION
@@ -155,6 +161,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token SAT_OPTION
 %token FTZ_OPTION
 %token NEG_OPTION
+%token SYNC_OPTION
+%token RED_OPTION
+%token ARRIVE_OPTION
+%token ATOMIC_POPC
 %token ATOMIC_AND
 %token ATOMIC_OR
 %token ATOMIC_XOR
@@ -187,6 +197,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token  CV_OPTION;
 %token  WB_OPTION;
 %token  WT_OPTION;
+%token	NC_OPTION;
+%token	UP_OPTION;
+%token	DOWN_OPTION;
+%token	BFLY_OPTION;
+%token	IDX_OPTION;
+%token	PRMT_F4E_MODE;
+%token	PRMT_B4E_MODE;
+%token	PRMT_RC8_MODE;
+%token	PRMT_RC16_MODE;
+%token	PRMT_ECL_MODE;
+%token	PRMT_ECR_MODE;
 
 %type <int_value> function_decl_header
 %type <ptr_value> function_decl
@@ -216,7 +237,8 @@ function_defn: function_decl { set_symtab($1); func_header(".skip"); } statement
 
 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND {func_header_info_int(".maxntid", $2);
 										func_header_info_int(",", $4);
-										func_header_info_int(",", $6); }
+										func_header_info_int(",", $6); 
+                                                                                maxnt_id($2, $4, $6);}
 	| MINNCTAPERSM_DIRECTIVE INT_OPERAND { func_header_info_int(".minnctapersm", $2); printf("GPGPU-Sim: Warning: .minnctapersm ignored. \n"); }
 	| MAXNCTAPERSM_DIRECTIVE INT_OPERAND { func_header_info_int(".maxnctapersm", $2); printf("GPGPU-Sim: Warning: .maxnctapersm ignored. \n"); }
 	;
@@ -235,9 +257,13 @@ function_ident_param: IDENTIFIER { add_function_name($1); } LEFT_PAREN {func_hea
 	;
 
 function_decl_header: ENTRY_DIRECTIVE { $$ = 1; g_func_decl=1; func_header(".entry"); }
+	| VISIBLE_DIRECTIVE ENTRY_DIRECTIVE { $$ = 1; g_func_decl=1; func_header(".entry"); }
+	| WEAK_DIRECTIVE ENTRY_DIRECTIVE { $$ = 1; g_func_decl=1; func_header(".entry"); }
 	| FUNC_DIRECTIVE { $$ = 0; g_func_decl=1; func_header(".func"); }
 	| VISIBLE_DIRECTIVE FUNC_DIRECTIVE { $$ = 0; g_func_decl=1; func_header(".func"); }
+	| WEAK_DIRECTIVE FUNC_DIRECTIVE { $$ = 0; g_func_decl=1; func_header(".func"); }
 	| EXTERN_DIRECTIVE FUNC_DIRECTIVE { $$ = 2; g_func_decl=1; func_header(".func"); }
+	| WEAK_DIRECTIVE FUNC_DIRECTIVE { $$ = 0; g_func_decl=1; func_header(".func"); }
 	;
 
 param_list: /*empty*/
@@ -254,17 +280,19 @@ ptr_spec: /*empty*/
 ptr_space_spec: GLOBAL_DIRECTIVE { add_ptr_spec(global_space); }
               | LOCAL_DIRECTIVE  { add_ptr_spec(local_space); }
               | SHARED_DIRECTIVE { add_ptr_spec(shared_space); }
+			  | CONST_DIRECTIVE { add_ptr_spec(global_space); }
 
 ptr_align_spec: ALIGN_DIRECTIVE INT_OPERAND
 
 statement_block: LEFT_BRACE statement_list RIGHT_BRACE 
 
 statement_list: directive_statement { add_directive(); }
+	| statement_list prototype_block {printf("Prototype statement detected. WARNING: this is not supported yet on GPGPU-SIM\n"); }
 	| instruction_statement { add_instruction(); }
 	| statement_list directive_statement { add_directive(); }
 	| statement_list instruction_statement { add_instruction(); }
-	| statement_list statement_block
-	| statement_block
+	| statement_list {start_inst_group();} statement_block {end_inst_group();}
+	| {start_inst_group();} statement_block {end_inst_group();}
 	;
 
 directive_statement: variable_declaration SEMI_COLON
@@ -275,6 +303,7 @@ directive_statement: variable_declaration SEMI_COLON
 	| TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER { target_header3($2,$4,$6); }
 	| TARGET_DIRECTIVE IDENTIFIER { target_header($2); }
 	| FILE_DIRECTIVE INT_OPERAND STRING { add_file($2,$3); } 
+	| FILE_DIRECTIVE INT_OPERAND STRING COMMA INT_OPERAND COMMA INT_OPERAND { add_file($2,$3); } 	
 	| LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND 
 	| PRAGMA_DIRECTIVE STRING SEMI_COLON { add_pragma($2); }
 	| function_decl SEMI_COLON {/*Do nothing*/}
@@ -314,7 +343,9 @@ var_spec_list: var_spec
 var_spec: space_spec 
 	| type_spec
 	| align_spec
+	| VISIBLE_DIRECTIVE
 	| EXTERN_DIRECTIVE { add_extern_spec(); }
+    | WEAK_DIRECTIVE
 	;
 
 align_spec: ALIGN_DIRECTIVE INT_OPERAND { add_alignment_spec($2); }
@@ -329,6 +360,7 @@ addressable_spec: CONST_DIRECTIVE {  add_space_spec(const_space,$1); }
 	| LOCAL_DIRECTIVE 	  {  add_space_spec(local_space,0); }
 	| PARAM_DIRECTIVE 	  {  add_space_spec(param_space_unclassified,0); }
 	| SHARED_DIRECTIVE 	  {  add_space_spec(shared_space,0); }
+	| SSTARR_DIRECTIVE    {  add_space_spec(sstarr_space,0); }
 	| SURF_DIRECTIVE 	  {  add_space_spec(surf_space,0); }
 	| TEX_DIRECTIVE 	  {  add_space_spec(tex_space,0); }
 	;
@@ -372,6 +404,23 @@ initializer_list: LEFT_BRACE literal_list RIGHT_BRACE { add_array_initializer();
 literal_list: literal_operand
 	| literal_list COMMA literal_operand;
 
+// TODO: This is currently hardcoded to handle and ignore one specific case
+// that all prototype statements follow in the PTX from Pytorch. As a
+// workaround, this parses and ignores both the prototype declaration 
+// and calling of the prototype (which conveniently comes right after the 
+// declaration for all cases.) This should be changed to handle both 
+// declaring the prototype, and actually calling it.
+prototype_block: prototype_decl prototype_call
+
+prototype_decl: IDENTIFIER COLON CALLPROTOTYPE_DIRECTIVE LEFT_PAREN prototype_param RIGHT_PAREN IDENTIFIER LEFT_PAREN prototype_param RIGHT_PAREN SEMI_COLON 
+	      
+prototype_call: OPCODE LEFT_PAREN IDENTIFIER RIGHT_PAREN COMMA operand COMMA LEFT_PAREN IDENTIFIER RIGHT_PAREN COMMA IDENTIFIER SEMI_COLON
+	      | OPCODE IDENTIFIER COMMA LEFT_PAREN IDENTIFIER RIGHT_PAREN COMMA IDENTIFIER SEMI_COLON
+
+prototype_param: /* empty */
+	       | PARAM_DIRECTIVE B64_TYPE IDENTIFIER
+	       | PARAM_DIRECTIVE B32_TYPE IDENTIFIER
+
 instruction_statement:  instruction SEMI_COLON
 	| IDENTIFIER COLON { add_label($1); }    
 	| pred_spec instruction SEMI_COLON;
@@ -408,6 +457,11 @@ option: type_spec
 	| compare_spec
 	| addressable_spec
 	| rounding_mode
+	| wmma_spec 
+	| prmt_spec 
+	| SYNC_OPTION { add_option(SYNC_OPTION); }	
+	| ARRIVE_OPTION { add_option(ARRIVE_OPTION); }
+	| RED_OPTION { add_option(RED_OPTION); }	
 	| UNI_OPTION { add_option(UNI_OPTION); }
 	| WIDE_OPTION { add_option(WIDE_OPTION); }
 	| ANY_OPTION { add_option(ANY_OPTION); }
@@ -429,6 +483,7 @@ option: type_spec
 	| atomic_operation_spec ;
 	| TO_OPTION { add_option(TO_OPTION); }
 	| HALF_OPTION { add_option(HALF_OPTION); }
+	| EXTP_OPTION { add_option(EXTP_OPTION); }
 	| CA_OPTION { add_option(CA_OPTION); }
 	| CG_OPTION { add_option(CG_OPTION); }
 	| CS_OPTION { add_option(CS_OPTION); }
@@ -436,9 +491,15 @@ option: type_spec
 	| CV_OPTION { add_option(CV_OPTION); }
 	| WB_OPTION { add_option(WB_OPTION); }
 	| WT_OPTION { add_option(WT_OPTION); }
+	| NC_OPTION { add_option(NC_OPTION); }
+	| UP_OPTION { add_option(UP_OPTION); }
+	| DOWN_OPTION { add_option(DOWN_OPTION); }
+	| BFLY_OPTION { add_option(BFLY_OPTION); }
+	| IDX_OPTION { add_option(IDX_OPTION); }
 	;
 
 atomic_operation_spec: ATOMIC_AND { add_option(ATOMIC_AND); } 
+	| ATOMIC_POPC { add_option(ATOMIC_POPC); }
 	| ATOMIC_OR { add_option(ATOMIC_OR); } 
 	| ATOMIC_XOR { add_option(ATOMIC_XOR); } 
 	| ATOMIC_CAS { add_option(ATOMIC_CAS); } 
@@ -452,6 +513,7 @@ atomic_operation_spec: ATOMIC_AND { add_option(ATOMIC_AND); }
 
 rounding_mode: floating_point_rounding_mode
 	| integer_rounding_mode;
+
 
 floating_point_rounding_mode: RN_OPTION { add_option(RN_OPTION); } 
  	| RZ_OPTION { add_option(RZ_OPTION); } 
@@ -485,6 +547,24 @@ compare_spec:EQ_OPTION { add_option(EQ_OPTION); }
 	| NAN_OPTION { add_option(NAN_OPTION); } 
 	;
 
+prmt_spec: PRMT_F4E_MODE { add_option( PRMT_F4E_MODE); }
+	|  PRMT_B4E_MODE { add_option( PRMT_B4E_MODE); }
+	|  PRMT_RC8_MODE { add_option( PRMT_RC8_MODE); }
+	|  PRMT_RC16_MODE{ add_option( PRMT_RC16_MODE);}
+	|  PRMT_ECL_MODE { add_option( PRMT_ECL_MODE); }
+	|  PRMT_ECR_MODE { add_option( PRMT_ECR_MODE); }
+	;
+
+wmma_spec: WMMA_DIRECTIVE LAYOUT CONFIGURATION{add_space_spec(global_space,0);add_ptr_spec(global_space); add_wmma_option($1);add_wmma_option($2);add_wmma_option($3);}
+	| WMMA_DIRECTIVE LAYOUT LAYOUT CONFIGURATION{add_wmma_option($1);add_wmma_option($2);add_wmma_option($3);add_wmma_option($4);}
+	;
+
+vp_spec: WMMA_DIRECTIVE LAYOUT CONFIGURATION{add_space_spec(global_space,0);add_ptr_spec(global_space);add_wmma_option($1);add_wmma_option($2);add_wmma_option($3);}
+	| WMMA_DIRECTIVE LAYOUT LAYOUT CONFIGURATION{add_wmma_option($1);add_wmma_option($2);add_wmma_option($3);add_wmma_option($4);}
+	;
+
+
+
 operand_list: operand
 	| operand COMMA operand_list;
 
@@ -513,6 +593,7 @@ operand: IDENTIFIER  { add_scalar_operand( $1 ); }
 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE { add_2vector_operand($2,$4); }
 		| LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE { add_3vector_operand($2,$4,$6); }
 		| LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE { add_4vector_operand($2,$4,$6,$8); }
+		| LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE { add_8vector_operand($2,$4,$6,$8,$10,$12,$14,$16); }
 		| LEFT_BRACE IDENTIFIER RIGHT_BRACE { add_1vector_operand($2); }
 	;
 

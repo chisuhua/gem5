@@ -172,6 +172,10 @@ if options.split:
 for (i, cpu) in enumerate(system.cpu):
     ruby_port = system.ruby._cpu_ports[i]
 
+    #if i == 0:
+    #    cpu.wait_for_remote_gdb = True
+    cpu.wait_for_remote_gdb = options.wait_for_gdb
+ 
     cpu.clk_domain = system.cpu_clk_domain
     cpu.createThreads()
     cpu.createInterruptController()
@@ -201,6 +205,7 @@ if options.mem_type == "RubyMemoryControl":
 
 root = Root(full_system = False, system = system)
 
-m5.disableAllListeners()
+# allow gdb connect
+#m5.disableAllListeners()
 
 Simulation.run(options, root, system, FutureClass)

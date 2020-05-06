@@ -35,17 +35,17 @@
 #define __ROUTER_H__
 
 #include <assert.h>
-
 #include <iostream>
-
-#include "arbiter.h"
 #include "basic_circuit.h"
 #include "cacti_interface.h"
 #include "component.h"
-#include "crossbar.h"
 #include "mat.h"
 #include "parameter.h"
 #include "wire.h"
+#include "crossbar.h"
+#include "arbiter.h"
+
+
 
 class MCPAT_Router : public Component
 {
@@ -71,8 +71,8 @@ class MCPAT_Router : public Component
     double vc_buffer_size; /* vc size = vc_buffer_size * flit_size */
 
   private:
-        TechnologyParameter::DeviceType *deviceType;
-        double FREQUENCY; // move this to config file --TODO
+	TechnologyParameter::DeviceType *deviceType;
+	double FREQUENCY; // move this to config file --TODO
     double Cw3(double len);
     double gate_cap(double w);
     double diff_cap(double w, int type /*0 for n-mos and 1 for p-mos*/, double stack);

@@ -36,8 +36,8 @@
 
 #include "component.h"
 #include "decoder.h"
-#include "subarray.h"
 #include "wire.h"
+#include "subarray.h"
 
 class Mat : public Component
 {

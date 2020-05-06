@@ -28,20 +28,20 @@
 #ifndef ptx_ir_INCLUDED
 #define ptx_ir_INCLUDED
 
-#include <assert.h>
+#include "../abstract_hardware_model.h"
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <list>
 #include <map>
-#include <string>
 #include <vector>
-
-#include "../abstract_hardware_model.h"
+#include <assert.h>
 
 //#include "ptx.tab.h"
-#include "memory.h"
 #include "ptx_sim.h"
+
+#include "memory.h"
 
 class type_info_key {
 public:
@@ -54,24 +54,24 @@ public:
    {
       m_is_non_arch_reg = false;
       m_init = true;
-      m_space_spec = space_spec;
+      m_space_spec = space_spec; 
       m_scalar_type_spec = scalar_type_spec;
       m_vector_spec = vector_spec;
       m_alignment_spec = alignment_spec;
       m_extern_spec = extern_spec;
       m_array_dim = array_dim;
       m_is_function = 0;
-   }
+   } 
    void set_is_func()
-   {
+   { 
       assert(!m_init);
       m_init = true;
-      m_space_spec = undefined_space;
+      m_space_spec = undefined_space; 
       m_scalar_type_spec = 0;
       m_vector_spec = 0;
       m_alignment_spec = 0;
       m_extern_spec = 0;
-      m_array_dim = 0;
+      m_array_dim = 0; 
       m_is_function = 1;
    }
 
@@ -80,7 +80,7 @@ public:
    void set_is_non_arch_reg() { m_is_non_arch_reg = true;  }
 
    bool is_non_arch_reg() const { return m_is_non_arch_reg; }
-   bool is_reg() const { return m_space_spec == reg_space;}
+   bool is_reg() const { return m_space_spec == reg_space;} 
    bool is_param_kernel() const { return m_space_spec == param_space_kernel;}
    bool is_param_local() const { return m_space_spec == param_space_local; }
    bool is_param_unclassified() const { return m_space_spec == param_space_unclassified; }
@@ -91,12 +91,13 @@ public:
    bool is_tex() const { return m_space_spec == tex_space;}
    bool is_func_addr() const { return m_is_function?true:false; }
    int  scalar_type() const { return m_scalar_type_spec;}
+   int  get_alignment_spec() const { return m_alignment_spec;}
    unsigned type_decode( size_t &size, int &t ) const;
    static unsigned type_decode( int type, size_t &size, int &t );
    memory_space_t get_memory_space() const { return m_space_spec; }
 private:
    bool m_init;
-   memory_space_t m_space_spec;
+   memory_space_t m_space_spec; 
    int m_scalar_type_spec;
    int m_vector_spec;
    int m_alignment_spec;
@@ -105,7 +106,7 @@ private:
    int m_is_function;
    bool m_is_non_arch_reg;
 
-   friend class type_info_key_compare;
+   friend struct type_info_key_compare;
 };
 
 class symbol_table;
@@ -140,7 +141,7 @@ private:
 };
 
 enum operand_type {
-   reg_t, vector_t, builtin_t, address_t, memory_t, float_op_t, double_op_t, int_t,
+   reg_t, vector_t, builtin_t, address_t, memory_t, float_op_t, double_op_t, int_t, 
    unsigned_t, symbolic_t, label_t, v_reg_t, v_float_op_t, v_double_op_t,
    v_int_t, v_unsigned_t, undef_t
 };
@@ -149,7 +150,7 @@ class operand_info;
 
 class symbol {
 public:
-   symbol( const char *name, const type_info *type, const char *location, unsigned size )
+   symbol( const char *name, const type_info *type, const char *location, unsigned size ) 
    {
       m_uid = get_uid();
       m_name = name;
@@ -163,6 +164,7 @@ public:
       m_is_global = false;
       m_is_local = false;
       m_is_param_local = false;
+      m_is_param_kernel = false;
       m_is_tex = false;
       m_is_func_addr = false;
       m_reg_num_valid = false;
@@ -176,6 +178,7 @@ public:
       if ( type ) m_is_global = type->get_key().is_global();
       if ( type ) m_is_local = type->get_key().is_local();
       if ( type ) m_is_param_local = type->get_key().is_param_local();
+      if ( type ) m_is_param_kernel = type->get_key().is_param_kernel();
       if ( type ) m_is_tex = type->get_key().is_tex();
       if ( type ) m_is_func_addr = type->get_key().is_func_addr();
    }
@@ -184,10 +187,10 @@ public:
       return m_size;
    }
    const std::string &name() const { return m_name;}
-   const std::string &decl_location() const { return m_decl_location;}
+   const std::string &decl_location() const { return m_decl_location;} 
    const type_info *type() const { return m_type;}
-   addr_t get_address() const
-   {
+   addr_t get_address() const 
+   { 
       assert( m_is_label || !m_type->get_key().is_reg() ); // todo : other assertions
       assert( m_address_valid );
       return m_address;
@@ -217,15 +220,17 @@ public:
    void set_function( function_info *func )
    {
       m_function = func;
-      m_is_func_addr = true;
+      m_is_func_addr = true; 
    }
 
    bool is_label() const { return m_is_label;}
    bool is_shared() const { return m_is_shared;}
+   bool is_sstarr() const { return m_is_sstarr;}
    bool is_const() const { return m_is_const;}
    bool is_global() const { return m_is_global;}
    bool is_local() const { return m_is_local;}
    bool is_param_local() const { return m_is_param_local; }
+   bool is_param_kernel() const { return m_is_param_kernel; }
    bool is_tex() const { return m_is_tex;}
    bool is_func_addr() const { return m_is_func_addr; }
    bool is_reg() const
@@ -233,20 +238,20 @@ public:
        if ( m_type == NULL ) {
            return false;
        }
-      return m_type->get_key().is_reg();
+      return m_type->get_key().is_reg(); 
    }
    bool is_non_arch_reg() const
    {
        if ( m_type == NULL ) {
            return false;
        }
-      return m_type->get_key().is_non_arch_reg();
+      return m_type->get_key().is_non_arch_reg(); 
    }
 
    void add_initializer( const std::list<operand_info> &init );
-   bool has_initializer() const
+   bool has_initializer() const 
    {
-      return m_initializer.size() > 0;
+      return m_initializer.size() > 0; 
    }
    std::list<operand_info> get_initializer() const
    {
@@ -255,12 +260,12 @@ public:
    unsigned reg_num() const
    {
       assert( m_reg_num_valid );
-      return m_reg_num;
+      return m_reg_num; 
    }
    unsigned arch_reg_num() const
    {
       assert( m_reg_num_valid );
-      return m_arch_reg_num;
+      return m_arch_reg_num; 
    }
    void print_info(FILE *fp) const;
    unsigned uid() const { return m_uid; }
@@ -279,18 +284,21 @@ private:
    bool m_address_valid;
    bool m_is_label;
    bool m_is_shared;
+   bool m_is_sstarr;
    bool m_is_const;
    bool m_is_global;
    bool m_is_local;
    bool m_is_param_local;
+   bool m_is_param_kernel;
    bool m_is_tex;
    bool m_is_func_addr;
-   unsigned m_reg_num;
-   unsigned m_arch_reg_num;
-   bool m_reg_num_valid;
+   unsigned m_reg_num; 
+   unsigned m_arch_reg_num; 
+   bool m_reg_num_valid; 
 
    std::list<operand_info> m_initializer;
    static unsigned sm_next_uid;
+   
 };
 
 class symbol_table {
@@ -307,16 +315,19 @@ public:
    symbol *add_variable( const char *identifier, const type_info *type, unsigned size, const char *filename, unsigned line );
    void add_function( function_info *func, const char *filename, unsigned linenumber );
    bool add_function_decl( const char *name, int entry_point, function_info **func_info, symbol_table **symbol_table );
+   function_info *lookup_function(std::string name);
    type_info *add_type( memory_space_t space_spec, int scalar_type_spec, int vector_spec, int alignment_spec, int extern_spec );
    type_info *add_type( function_info *func );
-   type_info *get_array_type( type_info *base_type, unsigned array_dim );
+   type_info *get_array_type( type_info *base_type, unsigned array_dim ); 
    void set_label_address( const symbol *label, unsigned addr );
    unsigned next_reg_num() { return ++m_reg_allocator;}
    addr_t get_shared_next() { return m_shared_next;}
+   addr_t get_sstarr_next() { return m_sstarr_next;}
    addr_t get_global_next() { return m_global_next;}
    addr_t get_local_next() { return m_local_next;}
    addr_t get_tex_next() { return m_tex_next;}
    void  alloc_shared( unsigned num_bytes ) { m_shared_next += num_bytes;}
+   void  alloc_sstarr( unsigned num_bytes ) { m_sstarr_next += num_bytes;}
    void  alloc_global( unsigned num_bytes ) { m_global_next += num_bytes;}
    void  alloc_local( unsigned num_bytes ) { m_local_next += num_bytes;}
    void  alloc_tex( unsigned num_bytes ) { m_tex_next += num_bytes;}
@@ -330,9 +341,15 @@ public:
    iterator const_iterator_end() { return m_consts.end();}
 
    void dump();
+   
+   //Jin: handle instruction group for cdp
+   symbol_table* start_inst_group();
+   symbol_table* end_inst_group();
+
 private:
    unsigned m_reg_allocator;
    unsigned m_shared_next;
+   unsigned m_sstarr_next;
    unsigned m_const_next;
    unsigned m_global_next;
    unsigned m_local_next;
@@ -347,6 +364,10 @@ private:
    std::list<symbol*> m_consts;
    std::map<std::string,function_info*> m_function_info_lookup;
    std::map<std::string,symbol_table*> m_function_symtab_lookup;
+   
+   //Jin: handle instruction group for cdp
+   unsigned m_inst_group_id;
+   std::map<std::string,symbol_table*> m_inst_group_symtab;
 };
 
 class operand_info {
@@ -389,6 +410,8 @@ public:
          m_type = symbolic_t;
       } else if ( addr->is_param_local() ) {
          m_type = symbolic_t;
+      } else if ( addr->is_param_kernel() ) {
+         m_type = symbolic_t;
       } else if ( addr->is_tex() ) {
          m_type = symbolic_t;
       } else if ( addr->is_func_addr() ) {
@@ -398,7 +421,7 @@ public:
       } else {
          m_type = reg_t;
       }
-
+      
       m_is_non_arch_reg = addr->is_non_arch_reg();
       m_value.m_symbolic = addr;
       m_addr_offset = 0;
@@ -419,11 +442,15 @@ public:
       m_uid = get_uid();
       m_valid = true;
       m_type = memory_t;
-      m_value.m_vector_symbolic = new const symbol*[4];
+      m_value.m_vector_symbolic = new const symbol*[8];
       m_value.m_vector_symbolic[0] = addr1;
       m_value.m_vector_symbolic[1] = addr2;
       m_value.m_vector_symbolic[2] = NULL;
       m_value.m_vector_symbolic[3] = NULL;
+      m_value.m_vector_symbolic[4] = NULL;
+      m_value.m_vector_symbolic[5] = NULL;
+      m_value.m_vector_symbolic[6] = NULL;
+      m_value.m_vector_symbolic[7] = NULL;
       m_addr_offset = 0;
       m_vector = false;
       m_neg_pred = false;
@@ -557,16 +584,48 @@ public:
       m_valid = true;
       m_vector = true;
       m_type = vector_t;
-      m_value.m_vector_symbolic = new const symbol*[4];
+      m_value.m_vector_symbolic = new const symbol*[8];
       m_value.m_vector_symbolic[0] = s1;
       m_value.m_vector_symbolic[1] = s2;
       m_value.m_vector_symbolic[2] = s3;
       m_value.m_vector_symbolic[3] = s4;
+      m_value.m_vector_symbolic[4] = NULL;
+      m_value.m_vector_symbolic[5] = NULL;
+      m_value.m_vector_symbolic[6] = NULL;
+      m_value.m_vector_symbolic[7] = NULL;
       m_addr_offset = 0;
       m_neg_pred = false;
       m_is_return_var = false;
       m_immediate_address=false;
    }
+   operand_info( const symbol *s1, const symbol *s2, const symbol *s3, const symbol *s4 ,const symbol *s5,const symbol *s6,const symbol *s7, const symbol *s8)
+   {
+      init();
+      m_is_non_arch_reg = false;
+      m_addr_space = undefined_space;
+      m_operand_lohi = 0;
+      m_double_operand_type = 0;
+      m_operand_neg = false;
+      m_const_mem_offset = 0;
+      m_uid = get_uid();
+      m_valid = true;
+      m_vector = true;
+      m_type = vector_t;
+      m_value.m_vector_symbolic = new const symbol*[8];
+      m_value.m_vector_symbolic[0] = s1;
+      m_value.m_vector_symbolic[1] = s2;
+      m_value.m_vector_symbolic[2] = s3;
+      m_value.m_vector_symbolic[3] = s4;
+      m_value.m_vector_symbolic[4] = s5;
+      m_value.m_vector_symbolic[5] = s6;
+      m_value.m_vector_symbolic[6] = s7;
+      m_value.m_vector_symbolic[7] = s8;
+      m_addr_offset = 0;
+      m_neg_pred = false;
+      m_is_return_var = false;
+      m_immediate_address=false;
+   }
+
    void init()
    {
        m_uid=(unsigned)-1;
@@ -583,7 +642,7 @@ public:
        m_value.m_unsigned=(unsigned)-1;
        m_value.m_float=0;
        m_value.m_double=0;
-       for (unsigned i=0; i<4; i++){
+       for(unsigned i=0; i<4; i++){
            m_value.m_vint[i]=0;
            m_value.m_vunsigned[i]=0;
            m_value.m_vfloat[i]=0;
@@ -609,18 +668,22 @@ public:
    unsigned get_vect_nelem() const
    {
       assert( is_vector() );
-      if ( !m_value.m_vector_symbolic[0] ) return 0;
-      if ( !m_value.m_vector_symbolic[1] ) return 1;
-      if ( !m_value.m_vector_symbolic[2] ) return 2;
-      if ( !m_value.m_vector_symbolic[3] ) return 3;
-      return 4;
+      if( !m_value.m_vector_symbolic[0] ) return 0;
+      if( !m_value.m_vector_symbolic[1] ) return 1;
+      if( !m_value.m_vector_symbolic[2] ) return 2;
+      if( !m_value.m_vector_symbolic[3] ) return 3;
+      if( !m_value.m_vector_symbolic[4] ) return 4;
+      if( !m_value.m_vector_symbolic[5] ) return 5;
+      if( !m_value.m_vector_symbolic[6] ) return 6;
+      if( !m_value.m_vector_symbolic[7] ) return 7;
+      return 8;
    }
 
-   const symbol* vec_symbol(int idx) const
+   const symbol* vec_symbol(int idx) const 
    {
-      assert(idx < 4);
+      assert(idx < 8);
       const symbol *result = m_value.m_vector_symbolic[idx];
-      //assert( result != NULL );
+      assert( result != NULL );
       return result;
    }
 
@@ -660,9 +723,16 @@ public:
    }
    bool is_param_local() const
    {
-      if ( m_type != symbolic_t )
+      if ( m_type != symbolic_t ) 
          return false;
       return m_value.m_symbolic->type()->get_key().is_param_local();
+   }
+
+   bool is_param_kernel() const
+   {
+      if ( m_type != symbolic_t ) 
+         return false;
+      return m_value.m_symbolic->type()->get_key().is_param_kernel();
    }
 
    bool is_vector() const
@@ -675,6 +745,10 @@ public:
    int reg2_num() const { return m_value.m_vector_symbolic[1]->reg_num();}
    int reg3_num() const { return m_value.m_vector_symbolic[2]?m_value.m_vector_symbolic[2]->reg_num():0; }
    int reg4_num() const { return m_value.m_vector_symbolic[3]?m_value.m_vector_symbolic[3]->reg_num():0; }
+   int reg5_num() const { return m_value.m_vector_symbolic[4]?m_value.m_vector_symbolic[4]->reg_num():0; }
+   int reg6_num() const { return m_value.m_vector_symbolic[5]?m_value.m_vector_symbolic[5]->reg_num():0; }
+   int reg7_num() const { return m_value.m_vector_symbolic[6]?m_value.m_vector_symbolic[6]->reg_num():0; }
+   int reg8_num() const { return m_value.m_vector_symbolic[7]?m_value.m_vector_symbolic[7]->reg_num():0; }
    int arch_reg_num() const { return m_value.m_symbolic->arch_reg_num(); }
    int arch_reg_num(unsigned n) const { return (m_value.m_vector_symbolic[n])? m_value.m_vector_symbolic[n]->arch_reg_num() : -1; }
    bool is_label() const { return m_type == label_t;}
@@ -685,24 +759,25 @@ public:
 
    // Memory operand with immediate access (ex. s[0x0004] or g[$r1+=0x0004])
    // This is used by the PTXPlus extension. The operand is assigned an address space during parsing.
-   bool is_memory_operand2() const {
-      return (m_addr_space!=undefined_space);
+   bool is_memory_operand2() const { 
+      return (m_addr_space!=undefined_space); 
    }
 
    bool is_immediate_address() const {
-           return   m_immediate_address;
+       return   m_immediate_address;
    }
 
    bool is_literal() const { return m_type == int_t ||
       m_type == float_op_t ||
       m_type == double_op_t ||
-      m_type == unsigned_t;}
+      m_type == unsigned_t;} 
    bool is_shared() const {
       if ( !(m_type == symbolic_t || m_type == address_t || m_type == memory_t) ) {
          return false;
       }
       return  m_value.m_symbolic->is_shared();
    }
+   bool is_sstarr() const { return m_value.m_symbolic->is_sstarr();}
    bool is_const() const { return m_value.m_symbolic->is_const();}
    bool is_global() const { return m_value.m_symbolic->is_global();}
    bool is_local() const { return m_value.m_symbolic->is_local();}
@@ -711,7 +786,7 @@ public:
 
    bool is_function_address() const
    {
-      if ( m_type != symbolic_t ) {
+      if( m_type != symbolic_t ) {
          return false;
       }
       return m_value.m_symbolic->is_func_addr();
@@ -721,20 +796,20 @@ public:
    {
       ptx_reg_t result;
       switch ( m_type ) {
-      case int_t:         result.s32 = m_value.m_int; break;
+      case int_t:         result.s64 = m_value.m_int; break;
       case float_op_t:    result.f32 = m_value.m_float; break;
-      case double_op_t:   result.f64 = m_value.m_double; break;
+      case double_op_t:   result.f64 = m_value.m_double; break; 
       case unsigned_t:    result.u32 = m_value.m_unsigned; break;
       default:
          assert(0);
          break;
-      }
+      } 
       return result;
    }
    int get_int() const { return m_value.m_int;}
    int get_addr_offset() const { return m_addr_offset;}
    const symbol *get_symbol() const { return m_value.m_symbolic;}
-   void set_type( enum operand_type type )
+   void set_type( enum operand_type type ) 
    {
       m_type = type;
    }
@@ -842,17 +917,18 @@ struct gpgpu_recon_t {
 
 class ptx_instruction : public warp_inst_t {
 public:
-    ptx_instruction( int opcode,
-                    const symbol *pred,
-                    int neg_pred,
+    ptx_instruction( int opcode, 
+                    const symbol *pred, 
+                    int neg_pred, 
                     int pred_mod,
                     symbol *label,
-                    const std::list<operand_info> &operands,
+                    const std::list<operand_info> &operands, 
                     const operand_info &return_var,
-                    const std::list<int> &options,
+                    const std::list<int> &options, 
+                    const std::list<int> &wmma_options, 
                     const std::list<int> &scalar_type,
                     memory_space_t space_spec,
-                    const char *file,
+                    const char *file, 
                     unsigned line,
                     const char *source,
                     const core_config *config );
@@ -863,15 +939,15 @@ public:
    unsigned inst_size() const { return m_inst_size; }
    unsigned uid() const { return m_uid;}
    int get_opcode() const { return m_opcode;}
-   const char *get_opcode_cstr() const
+   const char *get_opcode_cstr() const 
    {
       if ( m_opcode != -1 ) {
-         return g_opcode_string[m_opcode];
+         return g_opcode_string[m_opcode]; 
       } else {
          return "label";
       }
    }
-   const char *source_file() const { return m_source_file.c_str();}
+   const char *source_file() const { return m_source_file.c_str();} 
    unsigned source_line() const { return m_source_line;}
    unsigned get_num_operands() const { return m_operands.size();}
    bool has_pred() const { return m_pred != NULL;}
@@ -882,18 +958,18 @@ public:
 
    typedef std::vector<operand_info>::const_iterator const_iterator;
 
-   const_iterator op_iter_begin() const
-   {
+   const_iterator op_iter_begin() const 
+   { 
       return m_operands.begin();
    }
 
-   const_iterator op_iter_end() const
-   {
+   const_iterator op_iter_end() const 
+   { 
       return m_operands.end();
    }
 
-   const operand_info &dst() const
-   {
+   const operand_info &dst() const 
+   { 
       assert( !m_operands.empty() );
       return m_operands[0];
    }
@@ -901,7 +977,7 @@ public:
    const operand_info &func_addr() const
    {
       assert( !m_operands.empty() );
-      if ( !m_operands[0].is_return_var() ) {
+      if( !m_operands[0].is_return_var() ) {
          return m_operands[0];
       } else {
          assert( m_operands.size() >= 2 );
@@ -909,28 +985,53 @@ public:
       }
    }
 
-   operand_info &dst()
-   {
+   operand_info &dst() 
+   { 
       assert( !m_operands.empty() );
       return m_operands[0];
    }
 
-   const operand_info &src1() const
-   {
+   const operand_info &src1() const 
+   { 
       assert( m_operands.size() > 1 );
       return m_operands[1];
    }
 
-   const operand_info &src2() const
-   {
+   const operand_info &src2() const 
+   { 
       assert( m_operands.size() > 2 );
       return m_operands[2];
    }
 
-   const operand_info &src3() const
-   {
+   const operand_info &src3() const 
+   { 
       assert( m_operands.size() > 3 );
       return m_operands[3];
+   }
+   const operand_info &src4() const 
+   { 
+      assert( m_operands.size() > 4 );
+      return m_operands[4];
+   }
+   const operand_info &src5() const 
+   { 
+      assert( m_operands.size() > 5 );
+      return m_operands[5];
+   }
+   const operand_info &src6() const 
+   { 
+      assert( m_operands.size() > 6 );
+      return m_operands[6];
+   }
+   const operand_info &src7() const 
+   { 
+      assert( m_operands.size() > 7 );
+      return m_operands[7];
+   }
+   const operand_info &src8() const 
+   { 
+      assert( m_operands.size() > 8 );
+      return m_operands[8];
    }
 
    const operand_info &operand_lookup( unsigned n ) const
@@ -945,14 +1046,21 @@ public:
 
    memory_space_t get_space() const { return m_space_spec;}
    unsigned get_vector() const { return m_vector_spec;}
+   unsigned get_atomic() const { return m_atomic_spec;}
 
-   int get_type() const
+   int get_wmma_type() const {
+      return m_wmma_type;
+   }
+   int get_wmma_layout(int index) const {
+      return m_wmma_layout[index];//0->Matrix D,1->Matrix C
+   }
+   int get_type() const 
    {
       assert( !m_scalar_type.empty() );
       return m_scalar_type.front();
    }
 
-   int get_type2() const
+   int get_type2() const 
    {
       assert( m_scalar_type.size()==2 );
       return m_scalar_type.back();
@@ -964,7 +1072,7 @@ public:
    }
    basic_block_t* get_bb() { return m_basic_block;}
    void set_m_instr_mem_index(unsigned index) {
-      m_instr_mem_index = index;
+      m_instr_mem_index = index; 
    }
    void set_PC( addr_t PC )
    {
@@ -978,7 +1086,7 @@ public:
    unsigned get_m_instr_mem_index() { return m_instr_mem_index;}
    unsigned get_cmpop() const { return m_compare_op;}
    const symbol *get_label() const { return m_label;}
-   bool is_label() const { if (m_label){ assert(m_opcode==-1);return true;} return false;}
+   bool is_label() const { if(m_label){ assert(m_opcode==-1);return true;} return false;}
    bool is_hi() const { return m_hi;}
    bool is_lo() const { return m_lo;}
    bool is_wide() const { return m_wide;}
@@ -991,37 +1099,42 @@ public:
    unsigned rounding_mode() const { return m_rounding_mode;}
    unsigned saturation_mode() const { return m_saturation_mode;}
    unsigned dimension() const { return m_geom_spec;}
+   unsigned barrier_op() const {return m_barrier_op;}
+   unsigned shfl_op() const {return m_shfl_op;}
+   unsigned prmt_op() const {return m_prmt_op;}
    enum vote_mode_t { vote_any, vote_all, vote_uni, vote_ballot };
    enum vote_mode_t vote_mode() const { return m_vote_mode; }
 
    int membar_level() const { return m_membar_level; }
 
    bool has_memory_read() const {
-      if ( m_opcode == LD_OP || m_opcode == LDU_OP || m_opcode == TEX_OP )
+      if( m_opcode == LD_OP || m_opcode == LDU_OP || m_opcode == TEX_OP|| m_opcode==MMA_LD_OP ) 
          return true;
       // Check PTXPlus operand type below
       // Source operands are memory operands
       ptx_instruction::const_iterator op=op_iter_begin();
       for ( int n=0; op != op_iter_end(); op++, n++ ) { //process operands
-         if ( n > 0 && op->is_memory_operand2()) // source operands only
+         if( n > 0 && op->is_memory_operand2()) // source operands only
             return true;
       }
       return false;
    }
    bool has_memory_write() const {
-      if ( m_opcode == ST_OP || m_opcode == ATOM_OP ) return true;
+      if( m_opcode == ST_OP || m_opcode==MMA_ST_OP ) return true;
       // Check PTXPlus operand type below
       // Destination operand is a memory operand
       ptx_instruction::const_iterator op=op_iter_begin();
       for ( int n=0; (op!=op_iter_end() && n<1); op++, n++ ) { //process operands
-         if ( n==0 && op->is_memory_operand2()) // source operands only
+         if( n==0 && op->is_memory_operand2()) // source operands only
             return true;
       }
       return false;
    }
 
+
 private:
    void set_opcode_and_latency();
+   void set_bar_type();
    void set_fp_or_int_archop();
    void set_mul_div_or_other_archop();
 
@@ -1041,6 +1154,7 @@ private:
    operand_info m_return_var;
 
    std::list<int>          m_options;
+   std::list<int>          m_wmma_options;
    bool                m_wide;
    bool                m_hi;
    bool                m_lo;
@@ -1050,14 +1164,21 @@ private:
    bool                m_uni; //if branch instruction, this evaluates to true for uniform branches (ie jumps)
    bool                m_to_option;
    unsigned            m_cache_option;
+   int      m_wmma_type;
+   int      m_wmma_layout[2];
+   int      m_wmma_configuration;
    unsigned            m_rounding_mode;
    unsigned            m_compare_op;
    unsigned            m_saturation_mode;
+   unsigned 		   m_barrier_op;
+   unsigned			   m_shfl_op;
+   unsigned			   m_prmt_op;
 
    std::list<int>          m_scalar_type;
    memory_space_t m_space_spec;
    int m_geom_spec;
    int m_vector_spec;
+   int m_atomic_spec;
    enum vote_mode_t m_vote_mode;
    int m_membar_level;
    int m_instr_mem_index; //index into m_instr_mem array
@@ -1071,17 +1192,17 @@ private:
 class param_info {
 public:
    param_info() { m_valid = false; m_value_set=false; m_size = 0; m_is_ptr = false; }
-   param_info( std::string name, int type, size_t size, bool is_ptr, memory_space_t ptr_space )
+   param_info( std::string name, int type, size_t size, bool is_ptr, memory_space_t ptr_space ) 
    {
       m_valid = true;
       m_value_set = false;
       m_name = name;
       m_type = type;
       m_size = size;
-      m_is_ptr = is_ptr;
-      m_ptr_space = ptr_space;
+      m_is_ptr = is_ptr; 
+      m_ptr_space = ptr_space; 
    }
-   void add_data( param_t v ) {
+   void add_data( param_t v ) { 
       assert( (!m_value_set) || (m_value.size == v.size) ); // if this fails concurrent kernel launches might execute incorrectly
       m_value_set = true;
       m_value = v;
@@ -1101,8 +1222,8 @@ private:
    bool m_value_set;
    param_t m_value;
    unsigned m_offset;
-   bool m_is_ptr;
-   memory_space_t m_ptr_space;
+   bool m_is_ptr; 
+   memory_space_t m_ptr_space; 
 };
 
 class function_info {
@@ -1137,30 +1258,30 @@ public:
    void print_basic_block_links();
    void print_basic_block_dot();
 
-   operand_info* find_break_target( ptx_instruction * p_break_insn ); //find the target of a break instruction
+   operand_info* find_break_target( ptx_instruction * p_break_insn ); //find the target of a break instruction 
    void connect_basic_blocks( ); //iterate across m_basic_blocks of function, connecting basic blocks together
    bool connect_break_targets(); //connecting break instructions with proper targets
 
-   //iterate across m_basic_blocks of function,
+   //iterate across m_basic_blocks of function, 
    //finding dominator blocks, using algorithm of
-   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14
+   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14 
    void find_dominators( );
    void print_dominators();
    void find_idominators();
    void print_idominators();
 
-   //iterate across m_basic_blocks of function,
+   //iterate across m_basic_blocks of function, 
    //finding postdominator blocks, using algorithm of
-   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14
+   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.14 
    void find_postdominators( );
    void print_postdominators();
 
-   //iterate across m_basic_blocks of function,
+   //iterate across m_basic_blocks of function, 
    //finding immediate postdominator blocks, using algorithm of
-   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15
+   //Muchnick's Adv. Compiler Design & Implemmntation Fig 7.15 
    void find_ipostdominators( );
    void print_ipostdominators();
-
+   void do_pdom(); //function to call pdom analysis
 
    unsigned get_num_reconvergence_pairs();
 
@@ -1169,7 +1290,7 @@ public:
    unsigned get_function_size() { return m_instructions.size();}
 
    void ptx_assemble();
-
+ 
    unsigned ptx_get_inst_op( ptx_thread_info *thread );
    void add_param( const char *name, struct param_t value )
    {
@@ -1194,6 +1315,8 @@ public:
    {
       return m_args.size();
    }
+   unsigned get_args_aligned_size();
+
    const symbol* get_arg( unsigned n ) const
    {
       assert( n < m_args.size() );
@@ -1210,7 +1333,7 @@ public:
    const ptx_instruction *get_instruction( unsigned PC ) const
    {
       unsigned index = PC - m_start_PC;
-      if ( index < m_instr_mem_size )
+      if( index < m_instr_mem_size ) 
          return m_instr_mem[index];
       return NULL;
    }
@@ -1220,54 +1343,78 @@ public:
    }
 
    void finalize( memory_space *param_mem );
-   void param_to_shared( memory_space *shared_mem, symbol_table *symtab );
+   void param_to_shared( memory_space *shared_mem, symbol_table *symtab ); 
    void list_param( FILE *fout ) const;
+   void ptx_jit_config(std::map<unsigned long long, size_t> mallocPtr_Size, memory_space *param_mem, gpgpu_t* gpu, dim3 gridDim, dim3 blockDim) ;
 
-   const struct gpgpu_ptx_sim_kernel_info* get_kernel_info () const
+   const struct gpgpu_ptx_sim_info* get_kernel_info () const
    {
+      assert (m_kernel_info.maxthreads == maxnt_id);
       return &m_kernel_info;
    }
 
-   // const void set_kernel_info (const struct gpgpu_ptx_sim_kernel_info &info) {
-   void set_kernel_info (const struct gpgpu_ptx_sim_kernel_info &info) {
+   // TODO schi compile warn const void set_kernel_info (const struct gpgpu_ptx_sim_info &info) {
+   void set_kernel_info (const struct gpgpu_ptx_sim_info &info) {
       m_kernel_info = info;
       m_kernel_info.ptx_version = 10*get_ptx_version().ver();
       m_kernel_info.sm_target = get_ptx_version().target();
+      // THIS DEPENDS ON ptxas being called after the PTX is parsed.
+      m_kernel_info.maxthreads = maxnt_id;
    }
    symbol_table *get_symtab()
    {
       return m_symtab;
    }
 
-   static const ptx_instruction* pc_to_instruction(unsigned pc)
+   static const ptx_instruction* pc_to_instruction(unsigned pc) 
    {
-      if ( pc < s_g_pc_to_insn.size() )
+      if( pc < s_g_pc_to_insn.size() )
           return s_g_pc_to_insn[pc];
       else
           return NULL;
    }
-   unsigned local_mem_framesize() const
-   {
-      return m_local_mem_framesize;
+   unsigned local_mem_framesize() const 
+   { 
+      return m_local_mem_framesize; 
    }
    void set_framesize( unsigned sz )
    {
       m_local_mem_framesize = sz;
    }
    bool is_entry_point() const { return m_entry_point; }
+   bool is_pdom_set() const { return pdom_done; } //return pdom flag
+   void set_pdom() { pdom_done = true; } //set pdom flag
+
+   void add_config_param( size_t size, unsigned alignment ){
+      unsigned offset = 0;
+      if (m_param_configs.size()>0){
+          unsigned offset_nom = m_param_configs.back().first + m_param_configs.back().second;
+          //ensure offset matches alignment requirements
+          offset = offset_nom%alignment ? (offset_nom/alignment + 1) * alignment : offset_nom;
+      }
+      m_param_configs.push_back(std::pair<size_t,unsigned>(size, offset));
+   }
+
+   std::pair<size_t, unsigned> get_param_config(unsigned param_num) const { return m_param_configs[param_num]; }
+
+   void set_maxnt_id(unsigned maxthreads) { maxnt_id = maxthreads;}
+   unsigned get_maxnt_id() { return maxnt_id;}
 
 private:
+   unsigned maxnt_id;
    unsigned m_uid;
    unsigned m_local_mem_framesize;
    bool m_entry_point;
    bool m_extern;
    bool m_assembled;
+   bool pdom_done; //flag to check whether pdom is completed or not
    std::string m_name;
    ptx_instruction **m_instr_mem;
    unsigned m_start_PC;
    unsigned m_instr_mem_size;
    std::map<std::string,param_t> m_kernel_params;
    std::map<unsigned,param_info> m_ptx_kernel_param_info;
+   std::vector< std::pair<size_t, unsigned> > m_param_configs;
    const symbol *m_return_var_sym;
    std::vector<const symbol*> m_args;
    std::list<ptx_instruction*> m_instructions;
@@ -1277,12 +1424,17 @@ private:
    unsigned num_reconvergence_pairs;
 
    //Registers/shmem/etc. used (from ptxas -v), loaded from ___.ptxinfo along with ___.ptx
-   struct gpgpu_ptx_sim_kernel_info m_kernel_info;
+   struct gpgpu_ptx_sim_info m_kernel_info;
 
    symbol_table *m_symtab;
 
    static std::vector<ptx_instruction*> s_g_pc_to_insn; // a direct mapping from PC to instruction
    static unsigned sm_next_uid;
+
+   //parameter size for device kernels
+   int m_args_aligned_size;
+   
+   addr_t m_n;  // offset in m_instr_mem (used in do_pdom)
 };
 
 class arg_buffer_t {
@@ -1306,7 +1458,7 @@ public:
       m_is_param = another.m_is_param;
       m_reg_value = another.m_reg_value;
       m_param_bytes = another.m_param_bytes;
-      if ( m_is_param ) {
+      if( m_is_param ) {
          m_param_value = malloc(m_param_bytes);
          memcpy(m_param_value,another.m_param_value,m_param_bytes);
       }
@@ -1317,14 +1469,14 @@ public:
    }
    ~arg_buffer_t()
    {
-      if ( m_is_param )
+      if( m_is_param ) 
          free(m_param_value);
    }
    arg_buffer_t( const symbol *dst_sym, const operand_info &src_op, ptx_reg_t source_value ) : m_src_op(src_op)
    {
       m_dst = dst_sym;
       m_reg_value=ptx_reg_t();
-      if ( dst_sym->is_reg() ) {
+      if( dst_sym->is_reg() ) {
          m_is_reg = true;
          m_is_param = false;
          assert( src_op.is_reg() );
@@ -1341,7 +1493,7 @@ public:
    arg_buffer_t( const symbol *dst_sym, const operand_info &src_op, void *source_param_value_array, unsigned array_size ) : m_src_op(src_op)
    {
       m_dst = dst_sym;
-      if ( dst_sym->is_reg() ) {
+      if( dst_sym->is_reg() ) {
          m_is_reg = true;
          m_is_param = false;
          assert( src_op.is_param_local() );
@@ -1366,10 +1518,10 @@ public:
    }
 
    bool is_reg() const { return m_is_reg; }
-   ptx_reg_t get_reg() const
-   {
-      assert(m_is_reg);
-      return m_reg_value;
+   ptx_reg_t get_reg() const 
+   { 
+      assert(m_is_reg); 
+      return m_reg_value; 
    }
 
    const void *get_param_buffer() const
@@ -1406,10 +1558,10 @@ private:
 
 typedef std::list< arg_buffer_t > arg_buffer_list_t;
 arg_buffer_t copy_arg_to_buffer(ptx_thread_info * thread, operand_info actual_param_op, const symbol * formal_param);
-void copy_args_into_buffer_list( const ptx_instruction * pI,
-                                 ptx_thread_info * thread,
-                                 const function_info * target_func,
-                                 arg_buffer_list_t &arg_values );
+void copy_args_into_buffer_list( const ptx_instruction * pI, 
+                                 ptx_thread_info * thread, 
+                                 const function_info * target_func, 
+                                 arg_buffer_list_t &arg_values ); 
 void copy_buffer_list_into_frame(ptx_thread_info * thread, arg_buffer_list_t &arg_values);
 void copy_buffer_to_frame(ptx_thread_info * thread, const arg_buffer_t &a);
 
@@ -1428,7 +1580,6 @@ extern bool g_keep_intermediate_files;
 
 void gpgpu_ptx_assemble( std::string kname, void *kinfo );
 #include "../option_parser.h"
-
 void ptx_reg_options(option_parser_t opp);
 unsigned ptx_kernel_shmem_size( void *kernel_impl );
 unsigned ptx_kernel_nregs( void *kernel_impl );

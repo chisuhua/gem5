@@ -31,13 +31,12 @@
 
 
 
-#include <cassert>
-#include <cmath>
-#include <iostream>
-
 #include "area.h"
 #include "decoder.h"
 #include "parameter.h"
+#include <iostream>
+#include <math.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -326,7 +325,7 @@ PredecBlk::PredecBlk(
   w_L1_nand3_n[0] = 0;
   w_L1_nand3_p[0] = 0;
 
-  if (is_blk1)
+  if (is_blk1 == true)
   {
     if (num_addr_bits_dec <= 0)
     {

@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2011, Tor M. Aamodt, Wilson W.L. Fung,
+// Copyright (c) 2009-2011, Tor M. Aamodt, Wilson W.L. Fung, 
 // The University of British Columbia
 // All rights reserved.
 //
@@ -25,22 +25,21 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "../option_parser.h"
-#include "gpu-sim.h"
-#include "l2cache.h"
-#include "mem_latency_stat.h"
-#include "power_stat.h"
-#include "shader.h"
 #include "visualizer.h"
 
+#include "gpu-sim.h"
+#include "l2cache.h"
+#include "shader.h"
+#include "../option_parser.h"
+#include "mem_latency_stat.h"
+#include "power_stat.h"
 //#include "../../../mcpat/processor.h"
-#include <zlib.h>
-
-#include <cstring>
-#include <ctime>
-
-#include "gpu-cache.h"
 #include "stat-tool.h"
+#include "gpu-cache.h"
+
+#include <time.h>
+#include <string.h>
+#include <zlib.h>
 
 static void time_vector_print_interval2gzfile(gzFile outfile);
 
@@ -60,11 +59,11 @@ void gpgpu_sim::visualizer_printstat()
    }
    gzsetparams(visualizer_file, m_config.g_visualizer_zlevel, Z_DEFAULT_STRATEGY);
    visualizer_first_printstat = false;
-
+   
    cflog_visualizer_gzprint(visualizer_file);
    shader_CTA_count_visualizer_gzprint(visualizer_file);
 
-   for (unsigned i=0;i<m_memory_config->m_n_mem;i++)
+   for (unsigned i=0;i<m_memory_config->m_n_mem;i++) 
       m_memory_partition_unit[i]->visualizer_print(visualizer_file);
    m_shader_stats->visualizer_print(visualizer_file);
    m_memory_stats->visualizer_print(visualizer_file);
@@ -80,42 +79,40 @@ void gpgpu_sim::visualizer_printstat()
    gzclose(visualizer_file);
 /*
    gzprintf(visualizer_file, "CacheMissRate_GlobalLocalL1_All: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1_windowed_cache_miss_rate(0));
    gzprintf(visualizer_file, "\n");
    gzprintf(visualizer_file, "CacheMissRate_TextureL1_All: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1tex_windowed_cache_miss_rate(0));
    gzprintf(visualizer_file, "\n");
    gzprintf(visualizer_file, "CacheMissRate_ConstL1_All: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1const_windowed_cache_miss_rate(0));
    gzprintf(visualizer_file, "\n");
    gzprintf(visualizer_file, "CacheMissRate_GlobalLocalL1_noMgHt: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1_windowed_cache_miss_rate(1));
    gzprintf(visualizer_file, "\n");
    gzprintf(visualizer_file, "CacheMissRate_TextureL1_noMgHt: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1tex_windowed_cache_miss_rate(1));
    gzprintf(visualizer_file, "\n");
    gzprintf(visualizer_file, "CacheMissRate_ConstL1_noMgHt: ");
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       gzprintf(visualizer_file, "%0.4f ", m_sc[i]->L1const_windowed_cache_miss_rate(1));
    gzprintf(visualizer_file, "\n");
    // reset for next interval
-   for (unsigned i=0;i<m_n_shader;i++)
+   for (unsigned i=0;i<m_n_shader;i++) 
       m_sc[i]->new_cache_window();
 */
 }
 
-#include <iostream>
 #include <list>
-#include <map>
 #include <vector>
-
-#include "../gpgpu-sim/shader.h"
-
+#include <iostream>
+#include <map>
+#include"../gpgpu-sim/shader.h"
 class my_time_vector {
 private:
    std::map< unsigned int, std::vector<long int> > ld_time_map;
@@ -141,43 +138,43 @@ public:
       overal_ld_count = 0;
       overal_st_count= 0;
    }
-   void update_ld(unsigned int uid,unsigned int slot, long int time) {
+   void update_ld(unsigned int uid,unsigned int slot, long int time) { 
       if ( ld_time_map.find( uid )!=ld_time_map.end() ) {
          ld_time_map[uid][slot]=time;
       } else if (slot < NUM_MEM_REQ_STAT ) {
          std::vector<long int> time_vec;
          time_vec.resize(ld_vector_size);
          time_vec[slot] = time;
-         ld_time_map[uid] = time_vec;
+         ld_time_map[uid] = time_vec;  
       } else {
          //It's a merged mshr! forget it
       }
    }
-   void update_st(unsigned int uid,unsigned int slot, long int time) {
+   void update_st(unsigned int uid,unsigned int slot, long int time) { 
       if ( st_time_map.find( uid )!=st_time_map.end() ) {
          st_time_map[uid][slot]=time;
       } else {
          std::vector<long int> time_vec;
          time_vec.resize(st_vector_size);
          time_vec[slot] = time;
-         st_time_map[uid] = time_vec;
-      }
+         st_time_map[uid] = time_vec;  
+      } 
    }
-   void check_ld_update(unsigned int uid,unsigned int slot, long int latency) {
+   void check_ld_update(unsigned int uid,unsigned int slot, long int latency) { 
       if ( ld_time_map.find( uid )!=ld_time_map.end() ) {
-//         int our_latency = ld_time_map[uid][slot] - ld_time_map[uid][IN_ICNT_TO_MEM];
-         assert( ld_time_map[uid][slot] - ld_time_map[uid][IN_ICNT_TO_MEM] == latency);
+         int our_latency = ld_time_map[uid][slot] - ld_time_map[uid][IN_ICNT_TO_MEM];
+         assert( our_latency == latency);
       } else if (slot < NUM_MEM_REQ_STAT ) {
          abort();
       }
    }
-   void check_st_update(unsigned int uid,unsigned int slot, long int latency) {
+   void check_st_update(unsigned int uid,unsigned int slot, long int latency) { 
       if ( st_time_map.find( uid )!=st_time_map.end() ) {
-//         int our_latency = st_time_map[uid][slot] - st_time_map[uid][IN_ICNT_TO_MEM];
-         assert( st_time_map[uid][slot] - st_time_map[uid][IN_ICNT_TO_MEM] == latency);
+         int our_latency = st_time_map[uid][slot] - st_time_map[uid][IN_ICNT_TO_MEM];
+         assert( our_latency == latency);
       } else {
          abort();
-      }
+      } 
    }
 private:
    void calculate_ld_dist(void) {
@@ -193,7 +190,7 @@ private:
          first=-1;
          if (!iter->second[IN_SHADER_FETCHED]) {
             //this request is not done yet skip it!
-            ++iter;
+            ++iter; 
             continue;
          }
          while ( !last_update ) {
@@ -206,7 +203,7 @@ private:
             diff = iter->second[i] - last_update;
             if ( diff>0 ) {
                ld_time_dist[i]+=diff;
-               last_update = iter->second[i];
+               last_update = iter->second[i];               
             }
          }
          iter_temp = iter;
@@ -216,9 +213,9 @@ private:
       }
       if ( finished_count ) {
          for ( i=0;i<ld_vector_size;i++ ) {
-            overal_ld_time_dist[i] = (overal_ld_time_dist[i]*overal_ld_count + ld_time_dist[i]) /  (overal_ld_count + finished_count);
+            overal_ld_time_dist[i] = (overal_ld_time_dist[i]*overal_ld_count + ld_time_dist[i]) /  (overal_ld_count + finished_count); 
          }
-         overal_ld_count += finished_count;
+         overal_ld_count += finished_count;        
          for ( i=0;i<ld_vector_size;i++ ) {
             ld_time_dist[i]/=finished_count;
          }
@@ -251,19 +248,19 @@ private:
             diff = iter->second[i] - last_update;
             if ( diff>0 ) {
                st_time_dist[i]+=diff;
-               last_update = iter->second[i];
+               last_update = iter->second[i];               
             }
          }
          iter_temp = iter;
          iter++;
          st_time_map.erase(iter_temp);
-         finished_count++;
+         finished_count++;       
       }
       if ( finished_count ) {
          for ( i=0;i<st_vector_size;i++ ) {
-            overal_st_time_dist[i] = (overal_st_time_dist[i]*overal_st_count + st_time_dist[i]) /  (overal_st_count + finished_count);
+            overal_st_time_dist[i] = (overal_st_time_dist[i]*overal_st_count + st_time_dist[i]) /  (overal_st_count + finished_count); 
          }
-         overal_st_count += finished_count;
+         overal_st_count += finished_count;        
          for ( i=0;i<st_vector_size;i++ ) {
             st_time_dist[i]/=finished_count;
          }
@@ -271,7 +268,7 @@ private:
    }
 
 public:
-   void clear_time_map_vectors(void) {
+   void clear_time_map_vectors(void) {   
       ld_time_map.clear();
       st_time_map.clear();
    }
@@ -305,11 +302,11 @@ public:
       calculate_st_dist();
    }
    void print_dist(void) {
-      unsigned i;
+      unsigned i; 
       calculate_dist();
       std::cout << "LD_mem_lat_dist " ;
       for ( i=0;i<ld_vector_size;i++ ) {
-         std::cout <<" "<<(int)overal_ld_time_dist[i];
+         std::cout <<" "<<(int)overal_ld_time_dist[i]; 
       }
       std::cout << std::endl;
       std::cout << "ST_mem_lat_dist " ;
@@ -319,40 +316,40 @@ public:
       std::cout << std::endl;
    }
    void print_to_file(FILE *outfile) {
-      unsigned i;
+      unsigned i; 
       calculate_dist();
       fprintf (outfile,"LDmemlatdist:") ;
       for ( i=0;i<ld_vector_size;i++ ) {
-         fprintf (outfile," %d", (int)ld_time_dist[i]);
+         fprintf (outfile," %d", (int)ld_time_dist[i]); 
       }
       fprintf (outfile,"\n") ;
       fprintf (outfile,"STmemlatdist:") ;
       for ( i=0;i<st_vector_size;i++ ) {
-         fprintf (outfile," %d", (int)st_time_dist[i]);
+         fprintf (outfile," %d", (int)st_time_dist[i]); 
       }
       fprintf (outfile,"\n") ;
-   }
+   }   
    void print_to_gzfile(gzFile outfile) {
-      unsigned i;
+      unsigned i; 
       calculate_dist();
       gzprintf (outfile,"LDmemlatdist:") ;
       for ( i=0;i<ld_vector_size;i++ ) {
-         gzprintf (outfile," %d", (int)ld_time_dist[i]);
+         gzprintf (outfile," %d", (int)ld_time_dist[i]); 
       }
       gzprintf (outfile,"\n") ;
       gzprintf (outfile,"STmemlatdist:") ;
       for ( i=0;i<st_vector_size;i++ ) {
-         gzprintf (outfile," %d", (int)st_time_dist[i]);
+         gzprintf (outfile," %d", (int)st_time_dist[i]); 
       }
       gzprintf (outfile,"\n") ;
-   }
+   }   
 };
 
-my_time_vector* g_my_time_vector;
+my_time_vector* g_my_time_vector; 
 
 void time_vector_create(int size) {
-   g_my_time_vector = new my_time_vector(size,size);
-}
+   g_my_time_vector = new my_time_vector(size,size); 
+}                               
 
 
 void time_vector_print(void) {
@@ -371,17 +368,17 @@ void time_vector_update(unsigned int uid,int slot ,long int cycle,int type) {
    } else if ( (type == WRITE_REQUEST) || (type == WRITE_ACK) ) {
       g_my_time_vector->update_st( uid, slot,cycle);
    } else {
-      abort();
+      abort(); 
    }
 }
 
-void check_time_vector_update(unsigned int uid,int slot ,long int latency,int type)
+void check_time_vector_update(unsigned int uid,int slot ,long int latency,int type) 
 {
    if ( (type == READ_REQUEST) || (type == READ_REPLY) ) {
       g_my_time_vector->check_ld_update( uid, slot, latency );
    } else if ( (type == WRITE_REQUEST) || (type == WRITE_ACK) ) {
       g_my_time_vector->check_st_update( uid, slot, latency );
    } else {
-      abort();
+      abort(); 
    }
 }

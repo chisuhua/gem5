@@ -184,7 +184,13 @@ kernel_info_t *gpgpu_cuda_ptx_sim_init_grid(gpgpu_ptx_sim_arg_list_t args,
                                             struct dim3 blockDim,
                                             function_info* entry)
 {
-   kernel_info_t *result = new kernel_info_t(gridDim,blockDim,entry);
+
+    // TODO schi 
+   CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+   gpgpu_t *gpu = cudaGPU->getTheGPU();
+
+   kernel_info_t *result = new kernel_info_t(gridDim,blockDim,entry, gpu->getNameArrayMapping(), gpu->getNameInfoMapping());
+
    if (entry == NULL) {
        panic("GPGPU-Sim PTX: ERROR launching kernel -- no PTX implementation found");
    }
@@ -250,7 +256,8 @@ extern "C" void ptxinfo_addinfo()
     }
     CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
     print_ptxinfo();
-    cudaGPU->add_ptxinfo(get_ptxinfo_kname(), get_ptxinfo_kinfo());
+    // TODO schi cudaGPU->add_ptxinfo(get_ptxinfo_kname(), get_ptxinfo_kinfo());
+    cudaGPU->add_ptxinfo(get_ptxinfo_kname(), get_ptxinfo());
     clear_ptxinfo();
 }
 
@@ -935,7 +942,7 @@ cudaFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
     function_info *entry = cudaGPU->get_kernel((const char*)sim_hostFun);
 
     if (entry) {
-        const struct gpgpu_ptx_sim_kernel_info *kinfo = entry->get_kernel_info();
+        const struct gpgpu_ptx_sim_info *kinfo = entry->get_kernel_info();
         cudaFuncAttributes attr;
         attr.sharedSizeBytes = kinfo->smem;
         attr.constSizeBytes  = kinfo->cmem;

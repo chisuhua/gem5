@@ -28,10 +28,12 @@
 #ifndef POWER_INTERFACE_H_
 #define POWER_INTERFACE_H_
 
-#include "gpgpu_sim_wrapper.h"
 #include "gpu-sim.h"
 #include "power_stat.h"
 #include "shader.h"
+
+
+#include "gpgpu_sim_wrapper.h"
 
 void init_mcpat(const gpgpu_sim_config &config, class gpgpu_sim_wrapper *wrapper, unsigned stat_sample_freq, unsigned tot_inst, unsigned inst);
 void mcpat_cycle(const gpgpu_sim_config &config, const struct shader_core_config *shdr_config, class gpgpu_sim_wrapper *wrapper, class power_stat_t *power_stats,

@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2011, Tor M. Aamodt,  Ali Bakhoda, Ivan Sham,
+// Copyright (c) 2009-2011, Tor M. Aamodt,  Ali Bakhoda, Ivan Sham, 
 // Wilson W.L. Fung
 // All rights reserved.
 //
@@ -25,10 +25,10 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cassert>
-#include <cstdlib>
-
 #include "stack.h"
+
+#include <stdlib.h>
+#include <assert.h>
 
 void push_stack(Stack *S, address_type val) {
    assert(S->top < S->max_size);

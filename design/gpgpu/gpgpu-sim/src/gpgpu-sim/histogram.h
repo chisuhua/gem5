@@ -31,7 +31,6 @@
 #ifdef __cplusplus
 
 #include <stdio.h>
-
 #include <string>
 
 class binned_histogram {

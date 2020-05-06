@@ -30,15 +30,10 @@
  ***************************************************************************/
 
 
-#include <pthread.h>
+#include <time.h>
+#include <math.h>
 
-#include <algorithm>
-#include <cmath>
-#include <ctime>
-#include <iostream>
-#include <list>
 
-#include "Ucache.h"
 #include "area.h"
 #include "bank.h"
 #include "basic_circuit.h"
@@ -46,8 +41,14 @@
 #include "const.h"
 #include "decoder.h"
 #include "parameter.h"
+#include "Ucache.h"
 #include "subarray.h"
 #include "uca.h"
+
+#include <pthread.h>
+#include <iostream>
+#include <algorithm>
+#include <list>
 
 using namespace std;
 
@@ -147,9 +148,9 @@ void * calc_time_mt_wrapper(void * void_obj)
         unsigned int Ndwl = 1 << (iter / (Ndbl_niter * Ndcm_niter));
         unsigned int Ndbl = 1 << ((iter / (Ndcm_niter))%Ndbl_niter);
         unsigned int Ndcm = 1 << (iter % Ndcm_niter);
-        for (unsigned int Ndsam_lev_1 = 1; Ndsam_lev_1 <= MAX_COL_MUX; Ndsam_lev_1 *= 2)
+        for(unsigned int Ndsam_lev_1 = 1; Ndsam_lev_1 <= MAX_COL_MUX; Ndsam_lev_1 *= 2)
         {
-          for (unsigned int Ndsam_lev_2 = 1; Ndsam_lev_2 <= MAX_COL_MUX; Ndsam_lev_2 *= 2)
+          for(unsigned int Ndsam_lev_2 = 1; Ndsam_lev_2 <= MAX_COL_MUX; Ndsam_lev_2 *= 2)
           {
             //for debuging
             if (g_ip->force_cache_config && is_tag == false)
@@ -158,16 +159,16 @@ void * calc_time_mt_wrapper(void * void_obj)
               Ndwl = g_ip->ndwl;
               Ndbl = g_ip->ndbl;
               Ndcm = g_ip->ndcm;
-              if (g_ip->nspd != 0) {
-                  Nspd = g_ip->nspd;
+              if(g_ip->nspd != 0) {
+            	  Nspd = g_ip->nspd;
               }
-              if (g_ip->ndsam1 != 0) {
-                  Ndsam_lev_1 = g_ip->ndsam1;
-                  Ndsam_lev_2 = g_ip->ndsam2;
+              if(g_ip->ndsam1 != 0) {
+            	  Ndsam_lev_1 = g_ip->ndsam1;
+            	  Ndsam_lev_2 = g_ip->ndsam2;
               }
             }
 
-            if (is_tag)
+            if (is_tag == true)
             {
               is_valid_partition = calculate_time(is_tag, pure_ram, pure_cam, Nspd, Ndwl,
                   Ndbl, Ndcm, Ndsam_lev_1, Ndsam_lev_2,
@@ -186,7 +187,7 @@ void * calc_time_mt_wrapper(void * void_obj)
 
             if (is_valid_partition)
             {
-              if (is_tag)
+              if (is_tag == true)
               {
                 tag_arr.back()->wt = (enum Wire_type) wr;
                 tag_res->update_min_values(tag_arr.back());
@@ -202,15 +203,15 @@ void * calc_time_mt_wrapper(void * void_obj)
 
             if (g_ip->force_cache_config && is_tag == false)
             {
-                wr   = wt_max;
-                iter = niter;
-                if (g_ip->nspd != 0) {
-                        Nspd = MAXDATASPD;
-                }
-                if (g_ip->ndsam1 != 0) {
-                        Ndsam_lev_1 = MAX_COL_MUX+1;
-                        Ndsam_lev_2 = MAX_COL_MUX+1;
-                }
+            	wr   = wt_max;
+            	iter = niter;
+            	if(g_ip->nspd != 0) {
+            		Nspd = MAXDATASPD;
+            	}
+            	if (g_ip->ndsam1 != 0) {
+            		Ndsam_lev_1 = MAX_COL_MUX+1;
+            		Ndsam_lev_2 = MAX_COL_MUX+1;
+            	}
             }
           }
         }
@@ -223,7 +224,6 @@ void * calc_time_mt_wrapper(void * void_obj)
   data_arr.pop_back();
   tag_arr.pop_back();
 
-  pthread_exit(NULL);
 }
 
 
@@ -259,11 +259,11 @@ bool calculate_time(
   }
   else
   {
-          int num_act_mats_hor_dir = uca->bank.dp.num_act_mats_hor_dir;
-          int num_mats = uca->bank.dp.num_mats;
-          bool is_fa = uca->bank.dp.fully_assoc;
-          bool pure_cam = uca->bank.dp.pure_cam;
-        ptr_array->Ndwl = Ndwl;
+	  int num_act_mats_hor_dir = uca->bank.dp.num_act_mats_hor_dir;
+	  int num_mats = uca->bank.dp.num_mats;
+	  bool is_fa = uca->bank.dp.fully_assoc;
+	  bool pure_cam = uca->bank.dp.pure_cam;
+	ptr_array->Ndwl = Ndwl;
     ptr_array->Ndbl = Ndbl;
     ptr_array->Nspd = Nspd;
     ptr_array->deg_bl_muxing = dyn_p.deg_bl_muxing;
@@ -509,7 +509,7 @@ void find_optimal_uca(uca_org_t *res, min_values_t * minval, list<uca_org_t> & u
   d  = g_ip->delay_wt;
   c  = g_ip->cycle_time_wt;
 
-  if (ulist.empty())
+  if (ulist.empty() == true)
   {
     cout << "find_optial_uca1" << endl;
     cout << "ERROR: no valid cache organizations found" << endl;
@@ -561,13 +561,13 @@ void find_optimal_uca(uca_org_t *res, min_values_t * minval, list<uca_org_t> & u
           *res = (*(niter));
           niter = ulist.erase(niter);
           if (niter!=ulist.begin())
-                  niter--;
+        	  niter--;
         }
       }
       else {
         niter = ulist.erase(niter);
         if (niter!=ulist.begin())
-                niter--;
+        	niter--;
       }
     }
   }
@@ -589,7 +589,7 @@ void filter_tag_arr(const min_values_t * min, list<mem_array *> & list)
   double wt_delay = g_ip->delay_wt, wt_dyn = g_ip->dynamic_power_wt, wt_leakage = g_ip->leakage_power_wt, wt_cyc = g_ip->cycle_time_wt, wt_area = g_ip->area_wt;
   mem_array * res = NULL;
 
-  if (list.empty())
+  if (list.empty() == true)
   {
     cout << "filter_tag_arr1" << endl;
     cout << "ERROR: no valid tag organizations found" << endl;
@@ -627,7 +627,7 @@ void filter_tag_arr(const min_values_t * min, list<mem_array *> & list)
     }
     list.pop_back();
   }
-  if (!res)
+  if(!res)
   {
     cout << "filter_tag_arr2" << endl;
     cout << "ERROR: no valid tag organizations found" << endl;
@@ -641,7 +641,7 @@ void filter_tag_arr(const min_values_t * min, list<mem_array *> & list)
 
 void filter_data_arr(list<mem_array *> & curr_list)
 {
-  if (curr_list.empty())
+  if (curr_list.empty() == true)
   {
     cout << "filter_data_arr1" << endl;
     cout << "ERROR: no valid data array organizations found" << endl;
@@ -656,7 +656,7 @@ void filter_data_arr(list<mem_array *> & curr_list)
 
     if (m == NULL) exit(1);
 
-    if (((m->access_time - m->arr_min->min_delay)/m->arr_min->min_delay > 0.5) &&
+    if(((m->access_time - m->arr_min->min_delay)/m->arr_min->min_delay > 0.5) &&
        ((m->power.readOp.dynamic - m->arr_min->min_dyn)/m->arr_min->min_dyn > 0.5))
     {
       delete m;
@@ -758,11 +758,11 @@ void solve(uca_org_t *fin_res)
       calc_array[t].is_main_mem = g_ip->is_main_mem;
       if (!(pure_cam||g_ip->fully_assoc))
       {
-          calc_array[t].Nspd_min    = (double)(g_ip->out_w)/(double)(g_ip->block_sz*8);
+    	  calc_array[t].Nspd_min    = (double)(g_ip->out_w)/(double)(g_ip->block_sz*8);
       }
       else
       {
-          calc_array[t].Nspd_min    = 1;
+    	  calc_array[t].Nspd_min    = 1;
       }
 
       pthread_create(&threads[t], NULL, calc_time_mt_wrapper, (void *)(&(calc_array[t])));
@@ -800,7 +800,7 @@ void solve(uca_org_t *fin_res)
 
   //cout << data_arr.size() << "\t" << tag_arr.size() <<" before\n";
   filter_data_arr(data_arr);
-  if (!(pure_ram||pure_cam||g_ip->fully_assoc))
+  if(!(pure_ram||pure_cam||g_ip->fully_assoc))
   {
     filter_tag_arr(t_min, tag_arr);
   }
@@ -882,11 +882,11 @@ void solve(uca_org_t *fin_res)
 
 void update(uca_org_t *fin_res)
 {
-  if (fin_res->tag_array2)
+  if(fin_res->tag_array2)
   {
     init_tech_params(g_ip->F_sz_um,true);
     DynamicParameter tag_arr_dyn_p(true, g_ip->pure_ram, g_ip->pure_cam, fin_res->tag_array2->Nspd, fin_res->tag_array2->Ndwl, fin_res->tag_array2->Ndbl, fin_res->tag_array2->Ndcm, fin_res->tag_array2->Ndsam_lev_1, fin_res->tag_array2->Ndsam_lev_2, g_ip->is_main_mem);
-    if (tag_arr_dyn_p.is_valid)
+    if(tag_arr_dyn_p.is_valid)
     {
       UCA * tag_arr = new UCA(tag_arr_dyn_p);
       fin_res->tag_array2->power = tag_arr->power;
@@ -899,7 +899,7 @@ void update(uca_org_t *fin_res)
   }
   init_tech_params(g_ip->F_sz_um,false);
   DynamicParameter data_arr_dyn_p(false, g_ip->pure_ram, g_ip->pure_cam, fin_res->data_array2->Nspd, fin_res->data_array2->Ndwl, fin_res->data_array2->Ndbl, fin_res->data_array2->Ndcm, fin_res->data_array2->Ndsam_lev_1, fin_res->data_array2->Ndsam_lev_2, g_ip->is_main_mem);
-  if (data_arr_dyn_p.is_valid)
+  if(data_arr_dyn_p.is_valid)
   {
     UCA * data_arr = new UCA(data_arr_dyn_p);
     fin_res->data_array2->power = data_arr->power;

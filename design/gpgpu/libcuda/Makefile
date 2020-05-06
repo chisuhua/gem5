@@ -60,7 +60,7 @@
 # Vancouver, BC V6T 1Z4
 
 
-include ../version_detection.mk
+include ../gpgpu-sim/version_detection.mk
 
 ifeq ($(OPENGL_SUPPORT),1)
 	GL = -DOPENGL_SUPPORT
@@ -70,7 +70,7 @@ ifeq ($(GNUC_CPP0X), 1)
     CXXFLAGS = -std=c++0x
 endif
 
-
+CUDA_INSTALL_PATH ?= /usr/local/cuda/
 CPP = g++ $(SNOW)
 CC = gcc $(SNOW)
 CREATELIBRARY    =  1
@@ -97,7 +97,7 @@ endif
 PROG     =cuda
 M5OP = m5op_x86
 M5OP_PATH = ../../../util/m5
-INCLUDES = -I./ -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH)
+INCLUDES = -I./ -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I../../../include -I../../../build/X86_VI_hammer
 
 CXX_SRCS =  cuda_runtime_api.cc
 LEX_SRCS = cuobjdump.l
@@ -119,13 +119,15 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 
 
 #--- Make rules ---
-lib$(PROG).a: $(OBJS) $(M5OP).o
-	echo $(OBJS)
-	ar rcs $(OUTPUT_DIR)/lib$(PROG).a $(OBJS)
-	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
+#lib$(PROG).a: $(OBJS) $(M5OP).o
+#	echo $(OBJS)
+#	ar rcs $(OUTPUT_DIR)/lib$(PROG).a $(OBJS)
+#	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
+libcudart.so: $(OBJS) $(M5OP).o
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../gpgpu-sim/linux-so-version.txt $(OBJS) $(M5OP).o -lm -lz -lGL -pthread -o $(OUTPUT_DIR)/libcudart.so
 
 $(OUTPUT_DIR)/%.o: %.cc
-	$(CPP) $(CXXFLAGS)  -c $< -o $@
+	$(CPP) $(CXXFLAGS) $(INCLUDES)  -c $< -o $@
 
 $(OUTPUT_DIR)/%.o: %.c
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
@@ -133,7 +135,7 @@ $(OUTPUT_DIR)/%.o: %.c
 $(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.c
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
-$(OUTPUT_DIR)/$(M5OP).o: $(OUTPUT_DIR)/$(M5OP).S
+$(OUTPUT_DIR)/$(M5OP).o: $(M5OP_PATH)/$(M5OP).S
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
 
@@ -161,5 +163,5 @@ clean:
 	rm -f *_lexer.*
 	rm -f Makefile.makedepend Makefile.makedepend.bak
 
-include $(OUTPUT_DIR)/Makefile.makedepend
+#include $(OUTPUT_DIR)/Makefile.makedepend
 

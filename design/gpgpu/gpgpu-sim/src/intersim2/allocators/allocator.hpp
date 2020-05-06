@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,13 +28,13 @@
 #ifndef _ALLOCATOR_HPP_
 #define _ALLOCATOR_HPP_
 
+#include <string>
 #include <map>
 #include <set>
-#include <string>
 #include <vector>
 
-#include "intersim2/module.hpp"
-#include "intersim2/config_utils.hpp"
+#include "module.hpp"
+#include "config_utils.hpp"
 
 class Allocator : public Module {
 protected:
@@ -56,17 +56,17 @@ public:
   };
 
   Allocator( Module *parent, const string& name,
-             int inputs, int outputs );
+	     int inputs, int outputs );
 
   virtual void Clear( );
-
+  
   virtual int  ReadRequest( int in, int out ) const = 0;
   virtual bool ReadRequest( sRequest &req, int in, int out ) const = 0;
 
-  virtual void AddRequest( int in, int out, int label = 1,
-                           int in_pri = 0, int out_pri = 0 );
+  virtual void AddRequest( int in, int out, int label = 1, 
+			   int in_pri = 0, int out_pri = 0 );
   virtual void RemoveRequest( int in, int out, int label = 1 ) = 0;
-
+  
   virtual void Allocate( ) = 0;
 
   int OutputAssigned( int in ) const;
@@ -82,9 +82,9 @@ public:
   void PrintGrants( ostream * os = NULL ) const;
 
   static Allocator *NewAllocator( Module *parent, const string& name,
-                                  const string &alloc_type,
-                                  int inputs, int outputs,
-                                  Configuration const * const config = NULL );
+				  const string &alloc_type, 
+				  int inputs, int outputs, 
+				  Configuration const * const config = NULL );
 };
 
 //==================================================
@@ -98,15 +98,15 @@ protected:
 
 public:
   DenseAllocator( Module *parent, const string& name,
-                  int inputs, int outputs );
+		  int inputs, int outputs );
 
   void Clear( );
-
+  
   int  ReadRequest( int in, int out ) const;
   bool ReadRequest( sRequest &req, int in, int out ) const;
 
-  void AddRequest( int in, int out, int label = 1,
-                   int in_pri = 0, int out_pri = 0 );
+  void AddRequest( int in, int out, int label = 1, 
+		   int in_pri = 0, int out_pri = 0 );
   void RemoveRequest( int in, int out, int label = 1 );
 
   bool OutputHasRequests( int out ) const;
@@ -128,23 +128,23 @@ class SparseAllocator : public Allocator {
 protected:
   set<int> _in_occ;
   set<int> _out_occ;
-
+  
   vector<map<int, sRequest> > _in_req;
   vector<map<int, sRequest> > _out_req;
 
 public:
   SparseAllocator( Module *parent, const string& name,
-                   int inputs, int outputs );
+		   int inputs, int outputs );
 
   void Clear( );
-
+  
   int  ReadRequest( int in, int out ) const;
   bool ReadRequest( sRequest &req, int in, int out ) const;
 
-  void AddRequest( int in, int out, int label = 1,
-                   int in_pri = 0, int out_pri = 0 );
+  void AddRequest( int in, int out, int label = 1, 
+		   int in_pri = 0, int out_pri = 0 );
   void RemoveRequest( int in, int out, int label = 1 );
-
+  
   bool OutputHasRequests( int out ) const;
   bool InputHasRequests( int in ) const;
 

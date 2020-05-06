@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2011, Tor M. Aamodt, Ali Bakhoda, Timothy Rogers,
+# Copyright (c) 2009-2011, Tor M. Aamodt, Ali Bakhoda, Timothy Rogers, 
 # Jimmy Kwa, and The University of British Columbia
 # All rights reserved.
 #
@@ -29,7 +29,7 @@
 # comment out next line to disable OpenGL support
 # export OPENGL_SUPPORT=1
 
-# (Temp) Using intersim2 by deafult, to use intersim, type make INTERSIM=intersim
+# Specify INTERSIM folder, the folder will be located at $GPGPUSIM_ROOT/src/$INTERSIM
 INTERSIM ?= intersim2
 
 include version_detection.mk
@@ -54,7 +54,10 @@ ifneq ($(shell which nvcc), "")
 	endif
 endif
 
-LIBS = cuda-sim gpgpu-sim_uarch $(INTERSIM) gpgpusimlib
+
+$(shell mkdir -p $(SIM_OBJ_FILES_DIR)/libcuda && echo "const char *g_gpgpusim_build_string=\"$(GPGPUSIM_BUILD)\";" > $(SIM_OBJ_FILES_DIR)/detailed_version)
+
+LIBS = cuda-sim gpgpu-sim_uarch $(INTERSIM) gpgpusimlib 
 
 
 TARGETS =
@@ -111,7 +114,7 @@ check_setup_environment:
 			echo; echo "	Building GPGPU-Sim version $(GPGPUSIM_VERSION) (build $(GPGPUSIM_BUILD)) with CUDA version $(CUDA_VERSION_STRING)"; echo; \
 	 		true; \
 		fi \
-	 fi
+	 fi 
 
 check_power:
 	@if [ -d "$(GPGPUSIM_ROOT)/src/gpuwattch/" -a ! -n "$(GPGPUSIM_POWER_MODEL)" ]; then \
@@ -140,7 +143,7 @@ no_opencl_support:
 	@echo "Warning: gpgpu-sim is building without opencl support. Make sure NVOPENCL_LIBDIR and NVOPENCL_INCDIR are set"
 
 $(SIM_LIB_DIR)/libcudart.so: makedirs $(LIBS) cudalib
-	g++ -shared -Wl,-soname,libcudart.so \
+	g++ -shared -Wl,-soname,libcudart_$(GPGPUSIM_BUILD).so -Wl,--version-script=linux-so-version.txt\
 			$(SIM_OBJ_FILES_DIR)/libcuda/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
@@ -152,6 +155,16 @@ $(SIM_LIB_DIR)/libcudart.so: makedirs $(LIBS) cudalib
 	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.2 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.2; fi
 	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.3 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.3; fi
 	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.4 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.4; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.5.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.5.0; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.5.5 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.5.5; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.6.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.6.0; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.6.5 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.6.5; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.7.5 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.7.5; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.8.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.8.0; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.9.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.9.0; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.9.1 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.9.1; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.9.2 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.9.2; fi
+	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.10.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.10.0; fi
 
 $(SIM_LIB_DIR)/libcudart.dylib: makedirs $(LIBS) cudalib
 	g++ -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,1.1,-current_version,1.1\
@@ -165,7 +178,7 @@ $(SIM_LIB_DIR)/libcudart.dylib: makedirs $(LIBS) cudalib
 			-o $(SIM_LIB_DIR)/libcudart.dylib
 
 $(SIM_LIB_DIR)/libOpenCL.so: makedirs $(LIBS) opencllib
-	g++ -shared -Wl,-soname,libOpenCL.so \
+	g++ -shared -Wl,-soname,libOpenCL_$(GPGPUSIM_BUILD).so \
 			$(SIM_OBJ_FILES_DIR)/libopencl/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
@@ -173,7 +186,7 @@ $(SIM_LIB_DIR)/libOpenCL.so: makedirs $(LIBS) opencllib
 			$(SIM_OBJ_FILES_DIR)/$(INTERSIM)/*.o \
 			$(SIM_OBJ_FILES_DIR)/*.o -lm -lz -lGL -pthread \
 			$(MCPAT) \
-			-o $(SIM_LIB_DIR)/libOpenCL.so
+			-o $(SIM_LIB_DIR)/libOpenCL.so 
 	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1; fi
 	if [ ! -f $(SIM_LIB_DIR)/libOpenCL.so.1.1 ]; then ln -s libOpenCL.so $(SIM_LIB_DIR)/libOpenCL.so.1.1; fi
 
@@ -207,7 +220,7 @@ opencllib: makedirs cuda-sim
 	$(MAKE) -C ./libopencl/
 
 .PHONY: cuobjdump_to_ptxplus/cuobjdump_to_ptxplus
-cuobjdump_to_ptxplus/cuobjdump_to_ptxplus: makedirs
+cuobjdump_to_ptxplus/cuobjdump_to_ptxplus: cuda-sim makedirs
 	$(MAKE) -C ./cuobjdump_to_ptxplus/ depend
 	$(MAKE) -C ./cuobjdump_to_ptxplus/
 
@@ -239,3 +252,13 @@ clean: makedirs
 cleangpgpusim: cleandocs
 	rm -rf $(SIM_LIB_DIR)
 	rm -rf $(SIM_OBJ_FILES_DIR)
+	rm -f *~ *.o ./src/cuda-sim/*.gcda ./src/cuda-sim/*.gcno ./src/cuda-sim/*.gcov ./src/cuda-sim/libgpgpu_ptx_sim.a \
+                ./src/cuda-sim/ptx.tab.h ./src/cuda-sim/ptx.tab.c ./src/cuda-sim/ptx.output ./src/cuda-sim/lex.ptx_.c \
+                ./src/cuda-sim/ptxinfo.tab.h ./src/cuda-sim/ptxinfo.tab.c ./src/cuda-sim/ptxinfo.output ./src/cuda-sim/lex.ptxinfo_.c \
+                ./src/cuda-sim/instructions.h ./src/cuda-sim/ptx_parser_decode.def ./src/cuda-sim/directed_tests.log \
+		./cuobjdump_to_ptxplus/elf_lexer.cc ./cuobjdump_to_ptxplus/elf_parser.cc ./cuobjdump_to_ptxplus/elf_parser.hh \
+		./cuobjdump_to_ptxplus/header_lexer.cc ./cuobjdump_to_ptxplus/header_parser.cc ./cuobjdump_to_ptxplus/header_parser.hh \
+		./cuobjdump_to_ptxplus/lex.ptx_.c ./cuobjdump_to_ptxplus/ptx.output ./cuobjdump_to_ptxplus/ptx.tab.h cuobjdump_to_ptxplus/ptx.tab.h \
+		./cuobjdump_to_ptxplus/sass_lexer.cc ./cuobjdump_to_ptxplus/sass_parser.cc ./cuobjdump_to_ptxplus/sass_parser.hh \
+		./cuobjdump_to_ptxplus/ptx.tab.cc ./cuobjdump_to_ptxplus/*.output
+

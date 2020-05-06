@@ -26,21 +26,21 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "../abstract_hardware_model.h"
-#include "../cuda-sim/ptx-stats.h"
-#include "dram.h"
-#include "gpu-cache.h"
-#include "gpu-misc.h"
-#include "gpu-sim.h"
-#include "mem_fetch.h"
 #include "mem_latency_stat.h"
+#include "gpu-sim.h"
+#include "gpu-misc.h"
+#include "gpu-cache.h"
 #include "shader.h"
+#include "mem_fetch.h"
 #include "stat-tool.h"
+#include "../cuda-sim/ptx-stats.h"
 #include "visualizer.h"
+#include "dram.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 memory_stats_t::memory_stats_t( unsigned n_shader, const struct shader_core_config *shader_config, const struct memory_config *mem_config )
 {
@@ -75,6 +75,10 @@ memory_stats_t::memory_stats_t( unsigned n_shader, const struct shader_core_conf
    max_mf_latency = 0;
    max_icnt2mem_latency = 0;
    max_icnt2sh_latency = 0;
+   tot_icnt2mem_latency = 0;
+   tot_icnt2sh_latency = 0;
+   tot_mrq_num = 0;
+   tot_mrq_latency = 0;
    memset(mrq_lat_table, 0, sizeof(unsigned)*32);
    memset(dq_lat_table, 0, sizeof(unsigned)*32);
    memset(mf_lat_table, 0, sizeof(unsigned)*32);
@@ -125,6 +129,12 @@ memory_stats_t::memory_stats_t( unsigned n_shader, const struct shader_core_conf
       }
    }
 
+   // AerialVision L2 stats
+   L2_read_miss = 0;
+   L2_write_miss = 0;
+   L2_read_hit = 0;
+   L2_write_hit = 0;
+
    L2_cbtoL2length = (unsigned int*) calloc(mem_config->m_n_mem, sizeof(unsigned int));
    L2_cbtoL2writelength = (unsigned int*) calloc(mem_config->m_n_mem, sizeof(unsigned int));
    L2_L2tocblength = (unsigned int*) calloc(mem_config->m_n_mem, sizeof(unsigned int));
@@ -154,10 +164,11 @@ void memory_stats_t::memlatstat_read_done(mem_fetch *mf)
 {
    if (m_memory_config->gpgpu_memlatency_stat) {
       unsigned mf_latency = memlatstat_done(mf);
-      if (mf_latency > mf_max_lat_table[mf->get_tlx_addr().chip][mf->get_tlx_addr().bk])
+      if (mf_latency > mf_max_lat_table[mf->get_tlx_addr().chip][mf->get_tlx_addr().bk]) 
          mf_max_lat_table[mf->get_tlx_addr().chip][mf->get_tlx_addr().bk] = mf_latency;
       unsigned icnt2sh_latency;
       icnt2sh_latency = (gpu_tot_sim_cycle+gpu_sim_cycle) - mf->get_return_timestamp();
+      tot_icnt2sh_latency += icnt2sh_latency;
       icnt2sh_lat_table[LOGB2(icnt2sh_latency)]++;
       if (icnt2sh_latency > max_icnt2sh_latency)
          max_icnt2sh_latency = icnt2sh_latency;
@@ -168,9 +179,9 @@ void memory_stats_t::memlatstat_dram_access(mem_fetch *mf)
 {
    unsigned dram_id = mf->get_tlx_addr().chip;
    unsigned bank = mf->get_tlx_addr().bk;
-   if (m_memory_config->gpgpu_memlatency_stat) {
+   if (m_memory_config->gpgpu_memlatency_stat) { 
       if (mf->get_is_write()) {
-         if ( mf->get_sid() < m_n_shader  ) {   //do not count L2_writebacks here
+         if ( mf->get_sid() < m_n_shader  ) {   //do not count L2_writebacks here 
             bankwrites[mf->get_sid()][dram_id][bank]++;
             shader_mem_acc_log( mf->get_sid(), dram_id, bank, 'w');
          }
@@ -182,7 +193,7 @@ void memory_stats_t::memlatstat_dram_access(mem_fetch *mf)
       }
       mem_access_type_stats[mf->get_access_type()][dram_id][bank]++;
    }
-   if (mf->get_pc() != (new_addr_type)-1)
+   if (mf->get_pc() != (unsigned)-1) 
       ptx_file_line_stats_add_dram_traffic(mf->get_pc(), mf->get_data_size());
 }
 
@@ -191,6 +202,7 @@ void memory_stats_t::memlatstat_icnt2mem_pop(mem_fetch *mf)
    if (m_memory_config->gpgpu_memlatency_stat) {
       unsigned icnt2mem_latency;
       icnt2mem_latency = (gpu_tot_sim_cycle+gpu_sim_cycle) - mf->get_timestamp();
+      tot_icnt2mem_latency += icnt2mem_latency;
       icnt2mem_lat_table[LOGB2(icnt2mem_latency)]++;
       if (icnt2mem_latency > max_icnt2mem_latency)
          max_icnt2mem_latency = icnt2mem_latency;
@@ -216,14 +228,19 @@ void memory_stats_t::memlatstat_print( unsigned n_mem, unsigned gpu_mem_n_bk )
    unsigned max_bank_accesses, min_bank_accesses, max_chip_accesses, min_chip_accesses;
 
    if (m_memory_config->gpgpu_memlatency_stat) {
+	   printf("maxmflatency = %d \n", max_mf_latency);
+	   printf("max_icnt2mem_latency = %d \n", max_icnt2mem_latency);
       printf("maxmrqlatency = %d \n", max_mrq_latency);
-      printf("maxdqlatency = %d \n", max_dq_latency);
-      printf("maxmflatency = %d \n", max_mf_latency);
+      //printf("maxdqlatency = %d \n", max_dq_latency);
+      printf("max_icnt2sh_latency = %d \n", max_icnt2sh_latency);
       if (num_mfs) {
          printf("averagemflatency = %lld \n", mf_total_lat/num_mfs);
+         printf("avg_icnt2mem_latency = %lld \n", tot_icnt2mem_latency/num_mfs);
+         if(tot_mrq_num)
+        	 printf("avg_mrq_latency = %lld \n", tot_mrq_latency/tot_mrq_num);
+
+         printf("avg_icnt2sh_latency = %lld \n", tot_icnt2sh_latency/num_mfs);
       }
-      printf("max_icnt2mem_latency = %d \n", max_icnt2mem_latency);
-      printf("max_icnt2sh_latency = %d \n", max_icnt2sh_latency);
       printf("mrq_lat_table:");
       for (i=0; i< 32; i++) {
          printf("%d \t", mrq_lat_table[i]);
@@ -355,7 +372,7 @@ void memory_stats_t::memlatstat_print( unsigned n_mem, unsigned gpu_mem_n_bk )
          m = 0;
          printf("\n");
       }
-      printf("total reads: %d\n", k);
+      printf("total dram reads = %d\n", k);
       if (min_bank_accesses)
          printf("bank skew: %d/%d = %4.2f\n", max_bank_accesses, min_bank_accesses, (float)max_bank_accesses/min_bank_accesses);
       else
@@ -393,7 +410,7 @@ void memory_stats_t::memlatstat_print( unsigned n_mem, unsigned gpu_mem_n_bk )
          m = 0;
          printf("\n");
       }
-      printf("total reads: %d\n", k);
+      printf("total dram writes = %d\n", k);
       if (min_bank_accesses)
          printf("bank skew: %d/%d = %4.2f\n", max_bank_accesses, min_bank_accesses, (float)max_bank_accesses/min_bank_accesses);
       else

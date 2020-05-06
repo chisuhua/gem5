@@ -33,17 +33,17 @@
 #ifndef __INTERCONNECT_H__
 #define __INTERCONNECT_H__
 
-#include "assert.h"
-#include "basic_components.h"
 #include "cacti/basic_circuit.h"
-#include "cacti/cacti_interface.h"
+#include "basic_components.h"
 #include "cacti/component.h"
 #include "cacti/parameter.h"
+#include "assert.h"
 #include "cacti/subarray.h"
+#include "cacti/cacti_interface.h"
 #include "cacti/wire.h"
 
 // leakge power includes entire htree in a bank (when uca_tree == false)
-// leakge power includes only part to one bank when uca_tree
+// leakge power includes only part to one bank when uca_tree == true
 
 class interconnect : public Component
 {
@@ -51,7 +51,7 @@ class interconnect : public Component
     interconnect(
         string  name_,
         enum Device_ty device_ty_,
-        double base_w =0, double base_h =0, int data_w =0, double len =0,
+    	double base_w =0, double base_h =0, int data_w =0, double len =0,
         const InputParameter *configure_interface = NULL, int start_wiring_level_ =0,
         bool pipelinable_ = false,
         double route_over_perc_ =0.5,
@@ -60,22 +60,22 @@ class interconnect : public Component
         enum Wire_type wire_model=Global,
         double width_s=1.0, double space_s=1.0,
         TechnologyParameter::DeviceType *dt = &(g_tp.peri_global)
-                );
+		);
 
     ~interconnect() {};
 
     void compute();
-        string   name;
-        enum Device_ty device_ty;
+	string   name;
+	enum Device_ty device_ty;
     double in_rise_time, out_rise_time;
-        InputParameter l_ip;
-        uca_org_t local_result;
+	InputParameter l_ip;
+	uca_org_t local_result;
     Area no_device_under_wire_area;
     void set_in_rise_time(double rt)
     {
       in_rise_time = rt;
     }
-
+    
     void leakage_feedback(double temperature);
     double max_unpipelined_link_delay;
     powerDef power_bit;

@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -35,30 +35,30 @@
 #include <cassert>
 #include <sstream>
 
-#include "intersim2/booksim.hpp"
+#include "booksim.hpp"
 #include "network.hpp"
 
-#include "anynet.hpp"
-#include "cmesh.hpp"
-#include "dragonfly.hpp"
-#include "fattree.hpp"
-#include "flatfly_onchip.hpp"
-#include "fly.hpp"
 #include "kncube.hpp"
+#include "fly.hpp"
+#include "cmesh.hpp"
+#include "flatfly_onchip.hpp"
 #include "qtree.hpp"
 #include "tree4.hpp"
+#include "fattree.hpp"
+#include "anynet.hpp"
+#include "dragonfly.hpp"
 
 
-ISNetwork::ISNetwork( const Configuration &config, const string & name ) :
+Network_gpgpu::Network_gpgpu( const Configuration &config, const string & name ) :
   TimedModule( 0, name )
 {
-  _size     = -1;
-  _nodes    = -1;
+  _size     = -1; 
+  _nodes    = -1; 
   _channels = -1;
   _classes  = config.GetInt("classes");
 }
 
-ISNetwork::~ISNetwork( )
+Network_gpgpu::~Network_gpgpu( )
 {
   for ( int r = 0; r < _size; ++r ) {
     if ( _routers[r] ) delete _routers[r];
@@ -77,10 +77,10 @@ ISNetwork::~ISNetwork( )
   }
 }
 
-ISNetwork * ISNetwork::New(const Configuration & config, const string & name)
+Network_gpgpu * Network_gpgpu::New(const Configuration & config, const string & name)
 {
   const string topo = config.GetStr( "topology" );
-  ISNetwork * n = NULL;
+  Network_gpgpu * n = NULL;
   if ( topo == "torus" ) {
     KNCube::RegisterRoutingFunctions() ;
     n = new KNCube( config, name, false );
@@ -114,7 +114,7 @@ ISNetwork * ISNetwork::New(const Configuration & config, const string & name)
   } else {
     cerr << "Unknown topology: " << topo << endl;
   }
-
+  
   /*legacy code that insert random faults in the networks
    *not sure how to use this
    */
@@ -124,11 +124,11 @@ ISNetwork * ISNetwork::New(const Configuration & config, const string & name)
   return n;
 }
 
-void ISNetwork::_Alloc( )
+void Network_gpgpu::_Alloc( )
 {
-  assert( ( _size != -1 ) &&
-          ( _nodes != -1 ) &&
-          ( _channels != -1 ) );
+  assert( ( _size != -1 ) && 
+	  ( _nodes != -1 ) && 
+	  ( _channels != -1 ) );
 
   _routers.resize(_size);
   gNodes = _nodes;
@@ -179,69 +179,69 @@ void ISNetwork::_Alloc( )
   }
 }
 
-void ISNetwork::ReadInputs( )
+void Network_gpgpu::ReadInputs( )
 {
-  for (deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
+  for(deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
       iter != _timed_modules.end();
       ++iter) {
     (*iter)->ReadInputs( );
   }
 }
 
-void ISNetwork::Evaluate( )
+void Network_gpgpu::Evaluate( )
 {
-  for (deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
+  for(deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
       iter != _timed_modules.end();
       ++iter) {
     (*iter)->Evaluate( );
   }
 }
 
-void ISNetwork::WriteOutputs( )
+void Network_gpgpu::WriteOutputs( )
 {
-  for (deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
+  for(deque<TimedModule *>::const_iterator iter = _timed_modules.begin();
       iter != _timed_modules.end();
       ++iter) {
     (*iter)->WriteOutputs( );
   }
 }
 
-void ISNetwork::WriteFlit( Flit *f, int source )
+void Network_gpgpu::WriteFlit( Flit *f, int source )
 {
   assert( ( source >= 0 ) && ( source < _nodes ) );
   _inject[source]->Send(f);
 }
 
-Flit *ISNetwork::ReadFlit( int dest )
+Flit *Network_gpgpu::ReadFlit( int dest )
 {
   assert( ( dest >= 0 ) && ( dest < _nodes ) );
   return _eject[dest]->Receive();
 }
 
-void ISNetwork::WriteCredit( Credit *c, int dest )
+void Network_gpgpu::WriteCredit( Credit *c, int dest )
 {
   assert( ( dest >= 0 ) && ( dest < _nodes ) );
   _eject_cred[dest]->Send(c);
 }
 
-Credit *ISNetwork::ReadCredit( int source )
+Credit *Network_gpgpu::ReadCredit( int source )
 {
   assert( ( source >= 0 ) && ( source < _nodes ) );
   return _inject_cred[source]->Receive();
 }
 
-void ISNetwork::InsertRandomFaults( const Configuration &config )
+void Network_gpgpu::InsertRandomFaults( const Configuration &config )
 {
   Error( "InsertRandomFaults not implemented for this topology!" );
 }
 
-void ISNetwork::OutChannelFault( int r, int c, bool fault )
+void Network_gpgpu::OutChannelFault( int r, int c, bool fault )
 {
   assert( ( r >= 0 ) && ( r < _size ) );
   _routers[r]->OutChannelFault( c, fault );
 }
 
-double ISNetwork::Capacity( ) const
+double Network_gpgpu::Capacity( ) const
 {
   return 1.0;
 }
@@ -250,40 +250,40 @@ double ISNetwork::Capacity( ) const
  * neceesary of the network, by default, call display on each router
  * and display the channel utilization rate
  */
-void ISNetwork::Display( ostream & os ) const
+void Network_gpgpu::Display( ostream & os ) const
 {
   for ( int r = 0; r < _size; ++r ) {
     _routers[r]->Display( os );
   }
 }
 
-void ISNetwork::DumpChannelMap( ostream & os, string const & prefix ) const
+void Network_gpgpu::DumpChannelMap( ostream & os, string const & prefix ) const
 {
   os << prefix << "source_router,source_port,dest_router,dest_port" << endl;
-  for (int c = 0; c < _nodes; ++c)
+  for(int c = 0; c < _nodes; ++c)
     os << prefix
-       << "-1,"
-       << _inject[c]->GetSourcePort() << ','
-       << _inject[c]->GetSink()->GetID() << ','
+       << "-1," 
+       << _inject[c]->GetSourcePort() << ',' 
+       << _inject[c]->GetSink()->GetID() << ',' 
        << _inject[c]->GetSinkPort() << endl;
-  for (int c = 0; c < _channels; ++c)
+  for(int c = 0; c < _channels; ++c)
     os << prefix
-       << _chan[c]->GetSource()->GetID() << ','
-       << _chan[c]->GetSourcePort() << ','
-       << _chan[c]->GetSink()->GetID() << ','
+       << _chan[c]->GetSource()->GetID() << ',' 
+       << _chan[c]->GetSourcePort() << ',' 
+       << _chan[c]->GetSink()->GetID() << ',' 
        << _chan[c]->GetSinkPort() << endl;
-  for (int c = 0; c < _nodes; ++c)
+  for(int c = 0; c < _nodes; ++c)
     os << prefix
-       << _eject[c]->GetSource()->GetID() << ','
-       << _eject[c]->GetSourcePort() << ','
-       << "-1,"
+       << _eject[c]->GetSource()->GetID() << ',' 
+       << _eject[c]->GetSourcePort() << ',' 
+       << "-1," 
        << _eject[c]->GetSinkPort() << endl;
 }
 
-void ISNetwork::DumpNodeMap( ostream & os, string const & prefix ) const
+void Network_gpgpu::DumpNodeMap( ostream & os, string const & prefix ) const
 {
   os << prefix << "source_router,dest_router" << endl;
-  for (int s = 0; s < _nodes; ++s)
+  for(int s = 0; s < _nodes; ++s)
     os << prefix
        << _eject[s]->GetSource()->GetID() << ','
        << _inject[s]->GetSink()->GetID() << endl;

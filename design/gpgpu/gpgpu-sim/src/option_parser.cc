@@ -25,29 +25,29 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iomanip>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <vector>
 #include <list>
 #include <map>
-#include <sstream>
-#include <string>
-#include <vector>
-
+#include <string.h>
 #include "option_parser.h"
+
 
 using namespace std;
 
 // A generic option registry regardless of data type
-class OptionRegistryInterface
+class OptionRegistryInterface 
 {
 public:
-   OptionRegistryInterface(const string optionName, const string optionDesc)
-      : m_optionName(optionName), m_optionDesc(optionDesc), m_isParsed(false)
+   OptionRegistryInterface(const string optionName, const string optionDesc) 
+      : m_optionName(optionName), m_optionDesc(optionDesc), m_isParsed(false) 
    {}
 
    virtual ~OptionRegistryInterface() {}
@@ -68,7 +68,7 @@ protected:
 
 // Template for option registry - class T = specify data type of the option
 template <class T>
-class OptionRegistry : public OptionRegistryInterface
+class OptionRegistry : public OptionRegistryInterface 
 {
 public:
    OptionRegistry(const string name, const string desc, T &variable)
@@ -77,7 +77,7 @@ public:
 
    virtual ~OptionRegistry() {}
 
-   virtual string toString()
+   virtual string toString() 
    {
       stringstream ss;
       ss << m_variable;
@@ -90,7 +90,7 @@ public:
       ss.exceptions(stringstream::failbit | stringstream::badbit);
       ss << setbase(10);
       if (str.size() > 1 && str[0] == '0') {
-         if (str.size() > 2 && str[1] == 'x') {
+         if (str.size() > 2 && str[1] == 'x') { 
             ss.ignore(2);
             ss << setbase(16);
          } else {
@@ -103,7 +103,7 @@ public:
       } catch (stringstream::failure &e) {
          return false;
       }
-      m_isParsed = true;
+      m_isParsed = true; 
       return true;
    }
 
@@ -124,7 +124,7 @@ template<>
 bool OptionRegistry<string>::fromString(const string str)
 {
    m_variable = str;
-   m_isParsed = true;
+   m_isParsed = true; 
    return true;
 }
 
@@ -134,22 +134,22 @@ bool OptionRegistry<char *>::fromString(const string str)
 {
    m_variable = new char[str.size() + 1];
    strcpy(m_variable, str.c_str());
-   m_isParsed = true;
+   m_isParsed = true; 
    return true;
 }
 
 // specialized default assignment for c-string type option to allow NULL default
 template<>
-bool OptionRegistry<char *>::assignDefault(const char *str)
+bool OptionRegistry<char *>::assignDefault(const char *str) 
 {
     m_variable = const_cast<char *>(str); // c-string options are not meant to be edited anyway
-    m_isParsed = true;
+    m_isParsed = true; 
     return true;
 }
 
 // specialized default assignment for c-string type option to allow NULL default
 template<>
-string OptionRegistry<char *>::toString()
+string OptionRegistry<char *>::toString() 
 {
     stringstream ss;
     if (m_variable != NULL) {
@@ -160,7 +160,7 @@ string OptionRegistry<char *>::toString()
     return ss.str();
 }
 
-// specialized parser for boolean options
+// specialized parser for boolean options 
 template<>
 bool OptionRegistry<bool>::fromString(const string str)
 {
@@ -175,7 +175,7 @@ bool OptionRegistry<bool>::fromString(const string str)
    }
    assert(value == 0 or value == 1); // sanity check for boolean options (it can only be 1 or 0)
    m_variable = (value != 0);
-   m_isParsed = true;
+   m_isParsed = true; 
    return parsed;
 }
 
@@ -188,13 +188,13 @@ class OptionParser
 {
 public:
    OptionParser() {}
-   ~OptionParser()
+   ~OptionParser() 
    {
       OptionCollection::iterator i_option;
       for (i_option = m_optionReg.begin(); i_option != m_optionReg.end(); ++i_option) {
          delete (*i_option);
       }
-   }
+   } 
 
    template<class T>
    void Register(const string optionName, const string optionDesc, T &optionVariable, const char *optionDefault)
@@ -215,11 +215,11 @@ public:
          if (i_option != m_optionMap.end()) {
             const char *argstr = (i + 1 < argc)? argv[i + 1] : "";
             OptionRegistryInterface *p_option = i_option->second;
-            if (p_option->isFlag()) {
-               if (p_option->fromString(argstr)) {
+            if (p_option->isFlag()) { 
+               if (p_option->fromString(argstr) == true) {
                   i += 1;
-               }
-            } else {
+               } 
+            } else { 
                if (p_option->fromString(argstr) == false) {
                   fprintf(stderr, "\n\nGPGPU-Sim ** ERROR: Cannot parse value '%s' for option '%s'.\n", argstr, argv[i]);
                   exit(1);
@@ -249,7 +249,7 @@ public:
       ifstream inputFile;
       stringstream args;
 
-      // open config file, stream every line into a continuous buffer
+      // open config file, stream every line into a continuous buffer 
       // get rid of comments in the process
       inputFile.open(filename);
       if (!inputFile.good()) {
@@ -267,29 +267,29 @@ public:
       }
       inputFile.close();
 
-      ParseStringStream(args);
+      ParseStringStream(args); 
    }
 
-   // parse the given string as tokens separated by a set of given delimiters
+   // parse the given string as tokens separated by a set of given delimiters 
    void ParseString(string inputString, const string delimiters = string(" ;")) {
-      // convert all delimiter characters into whitespaces
+      // convert all delimiter characters into whitespaces 
       for (unsigned t = 0; t < inputString.size(); t++) {
          for (unsigned d = 0; d < delimiters.size(); d++) {
             if (inputString[t] == delimiters.at(d)) {
-               inputString[t] = ' ';
-               break;
+               inputString[t] = ' '; 
+               break; 
             }
          }
       }
-      stringstream args(inputString);
-      ParseStringStream(args);
+      stringstream args(inputString); 
+      ParseStringStream(args); 
    }
 
-   // parse the given stringstream as whitespace-separated tokens. drain the stream in the process
+   // parse the given stringstream as whitespace-separated tokens. drain the stream in the process 
    void ParseStringStream(stringstream &args) {
       // extract non-whitespace string tokens
       vector<char*> argv;
-      argv.push_back(new char[6]);
+      argv.push_back(new char[6]); 
       strcpy(argv[0], "dummy");
       while (args.good()) {
          string argNew;
@@ -314,7 +314,7 @@ public:
 
       // pass the string token into normal commandline parser
       char **targv = (char**)calloc(argv.size(), sizeof(char*));
-      for ( unsigned k=0; k < argv.size(); k++ )
+      for( unsigned k=0; k < argv.size(); k++ ) 
          targv[k] = argv[k];
       ParseCommandLine(argv.size(), targv);
       free(targv);
@@ -329,10 +329,10 @@ public:
       for (i_option = m_optionReg.begin(); i_option != m_optionReg.end(); ++i_option) {
          stringstream sout;
          if ((*i_option)->isParsed() == false) {
-            cerr << "\n\nGPGPU-Sim ** ERROR: Missing option '" << (*i_option)->GetName() << "'\n";
-            assert(0);
+            cerr << "\n\nGPGPU-Sim ** ERROR: Missing option '" << (*i_option)->GetName() << "'\n"; 
+            assert(0); 
          }
-         sout << setw(20) << left << (*i_option)->GetName() << " ";
+         sout << setw(20) << left << (*i_option)->GetName() << " "; 
          sout << setw(20) << right << (*i_option)->toString() << " # ";
          sout << left << (*i_option)->GetDesc();
          sout << std::endl;
@@ -349,7 +349,7 @@ private:
 
 #include "option_parser.h"
 
-option_parser_t option_parser_create()
+option_parser_t option_parser_create() 
 {
    OptionParser *p_opr = new OptionParser();
    return reinterpret_cast<option_parser_t>(p_opr);
@@ -361,11 +361,11 @@ void option_parser_destroy(option_parser_t opp)
    delete p_opr;
 }
 
-void option_parser_register(option_parser_t opp,
-                            const char *name,
-                            enum option_dtype type,
-                            void *variable,
-                            const char *desc,
+void option_parser_register(option_parser_t opp, 
+                            const char *name, 
+                            enum option_dtype type, 
+                            void *variable, 
+                            const char *desc,  
                             const char *defaultvalue)
 {
    OptionParser *p_opr = reinterpret_cast<OptionParser *>(opp);
@@ -403,14 +403,14 @@ void option_parser_cfgfile(option_parser_t opp,
 }
 
 void option_parser_delimited_string(option_parser_t opp,
-                                    const char *inputstring,
+                                    const char *inputstring, 
                                     const char *delimiters)
 {
     OptionParser *p_opr = reinterpret_cast<OptionParser *>(opp);
     p_opr->ParseString(inputstring, delimiters);
 }
 
-void option_parser_print(option_parser_t opp,
+void option_parser_print(option_parser_t opp, 
                          FILE *fout)
 {
     OptionParser *p_opr = reinterpret_cast<OptionParser *>(opp);
@@ -433,9 +433,9 @@ public:
    unsigned int boolint;
    char * coption;
 
-   testtype()
-      : idata(0),
-        fdata(0.0f),
+   testtype() 
+      : idata(0), 
+        fdata(0.0f), 
         sdata(""),
         ulldata(0),
         bdata(false)
@@ -512,10 +512,10 @@ int cinterfacetest(int argc, const char *argv[])
 
 int stringparsertest()
 {
-   int tABC;
-   int tDEF;
+   int tABC; 
+   int tDEF; 
    char tMode;
-   char *tName;
+   char *tName; 
 
    option_parser_t opp = option_parser_create();
    option_parser_register(opp, "ABC", OPT_INT32, &tABC, "tABC", "34");
@@ -531,14 +531,14 @@ int stringparsertest()
    printf("String Parse Results: \n");
    option_parser_print(opp, stdout);
 
-   return 0;
+   return 0; 
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, const char *argv[]) 
 {
     cppinterfacetest(argc,argv);
     cinterfacetest(argc,argv);
-    stringparsertest();
+    stringparsertest(); 
 
     return 0;
 }

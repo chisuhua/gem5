@@ -128,6 +128,8 @@ class PpuBaseGdbRegCache
     PpuBaseRemoteGDB *gdb;
 };
 
+extern int ppu_remote_gdb_offset;
+
 class PpuBaseRemoteGDB
 {
     friend class HardBreakpoint;
@@ -137,7 +139,7 @@ class PpuBaseRemoteGDB
      * Interface to other parts of the simulator.
      */
     PpuBaseRemoteGDB(PpuSOCSystem *system, ThreadContext *c, int _port):
-        connectEvent(nullptr), dataEvent(nullptr), _port(_port), fd(-1),
+        connectEvent(nullptr), dataEvent(nullptr), _port(_port + ppu_remote_gdb_offset), fd(-1),
         active(false), attached(false), sys(system), tc(c),
         trapEvent(this), singleStepEvent(*this)
     {

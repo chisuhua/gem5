@@ -1,5 +1,6 @@
 TARGET_ISA = 'x86'
-CPU_MODELS = 'AtomicSimpleCPU,O3CPU,TimingSimpleCPU'
+#CPU_MODELS = 'AtomicSimpleCPU,O3CPU,TimingSimpleCPU'
+CPU_MODELS = 'PpuMinorPPU,AtomicSimpleCPU,TimingSimpleCPU,O3CPU'
 PROTOCOL = 'VI_hammer'
 #PROTOCOL = 'MSI'
 EXTRAS = 'design/gpgpu'

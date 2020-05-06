@@ -25,10 +25,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#pragma once 
 
 #include <stdio.h>
 #include <stdlib.h>
+
 
 // pointer to C++ class
 typedef class OptionParser *option_parser_t;
@@ -51,11 +52,11 @@ option_parser_t option_parser_create();
 void option_parser_destroy(option_parser_t opp);
 
 // register new option
-void option_parser_register(option_parser_t opp,
-                            const char *name,
-                            enum option_dtype type,
-                            void *variable,
-                            const char *desc,
+void option_parser_register(option_parser_t opp, 
+                            const char *name, 
+                            enum option_dtype type, 
+                            void *variable, 
+                            const char *desc,  
                             const char *defaultvalue);
 
 // parse command line
@@ -70,9 +71,9 @@ void option_parser_cfgfile(option_parser_t opp,
 
 // parse a delimited string
 void option_parser_delimited_string(option_parser_t opp,
-                                    const char *inputstring,
+                                    const char *inputstring, 
                                     const char *delimiters);
 // print options
-void option_parser_print(option_parser_t opp,
+void option_parser_print(option_parser_t opp, 
                          FILE *fout);
 

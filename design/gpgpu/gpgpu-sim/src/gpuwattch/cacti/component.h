@@ -34,8 +34,8 @@
 #ifndef __COMPONENT_H__
 #define __COMPONENT_H__
 
-#include "area.h"
 #include "parameter.h"
+#include "area.h"
 
 using namespace std;
 

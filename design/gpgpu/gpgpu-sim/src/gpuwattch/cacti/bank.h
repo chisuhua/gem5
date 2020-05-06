@@ -36,8 +36,9 @@
 
 #include "component.h"
 #include "decoder.h"
-#include "htree2.h"
 #include "mat.h"
+#include "htree2.h"
+
 
 class Bank : public Component
 {

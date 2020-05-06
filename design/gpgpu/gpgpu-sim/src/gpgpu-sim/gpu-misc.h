@@ -29,7 +29,7 @@
 #ifndef GPU_MISC_H
 #define GPU_MISC_H
 
-//enables a verbose printout of all L1 cache misses and all MSHR status changes
+//enables a verbose printout of all L1 cache misses and all MSHR status changes 
 //good for a single shader configuration
 #define DEBUGL1MISS 0
 

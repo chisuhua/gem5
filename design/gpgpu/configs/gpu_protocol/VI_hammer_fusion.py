@@ -64,6 +64,9 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
         l1_cluster_bw = 16
     elif options.gpu_core_config == 'Maxwell':
         l1_cluster_bw = 24
+    elif options.gpu_core_config == 'Volta':
+        # FIXME on Volta bw
+        l1_cluster_bw = 24
     else:
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)
     gpu_cluster = Cluster(intBW = l1_cluster_bw, extBW = l1_cluster_bw)
@@ -152,6 +155,9 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     if options.gpu_core_config == 'Fermi':
         l2_cluster_bw = 34
     elif options.gpu_core_config == 'Maxwell':
+        l2_cluster_bw = 68
+    elif options.gpu_core_config == 'Volta':
+        # FIXME
         l2_cluster_bw = 68
     else:
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)

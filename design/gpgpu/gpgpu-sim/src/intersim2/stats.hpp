@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -30,7 +30,7 @@
 
 #include "module.hpp"
 
-class Stats : public Module {
+class Stats_gpgpu : public Module {
   int    _num_samples;
   double _sample_sum;
   double _sample_squared_sum;
@@ -45,8 +45,8 @@ class Stats : public Module {
   vector<int> _hist;
 
 public:
-  Stats( Module *parent, const string &name,
-         double bin_size = 1.0, int num_bins = 10 );
+  Stats_gpgpu( Module *parent, const string &name,
+	 double bin_size = 1.0, int num_bins = 10 );
 
   void Clear( );
 
@@ -67,10 +67,10 @@ public:
 
   void Display( ostream & os = cout ) const;
 
-  friend ostream & operator<<(ostream & os, const Stats & s);
+  friend ostream & operator<<(ostream & os, const Stats_gpgpu & s);
 
 };
 
-ostream & operator<<(ostream & os, const Stats & s);
+ostream & operator<<(ostream & os, const Stats_gpgpu & s);
 
 #endif

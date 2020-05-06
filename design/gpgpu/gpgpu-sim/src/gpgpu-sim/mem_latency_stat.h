@@ -30,13 +30,12 @@
 
 #include <stdio.h>
 #include <zlib.h>
-
 #include <map>
 
 class memory_stats_t {
 public:
-   memory_stats_t( unsigned n_shader,
-                   const struct shader_core_config *shader_config,
+   memory_stats_t( unsigned n_shader, 
+                   const struct shader_core_config *shader_config, 
                    const struct memory_config *mem_config );
 
    unsigned memlatstat_done( class mem_fetch *mf );
@@ -48,6 +47,9 @@ public:
 
    void visualizer_print( gzFile visualizer_file );
 
+   // Reset local L2 stats that are aggregated each sampling window
+   void clear_L2_stats_pw();
+
    unsigned m_n_shader;
 
    const struct shader_core_config *m_shader_config;
@@ -57,6 +59,10 @@ public:
    unsigned max_dq_latency;
    unsigned max_mf_latency;
    unsigned max_icnt2mem_latency;
+   unsigned long long int tot_icnt2mem_latency;
+   unsigned long long int tot_icnt2sh_latency;
+   unsigned long long int tot_mrq_latency;
+   unsigned long long int tot_mrq_num;
    unsigned max_icnt2sh_latency;
    unsigned mrq_lat_table[32];
    unsigned dq_lat_table[32];
@@ -77,10 +83,15 @@ public:
    unsigned int **totalbankreads; //bankreads[dram chip id][bank id]
    unsigned int **totalbankaccesses; //bankaccesses[dram chip id][bank id]
    unsigned int *num_MCBs_accessed; //tracks how many memory controllers are accessed whenever any thread in a warp misses in cache
-   unsigned int *position_of_mrq_chosen; //position of mrq in m_queue chosen
-
+   unsigned int *position_of_mrq_chosen; //position of mrq in m_queue chosen 
+   
    unsigned ***mem_access_type_stats; // dram access type classification
 
+   // AerialVision L2 stats
+   unsigned L2_read_miss;
+   unsigned L2_write_miss;
+   unsigned L2_read_hit;
+   unsigned L2_write_hit;
 
    // L2 cache stats
    unsigned int *L2_cbtoL2length;
@@ -90,7 +101,7 @@ public:
    unsigned int *L2_dramtoL2writelength;
    unsigned int *L2_L2todramlength;
 
-   // DRAM access row locality stats
+   // DRAM access row locality stats 
    unsigned int **concurrent_row_access; //concurrent_row_access[dram chip id][bank id]
    unsigned int **num_activates; //num_activates[dram chip id][bank id]
    unsigned int **row_access; //row_access[dram chip id][bank id]

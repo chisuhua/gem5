@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -91,8 +91,8 @@
 
 /* In a future release of Bison, this section will be replaced
    by #include "ptxinfo.tab.h".  */
-#ifndef YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
-# define YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
+#ifndef YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
+# define YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -116,23 +116,29 @@ extern int ptxinfo_debug;
     LMEM = 265,
     SMEM = 266,
     CMEM = 267,
-    IDENTIFIER = 268,
-    PLUS = 269,
-    COMMA = 270,
-    LEFT_SQUARE_BRACKET = 271,
-    RIGHT_SQUARE_BRACKET = 272,
-    COLON = 273,
-    SEMICOLON = 274,
-    QUOTE = 275,
-    LINE = 276,
-    WARNING = 277,
-    FOR = 278
+    GMEM = 268,
+    IDENTIFIER = 269,
+    PLUS = 270,
+    COMMA = 271,
+    LEFT_SQUARE_BRACKET = 272,
+    RIGHT_SQUARE_BRACKET = 273,
+    COLON = 274,
+    SEMICOLON = 275,
+    QUOTE = 276,
+    LINE = 277,
+    WARNING = 278,
+    FOR = 279,
+    TEXTURES = 280,
+    DUPLICATE = 281,
+    FUNCTION = 282,
+    VARIABLE = 283,
+    FATAL = 284
   };
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 30 "ptxinfo.y" /* yacc.c:355  */
@@ -140,8 +146,10 @@ union YYSTYPE
   int    int_value;
   char * string_value;
 
-#line 144 "ptxinfo.tab.c" /* yacc.c:355  */
+#line 150 "ptxinfo.tab.c" /* yacc.c:355  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -151,26 +159,29 @@ extern YYSTYPE ptxinfo_lval;
 
 int ptxinfo_parse (void);
 
-#endif /* !YY_PTXINFO_CUDA_SIM_PTXINFO_TAB_H_INCLUDED  */
+#endif /* !YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
-#line 57 "ptxinfo.y" /* yacc.c:358  */
+#line 63 "ptxinfo.y" /* yacc.c:358  */
 
-        #include <stdlib.h>
-        #include <string.h>
+	#include <stdlib.h>
+	#include <string.h>
+	
+	static unsigned g_declared;
+	static unsigned g_system;
+	int ptxinfo_lex(void);
+	void ptxinfo_addinfo();
+	void ptxinfo_function(const char *fname );
+	void ptxinfo_regs( unsigned nregs );
+	void ptxinfo_lmem( unsigned declared, unsigned system );
+	void ptxinfo_gmem( unsigned declared, unsigned system );
+	void ptxinfo_smem( unsigned declared, unsigned system );
+	void ptxinfo_cmem( unsigned nbytes, unsigned bank );
+	int ptxinfo_error(const char*);
+	void ptxinfo_linenum( unsigned );
+	void ptxinfo_dup_type( const char* );
 
-        static unsigned g_declared;
-        static unsigned g_system;
-        int ptxinfo_lex(void);
-        void ptxinfo_addinfo();
-        void ptxinfo_function(const char *fname );
-        void ptxinfo_regs( unsigned nregs );
-        void ptxinfo_lmem( unsigned declared, unsigned system );
-        void ptxinfo_smem( unsigned declared, unsigned system );
-        void ptxinfo_cmem( unsigned nbytes, unsigned bank );
-        int ptxinfo_error(const char*);
-
-#line 174 "ptxinfo.tab.c" /* yacc.c:358  */
+#line 185 "ptxinfo.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -412,21 +423,21 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   46
+#define YYLAST   73
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  24
+#define YYNTOKENS  30
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  10
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  21
+#define YYNRULES  29
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  46
+#define YYNSTATES  63
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   278
+#define YYMAXUTOK   284
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -462,16 +473,17 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,    21,    22,    23
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    75,    75,    76,    79,    80,    81,    84,    85,    88,
-      89,    91,    92,    95,    96,    97,    98,    99,   100,   101,
-     102,   105
+       0,    84,    84,    85,    88,    89,    90,    91,    92,    95,
+      96,    97,   100,   101,   104,   105,   108,   111,   112,   113,
+     114,   115,   116,   117,   118,   119,   120,   123,   125,   126
 };
 #endif
 
@@ -481,10 +493,12 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "INT_OPERAND", "HEADER", "INFO", "FUNC",
-  "USED", "REGS", "BYTES", "LMEM", "SMEM", "CMEM", "IDENTIFIER", "PLUS",
-  "COMMA", "LEFT_SQUARE_BRACKET", "RIGHT_SQUARE_BRACKET", "COLON",
-  "SEMICOLON", "QUOTE", "LINE", "WARNING", "FOR", "$accept", "input",
-  "line", "line_info", "function_name", "function_info", "info", "tuple", YY_NULLPTR
+  "USED", "REGS", "BYTES", "LMEM", "SMEM", "CMEM", "GMEM", "IDENTIFIER",
+  "PLUS", "COMMA", "LEFT_SQUARE_BRACKET", "RIGHT_SQUARE_BRACKET", "COLON",
+  "SEMICOLON", "QUOTE", "LINE", "WARNING", "FOR", "TEXTURES", "DUPLICATE",
+  "FUNCTION", "VARIABLE", "FATAL", "$accept", "input", "line", "line_info",
+  "function_name", "function_info", "gmem_info", "info", "tuple",
+  "duplicate", YY_NULLPTR
 };
 #endif
 
@@ -495,16 +509,16 @@ static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278
+     275,   276,   277,   278,   279,   280,   281,   282,   283,   284
 };
 # endif
 
-#define YYPACT_NINF -16
+#define YYPACT_NINF -17
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-16)))
+  (!!((Yystate) == (-17)))
 
-#define YYTABLE_NINF -1
+#define YYTABLE_NINF -22
 
 #define yytable_value_is_error(Yytable_value) \
   0
@@ -513,11 +527,13 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -16,    11,   -16,    -5,   -16,   -15,    -2,   -16,     3,     0,
-      -7,     2,    20,   -16,   -16,    -1,   -16,    -6,    21,   -16,
-       8,    22,    13,    19,     9,   -16,   -16,    10,   -16,   -16,
-      12,    23,    14,   -16,   -16,    15,    27,   -16,    16,   -16,
-      18,    24,   -16,    25,    26,   -16
+     -17,    10,   -17,    -5,   -17,   -16,    -8,   -17,   -17,     9,
+      -3,    -4,     4,    34,   -17,   -17,    22,   -17,   -17,    -9,
+      36,   -17,    17,    37,   -17,    27,    35,    19,   -17,   -17,
+      24,   -17,   -17,    25,    29,    38,    28,   -17,    -2,   -17,
+      -6,    43,   -17,    26,    21,   -17,     8,    30,    31,   -17,
+      32,    33,   -17,   -17,    41,    42,    44,    39,    40,    45,
+     -17,   -17,   -17
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -525,71 +541,81 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,     3,     0,     0,     6,     0,     0,
-       0,     0,     0,     4,     7,     8,    11,     0,     0,    20,
-       0,     0,     0,     0,     0,    14,    15,     0,    17,    18,
-      19,     0,     0,    13,    12,     0,     0,    21,     9,     5,
-       0,     0,    16,     0,     0,    10
+       2,     0,     1,     0,     3,     0,     0,     6,     8,     0,
+       0,     0,     0,     0,     4,     9,    10,    11,    14,     0,
+       0,    25,     0,     0,    26,     0,     0,     0,    18,    19,
+       0,    22,    23,    24,    16,     0,     0,    17,     0,    15,
+       0,     0,    27,    12,     0,     5,     0,     0,     0,    21,
+       0,     0,     7,    20,     0,     0,     0,     0,     0,     0,
+      13,    28,    29
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -16,   -16,   -16,   -16,   -16,   -16,     7,   -16
+     -17,   -17,   -17,   -17,   -17,   -17,   -17,    46,   -17,   -17
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     4,    13,    14,    15,    16,    17
+      -1,     1,     4,    14,    15,    16,    17,    18,    19,    52
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_uint8 yytable[] =
+static const yytype_int8 yytable[] =
 {
-       5,    19,    20,     8,    25,    26,    10,    21,     6,    11,
-      12,     2,    10,     9,    24,     3,    12,     7,    28,    29,
-      30,    18,    22,    23,    27,    31,    32,    33,    36,    35,
-      40,    34,    37,     0,    38,    42,     0,    39,    44,    41,
-       0,     0,     0,     0,    43,     0,    45
+       5,    28,    29,     9,    21,    22,    21,    44,    10,     6,
+       2,    23,    11,    23,     3,    12,    13,    45,     7,    20,
+      46,    24,    38,    24,     8,    25,    13,    31,    32,    33,
+      34,    31,    32,    33,    49,    50,    51,    26,    27,    30,
+      35,    36,    41,    37,    40,   -21,    47,    42,    53,    43,
+      48,     0,    54,    55,    56,    57,    58,     0,    59,     0,
+      60,    61,     0,     0,     0,     0,    62,     0,     0,     0,
+       0,     0,     0,    39
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     8,     9,    18,    10,    11,     3,    14,    13,     6,
-       7,     0,     3,    15,    15,     4,     7,    22,    10,    11,
-      12,    21,    20,     3,     3,     3,    13,     8,    16,    19,
-       3,    24,     9,    -1,    20,    17,    -1,    22,    13,    23,
-      -1,    -1,    -1,    -1,    20,    -1,    20
+       5,    10,    11,    19,     8,     9,     8,     9,    16,    14,
+       0,    15,     3,    15,     4,     6,     7,    23,    23,    22,
+      26,    25,     3,    25,    29,    21,     7,    10,    11,    12,
+      13,    10,    11,    12,    13,    27,    28,     3,    16,     3,
+       3,    14,    17,     8,    20,    16,     3,     9,    18,    21,
+      24,    -1,    21,    21,    21,    14,    14,    -1,    14,    -1,
+      21,    21,    -1,    -1,    -1,    -1,    21,    -1,    -1,    -1,
+      -1,    -1,    -1,    27
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    25,     0,     4,    26,     5,    13,    22,    18,    15,
-       3,     6,     7,    27,    28,    29,    30,    31,    21,     8,
-       9,    14,    20,     3,    15,    10,    11,     3,    10,    11,
-      12,     3,    13,     8,    30,    19,    16,     9,    20,    22,
-       3,    23,    17,    20,    13,    20
+       0,    31,     0,     4,    32,     5,    14,    23,    29,    19,
+      16,     3,     6,     7,    33,    34,    35,    36,    37,    38,
+      22,     8,     9,    15,    25,    21,     3,    16,    10,    11,
+       3,    10,    11,    12,    13,     3,    14,     8,     3,    37,
+      20,    17,     9,    21,     9,    23,    26,     3,    24,    13,
+      27,    28,    39,    18,    21,    21,    21,    14,    14,    14,
+      21,    21,    21
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    24,    25,    25,    26,    26,    26,    27,    27,    28,
-      28,    29,    29,    30,    30,    30,    30,    30,    30,    30,
-      30,    31
+       0,    30,    31,    31,    32,    32,    32,    32,    32,    33,
+      33,    33,    34,    34,    35,    35,    36,    37,    37,    37,
+      37,    37,    37,    37,    37,    37,    37,    38,    39,    39
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0,     2,     4,     7,     2,     1,     1,     4,
-       8,     1,     3,     3,     2,     2,     6,     3,     3,     3,
-       2,     4
+       0,     2,     0,     2,     4,     7,     2,     8,     2,     1,
+       1,     1,     4,     8,     1,     3,     3,     3,     2,     2,
+       6,     3,     3,     3,     3,     2,     2,     4,     4,     4
 };
 
 
@@ -1266,85 +1292,115 @@ yyreduce:
   switch (yyn)
     {
         case 6:
-#line 81 "ptxinfo.y" /* yacc.c:1646  */
+#line 90 "ptxinfo.y" /* yacc.c:1646  */
     { printf("GPGPU-Sim: ptxas %s\n", (yyvsp[0].string_value)); }
-#line 1272 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 1298 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
-  case 8:
-#line 85 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_addinfo(); }
-#line 1278 "ptxinfo.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 9:
-#line 88 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_function((yyvsp[-1].string_value)); }
-#line 1284 "ptxinfo.tab.c" /* yacc.c:1646  */
+  case 7:
+#line 91 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_linenum((yyvsp[-3].int_value)); }
+#line 1304 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 89 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_function((yyvsp[-5].string_value)); }
-#line 1290 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 96 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_addinfo(); }
+#line 1310 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 12:
+#line 100 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_function((yyvsp[-1].string_value)); }
+#line 1316 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 95 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_regs((yyvsp[-1].int_value)); }
-#line 1296 "ptxinfo.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 14:
-#line 96 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_lmem(g_declared,g_system); }
-#line 1302 "ptxinfo.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 15:
-#line 97 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_smem(g_declared,g_system); }
-#line 1308 "ptxinfo.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 16:
-#line 98 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_cmem((yyvsp[-5].int_value),(yyvsp[-1].int_value)); }
-#line 1314 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 101 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_function((yyvsp[-5].string_value)); }
+#line 1322 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 99 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_lmem((yyvsp[-2].int_value),0); }
-#line 1320 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 111 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_regs((yyvsp[-1].int_value)); }
+#line 1328 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 100 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_smem((yyvsp[-2].int_value),0); }
-#line 1326 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 112 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_lmem(g_declared,g_system); }
+#line 1334 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 101 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_cmem((yyvsp[-2].int_value),0); }
-#line 1332 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 113 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_smem(g_declared,g_system); }
+#line 1340 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 102 "ptxinfo.y" /* yacc.c:1646  */
-    { ptxinfo_regs((yyvsp[-1].int_value)); }
-#line 1338 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 114 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_cmem((yyvsp[-5].int_value),(yyvsp[-1].int_value)); }
+#line 1346 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 105 "ptxinfo.y" /* yacc.c:1646  */
+#line 115 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_gmem((yyvsp[-2].int_value),0); }
+#line 1352 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 22:
+#line 116 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_lmem((yyvsp[-2].int_value),0); }
+#line 1358 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 23:
+#line 117 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_smem((yyvsp[-2].int_value),0); }
+#line 1364 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 24:
+#line 118 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_cmem((yyvsp[-2].int_value),0); }
+#line 1370 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 25:
+#line 119 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_regs((yyvsp[-1].int_value)); }
+#line 1376 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 120 "ptxinfo.y" /* yacc.c:1646  */
+    {}
+#line 1382 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 27:
+#line 123 "ptxinfo.y" /* yacc.c:1646  */
     { g_declared=(yyvsp[-3].int_value); g_system=(yyvsp[-1].int_value); }
-#line 1344 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 1388 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 28:
+#line 125 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_dup_type((yyvsp[-3].string_value)); }
+#line 1394 "ptxinfo.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 29:
+#line 126 "ptxinfo.y" /* yacc.c:1646  */
+    { ptxinfo_dup_type((yyvsp[-3].string_value)); }
+#line 1400 "ptxinfo.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1348 "ptxinfo.tab.c" /* yacc.c:1646  */
+#line 1404 "ptxinfo.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1572,7 +1628,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 107 "ptxinfo.y" /* yacc.c:1906  */
+#line 129 "ptxinfo.y" /* yacc.c:1906  */
 
 
 

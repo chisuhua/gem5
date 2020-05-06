@@ -31,10 +31,9 @@
 
 
 
-#include <cassert>
-
-#include "Ucache.h"
 #include "nuca.h"
+#include "Ucache.h"
+#include <assert.h>
 
 unsigned int MIN_BANKSIZE=65536;
 #define FIXED_OVERHEAD 55e-12 /* clock skew and jitter in s. Ref: Hrishikesh et al ISCA 01 */
@@ -43,8 +42,13 @@ unsigned int MIN_BANKSIZE=65536;
 
 int cont_stats[2 /*l2 or l3*/][5/* cores */][ROUTER_TYPES][7 /*banks*/][8 /* cycle time */];
 
-  Nuca::Nuca(
-      TechnologyParameter::DeviceType *dt = &(g_tp.peri_global)
+Nuca::Nuca():deviceType(&(g_tp.peri_global))
+{
+  init_cont();
+}
+
+Nuca::Nuca(
+      TechnologyParameter::DeviceType *dt
       ):deviceType(dt)
 {
   init_cont();
@@ -62,10 +66,10 @@ Nuca::init_cont()
     exit(0);
   }
 
-  for (int i=0; i<2; i++) {
-    for (int j=2; j<5; j++) {
-      for (int k=0; k<ROUTER_TYPES; k++) {
-        for (int l=0;l<7; l++) {
+  for(int i=0; i<2; i++) {
+    for(int j=2; j<5; j++) {
+      for(int k=0; k<ROUTER_TYPES; k++) {
+        for(int l=0;l<7; l++) {
           int *temp = cont_stats[i/*l2 or l3*/][j/*core*/][k/*64 or 128 or 256 link bw*/][l /* no banks*/];
           assert(fscanf(cont, "%[^\n]\n", line) != EOF);
           sscanf(line, "%[^:]: %d %d %d %d %d %d %d %d",jk, &temp[0], &temp[1], &temp[2], &temp[3],
@@ -80,11 +84,11 @@ Nuca::init_cont()
   void
 Nuca::print_cont_stats()
 {
-  for (int i=0; i<2; i++) {
-    for (int j=2; j<5; j++) {
-      for (int k=0; k<ROUTER_TYPES; k++) {
-        for (int l=0;l<7; l++) {
-          for (int m=0;l<7; l++) {
+  for(int i=0; i<2; i++) {
+    for(int j=2; j<5; j++) {
+      for(int k=0; k<ROUTER_TYPES; k++) {
+        for(int l=0;l<7; l++) {
+          for(int m=0;l<7; l++) {
             cout << cont_stats[i][j][k][l][m] << " ";
           }
           cout << endl;
@@ -116,9 +120,9 @@ Nuca::calc_cycles(double lat, double oper_freq)
 
 
 nuca_org_t::~nuca_org_t() {
-  // if (h_wire) delete h_wire;
-  // if (v_wire) delete v_wire;
-  // if (router) delete router;
+  // if(h_wire) delete h_wire;
+  // if(v_wire) delete v_wire;
+  // if(router) delete router;
 }
 
 /*
@@ -285,7 +289,7 @@ Nuca::sim_nuca()
            * count value.
            */
           totno_hops = totno_hhops = totno_vhops = tot_lat = 0;
-
+          
           for (i=0; i<r; i++) {
             for (j=0; j<c; j++) {
               /*
@@ -361,7 +365,7 @@ Nuca::sim_nuca()
 
         num_cyc = calc_cycles(nuca_list.back()->bank_pda.delay /*s*/,
             1/(nuca_list.back()->nuca_pda.cycle_time*.001/*GHz*/));
-        if (num_cyc%2 != 0) num_cyc++;
+        if(num_cyc%2 != 0) num_cyc++;
         if (num_cyc > 16) num_cyc = 16; // we have data only up to 16 cycles
 
         if (it < 7) {
@@ -407,7 +411,7 @@ Nuca::sim_nuca()
   }
   nuca_list.clear();
 
-  for (int i=0; i < ROUTER_TYPES; i++)
+  for(int i=0; i < ROUTER_TYPES; i++)
   {
     delete router_s[i];
   }
@@ -460,7 +464,7 @@ Nuca::print_nuca (nuca_org_t *fr)
     printf("\tWire type - Full swing global wires with "
         "30%% delay penalty\n");
   }
-  else if (fr->h_wire->wt == Low_swing) {
+  else if(fr->h_wire->wt == Low_swing) {
     printf("\tWire type - Low swing wires\n");
   }
 
@@ -558,7 +562,7 @@ Nuca::find_optimal_nuca (list<nuca_org_t *> *n, min_values_t *minval)
       else {
         niter = n->erase(niter);
         if (niter !=n->begin())
-                niter --;
+        	niter --;
       }
     }
   }

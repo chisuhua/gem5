@@ -36,7 +36,7 @@ SimObject('GPUCopyEngine.py')
 SimObject('ShaderMMU.py')
 
 Source('atomic_operations.cc')
-Source('copy_engine.cc')
+Source('copy_engine.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('lsq_warp_inst_buffer.cc')
 Source('shader_lsq.cc', append={'CXXFLAGS': '-Wno-error=unused-variable'})
 Source('shader_tlb.cc')

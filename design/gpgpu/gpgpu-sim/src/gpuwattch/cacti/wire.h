@@ -34,14 +34,13 @@
 #ifndef __WIRE_H__
 #define __WIRE_H__
 
-#include <iostream>
-#include <list>
-
-#include "assert.h"
 #include "basic_circuit.h"
-#include "cacti_interface.h"
 #include "component.h"
 #include "parameter.h"
+#include "assert.h"
+#include "cacti_interface.h"
+#include <iostream>
+#include <list>
 
 class Wire : public Component
 {

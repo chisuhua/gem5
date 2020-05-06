@@ -84,7 +84,6 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 #include "xmlParser.h"
-
 #ifdef _XMLWINDOWS
 //#ifdef _DEBUG
 //#define _CRTDBG_MAP_ALLOC
@@ -92,19 +91,17 @@
 //#endif
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h> // to have IsTextUnicode, MultiByteToWideChar, WideCharToMultiByte to handle unicode files
-
                      // to have "MessageBoxA" to display error messages for openFilHelper
 #endif
 
 #include <memory.h>
-
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 XMLCSTR XMLNode::getVersion() { return _CXML("v2.39"); }
-void freeXMLString(XMLSTR t){if (t)free(t);}
+void freeXMLString(XMLSTR t){if(t)free(t);}
 
 static XMLNode::XMLCharEncoding characterEncoding=XMLNode::char_encoding_UTF8;
 static char guessWideCharChars=1, dropWhiteSpace=1, removeCommentsInMiddleOfText=1;
@@ -380,7 +377,7 @@ char myIsTextWideChar(const void *b, int len) { return FALSE; }
            int     xmltoi(XMLCSTR t,int     v){ if (t) return (int)wcstol(t,NULL,10); return v; }
            long    xmltol(XMLCSTR t,long    v){ if (t) return wcstol(t,NULL,10); return v; }
         #endif
-                double  xmltof(XMLCSTR t,double  v){ if (t&&(*t)) wscanf(t, "%f", &v); /*v=_wtof(t);*/ return v; }
+		double  xmltof(XMLCSTR t,double  v){ if (t&&(*t)) wscanf(t, "%f", &v); /*v=_wtof(t);*/ return v; }
     #endif
 #else
     char    xmltob(XMLCSTR t,char    v){ if (t&&(*t)) return (char)atoi(t); return v; }
@@ -669,7 +666,7 @@ XMLSTR ToXMLStringTool::toXMLUnSafe(XMLSTR dest,XMLCSTR source)
         {
             if (ch==entity->c) {xstrcpy(dest,entity->s); dest+=entity->l; source++; goto out_of_loop1; }
             entity++;
-        } while (entity->s);
+        } while(entity->s);
 #ifdef _XMLWIDECHAR
         *(dest++)=*(source++);
 #else
@@ -701,7 +698,7 @@ int ToXMLStringTool::lengthXMLString(XMLCSTR source)
         {
             if (ch==entity->c) { r+=entity->l; source++; goto out_of_loop1; }
             entity++;
-        } while (entity->s);
+        } while(entity->s);
 #ifdef _XMLWIDECHAR
         r++; source++;
 #else
@@ -760,7 +757,7 @@ XMLSTR fromXMLString(XMLCSTR s, int lo, XML *pXML)
                 {
                     if ((lo>=entity->l)&&(xstrnicmp(s,entity->s,entity->l)==0)) { s+=entity->l; lo-=entity->l; break; }
                     entity++;
-                } while (entity->s);
+                } while(entity->s);
                 if (!entity->s)
                 {
                     pXML->error=eXMLErrorUnknownCharacterEntity;
@@ -818,7 +815,7 @@ XMLSTR fromXMLString(XMLCSTR s, int lo, XML *pXML)
                 {
                     if (xstrnicmp(ss,entity->s,entity->l)==0) { *(d++)=entity->c; ss+=entity->l; break; }
                     entity++;
-                } while (entity->s);
+                } while(entity->s);
             }
         } else
         {
@@ -902,7 +899,7 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
                 return result;
             }
             ctag++;
-        } while (ctag->lpszOpen);
+        } while(ctag->lpszOpen);
 
         // If we didn't find a clear tag then check for standard tokens
         switch(ch)
@@ -918,7 +915,7 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
             nFoundMatch = FALSE;
 
             // Search through the string to find a matching quote
-            while ((ch = getNextChar(pXML)))
+            while((ch = getNextChar(pXML)))
             {
                 if (ch==chTemp) { nFoundMatch = TRUE; break; }
                 if (ch==_CXML('<')) break;
@@ -1006,7 +1003,7 @@ static NextToken GetNextToken(XML *pXML, int *pcbToken, enum XMLTokenTypeTag *pT
         {
             // Indicate we are dealing with text
             *pType = eTokenText;
-            while ((ch = getNextChar(pXML)))
+            while((ch = getNextChar(pXML)))
             {
                 if XML_isSPACECHAR(ch)
                 {
@@ -1310,7 +1307,7 @@ int XMLNode::ParseXMLElement(void *pa)
     }
 
     // Iterate through the tokens in the document
-    for (;;)
+    for(;;)
     {
         // Obtain the next token
         token = GetNextToken(pXML, &cbToken, &xtype);
@@ -2138,7 +2135,7 @@ void XMLNode::emptyTheNode(char force)
         if (d->pParent) detachFromParent(d);
         int i;
         XMLNode *pc;
-        for (i=0; i<dd->nChild; i++)
+        for(i=0; i<dd->nChild; i++)
         {
             pc=dd->pChild+i;
             pc->d->pParent=NULL;
@@ -2146,11 +2143,11 @@ void XMLNode::emptyTheNode(char force)
             pc->emptyTheNode(force);
         }
         myFree(dd->pChild);
-        for (i=0; i<dd->nText; i++) free((void*)dd->pText[i]);
+        for(i=0; i<dd->nText; i++) free((void*)dd->pText[i]);
         myFree(dd->pText);
-        for (i=0; i<dd->nClear; i++) free((void*)dd->pClear[i].lpszValue);
+        for(i=0; i<dd->nClear; i++) free((void*)dd->pClear[i].lpszValue);
         myFree(dd->pClear);
-        for (i=0; i<dd->nAttribute; i++)
+        for(i=0; i<dd->nAttribute; i++)
         {
             free((void*)dd->pAttribute[i].lpszName);
             if (dd->pAttribute[i].lpszValue) free((void*)dd->pAttribute[i].lpszValue);
@@ -2211,7 +2208,7 @@ XMLNode XMLNode::deepCopy() const
     if (n)
     {
         p->nText=n; p->pText=(XMLCSTR*)malloc(n*sizeof(XMLCSTR));
-        while (n--) p->pText[n]=stringDup(d->pText[n]);
+        while(n--) p->pText[n]=stringDup(d->pText[n]);
     }
     n=d->nClear;
     if (n)
@@ -2459,7 +2456,7 @@ XMLNode XMLNode::getChildNodeByPathNonConst(XMLSTR path, char createIfMissing, X
     XMLNode xn,xbase=*this;
     XMLCHAR *tend1,sepString[2]; sepString[0]=sep; sepString[1]=0;
     tend1=xstrstr(path,sepString);
-    while (tend1)
+    while(tend1)
     {
         *tend1=0;
         xn=xbase.getChildNode(path);
@@ -2762,7 +2759,7 @@ XMLSTR XMLParserBase64Tool::encode(unsigned char *inbuf, unsigned int inlen, cha
     int i=encodeLength(inlen,formatted),k=17,eLen=inlen/3,j;
     alloc(i*sizeof(XMLCHAR));
     XMLSTR curr=(XMLSTR)buf;
-    for (i=0;i<eLen;i++)
+    for(i=0;i<eLen;i++)
     {
         // Copy next three bytes into lower 24 bits of int, paying attention to sign.
         j=(inbuf[0]<<16)|(inbuf[1]<<8)|inbuf[2]; inbuf+=3;
@@ -2810,7 +2807,7 @@ unsigned int XMLParserBase64Tool::decodeSize(XMLCSTR data,XMLError *xe)
     }
     if (xe&&(size%4!=0)) *xe=eXMLErrorBase64DataSizeIsNotMultipleOf4;
     if (size==0) return 0;
-    do { data--; size--; } while (*data==base64Fillchar); size++;
+    do { data--; size--; } while(*data==base64Fillchar); size++;
     return (unsigned int)((size*3)/4);
 }
 
@@ -2819,7 +2816,7 @@ unsigned char XMLParserBase64Tool::decode(XMLCSTR data, unsigned char *buf, int 
     if (xe) *xe=eXMLErrorNone;
     int i=0,p=0;
     unsigned char d,c;
-    for (;;)
+    for(;;)
     {
 
 #ifdef _XMLWIDECHAR
@@ -2828,11 +2825,11 @@ unsigned char XMLParserBase64Tool::decode(XMLCSTR data, unsigned char *buf, int 
             if (data[i]>255){ c=98; break; }                                        \
             c=base64DecodeTable[(unsigned char)data[i++]];                       \
         }while (c==97);                                                             \
-        if (c==98){ if (xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
+        if(c==98){ if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
 #else
 #define BASE64DECODE_READ_NEXT_CHAR(c)                                           \
         do { c=base64DecodeTable[(unsigned char)data[i++]]; }while (c==97);   \
-        if (c==98){ if (xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
+        if(c==98){ if(xe)*xe=eXMLErrorBase64DecodeIllegalCharacter; return 0; }
 #endif
 
         BASE64DECODE_READ_NEXT_CHAR(c)
@@ -2887,7 +2884,7 @@ unsigned char *XMLParserBase64Tool::decode(XMLCSTR data, int *outlen, XMLError *
     if (outlen) *outlen=len;
     if (!len) return NULL;
     alloc(len+1);
-    if (!decode(data,(unsigned char*)buf,len,xe)){ return NULL; }
+    if(!decode(data,(unsigned char*)buf,len,xe)){ return NULL; }
     return (unsigned char*)buf;
 }
 

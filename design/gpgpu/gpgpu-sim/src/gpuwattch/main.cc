@@ -28,14 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.”
  *
  ***************************************************************************/
-#include <iostream>
-
-#include "XML_Parse.h"
-#include "globalvar.h"
 #include "io.h"
-#include "processor.h"
-#include "version.h"
+#include <iostream>
 #include "xmlParser.h"
+#include "XML_Parse.h"
+#include "processor.h"
+#include "globalvar.h"
+#include "version.h"
+
 
 using namespace std;
 
@@ -43,53 +43,53 @@ void print_usage(char * argv0);
 
 int main(int argc,char *argv[])
 {
-        char * fb ;
-        bool infile_specified     = false;
-        int  plevel               = 2;
-        opt_for_clk	=true;
-        //cout.precision(10);
-        if (argc <= 1 || argv[1] == string("-h") || argv[1] == string("--help"))
-        {
-                print_usage(argv[0]);
-        }
+	char * fb ;
+	bool infile_specified     = false;
+	int  plevel               = 2;
+	opt_for_clk	=true;
+	//cout.precision(10);
+	if (argc <= 1 || argv[1] == string("-h") || argv[1] == string("--help"))
+	{
+		print_usage(argv[0]);
+	}
 
-        for (int32_t i = 0; i < argc; i++)
-        {
-                if (argv[i] == string("-infile"))
-                {
-                        infile_specified = true;
-                        i++;
-                        fb = argv[ i];
-                }
+	for (int32_t i = 0; i < argc; i++)
+	{
+		if (argv[i] == string("-infile"))
+		{
+			infile_specified = true;
+			i++;
+			fb = argv[ i];
+		}
 
-                if (argv[i] == string("-print_level"))
-                {
-                        i++;
-                        plevel = atoi(argv[i]);
-                }
+		if (argv[i] == string("-print_level"))
+		{
+			i++;
+			plevel = atoi(argv[i]);
+		}
 
-                if (argv[i] == string("-opt_for_clk"))
-                {
-                        i++;
-                        opt_for_clk = (bool)atoi(argv[i]);
-                }
-        }
-        if (infile_specified == false)
-        {
-                print_usage(argv[0]);
-        }
+		if (argv[i] == string("-opt_for_clk"))
+		{
+			i++;
+			opt_for_clk = (bool)atoi(argv[i]);
+		}
+	}
+	if (infile_specified == false)
+	{
+		print_usage(argv[0]);
+	}
 
 
-        cout<<"McPAT (version "<< VER_MAJOR <<"."<< VER_MINOR
-                << " of " << VER_UPDATE << ") is computing the target processor...\n "<<endl;
+	cout<<"McPAT (version "<< VER_MAJOR <<"."<< VER_MINOR
+		<< " of " << VER_UPDATE << ") is computing the target processor...\n "<<endl;
 
-        //parse XML-based interface
-        ParseXML *p1= new ParseXML();
-        p1->parse(fb);
-        Processor proc(p1);
-        proc.displayEnergy(2, plevel);
-        delete p1;
-        return 0;
+	//parse XML-based interface
+	ParseXML *p1= new ParseXML();
+	p1->parse(fb);
+	Processor proc(p1);
+	proc.displayEnergy(2, plevel);
+	delete p1;
+	return 0;
 }
 
 void print_usage(char * argv0)

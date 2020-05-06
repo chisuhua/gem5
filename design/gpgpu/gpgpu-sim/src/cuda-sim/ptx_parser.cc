@@ -25,18 +25,17 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cstdarg>
-
-#include "../gpgpu-sim/gpu-sim.h"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
-#include "ptx.tab.h"
-#include "ptx_ir.h"
 #include "ptx_parser.h"
+#include "ptx_ir.h"
+#include "ptx.tab.h"
+#include "gpu/gpgpu-sim/cuda_gpu.hh"
+#include <stdarg.h>
 
 extern gpgpu_sim *g_the_gpu;
-
 extern "C" int ptx_error( const char *s );
 extern int ptx_lineno;
+extern "C" int ptx_parse();
+extern FILE *ptx_in;
 
 static const struct core_config *g_shader_core_config;
 void set_ptx_warp_size(const struct core_config * warp_size)
@@ -64,6 +63,7 @@ memory_space_t g_ptr_spec = undefined_space;
 int g_scalar_type_spec = -1;
 int g_vector_spec = -1;
 int g_alignment_spec = -1;
+int g_size = -1;
 int g_extern_spec = 0;
 
 // variable declaration stuff:
@@ -77,10 +77,11 @@ symbol *g_label;
 int g_opcode = -1;
 std::list<operand_info> g_operands;
 std::list<int> g_options;
+std::list<int> g_wmma_options;
 std::list<int> g_scalar_type;
 
 #define PTX_PARSE_DPRINTF(...) \
-   if ( g_debug_ir_generation ) { \
+   if( g_debug_ir_generation ) { \
       printf(" %s:%u => ",g_filename,ptx_lineno); \
       printf("   (%s:%u) ", __FILE__, __LINE__); \
       printf(__VA_ARGS__); \
@@ -98,35 +99,16 @@ const char *decode_token( int type )
    return g_ptx_token_decode[type].c_str();
 }
 
-void read_parser_environment_variables()
+void read_parser_environment_variables() 
 {
-   g_filename = getenv("PTX_SIM_KERNELFILE");
+   g_filename = getenv("PTX_SIM_KERNELFILE"); 
    char *dbg_level = getenv("PTX_SIM_DEBUG");
    if ( dbg_level && strlen(dbg_level) ) {
       int debug_execution=0;
       sscanf(dbg_level,"%d", &debug_execution);
-      if ( debug_execution >= 30 )
+      if ( debug_execution >= 30 ) 
          g_debug_ir_generation=true;
    }
-}
-
-symbol_table *init_parser( const char *ptx_filename )
-{
-   g_filename = strdup(ptx_filename);
-   if (g_global_allfiles_symbol_table == NULL) {
-       g_global_allfiles_symbol_table = new symbol_table("global_allfiles", 0, NULL);
-       g_global_symbol_table = g_current_symbol_table = g_global_allfiles_symbol_table;
-   }
-   else {
-       g_global_symbol_table = g_current_symbol_table = new symbol_table("global",0,g_global_allfiles_symbol_table);
-   }
-   ptx_lineno = 1;
-
-#define DEF(X,Y) g_ptx_token_decode[X] = Y;
-#include "ptx_parser_decode.def"
-#undef DEF
-
-   return g_global_symbol_table;
 }
 
 void init_directive_state()
@@ -138,6 +120,7 @@ void init_directive_state()
    g_vector_spec=-1;
    g_opcode=-1;
    g_alignment_spec = -1;
+   g_size = -1;
    g_extern_spec = 0;
    g_scalar_type.clear();
    g_operands.clear();
@@ -153,13 +136,53 @@ void init_instruction_state()
    g_label = NULL;
    g_opcode = -1;
    g_options.clear();
+   g_wmma_options.clear();
    g_return_var = operand_info();
    init_directive_state();
 }
 
+symbol_table *init_parser( const char *ptx_filename )
+{
+   g_filename = strdup(ptx_filename);
+   if  (g_global_allfiles_symbol_table == NULL) {
+       g_global_allfiles_symbol_table = new symbol_table("global_allfiles", 0, NULL);
+       g_global_symbol_table = g_current_symbol_table = g_global_allfiles_symbol_table;
+   }
+   /*else {
+       g_global_symbol_table = g_current_symbol_table = new symbol_table("global",0,g_global_allfiles_symbol_table);
+   }*/
+   ptx_lineno = 1;
+
+#define DEF(X,Y) g_ptx_token_decode[X] = Y;
+#include "ptx_parser_decode.def"
+#undef DEF
+   g_ptx_token_decode[undefined_space] = "undefined_space";
+   g_ptx_token_decode[undefined_space] = "undefined_space=0";
+   g_ptx_token_decode[reg_space] = "reg_space";
+   g_ptx_token_decode[local_space] = "local_space";
+   g_ptx_token_decode[shared_space] = "shared_space";
+   g_ptx_token_decode[param_space_unclassified] = "param_space_unclassified";
+   g_ptx_token_decode[param_space_kernel] = "param_space_kernel";
+   g_ptx_token_decode[param_space_local] = "param_space_local";
+   g_ptx_token_decode[const_space] = "const_space";
+   g_ptx_token_decode[tex_space] = "tex_space";
+   g_ptx_token_decode[surf_space] = "surf_space";
+   g_ptx_token_decode[global_space] = "global_space";
+   g_ptx_token_decode[generic_space] = "generic_space";
+   g_ptx_token_decode[instruction_space] = "instruction_space";
+
+   init_directive_state();
+   init_instruction_state();
+
+   ptx_in = fopen(ptx_filename, "r");
+   ptx_parse();
+   fclose(ptx_in);
+   return g_global_symbol_table;
+}
+
 static int g_entry_point;
 
-void start_function( int entry_point )
+void start_function( int entry_point ) 
 {
    PTX_PARSE_DPRINTF("start_function");
    init_directive_state();
@@ -173,11 +196,11 @@ char *g_add_identifier_cached__identifier = NULL;
 int g_add_identifier_cached__array_dim;
 int g_add_identifier_cached__array_ident;
 
-void add_function_name( const char *name )
+void add_function_name( const char *name ) 
 {
    PTX_PARSE_DPRINTF("add_function_name %s %s", name,  ((g_entry_point==1)?"(entrypoint)":((g_entry_point==2)?"(extern)":"")));
    bool prior_decl = g_global_symbol_table->add_function_decl( name, g_entry_point, &g_func_info, &g_current_symbol_table );
-   if ( g_add_identifier_cached__identifier ) {
+   if( g_add_identifier_cached__identifier ) {
       add_identifier( g_add_identifier_cached__identifier,
                       g_add_identifier_cached__array_dim,
                       g_add_identifier_cached__array_ident );
@@ -186,13 +209,24 @@ void add_function_name( const char *name )
       g_func_info->add_return_var( g_last_symbol );
       init_directive_state();
    }
-   if ( prior_decl ) {
+   if( prior_decl ) {
       g_func_info->remove_args();
    }
    g_global_symbol_table->add_function( g_func_info, g_filename, ptx_lineno );
 }
 
-void add_directive()
+//Jin: handle instruction group for cdp
+void start_inst_group() {
+   PTX_PARSE_DPRINTF("start_instruction_group");
+   g_current_symbol_table = g_current_symbol_table->start_inst_group();
+}
+
+void end_inst_group() {
+   PTX_PARSE_DPRINTF("end_instruction_group");
+   g_current_symbol_table = g_current_symbol_table->end_inst_group();
+}
+
+void add_directive() 
 {
    PTX_PARSE_DPRINTF("add_directive");
    init_directive_state();
@@ -200,13 +234,13 @@ void add_directive()
 
 #define mymax(a,b) ((a)>(b)?(a):(b))
 
-void end_function()
+void end_function() 
 {
    PTX_PARSE_DPRINTF("end_function");
 
    init_directive_state();
    init_instruction_state();
-   g_max_regs_per_thread = mymax( g_max_regs_per_thread, (g_current_symbol_table->next_reg_num()-1));
+   g_max_regs_per_thread = mymax( g_max_regs_per_thread, (g_current_symbol_table->next_reg_num()-1)); 
    g_func_info->add_inst( g_instructions );
    g_instructions.clear();
    gpgpu_ptx_assemble( g_func_info->get_name(), g_func_info );
@@ -245,7 +279,7 @@ void parse_assert_impl( int test_value, const char *file, unsigned line, const c
       parse_error_impl(file,line, msg);
 }
 
-extern char linebuf[1024];
+extern char linebuf[4096];
 
 
 void set_return()
@@ -260,26 +294,27 @@ std::map<std::string,std::map<unsigned,const ptx_instruction*> > g_inst_lookup;
 const ptx_instruction *ptx_instruction_lookup( const char *filename, unsigned linenumber )
 {
    std::map<std::string,std::map<unsigned,const ptx_instruction*> >::iterator f=g_inst_lookup.find(filename);
-   if ( f == g_inst_lookup.end() )
+   if( f == g_inst_lookup.end() ) 
       return NULL;
    std::map<unsigned,const ptx_instruction*>::iterator l=f->second.find(linenumber);
-   if ( l == f->second.end() )
+   if( l == f->second.end() ) 
       return NULL;
-   return l->second;
+   return l->second; 
 }
 
-void add_instruction()
+void add_instruction() 
 {
    PTX_PARSE_DPRINTF("add_instruction: %s", ((g_opcode>0)?g_opcode_string[g_opcode]:"<label>") );
    assert( g_shader_core_config != 0 );
-   ptx_instruction *i = new ptx_instruction( g_opcode,
-                                             g_pred,
+   ptx_instruction *i = new ptx_instruction( g_opcode, 
+                                             g_pred, 
                                              g_neg_pred,
-                                             g_pred_mod,
-                                             g_label,
+                                             g_pred_mod, 
+                                             g_label, 
                                              g_operands,
                                              g_return_var,
-                                             g_options,
+                                             g_options, 
+                                             g_wmma_options, 
                                              g_scalar_type,
                                              g_space_spec,
                                              g_filename,
@@ -291,11 +326,11 @@ void add_instruction()
    init_instruction_state();
 }
 
-void add_variables()
+void add_variables() 
 {
    PTX_PARSE_DPRINTF("add_variables");
    if ( !g_operands.empty() ) {
-      assert( g_last_symbol != NULL );
+      assert( g_last_symbol != NULL ); 
       g_last_symbol->add_initializer(g_operands);
    }
    init_directive_state();
@@ -303,15 +338,15 @@ void add_variables()
 
 void set_variable_type()
 {
-   PTX_PARSE_DPRINTF("set_variable_type space_spec=%s scalar_type_spec=%s",
-           g_ptx_token_decode[g_space_spec.get_type()].c_str(),
+   PTX_PARSE_DPRINTF("set_variable_type space_spec=%s scalar_type_spec=%s", 
+           g_ptx_token_decode[g_space_spec.get_type()].c_str(), 
            g_ptx_token_decode[g_scalar_type_spec].c_str() );
    parse_assert( g_space_spec != undefined_space, "variable has no space specification" );
    parse_assert( g_scalar_type_spec != -1, "variable has no type information" ); // need to extend for structs?
-   g_var_type = g_current_symbol_table->add_type( g_space_spec,
-                                                  g_scalar_type_spec,
-                                                  g_vector_spec,
-                                                  g_alignment_spec,
+   g_var_type = g_current_symbol_table->add_type( g_space_spec, 
+                                                  g_scalar_type_spec, 
+                                                  g_vector_spec, 
+                                                  g_alignment_spec, 
                                                   g_extern_spec );
 }
 
@@ -345,9 +380,12 @@ int pad_address (new_addr_type address, unsigned size, unsigned maxalign) {
     return alignto ? ((alignto - (address % alignto)) % alignto) : 0;
 }
 
-void add_identifier( const char *identifier, int array_dim, unsigned array_ident )
+void add_identifier( const char *identifier, int array_dim, unsigned array_ident ) 
 {
-   if ( g_func_decl && (g_func_info == NULL) ) {
+   if(array_ident==ARRAY_IDENTIFIER){
+       g_size *= array_dim;
+   }
+   if( g_func_decl && (g_func_info == NULL) ) {
       // return variable decl...
       assert( g_add_identifier_cached__identifier == NULL );
       g_add_identifier_cached__identifier = strdup(identifier);
@@ -362,17 +400,17 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
    int basic_type;
    int regnum;
    size_t num_bits;
-   address_type addr_pad;
+   unsigned addr_pad;
    new_addr_type addr;
    ti.type_decode(num_bits,basic_type);
 
    bool duplicates = check_for_duplicates( identifier );
-   if ( duplicates ) {
+   if( duplicates ) {
       symbol *s = g_current_symbol_table->lookup(identifier);
       g_last_symbol = s;
-      if ( g_func_decl )
+      if( g_func_decl ) 
          return;
-      std::string msg = std::string(identifier) + " was declared previous at " + s->decl_location() + " skipping new declaration";
+      std::string msg = std::string(identifier) + " was declared previous at " + s->decl_location() + " skipping new declaration"; 
       printf("GPGPU-Sim PTX: Warning %s\n", msg.c_str());
       return;
    }
@@ -413,33 +451,47 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
       assert( (num_bits%8) == 0  );
       addr = g_current_symbol_table->get_shared_next();
       addr_pad = pad_address(addr, num_bits/8, 128);
-      printf("from 0x%x to 0x%lx (shared memory space)\n",
+      printf("from 0x%llx to 0x%llx (shared memory space)\n",
               addr+addr_pad,
               addr+addr_pad + num_bits/8);
          fflush(stdout);
       g_last_symbol->set_address( addr+addr_pad );
       g_current_symbol_table->alloc_shared( num_bits/8 + addr_pad );
       break;
+   case sstarr_space:
+         printf("GPGPU-Sim PTX: allocating sstarr region for \"%s\" ",
+                identifier);
+         fflush(stdout);
+         assert( (num_bits%8) == 0  );
+         addr = g_current_symbol_table->get_sstarr_next();
+         addr_pad = pad_address(addr, num_bits/8, 128);
+         printf("from 0x%x to 0x%lx (sstarr memory space)\n",
+                 addr+addr_pad,
+                 addr+addr_pad + num_bits/8);
+            fflush(stdout);
+         g_last_symbol->set_address( addr+addr_pad );
+         g_current_symbol_table->alloc_sstarr( num_bits/8 + addr_pad );
+         break;
    case const_space:
-      if ( array_ident == ARRAY_IDENTIFIER_NO_DIM ) {
+      if( array_ident == ARRAY_IDENTIFIER_NO_DIM ) {
          printf("GPGPU-Sim PTX: deferring allocation of constant region for \"%s\" (need size information)\n", identifier );
       } else {
          printf("GPGPU-Sim PTX: allocating constant region for \"%s\" ",
                 identifier);
          fflush(stdout);
-         assert( (num_bits%8) == 0  );
-         addr = 0xDEADBEEF;
+         assert( (num_bits%8) == 0  ); 
+         addr = g_current_symbol_table->get_global_next();
          addr_pad = pad_address(addr, num_bits/8, 128);
-         printf("from 0x%x to 0x%lx (global memory space) %u\n",
+         printf("from 0x%llx to 0x%llx (global memory space) %u\n",
               addr+addr_pad,
               addr+addr_pad + num_bits/8,
               g_const_alloc++);
          fflush(stdout);
          g_last_symbol->set_address( addr + addr_pad );
-         // Do not alloc in gem5-gpu: g_current_symbol_table->alloc_global( num_bits/8 + addr_pad );
+         // Do not alloc in gem5-gpu: g_current_symbol_table->alloc_global( num_bits/8 + addr_pad ); 
       }
-      if ( g_current_symbol_table == g_global_symbol_table ) {
-         g_constants.insert( identifier );
+      if( g_current_symbol_table == g_global_symbol_table ) { 
+         g_constants.insert( identifier ); 
       }
       assert( g_current_symbol_table != NULL );
       g_sym_name_to_symbol_table[ identifier ] = g_current_symbol_table;
@@ -449,9 +501,9 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
              identifier);
       fflush(stdout);
       assert( (num_bits%8) == 0  );
-      addr = 0xDEADBEEF;
+      addr = g_current_symbol_table->get_global_next();
       addr_pad = pad_address(addr, num_bits/8, 128);
-      printf("from 0x%x to 0x%lx (global memory space)\n",
+      printf("from 0x%llx to 0x%llx (global memory space)\n",
               addr+addr_pad,
               addr+addr_pad + num_bits/8);
       fflush(stdout);
@@ -462,13 +514,13 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
       g_sym_name_to_symbol_table[ identifier ] = g_current_symbol_table;
       break;
    case local_space:
-      if ( g_func_info == NULL ) {
+      if( g_func_info == NULL ) {
           printf("GPGPU-Sim PTX: allocating local region for \"%s\" ", identifier);
          fflush(stdout);
          assert( (num_bits%8) == 0  );
          addr = g_current_symbol_table->get_local_next();
          addr_pad = pad_address(addr, num_bits/8, 128);
-         printf("from 0x%x to 0x%lx (local memory space)\n",
+         printf("from 0x%llx to 0x%llx (local memory space)\n",
                  addr+addr_pad,
                  addr+addr_pad + num_bits/8);
          fflush(stdout);
@@ -485,7 +537,7 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
         assert( (num_bits%8) == 0 );
         addr = g_current_symbol_table->get_local_next();
         addr_pad = pad_address(addr, num_bits/8, 128);
-        printf("from 0x%x to 0x%lx\n",
+        printf("from 0x%llx to 0x%llx\n",
                 addr+addr_pad,
                 addr+addr_pad + num_bits/8);
         fflush(stdout);
@@ -524,7 +576,7 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
 
    assert( !ti.is_param_unclassified() );
    if ( ti.is_param_kernel() ) {
-      bool is_ptr = (g_ptr_spec != undefined_space);
+      bool is_ptr = (g_ptr_spec != undefined_space); 
       g_func_info->add_param_name_type_size(g_entry_func_param_index,identifier, ti.scalar_type(), num_bits, is_ptr, g_ptr_spec);
       g_entry_func_param_index++;
    }
@@ -547,13 +599,18 @@ void add_constptr(const char* identifier1, const char* identifier2, int offset)
 
 void add_function_arg()
 {
-   if ( g_func_info ) {
+   assert(g_size>0);
+   if( g_func_info ) {
       PTX_PARSE_DPRINTF("add_function_arg \"%s\"", g_last_symbol->name().c_str() );
       g_func_info->add_arg(g_last_symbol);
+      unsigned alignment = (g_alignment_spec==-1) ? g_size : g_alignment_spec;
+      assert(alignment==1||alignment==2||alignment==4||alignment==8||alignment==16);//known valid alignment values
+      g_func_info->add_config_param( g_size,  alignment);
    }
+
 }
 
-void add_extern_spec()
+void add_extern_spec() 
 {
    PTX_PARSE_DPRINTF("add_extern_spec");
    g_extern_spec = 1;
@@ -566,53 +623,79 @@ void add_alignment_spec( int spec )
    g_alignment_spec = spec;
 }
 
-void add_ptr_spec( enum _memory_space_t spec )
+void add_ptr_spec( enum _memory_space_t spec ) 
 {
    PTX_PARSE_DPRINTF("add_ptr_spec \"%s\"", g_ptx_token_decode[spec].c_str() );
    parse_assert( g_ptr_spec == undefined_space, "multiple ptr space specifiers not allowed." );
    parse_assert( spec == global_space or spec == local_space or spec == shared_space, "invalid space for ptr directive." );
-   g_ptr_spec = spec;
+   g_ptr_spec = spec; 
 }
 
-void add_space_spec( enum _memory_space_t spec, int value )
+void add_space_spec( enum _memory_space_t spec, int value ) 
 {
    PTX_PARSE_DPRINTF("add_space_spec \"%s\"", g_ptx_token_decode[spec].c_str() );
    parse_assert( g_space_spec == undefined_space, "multiple space specifiers not allowed." );
-   if ( spec == param_space_unclassified ) {
-      if ( g_func_decl ) {
-         if ( g_entry_point == 1)
+   if( spec == param_space_unclassified ) {
+      if( g_func_decl ) {
+         if( g_entry_point == 1) 
             g_space_spec = param_space_kernel;
-         else
+         else 
             g_space_spec = param_space_local;
       } else
          g_space_spec = param_space_unclassified;
    } else {
       g_space_spec = spec;
-      if ( g_space_spec == const_space )
+      if( g_space_spec == const_space )
          g_space_spec.set_bank((unsigned)value);
    }
 }
 
-void add_vector_spec(int spec )
+void add_vector_spec(int spec ) 
 {
    PTX_PARSE_DPRINTF("add_vector_spec");
    parse_assert( g_vector_spec == -1, "multiple vector specifiers not allowed." );
    g_vector_spec = spec;
 }
 
-void add_scalar_type_spec( int type_spec )
+void add_scalar_type_spec( int type_spec ) 
 {
+   //save size of parameter
+   switch ( type_spec ) {
+      case B8_TYPE:
+      case S8_TYPE:
+      case U8_TYPE: 
+         g_size = 1; break;
+      case B16_TYPE:
+      case S16_TYPE:
+      case U16_TYPE:
+      case F16_TYPE: 
+         g_size = 2; break;
+      case B32_TYPE:
+      case S32_TYPE:
+      case U32_TYPE:
+      case F32_TYPE: 
+         g_size = 4; break;
+      case B64_TYPE:
+      case BB64_TYPE:
+      case S64_TYPE:
+      case U64_TYPE:
+      case F64_TYPE: 
+      case FF64_TYPE:
+         g_size = 8; break;
+      case BB128_TYPE: 
+         g_size = 16; break;
+   }
    PTX_PARSE_DPRINTF("add_scalar_type_spec \"%s\"", g_ptx_token_decode[type_spec].c_str());
    g_scalar_type.push_back( type_spec );
    if ( g_scalar_type.size() > 1 ) {
       parse_assert( (g_opcode == -1) || (g_opcode == CVT_OP) || (g_opcode == SET_OP) || (g_opcode == SLCT_OP)
-                    || (g_opcode == TEX_OP),
-                    "only cvt, set, slct, and tex can have more than one type specifier.");
+                    || (g_opcode == TEX_OP)|| (g_opcode==MMA_OP)|| (g_opcode == DP4A_OP),
+                    "only cvt, set, slct, tex and dp4a can have more than one type specifier.");
    }
    g_scalar_type_spec = type_spec;
 }
 
-void add_label( const char *identifier )
+void add_label( const char *identifier ) 
 {
    PTX_PARSE_DPRINTF("add_label");
    symbol *s = g_current_symbol_table->lookup(identifier);
@@ -623,12 +706,12 @@ void add_label( const char *identifier )
    }
 }
 
-void add_opcode( int opcode )
+void add_opcode( int opcode ) 
 {
    g_opcode = opcode;
 }
 
-void add_pred( const char *identifier, int neg, int predModifier )
+void add_pred( const char *identifier, int neg, int predModifier ) 
 {
    PTX_PARSE_DPRINTF("add_pred");
    const symbol *s = g_current_symbol_table->lookup(identifier);
@@ -641,12 +724,16 @@ void add_pred( const char *identifier, int neg, int predModifier )
    g_pred_mod = predModifier;
 }
 
-void add_option( int option )
+void add_option( int option ) 
 {
    PTX_PARSE_DPRINTF("add_option");
    g_options.push_back( option );
 }
-
+void add_wmma_option( int option ) 
+{
+   PTX_PARSE_DPRINTF("add_option");
+   g_wmma_options.push_back( option );
+}
 void add_double_operand( const char *d1, const char *d2 )
 {
    //operands that access two variables.
@@ -660,7 +747,7 @@ void add_double_operand( const char *d1, const char *d2 )
    g_operands.push_back( operand_info(s1,s2) );
 }
 
-void add_1vector_operand( const char *d1 )
+void add_1vector_operand( const char *d1 ) 
 {
    // handles the single element vector operand ({%v1}) found in tex.1d instructions
    PTX_PARSE_DPRINTF("add_1vector_operand");
@@ -669,7 +756,7 @@ void add_1vector_operand( const char *d1 )
    g_operands.push_back( operand_info(s1,NULL,NULL,NULL) );
 }
 
-void add_2vector_operand( const char *d1, const char *d2 )
+void add_2vector_operand( const char *d1, const char *d2 ) 
 {
    PTX_PARSE_DPRINTF("add_2vector_operand");
    const symbol *s1 = g_current_symbol_table->lookup(d1);
@@ -678,7 +765,7 @@ void add_2vector_operand( const char *d1, const char *d2 )
    g_operands.push_back( operand_info(s1,s2,NULL,NULL) );
 }
 
-void add_3vector_operand( const char *d1, const char *d2, const char *d3 )
+void add_3vector_operand( const char *d1, const char *d2, const char *d3 ) 
 {
    PTX_PARSE_DPRINTF("add_3vector_operand");
    const symbol *s1 = g_current_symbol_table->lookup(d1);
@@ -688,7 +775,7 @@ void add_3vector_operand( const char *d1, const char *d2, const char *d3 )
    g_operands.push_back( operand_info(s1,s2,s3,NULL) );
 }
 
-void add_4vector_operand( const char *d1, const char *d2, const char *d3, const char *d4 )
+void add_4vector_operand( const char *d1, const char *d2, const char *d3, const char *d4 ) 
 {
    PTX_PARSE_DPRINTF("add_4vector_operand");
    const symbol *s1 = g_current_symbol_table->lookup(d1);
@@ -696,20 +783,42 @@ void add_4vector_operand( const char *d1, const char *d2, const char *d3, const 
    const symbol *s3 = g_current_symbol_table->lookup(d3);
    const symbol *s4 = g_current_symbol_table->lookup(d4);
    parse_assert( s1 != NULL && s2 != NULL && s3 != NULL && s4 != NULL, "v4 component(s) missing declarations.");
-   //const symbol *null_op = g_current_symbol_table->lookup("_");
-   //if ( s2 == null_op ) s2 = NULL;
-   //if ( s3 == null_op ) s3 = NULL;
-   //if ( s4 == null_op ) s4 = NULL;
+   const symbol *null_op = g_current_symbol_table->lookup("_");
+   if ( s2 == null_op ) s2 = NULL;
+   if ( s3 == null_op ) s3 = NULL;
+   if ( s4 == null_op ) s4 = NULL;
    g_operands.push_back( operand_info(s1,s2,s3,s4) );
 }
+void add_8vector_operand( const char *d1, const char *d2, const char *d3, const char *d4,const char *d5,const char *d6,const char *d7,const char *d8 ) 
+{
+   PTX_PARSE_DPRINTF("add_8vector_operand");
+   const symbol *s1 = g_current_symbol_table->lookup(d1);
+   const symbol *s2 = g_current_symbol_table->lookup(d2);
+   const symbol *s3 = g_current_symbol_table->lookup(d3);
+   const symbol *s4 = g_current_symbol_table->lookup(d4);
+   const symbol *s5 = g_current_symbol_table->lookup(d5);
+   const symbol *s6 = g_current_symbol_table->lookup(d6);
+   const symbol *s7 = g_current_symbol_table->lookup(d7);
+   const symbol *s8 = g_current_symbol_table->lookup(d8);
+   parse_assert( s1 != NULL && s2 != NULL && s3 != NULL && s4 != NULL && s5 !=NULL && s6 !=NULL && s7 !=NULL && s8 !=NULL, "v4 component(s) missing declarations.");
+   const symbol *null_op = g_current_symbol_table->lookup("_");
+   if ( s2 == null_op ) s2 = NULL;
+   if ( s3 == null_op ) s3 = NULL;
+   if ( s4 == null_op ) s4 = NULL;
+   if ( s5 == null_op ) s5 = NULL;
+   if ( s6 == null_op ) s6 = NULL;
+   if ( s7 == null_op ) s7 = NULL;
+   if ( s8 == null_op ) s8 = NULL;
+   g_operands.push_back( operand_info(s1,s2,s3,s4,s5,s6,s7,s8) );
+}
 
-void add_builtin_operand( int builtin, int dim_modifier )
+void add_builtin_operand( int builtin, int dim_modifier ) 
 {
    PTX_PARSE_DPRINTF("add_builtin_operand");
    g_operands.push_back( operand_info(builtin,dim_modifier) );
 }
 
-void add_memory_operand()
+void add_memory_operand() 
 {
    PTX_PARSE_DPRINTF("add_memory_operand");
    assert( !g_operands.empty() );
@@ -717,7 +826,7 @@ void add_memory_operand()
 }
 
 /*TODO: add other memory locations*/
-void change_memory_addr_space(const char *identifier)
+void change_memory_addr_space(const char *identifier) 
 {
    /*0 = N/A, not reading from memory
     *1 = global memory
@@ -730,12 +839,12 @@ void change_memory_addr_space(const char *identifier)
 
    PTX_PARSE_DPRINTF("change_memory_addr_space");
    assert( !g_operands.empty() );
-   if (!strcmp(identifier, "g"))
+   if(!strcmp(identifier, "g"))
    {
        g_operands.back().set_addr_space(global_space);
        recognizedType = true;
    }
-   if (!strcmp(identifier, "s"))
+   if(!strcmp(identifier, "s"))
    {
        g_operands.back().set_addr_space(shared_space);
        recognizedType = true;
@@ -743,7 +852,7 @@ void change_memory_addr_space(const char *identifier)
    // For constants, check if the first character is 'c'
    char c[2];
    strncpy(c, identifier, 1); c[1] = '\0';
-   if (!strcmp(c, "c"))
+   if(!strcmp(c, "c"))
    {
        g_operands.back().set_addr_space(const_space);
        parse_assert(g_current_symbol_table->lookup(identifier) != NULL, "Constant was not defined.");
@@ -753,7 +862,7 @@ void change_memory_addr_space(const char *identifier)
    // For local memory, check if the first character is 'l'
    char l[2];
    strncpy(l, identifier, 1); l[1] = '\0';
-   if (!strcmp(l, "l"))
+   if(!strcmp(l, "l"))
    {
        g_operands.back().set_addr_space(local_space);
        //parse_assert(g_current_symbol_table->lookup(identifier) != NULL, "Local memory segment was not defined.");
@@ -801,13 +910,13 @@ void change_double_operand_type( int operand_type )
    assert( !g_operands.empty() );
 
    // For double destination operands, ensure valid instruction
-   if ( operand_type == -1 || operand_type == -2 ) {
-      if ((g_opcode == SET_OP)||(g_opcode == SETP_OP))
+   if( operand_type == -1 || operand_type == -2 ) {
+      if((g_opcode == SET_OP)||(g_opcode == SETP_OP))
          g_operands.back().set_double_operand_type(-1);
       else
          g_operands.back().set_double_operand_type(-2);
-   } else if ( operand_type == -3 ) {
-      if (g_opcode == SET_OP || g_opcode == MAD_OP)
+   } else if( operand_type == -3 ) {
+      if(g_opcode == SET_OP || g_opcode == MAD_OP)
          g_operands.back().set_double_operand_type(operand_type);
       else
          parse_assert(0, "Error: Unsupported use of double destination operand.");
@@ -826,25 +935,25 @@ void change_operand_neg( )
 
 }
 
-void add_literal_int( int value )
+void add_literal_int( int value ) 
 {
    PTX_PARSE_DPRINTF("add_literal_int");
    g_operands.push_back( operand_info(value) );
 }
 
-void add_literal_float( float value )
+void add_literal_float( float value ) 
 {
    PTX_PARSE_DPRINTF("add_literal_float");
    g_operands.push_back( operand_info(value) );
 }
 
-void add_literal_double( double value )
+void add_literal_double( double value ) 
 {
    PTX_PARSE_DPRINTF("add_literal_double");
    g_operands.push_back( operand_info(value) );
 }
 
-void add_scalar_operand( const char *identifier )
+void add_scalar_operand( const char *identifier ) 
 {
    PTX_PARSE_DPRINTF("add_scalar_operand");
    const symbol *s = g_current_symbol_table->lookup(identifier);
@@ -860,7 +969,7 @@ void add_scalar_operand( const char *identifier )
    g_operands.push_back( operand_info(s) );
 }
 
-void add_neg_pred_operand( const char *identifier )
+void add_neg_pred_operand( const char *identifier ) 
 {
    PTX_PARSE_DPRINTF("add_neg_pred_operand");
    const symbol *s = g_current_symbol_table->lookup(identifier);
@@ -872,7 +981,7 @@ void add_neg_pred_operand( const char *identifier )
    g_operands.push_back( op );
 }
 
-void add_address_operand( const char *identifier, int offset )
+void add_address_operand( const char *identifier, int offset ) 
 {
    PTX_PARSE_DPRINTF("add_address_operand");
    const symbol *s = g_current_symbol_table->lookup(identifier);
@@ -901,12 +1010,12 @@ void add_version_info( float ver, unsigned ext )
 
 void add_file( unsigned num, const char *filename )
 {
-   if ( g_filename == NULL ) {
+   if( g_filename == NULL ) {
       char *b = strdup(filename);
       char *l=b;
       char *n=b;
-      while ( *n != '\0' ) {
-          if ( *n == '/' )
+      while( *n != '\0' ) {
+          if( *n == '/' ) 
               l = n+1;
           n++;
       }
@@ -916,7 +1025,7 @@ void add_file( unsigned num, const char *filename )
       snprintf(buf,1024,"%s.ptx",p);
 
       char *q = strtok(NULL,".");
-      if ( q && !strcmp(q,"cu") ) {
+      if( q && !strcmp(q,"cu") ) {
           g_filename = strdup(buf);
       }
 
@@ -945,19 +1054,23 @@ void add_pragma( const char *str )
 
 void version_header(double a) {}  //intentional dummy function
 
-void target_header(char* a)
+void target_header(char* a) 
 {
    g_global_symbol_table->set_sm_target(a,NULL,NULL);
 }
 
-void target_header2(char* a, char* b)
+void target_header2(char* a, char* b) 
 {
    g_global_symbol_table->set_sm_target(a,b,NULL);
 }
 
-void target_header3(char* a, char* b, char* c)
+void target_header3(char* a, char* b, char* c) 
 {
    g_global_symbol_table->set_sm_target(a,b,c);
+}
+
+void maxnt_id(int x, int y, int z) {
+  g_func_info->set_maxnt_id(x * y * z);
 }
 
 void func_header(const char* a) {} //intentional dummy function

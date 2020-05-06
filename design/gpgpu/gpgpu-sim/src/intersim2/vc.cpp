@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -41,14 +41,14 @@
 #include "vc.hpp"
 
 const char * const VC::VCSTATE[] = {"idle",
-                                    "routing",
-                                    "vc_alloc",
-                                    "active"};
+				    "routing",
+				    "vc_alloc",
+				    "active"};
 
-VC::VC( const Configuration& config, int outputs,
-        Module *parent, const string& name )
-  : Module( parent, name ),
-    _state(idle), _out_port(-1), _out_vc(-1), _pri(0), _watched(false),
+VC::VC( const Configuration& config, int outputs, 
+	Module *parent, const string& name )
+  : Module( parent, name ), 
+    _state(idle), _out_port(-1), _out_vc(-1), _pri(0), _watched(false), 
     _expected_pid(-1), _last_id(-1), _last_pid(-1)
 {
   _lookahead_routing = !config.GetInt("routing_delay");
@@ -72,7 +72,7 @@ VC::VC( const Configuration& config, int outputs,
 
 VC::~VC()
 {
-  if (!_lookahead_routing) {
+  if(!_lookahead_routing) {
     delete _route_set;
   }
 }
@@ -81,24 +81,24 @@ void VC::AddFlit( Flit *f )
 {
   assert(f);
 
-  if (_expected_pid >= 0) {
-    if (f->pid != _expected_pid) {
+  if(_expected_pid >= 0) {
+    if(f->pid != _expected_pid) {
       ostringstream err;
-      err << "Received flit " << f->id << " with unexpected packet ID: " << f->pid
-          << " (expected: " << _expected_pid << ")";
+      err << "Received flit " << f->id << " with unexpected packet ID: " << f->pid 
+	  << " (expected: " << _expected_pid << ")";
       Error(err.str());
-    } else if (f->tail) {
+    } else if(f->tail) {
       _expected_pid = -1;
     }
-  } else if (!f->tail) {
+  } else if(!f->tail) {
     _expected_pid = f->pid;
   }
-
+    
   // update flit priority before adding to VC buffer
-  if (_pri_type == local_age_based) {
+  if(_pri_type == local_age_based) {
     f->pri = numeric_limits<int>::max() - GetSimTime();
     assert(f->pri >= 0);
-  } else if (_pri_type == hop_count_based) {
+  } else if(_pri_type == hop_count_based) {
     f->pri = f->hops;
     assert(f->pri >= 0);
   }
@@ -127,12 +127,12 @@ Flit *VC::RemoveFlit( )
 void VC::SetState( eVCState s )
 {
   Flit * f = FrontFlit();
-
-  if (f && f->watch)
+  
+  if(f && f->watch)
     *gWatchOut << GetSimTime() << " | " << FullName() << " | "
-                << "Changing state from " << VC::VCSTATE[_state]
-                << " to " << VC::VCSTATE[s] << "." << endl;
-
+		<< "Changing state from " << VC::VCSTATE[_state]
+		<< " to " << VC::VCSTATE[s] << "." << endl;
+  
   _state = s;
 }
 
@@ -156,30 +156,30 @@ void VC::SetOutput( int port, int vc )
 
 void VC::UpdatePriority()
 {
-  if (_buffer.empty()) return;
-  if (_pri_type == queue_length_based) {
+  if(_buffer.empty()) return;
+  if(_pri_type == queue_length_based) {
     _pri = _buffer.size();
-  } else if (_pri_type != none) {
+  } else if(_pri_type != none) {
     Flit * f = _buffer.front();
-    if ((_pri_type != local_age_based) && _priority_donation) {
+    if((_pri_type != local_age_based) && _priority_donation) {
       Flit * df = f;
-      for (size_t i = 1; i < _buffer.size(); ++i) {
-        Flit * bf = _buffer[i];
-        if (bf->pri > df->pri) df = bf;
+      for(size_t i = 1; i < _buffer.size(); ++i) {
+	Flit * bf = _buffer[i];
+	if(bf->pri > df->pri) df = bf;
       }
-      if ((df != f) && (df->watch || f->watch)) {
-        *gWatchOut << GetSimTime() << " | " << FullName() << " | "
-                    << "Flit " << df->id
-                    << " donates priority to flit " << f->id
-                    << "." << endl;
+      if((df != f) && (df->watch || f->watch)) {
+	*gWatchOut << GetSimTime() << " | " << FullName() << " | "
+		    << "Flit " << df->id
+		    << " donates priority to flit " << f->id
+		    << "." << endl;
       }
       f = df;
     }
-    if (f->watch)
+    if(f->watch)
       *gWatchOut << GetSimTime() << " | " << FullName() << " | "
-                  << "Flit " << f->id
-                  << " sets priority to " << f->pri
-                  << "." << endl;
+		  << "Flit " << f->id
+		  << " sets priority to " << f->pri
+		  << "." << endl;
     _pri = f->pri;
   }
 }
@@ -209,12 +209,12 @@ void VC::Display( ostream & os ) const
   if ( _state != VC::idle ) {
     os << FullName() << ": "
        << " state: " << VCSTATE[_state];
-    if (_state == VC::active) {
+    if(_state == VC::active) {
       os << " out_port: " << _out_port
-         << " out_vc: " << _out_vc;
+	 << " out_vc: " << _out_vc;
     }
     os << " fill: " << _buffer.size();
-    if (!_buffer.empty()) {
+    if(!_buffer.empty()) {
       os << " front: " << _buffer.front()->id;
     }
     os << " pri: " << _pri;

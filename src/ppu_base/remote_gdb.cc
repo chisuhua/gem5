@@ -163,6 +163,7 @@ static const char GDBStart = '$';
 static const char GDBEnd = '#';
 static const char GDBGoodP = '+';
 static const char GDBBadP = '-';
+int ppu_remote_gdb_offset = 100;
 
 vector<PpuBaseRemoteGDB *> Ppudebuggers;
 

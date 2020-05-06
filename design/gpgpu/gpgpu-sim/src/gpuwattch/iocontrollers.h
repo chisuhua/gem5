@@ -36,19 +36,16 @@
 
 #include "XML_Parse.h"
 #include "cacti/parameter.h"
-
 //#include "io.h"
 #include "array.h"
-
 //#include "Undifferentiated_Core_Area.h"
 #include <vector>
-
 #include "basic_components.h"
 
 class NIUController : public Component {
   public:
-        ParseXML *XML;
-        InputParameter interface_ip;
+	ParseXML *XML;
+	InputParameter interface_ip;
     NIUParam  niup;
     powerDef power_t;
     uca_org_t local_result;
@@ -61,8 +58,8 @@ class NIUController : public Component {
 
 class PCIeController : public Component {
   public:
-        ParseXML *XML;
-        InputParameter interface_ip;
+	ParseXML *XML;
+	InputParameter interface_ip;
     PCIeParam  pciep;
     powerDef power_t;
     uca_org_t local_result;
@@ -75,8 +72,8 @@ class PCIeController : public Component {
 
 class FlashController : public Component {
   public:
-        ParseXML *XML;
-        InputParameter interface_ip;
+	ParseXML *XML;
+	InputParameter interface_ip;
     MCParam  fcp;
     powerDef power_t;
     uca_org_t local_result;

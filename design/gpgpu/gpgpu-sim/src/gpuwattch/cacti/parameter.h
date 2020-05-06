@@ -35,8 +35,8 @@
 #define __PARAMETER_H__
 
 #include "area.h"
-#include "cacti_interface.h"
 #include "const.h"
+#include "cacti_interface.h"
 #include "io.h"
 
 // parameters which are functions of certain device technology
@@ -313,8 +313,8 @@ class DynamicParameter
     int num_so_b_mat;
     int num_si_b_subbank;
     int num_so_b_subbank;
-        int num_si_b_bank_per_port;
-        int num_so_b_bank_per_port;
+	int num_si_b_bank_per_port;
+	int num_so_b_bank_per_port;
 
     int number_way_select_signals_mat;
     int num_act_mats_hor_dir;

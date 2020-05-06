@@ -7,7 +7,7 @@
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
 
- Redistributions of source code must retain the above copyright notice, this
+ Redistributions of source code must retain the above copyright notice, this 
  list of conditions and the following disclaimer.
  Redistributions in binary form must reproduce the above copyright notice, this
  list of conditions and the following disclaimer in the documentation and/or
@@ -15,7 +15,7 @@
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
@@ -28,18 +28,18 @@
 #ifndef _EVENT_ROUTER_HPP_
 #define _EVENT_ROUTER_HPP_
 
-#include <queue>
 #include <string>
+#include <queue>
 #include <vector>
 
-#include "intersim2/arbiters/prio_arb.hpp"
-#include "intersim2/buffer.hpp"
-#include "intersim2/module.hpp"
-#include "intersim2/outputset.hpp"
-#include "intersim2/pipefifo.hpp"
-#include "intersim2/routefunc.hpp"
-#include "intersim2/vc.hpp"
+#include "module.hpp"
 #include "router.hpp"
+#include "buffer.hpp"
+#include "vc.hpp"
+#include "prio_arb.hpp"
+#include "routefunc.hpp"
+#include "outputset.hpp"
+#include "pipefifo.hpp"
 
 class EventNextVCState : public Module {
 public:
@@ -63,13 +63,13 @@ private:
   vector<int> _inputVC;
 
   vector<list<tWaiting *> > _waiting;
-
+ 
   vector<eNextVCState> _state;
 
 public:
 
-  EventNextVCState( const Configuration& config,
-                    Module *parent, const string& name );
+  EventNextVCState( const Configuration& config, 
+		    Module *parent, const string& name );
 
   eNextVCState GetState( int vc ) const;
   int GetPresence( int vc ) const;
@@ -119,7 +119,7 @@ class EventRouter : public Router {
     int  dst_vc;
     bool head;
     bool tail;
-
+    
     int  id;    // debug
     bool watch; // debug
   };
@@ -162,8 +162,8 @@ class EventRouter : public Router {
 
 public:
   EventRouter( const Configuration& config,
-               Module *parent, const string & name, int id,
-               int inputs, int outputs );
+	       Module *parent, const string & name, int id,
+	       int inputs, int outputs );
   virtual ~EventRouter( );
 
   virtual void ReadInputs( );
