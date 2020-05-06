@@ -339,6 +339,13 @@ def addCommonOptions(parser):
     parser.add_option("-p", "--prog-interval", type="str",
         help="CPU Progress Interval")
 
+    # TODO schi add for remote gdb
+    parser.add_option('-w', '--wait-for-gdb',
+                        action='store_true',
+                        help='Wait for remote gdb connection '
+                        'before starting simulation')
+
+
     # Fastforwarding and simpoint related materials
     parser.add_option("-W", "--warmup-insts", action="store", type="int",
         default=None,

@@ -56,6 +56,9 @@ using namespace std;
 
 vector<CudaGPU*> CudaGPU::gpuArray;
 
+// FIXME
+int no_of_ptx = 0;
+
 // From GPU syscalls
 void registerFatBinaryTop(GPUSyscallHelper *helper, Addr sim_fatCubin, size_t sim_binSize);
 unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_ptr);

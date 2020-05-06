@@ -131,14 +131,14 @@
 #if (CUDART_VERSION < 8000)
 #include "__cudaFatFormat.h"
 #endif
-#include "../src/gpgpu-sim/gpu-sim.h"
-#include "../src/cuda-sim/ptx_loader.h"
-#include "../src/cuda-sim/cuda-sim.h"
-#include "../src/cuda-sim/ptx_ir.h"
-#include "../src/cuda-sim/ptx_parser.h"
-#include "../src/gpgpusim_entrypoint.h"
-#include "../src/stream_manager.h"
-#include "../src/abstract_hardware_model.h"
+#include "../gpgpu-sim/src/gpgpu-sim/gpu-sim.h"
+#include "../gpgpu-sim/src/cuda-sim/ptx_loader.h"
+#include "../gpgpu-sim/src/cuda-sim/cuda-sim.h"
+#include "../gpgpu-sim/src/cuda-sim/ptx_ir.h"
+#include "../gpgpu-sim/src/cuda-sim/ptx_parser.h"
+#include "../gpgpu-sim/src/gpgpusim_entrypoint.h"
+#include "../gpgpu-sim/src/stream_manager.h"
+#include "../gpgpu-sim/src/abstract_hardware_model.h"
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -146,6 +146,23 @@
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
+
+#ifndef __MEM_DEBUG__
+// Wrap m5op in a namespace so calls to m5_gpu can be intercepted and
+// pre-processed out if debugging or running tests on hardware
+namespace m5op {
+    extern "C" {
+        #include "m5op.h"
+    }
+}
+#endif
+
+
+inline void m5_gpu(uint64_t __gpusysno, uint64_t call_params) {
+#ifndef __MEM_DEBUG__
+    m5op::m5_gpu(__gpusysno, (void*)call_params);
+#endif
+}
 
 std::map<void *,void **> pinned_memory; //support for pinned memories added
 std::map<void *, size_t> pinned_memory_size;
