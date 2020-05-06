@@ -31,7 +31,7 @@ System definition.
 '''
 
 from m5.objects import *
-from minor_custom_fu import MinorCustomFUPool
+from minor_custom_fu import PpuMinorCustomFUPool
 
 
 class MemBus(SystemXBar):
@@ -61,7 +61,7 @@ class SimpleSystem(BareMetalRiscvSystem):
         self.intrctrl = IntrControl()
 
         # specify functional unit
-        self.execFU = MinorCustomFUPool()
+        self.execFU = PpuMinorCustomFUPool()
 
         # create cpu and thread
         # the interruptcontroller needs to be created as well

@@ -31,14 +31,14 @@ System definition.
 '''
 
 from m5.objects import *
-#from minor_custom_fu import MinorCustomFUPool
+#from minor_custom_fu import PpuMinorCustomFUPool
 import pdb
 
-class PPUFUPool(MinorFUPool):
-    funcUnits = [MinorDefaultIntFU(), MinorDefaultIntFU(),
-                 MinorDefaultIntMulFU(), MinorDefaultIntDivFU(),
-                 MinorDefaultFloatSimdFU(), MinorDefaultMemFU(),
-                 MinorDefaultMiscFU()]
+class PPUFUPool(PpuMinorFUPool):
+    funcUnits = [PpuMinorDefaultIntFU(), PpuMinorDefaultIntFU(),
+                 PpuMinorDefaultIntMulFU(), PpuMinorDefaultIntDivFU(),
+                 PpuMinorDefaultFloatSimdFU(), PpuMinorDefaultMemFU(),
+                 PpuMinorDefaultMiscFU()]
 
 class MemBus(SystemXBar):
     badaddr_responder = BadAddr(warn_access="warn")

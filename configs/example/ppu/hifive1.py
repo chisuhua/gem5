@@ -45,52 +45,52 @@ except ImportError:
     pass
 
 
-class HiFive1IntFU(MinorFU):
+class HiFive1IntFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntAlu'])
-    timings = [MinorFUTiming(description="Int",
+    timings = [PpuMinorFUTiming(description="Int",
                              srcRegsRelativeLats=[2])]
     opLat = 3
 
 
-class HiFive1IntMulFU(MinorFU):
+class HiFive1IntMulFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntMult'])
-    timings = [MinorFUTiming(description='Mul',
+    timings = [PpuMinorFUTiming(description='Mul',
                              srcRegsRelativeLats=[0])]
     opLat = 7
     issueLat = 7
 
 
-class HiFive1IntDivFU(MinorFU):
+class HiFive1IntDivFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntDiv'])
     issueLat = 9
     opLat = 9
 
 
-class HiFive1MemFU(MinorFU):
+class HiFive1MemFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['MemRead', 'MemWrite', 'FloatMemRead',
                                      'FloatMemWrite'])
-    timings = [MinorFUTiming(description='Mem',
+    timings = [PpuMinorFUTiming(description='Mem',
                              srcRegsRelativeLats=[1], extraAssumedLat=1)]
     opLat = 1
 
 
-class MinorCustomIntFU(MinorFU):
+class PpuMinorCustomIntFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntCustom'])
 
     timings = timings
     opLat = 1
 
 
-class HiFive1FUPool(MinorFUPool):
+class HiFive1FUPool(PpuMinorFUPool):
     funcUnits = [HiFive1IntFU(),
                  HiFive1IntMulFU(),
                  HiFive1IntDivFU(),
-                 MinorCustomIntFU(),
-                 MinorCustomIntFU(),
-                 MinorDefaultFloatSimdFU(),
+                 PpuMinorCustomIntFU(),
+                 PpuMinorCustomIntFU(),
+                 PpuMinorDefaultFloatSimdFU(),
                  HiFive1MemFU(),
                  HiFive1MemFU(),
-                 MinorDefaultMiscFU()]
+                 PpuMinorDefaultMiscFU()]
 
 
 class MemBus(SystemXBar):
@@ -146,7 +146,7 @@ class HiFive1(BareMetalRiscvSystem):
         self.cpu.createInterruptController()
         self.cpu.wait_for_remote_gdb = wfgdb
 
-        # if cpu_class is MinorCPU:
+        # if cpu_class is PpuMinorCPU:
         self.cpu.fetch1LineSnapWidth = 4
         self.cpu.fetch1LineWidth = 4
         self.cpu.fetch1ToFetch2BackwardDelay = 0

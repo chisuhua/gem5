@@ -31,47 +31,47 @@ System definition.
 '''
 
 from m5.objects import *
-from minor_custom_fu import MinorCustomFUPool
+from minor_custom_fu import PpuMinorCustomFUPool
 
 
-class SamaraIntFU(MinorFU):
+class SamaraIntFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntAlu'])
-    timings = [MinorFUTiming(description="Int",
+    timings = [PpuMinorFUTiming(description="Int",
                              srcRegsRelativeLats=[2])]
     opLat = 5
     issueLat = 5
 
 
-class SamaraIntMulFU(MinorFU):
+class SamaraIntMulFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntMult'])
-    timings = [MinorFUTiming(description='Mul',
+    timings = [PpuMinorFUTiming(description='Mul',
                              srcRegsRelativeLats=[0])]
     opLat = 6
     issueLat = 6
 
 
-class SamaratIntDivFU(MinorFU):
+class SamaratIntDivFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['IntDiv'])
     issueLat = 40
     opLat = 40
 
 
-class SamaraMemFU(MinorFU):
+class SamaraMemFU(PpuMinorFU):
     opClasses = minorMakeOpClassSet(['MemRead', 'MemWrite', 'FloatMemRead',
                                      'FloatMemWrite'])
-    # timings = [MinorFUTiming(description='Mem',
+    # timings = [PpuMinorFUTiming(description='Mem',
     #    srcRegsRelativeLats=[1], extraAssumedLat=2)]
     opLat = 8
     issueLat = 8
 
 
-class SamaraFUPool(MinorFUPool):
+class SamaraFUPool(PpuMinorFUPool):
     funcUnits = [SamaraIntFU(),
                  SamaraIntMulFU(),
                  SamaratIntDivFU(),
-                 MinorDefaultFloatSimdFU(),
+                 PpuMinorDefaultFloatSimdFU(),
                  SamaraMemFU(),
-                 MinorDefaultMiscFU()]
+                 PpuMinorDefaultMiscFU()]
 
 
 class MemBus(SystemXBar):

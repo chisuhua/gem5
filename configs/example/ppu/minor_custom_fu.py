@@ -41,7 +41,7 @@ except ImportError:
     pass
 
 
-class MinorCustomIntFU(MinorFU):
+class PpuMinorCustomIntFU(PpuMinorFU):
     pdb.set_trace()
     #opClasses = minorMakeOpClassSet(['IntCustom'])
     opClasses = minorMakeOpClassSet(['IntAlu'])
@@ -50,9 +50,9 @@ class MinorCustomIntFU(MinorFU):
     opLat = 1
 
 
-class MinorCustomFUPool(MinorFUPool):
-    funcUnits = [MinorDefaultIntFU(), MinorDefaultIntFU(),
-                 MinorDefaultIntMulFU(), MinorDefaultIntDivFU(),
-                 MinorCustomIntFU(),
-                 MinorDefaultFloatSimdFU(), MinorDefaultMemFU(),
-                 MinorDefaultMiscFU()]
+class PpuMinorCustomFUPool(PpuMinorFUPool):
+    funcUnits = [PpuMinorDefaultIntFU(), PpuMinorDefaultIntFU(),
+                 PpuMinorDefaultIntMulFU(), PpuMinorDefaultIntDivFU(),
+                 PpuMinorCustomIntFU(),
+                 PpuMinorDefaultFloatSimdFU(), PpuMinorDefaultMemFU(),
+                 PpuMinorDefaultMiscFU()]

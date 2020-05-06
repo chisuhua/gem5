@@ -40,7 +40,7 @@ from m5.objects import *
 cpu_types = {
     'atomic': AtomicSimpleCPU,
     'timing': TimingSimpleCPU,
-    'minor': MinorCPU
+    'minor': PpuMinorPPU
 }
 
 
