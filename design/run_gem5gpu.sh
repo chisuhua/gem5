@@ -69,7 +69,8 @@ OPTION="${OPTION} --debug-file=run_debug.log"
 
 CMD="tests/test-progs/hello/bin/x86/linux/hello"
 CMD="tests/test-progs/threads/bin/X86/linux/threads"
-CMD="/mnt/d/source/github/sim/mygem5gpu/gem5/benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd"
+CMD="benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd"
+CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
 #CMD="/mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/backprop/gem5_fusion_backprop -o 16"
 #RUN=./build/X86_VI_hammer_GPU/gem5.debug
 #CMD="tests/test-progs/hello/bin/x86/linux/hello"
