@@ -11,6 +11,7 @@ OPTION=""
 OPTION="$OPTION -v"
 #OPTION="$OPTION -d TrafficGen"
 OPTION="$OPTION -d MemTest"
+OPTION="$OPTION -d MemoryAccess"
 
 #OPTION="$OPTION -d MemCheker"
 OPTION="$OPTION -e 500000000"

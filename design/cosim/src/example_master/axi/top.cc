@@ -87,7 +87,9 @@ Top::Top(sc_module_name name) :
         master_signals.connect(master_bridge);
         master_signals.connect(master_checker);
 
-
+        slave_signals.connect(dut, "s00_");
+        master_signals.connect(dut, "m00_");
+        /*
         //
         // Since the AXILite Dut doesn't use the same naming
         // conventions as AXILiteSignals, we need to manually connect
@@ -142,5 +144,6 @@ Top::Top(sc_module_name name) :
         dut.m00_axi_rready(master_signals.rready);
         dut.m00_axi_rdata(master_signals.rdata);
         dut.m00_axi_rresp(master_signals.rresp);
+        */
 }
 

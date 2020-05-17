@@ -33,21 +33,24 @@ using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
 
-#include "checkers/pc-axilite.h"
-#include "test-modules/signals-axilite.h"
 #include "tlm.h"
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
-#include "tlm-bridges/tlm2axilite-bridge.h"
-#include "tlm-bridges/axilite2tlm-bridge.h"
 
+#include "tlm-bridges/tlm2axi-bridge.h"
+#include "tlm-bridges/axi2tlm-bridge.h"
+#include "checkers/pc-axi.h"
+#include "test-modules/signals-axi.h"
 // #include "test-modules/utils.h"
 
-#include "Vaxilite_join.h"
+#include "Vaxi_join.h"
 
 // using namespace utils;
-#define ADDR_WIDTH 29
-#define DATA_WIDTH 32
+#define AXI_ADDR_WIDTH 29
+#define AXI_DATA_WIDTH 32
+#define AXI_ID_WIDTH   4
+#define AXI_AXLOCK_WIDTH 1
+#define AXI_AXLEN_WIDTH  8
 
 
 // Top simulation module.
@@ -56,17 +59,30 @@ SC_MODULE(Top)
     sc_clock clk;
     sc_signal<bool> rst_n; // Active low.
 
-    AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > slave_signals;
-    tlm2axilite_bridge<ADDR_WIDTH, DATA_WIDTH > slave_bridge;
-    AXILiteProtocolChecker<ADDR_WIDTH, DATA_WIDTH > slave_checker;
+
+    // slave side: tlm2axi
+	AXISignals<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_signals;
+
+	tlm2axi_bridge<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_bridge;
+
+	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_checker("checker", checker_config());
 
 
-    AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > master_signals;
-    axilite2tlm_bridge<ADDR_WIDTH, DATA_WIDTH > master_bridge;
-    AXILiteProtocolChecker<ADDR_WIDTH, DATA_WIDTH > master_checker;
+    // master side: axi2tlm
+	AXISignals<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_signals;
+
+	axi2tlm_bridge<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_bridge;
+
+	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_checker("checker", checker_config());
 
     // dut is the RTL AXI4Lite device we're testing.
-    Vaxilite_join dut;
+    Vaxi_join dut;
 
     Top(sc_module_name name);
 };
