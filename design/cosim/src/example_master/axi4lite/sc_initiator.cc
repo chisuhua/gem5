@@ -1,22 +1,26 @@
-// #include "base/random.hh"
-// #include "traffic_generator.hh"
+// use tlm2.0 example SimpleBusAT.h as reference
+
 #include "sc_initiator.hh"
 #include "top.hh"
 
 Initiator::Initiator(sc_core::sc_module_name name, Top &top)
   : sc_core::sc_module(name),
     top(top),
-    bridge_to_socket("bridge_to_socket"),
-    requestInProgress(0),
-    peq(this, &Initiator::peq_cb)
+    target_socket("target_socket"),
+    initiator_socket("initiator_socket"),
+    request_peq("request_peq"),
+    response_peq("response_peq")
 {
-    socket.register_nb_transport_bw(this, &Initiator::nb_transport_bw);
+    initiator_socket.register_nb_transport_bw(this, &Initiator::nb_transport_bw);
+    // initiator_socket.register_b_transport(this, &Initiator::b_transport);
 
-    bridge_to_socket.bind(top.master_bridge.socket);
-    // top.bridge.socket.bind(bridge_to_socket);
-    bridge_to_socket.register_nb_transport_fw(this, &Initiator::nb_transport_fw);
+    // target_socket.bind(top.master_bridge.socket);
+    // top.bridge.socket.bind(target_socket);
+    top.master_bridge.socket.bind(target_socket);
+    target_socket.register_nb_transport_fw(this, &Initiator::nb_transport_fw);
 
-    // SC_THREAD(process);
+    SC_THREAD(request_process);
+    SC_THREAD(response_process);
 }
 
 /* TLM-2 non-blocking transport method */
@@ -24,99 +28,172 @@ tlm::tlm_sync_enum Initiator::nb_transport_fw(tlm::tlm_generic_payload& trans,
                                            tlm::tlm_phase& phase,
                                            sc_time& delay)
 {
-    auto status = socket->nb_transport_fw(trans, phase, delay);
+    if (phase == tlm::BEGIN_REQ) {
+        trans.acquire();
+        addPendingTransaction(trans);
+
+        request_peq.notify(trans, delay);
+    } else if (phase == tlm::END_RESP) {
+        endResponseEvent.notify(delay);
+        checkTransaction(trans);
+
+        SC_REPORT_INFO("sc_initiator", "fw request completed");
+        return tlm::TLM_COMPLETED;
+    } else {
+        std::stringstream ss;
+        ss  << "ERROR: " << name()
+                  << ":Illegal phase received from iniitiator."
+                  << std::endl;
+        SC_REPORT_INFO("Initiator fw ", ss.str().c_str());
+        assert(false); exit(1);
+    }
+
+    std::stringstream ss;
+    ss  << "Send "                // << cmdStr << " request @0x" << std::hex
+        << trans.get_address();
+    SC_REPORT_INFO("Initiator fw ", ss.str().c_str());
+}
+tlm::tlm_sync_enum
+Initiator::b_transport(tlm::tlm_generic_payload& trans,
+                                  tlm::tlm_phase& phase,
+                                  sc_core::sc_time& delay)
+{
+}
+
+tlm::tlm_sync_enum
+Initiator::nb_transport_bw(tlm::tlm_generic_payload& trans,
+                                  tlm::tlm_phase& phase,
+                                  sc_core::sc_time& delay)
+{
+    if (phase != tlm::END_REQ && phase != tlm::BEGIN_RESP) {
+          std::cout << "ERROR: '" << name()
+               << "': Illegal phase received from target." << std::endl;
+          assert(false); exit(1);
+    }
+
+    endRequestEvent.notify(delay);
+    if (phase == tlm::BEGIN_RESP) {
+        response_peq.notify(trans, delay);
+    }
+
     return tlm::TLM_ACCEPTED;
 }
 
-/*
-void
-Initiator::process()
+
+void Initiator::request_process()
 {
-    auto rnd = Random(time(NULL));
-
-    unsigned const memSize = (1 << 10); // 512 MB
-
     while (true) {
+        wait(request_peq.get_event());
 
-        wait(sc_core::sc_time((double)rnd.random(1,100), sc_core::SC_NS));
+        tlm::tlm_generic_payload* trans;
 
-        auto trans = mm.allocate();
-        trans->acquire();
+        while ((trans = request_peq.get_next_transaction()) != 0) {
+            // Fill in the destionation port
+            PendingTransIterator it = pendingTrans.find(trans);
+            assert(it != pendingTrans.end());
+            it->second.to = &initiator_socket;
 
-        std::string cmdStr;
-        if (rnd.random(0,1)) // Generate a write request?
-        {
-            cmdStr = "write";
-            trans->set_command(tlm::TLM_WRITE_COMMAND);
-            dataBuffer = rnd.random(0,0xffff);
-        } else {
-            cmdStr = "read";
-            trans->set_command(tlm::TLM_READ_COMMAND);
+            tlm::tlm_phase phase = tlm::BEGIN_REQ;
+            auto delay = sc_core::SC_ZERO_TIME;
+
+            auto status = initiator_socket->nb_transport_fw(*trans, phase, delay);
+
+            switch (status) {
+                case tlm::TLM_ACCEPTED:
+                case tlm::TLM_UPDATED:
+                    // Transcation not yet finished
+                    if (phase == tlm::BEGIN_REQ) {
+                        // request phase not yet finished
+                        wait(endRequestEvent);
+                    } else if (phase == tlm::END_REQ) {
+                        // request phase finished , but response phase not yet started
+                        wait(delay);
+                    } else if (phase == tlm::BEGIN_RESP) {
+                        checkTransaction(*trans);
+                        SC_REPORT_INFO("SC_initiator", "received response");
+                        response_peq.notify(*trans, delay);
+                        // Not needed to send END_REQ to initiator
+                        continue;
+                    } else { // END_RESP
+                        assert(0); exit(1);
+                    }
+
+                    // only send END_REQ to initiator if BEGIN_kk:w
+                    if (it->second.from) {
+                        phase = tlm::END_REQ;
+                        (*it->second.from)->nb_transport_bw(*trans, phase, delay);
+                    }
+                    break;
+
+                case tlm::TLM_COMPLETED:
+                    // transcation finished
+                    response_peq.notify(*trans, delay);
+
+                    // reset the destination port(we must not send END_RESP to target
+                    it->second.to = 0;
+
+                    wait(delay);
+                    break;
+
+                default:
+                    assert(0); exit(1);
+            };
         }
+    }
+}
 
-        trans->set_data_ptr(reinterpret_cast<unsigned char*>(&dataBuffer));
-        trans->set_address(rnd.random(0, (int)(memSize-1)));
-        trans->set_data_length(4);
-        trans->set_streaming_width(4);
-        trans->set_byte_enable_ptr(0);
-        trans->set_dmi_allowed(0);
-        trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+void Initiator::response_process()
+{
+    while (true) {
+        wait(response_peq.get_event());
 
-        // honor the BEGIN_REQ/END_REQ exclusion rule
-        if (requestInProgress)
-            sc_core::wait(endRequestEvent);
+        tlm::tlm_generic_payload* trans;
 
-        std::stringstream ss;
-        ss << "Send " << cmdStr << " request @0x" << std::hex
-           << trans->get_address();
-        SC_REPORT_INFO("Traffic Generator", ss.str().c_str());
+        while ((trans = response_peq.get_next_transaction()) != 0) {
+            PendingTransIterator it = pendingTrans.find(trans);
+            assert(it != pendingTrans.end());
 
-        // send the request
-        requestInProgress = trans;
-        tlm::tlm_phase phase = tlm::BEGIN_REQ;
-        auto delay = sc_core::SC_ZERO_TIME;
+            tlm::tlm_phase phase = tlm::BEGIN_RESP;
+            auto delay = sc_core::SC_ZERO_TIME;
 
-        auto status = socket->nb_transport_fw(*trans, phase, delay);
+            TargetSocketType* target_socket = it->second.from;
+            // if BEGIN_RESP is end first we don't have to send END_REQ anymore
+            it->second.from = 0;
 
-        // Check status
-        if (status == tlm::TLM_UPDATED) {
-            peq.notify(*trans, phase, delay);
-        } else if (status == tlm::TLM_COMPLETED) {
-            requestInProgress = 0;
-            checkTransaction(*trans);
-            SC_REPORT_INFO("Traffic Generator", "request completed");
+            // BEGIN_RESP
+            auto status = (*target_socket)->nb_transport_bw(*trans, phase, delay);
+
+            switch (status) {
+                case tlm::TLM_COMPLETED:
+                    // transcation finished
+                    wait(delay);
+                    break;
+
+                case tlm::TLM_ACCEPTED:
+                case tlm::TLM_UPDATED:
+                    // Transcation not yet finished
+                    wait(endResponseEvent);
+                    break;
+
+                default:
+                    assert(0); exit(1);
+            };
+
+            // foware END_RESP to target
+            if (it->second.to) {
+                phase = tlm::END_RESP;
+                tlm::tlm_sync_enum r = (*it->second.to)->nb_transport_fw(*trans, phase, delay);
+                assert(r == tlm::TLM_COMPLETED);
+                (void)r;
+            }
+
+            pendingTrans.erase(it);
             trans->release();
         }
     }
 }
-*/
 
-void
-Initiator::peq_cb(tlm::tlm_generic_payload& trans,
-                         const tlm::tlm_phase& phase)
-{
-    if (phase == tlm::END_REQ ||
-        (&trans == requestInProgress && phase == tlm::BEGIN_RESP)) {
-        // The end of the BEGIN_REQ phase
-        requestInProgress = 0;
-        endRequestEvent.notify();
-    } else if (phase == tlm::BEGIN_REQ || phase == tlm::END_RESP)
-        SC_REPORT_FATAL("TLM-2",
-                        "Illegal transaction phase received by initiator");
 
-    if (phase == tlm::BEGIN_RESP) {
-        checkTransaction(trans);
-        SC_REPORT_INFO("Traffic Generator", "received response");
-
-        // Send end response
-        tlm::tlm_phase fw_phase = tlm::END_RESP;
-
-        // stress the retry mechanism by deferring the response
-        auto delay = sc_core::sc_time(5.0, sc_core::SC_NS);
-        socket->nb_transport_fw(trans, fw_phase, delay);
-        trans.release();
-    }
-}
 
 void
 Initiator::checkTransaction(tlm::tlm_generic_payload& trans)
@@ -129,12 +206,4 @@ Initiator::checkTransaction(tlm::tlm_generic_payload& trans)
     }
 }
 
-tlm::tlm_sync_enum
-Initiator::nb_transport_bw(tlm::tlm_generic_payload& trans,
-                                  tlm::tlm_phase& phase,
-                                  sc_core::sc_time& delay)
-{
-    trans.acquire();
-    peq.notify(trans, phase, delay);
-    return tlm::TLM_ACCEPTED;
-}
+

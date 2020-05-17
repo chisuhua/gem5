@@ -57,13 +57,13 @@ SC_MODULE(Top)
     sc_signal<bool> rst_n; // Active low.
 
     AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > slave_signals;
-    tlm2axilite_bridge<ADDR_WIDTH29, DATA_WIDTH > slave_bridge;
-    AXILiteProtocolChecker<ADDR_WIDTH29, DATA_WIDTH > slave_checker;
+    tlm2axilite_bridge<ADDR_WIDTH, DATA_WIDTH > slave_bridge;
+    AXILiteProtocolChecker<ADDR_WIDTH, DATA_WIDTH > slave_checker;
 
 
-    AXILiteSignals<ADDR_WIDTH29, DATA_WIDTH > master_signals;
-    axilite2tlm_bridge<ADDR_WIDTH29, DATA_WIDTH > master_bridge;
-    AXILiteProtocolChecker<ADDR_WIDTH29, DATA_WIDTH > master_checker;
+    AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > master_signals;
+    axilite2tlm_bridge<ADDR_WIDTH, DATA_WIDTH > master_bridge;
+    AXILiteProtocolChecker<ADDR_WIDTH, DATA_WIDTH > master_checker;
 
     // dut is the RTL AXI4Lite device we're testing.
     Vaxilite_join dut;

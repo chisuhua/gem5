@@ -294,6 +294,8 @@ Target::execute_transaction(tlm::tlm_generic_payload& trans)
     //}
 
     // unsigned char *mem_array_ptr = mem + adr;
+    //
+    // // FIXME 
 
         tlm::tlm_generic_payload trans_to_bridge;
         sc_time delay = sc_time(10, SC_NS);

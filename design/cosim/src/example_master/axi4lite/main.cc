@@ -30,7 +30,7 @@ sc_main(int argc, char **argv)
     Gem5SystemC::Gem5MasterTransactor master_transactor("master_transactor", "master_transactor");
 
     Initiator initiator("traffic_generator", top);
-    initiator.socket.bind(master_transactor.socket);
+    initiator.initiator_socket.bind(master_transactor.socket);
 
     master_transactor.sim_control.bind(sim_control);
 
