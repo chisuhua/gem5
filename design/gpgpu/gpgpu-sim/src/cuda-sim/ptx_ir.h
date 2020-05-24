@@ -28,7 +28,11 @@
 #ifndef ptx_ir_INCLUDED
 #define ptx_ir_INCLUDED
 
+#ifndef LIBCUDA
 #include "../abstract_hardware_model.h"
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#endif
 
 #include <cstdlib>
 #include <cstring>

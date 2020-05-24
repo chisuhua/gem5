@@ -218,7 +218,8 @@ public:
 //      m_num_cores_running=0;
 //      m_param_mem=NULL;
 //   }
-   kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct cudaArray*> nameToCudaArray, std::map<std::string, const struct textureInfo*> nameToTextureInfo);
+   // FIXMEkernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct cudaArray*> nameToCudaArray, std::map<std::string, const struct textureInfo*> nameToTextureInfo);
+   kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry);
    ~kernel_info_t();
 
    void inc_running() { m_num_cores_running++; }
@@ -283,7 +284,8 @@ public:
 
    
    //The following functions access texture bindings present at the kernel's launch
-   
+   //FIXME
+#if 0
    const struct cudaArray* get_texarray( const std::string &texname ) const
    {
       std::map<std::string,const struct cudaArray*>::const_iterator t=m_NameToCudaArray.find(texname);
@@ -297,6 +299,7 @@ public:
       assert(t != m_NameToTextureInfo.end());
       return t->second;
    }
+#endif
 
 private:
    kernel_info_t( const kernel_info_t & ); // disable copy constructor
@@ -308,8 +311,10 @@ private:
    static unsigned m_next_uid;
    
    //These maps contain the snapshot of the texture mappings at kernel launch
+   /* FIXME
    std::map<std::string, const struct cudaArray*> m_NameToCudaArray;
    std::map<std::string, const struct textureInfo*> m_NameToTextureInfo;
+   */
 
    dim3 m_grid_dim;
    dim3 m_block_dim;

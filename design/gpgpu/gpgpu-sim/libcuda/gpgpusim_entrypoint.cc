@@ -25,16 +25,19 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "gpgpusim_entrypoint.h"
 #include <stdio.h>
 
 #include "option_parser.h"
 #include "cuda-sim/cuda-sim.h"
 #include "cuda-sim/ptx_ir.h"
 #include "cuda-sim/ptx_parser.h"
-#include "gpgpu-sim/gpu-sim.h"
-#include "gpgpu-sim/icnt_wrapper.h"
-#include "stream_manager.h"
+
+#include "../libcuda/gpu-sim.h"
+// #include "gpgpu-sim/icnt_wrapper.h"
+#include "../libcuda/stream_manager.h"
+#include "../libcuda/gpgpusim_entrypoint.h"
+
+#include "../libgem5cuda/gem5cuda_runtime_api.h"
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -67,6 +70,7 @@ static void print_simulation_time();
 void *gpgpu_sim_thread_sequential(void*)
 {
    // at most one kernel running at a time
+   /* FIXME move logic to gem5cuda
    bool done;
    do {
       sem_wait(&g_sim_signal_start);
@@ -86,7 +90,9 @@ void *gpgpu_sim_thread_sequential(void*)
       sem_post(&g_sim_signal_finish);
    } while(!done);
    sem_post(&g_sim_signal_exit);
+   */
    return NULL;
+
 }
 
 pthread_mutex_t g_sim_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -121,7 +127,8 @@ void *gpgpu_sim_thread_concurrent(void*)
         pthread_mutex_unlock(&g_sim_lock);
         bool active = false;
         bool sim_cycles = false;
-        g_the_gpu->init();
+        // it is already init
+        // FIXME schi g_the_gpu->init();
         do {
             // check if a kernel has completed
             // launch operation on device if one is pending and can be run
@@ -133,31 +140,35 @@ void *gpgpu_sim_thread_concurrent(void*)
             // another kernel, the gpu is not re-initialized and the inter-kernel
             // behaviour may be incorrect. Check that a kernel has finished and
             // no other kernel is currently running.
-            if(g_stream_manager->operation(&sim_cycles) && !g_the_gpu->active())
+            // FIXME
+            // if(g_stream_manager->operation(&sim_cycles) && !g_the_gpu->active())
+            if(g_stream_manager->operation(&sim_cycles) && !gem5gpu_active())
                 break;
 
             //functional simulation
+            /* TODO i assume it is not used
             if( g_the_gpu->is_functional_sim()) {
                 kernel_info_t * kernel = g_the_gpu->get_functional_kernel();
                 assert(kernel);
                 gpgpu_cuda_ptx_sim_main_func(*kernel);
                 g_the_gpu->finish_functional_sim(kernel);
             }
+            */
 
             //performance simulation
-            if( g_the_gpu->active() ) {
+            if( gem5gpu_active() ) {
                 // TODO schi g_the_gpu->cycle();
                 sim_cycles = true;
-                g_the_gpu->deadlock_check();
+                gem5gpu_deadlock_check();
             }else {
-                if(g_the_gpu->cycle_insn_cta_max_hit()){
+                if(gem5gpu_cycle_insn_cta_max_hit()){
                     g_stream_manager->stop_all_running_kernels();
                     g_sim_done = true;
                     break_limit = true;
                 }
             }
 
-            active=g_the_gpu->active() || !g_stream_manager->empty_protected();
+            active=gem5gpu_active() || !g_stream_manager->empty_protected();
 
         } while( active && !g_sim_done);
         if(g_debug_execution >= 3) {
@@ -165,9 +176,11 @@ void *gpgpu_sim_thread_concurrent(void*)
            fflush(stdout);
         }
         if(sim_cycles) {
+            /* TODO
             g_the_gpu->print_stats();
             g_the_gpu->update_stats();
             print_simulation_time();
+            */
         }
         pthread_mutex_lock(&g_sim_lock);
         g_sim_active = false;
@@ -226,7 +239,7 @@ gpgpu_sim *gpgpu_ptx_sim_init_perf()
    ptx_reg_options(opp);
    ptx_opcocde_latency_options(opp);
 
-   icnt_reg_options(opp);
+   // FIXMEicnt_reg_options(opp);
    g_the_gpu_config.reg_options(opp); // register GPU microrachitecture options
 
    option_parser_cmdline(opp, sg_argc, sg_argv); // parse configuration options
@@ -256,7 +269,7 @@ gpgpu_sim *gem5_ptx_sim_init_perf(stream_manager **p_stream_manager, CudaGPU *cu
    read_parser_environment_variables();
    option_parser_t opp = option_parser_create();
 
-   icnt_reg_options(opp);
+   // FIXME icnt_reg_options(opp);
    g_the_gpu_config.reg_options(opp); // register GPU microrachitecture options
    ptx_reg_options(opp);
    ptx_opcocde_latency_options(opp);
@@ -305,11 +318,12 @@ void print_simulation_time()
    fflush(stderr);
    printf("\n\ngpgpu_simulation_time = %u days, %u hrs, %u min, %u sec (%u sec)\n",
           (unsigned)d, (unsigned)h, (unsigned)m, (unsigned)s, (unsigned)difference );
-   printf("gpgpu_simulation_rate = %u (inst/sec)\n", (unsigned)(g_the_gpu->gpu_tot_sim_insn / difference) );
-   printf("gpgpu_simulation_rate = %u (cycle/sec)\n", (unsigned)(gpu_tot_sim_cycle / difference) );
+   // printf("gpgpu_simulation_rate = %u (inst/sec)\n", (unsigned)(g_the_gpu->gpu_tot_sim_insn / difference) );
+   // printf("gpgpu_simulation_rate = %u (cycle/sec)\n", (unsigned)(gpu_tot_sim_cycle / difference) );
    fflush(stdout);
 }
 
+/* TODO
 int gpgpu_opencl_ptx_sim_main_perf( kernel_info_t *grid )
 {
    g_the_gpu->launch(grid);
@@ -317,11 +331,13 @@ int gpgpu_opencl_ptx_sim_main_perf( kernel_info_t *grid )
    sem_wait(&g_sim_signal_finish);
    return 0;
 }
+*/
 
 //! Functional simulation of OpenCL
 /*!
  * This function call the CUDA PTX functional simulator
  */
+/*
 int gpgpu_opencl_ptx_sim_main_func( kernel_info_t *grid )
 {
     //calling the CUDA PTX simulator, sending the kernel by reference and a flag set to true,
@@ -330,3 +346,4 @@ int gpgpu_opencl_ptx_sim_main_func( kernel_info_t *grid )
    gpgpu_cuda_ptx_sim_main_func( *grid, true );
    return 0;
 }
+*/

@@ -28,12 +28,16 @@
 #ifndef memory_h_INCLUDED
 #define memory_h_INCLUDED
 
+#ifndef LIBCUDA
 #include "../abstract_hardware_model.h"
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#endif
 
 #include "../tr1_hash_map.h"
 #define mem_map tr1_hash_map
 #if tr1_hash_map_ismap == 1
-   #define MEM_MAP_RESIZE(hash_size) 
+   #define MEM_MAP_RESIZE(hash_size)
 #else
    #define MEM_MAP_RESIZE(hash_size) (m_data.rehash(hash_size))
 #endif
@@ -118,11 +122,11 @@ public:
    virtual void write_only( mem_addr_t index, mem_addr_t offset, size_t length, const void *data);
    virtual void read( mem_addr_t addr, size_t length, void *data ) const;
    virtual void print( const char *format, FILE *fout ) const;
-   
-   virtual void set_watch( addr_t addr, unsigned watchpoint ); 
+
+   virtual void set_watch( addr_t addr, unsigned watchpoint );
 
 private:
-   void read_single_block( mem_addr_t blk_idx, mem_addr_t addr, size_t length, void *data) const; 
+   void read_single_block( mem_addr_t blk_idx, mem_addr_t addr, size_t length, void *data) const;
    std::string m_name;
    unsigned m_log2_block_size;
    typedef mem_map<mem_addr_t,mem_storage<BSIZE> > map_t;

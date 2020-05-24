@@ -29,8 +29,13 @@
 #include <string>
 #include "ptx_ir.h"
 #include "ptx.tab.h"
+
+#ifndef LIBCUDA
 #include "../gpgpu-sim/gpu-sim.h"
 #include "../gpgpu-sim/shader.h"
+#else
+#include "gpu-sim.h"
+#endif
 
 void feature_not_implemented( const char *f );
 

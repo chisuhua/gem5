@@ -77,6 +77,7 @@ void gpgpu_sim::gpgpu_debug()
    if( single_step ) 
       done=false;
 
+#ifndef LIBCUDA
    /// check if we've reached a breakpoint
    const ptx_thread_info *brk_thd = NULL;
    const ptx_instruction *brk_inst = NULL;
@@ -220,6 +221,7 @@ void gpgpu_sim::gpgpu_debug()
       }
       fflush(stdout);
    }
+#endif
 }
 
 bool thread_at_brkpt( ptx_thread_info *thread, const class brk_pt &b )

@@ -28,7 +28,19 @@
 #include "ptx_parser.h"
 #include "ptx_ir.h"
 #include "ptx.tab.h"
+
+#ifndef LIBCUDA
 #include "gpu/gpgpu-sim/cuda_gpu.hh"
+#else
+
+namespace m5op {
+    extern "C" {
+#include "../libgem5cuda/m5op.h"
+    }
+}
+
+#endif
+
 #include <stdarg.h>
 
 extern gpgpu_sim *g_the_gpu;
@@ -529,7 +541,12 @@ void add_identifier( const char *identifier, int array_dim, unsigned array_ident
          // To signal gem5-gpu to allocate local memory for the GPU, add the
          // local allocation to the global symbol table
          g_global_symbol_table->alloc_local(num_bits/8 + addr_pad);
+#ifndef LIBCUDA
          panic("gem5-gpu: This local memory path is untested!");
+#else
+         printf("gem5-gpu: This local memory path is untested!");
+         m5op::m5_panic();
+#endif
       } else {
         printf("GPGPU-Sim PTX: allocating stack frame region for .local \"%s\" ",
                identifier);

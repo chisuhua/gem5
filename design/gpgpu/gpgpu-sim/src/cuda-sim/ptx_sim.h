@@ -29,8 +29,14 @@
 
 #include <stdlib.h>
 #include "half.h"
+
+#ifndef LIBCUDA
 #include "../abstract_hardware_model.h"
-#include "../tr1_hash_map.h" 
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#endif
+
+#include "../tr1_hash_map.h"
 
 #include <assert.h>
 #include "opcodes.h"
