@@ -37,11 +37,11 @@
 using namespace sc_core;
 using namespace std;
 
-Target::Target(sc_core::sc_module_name name, Top &top,
+Target::Target(sc_core::sc_module_name name, axi_bridge &bridge,
     bool debug,
     unsigned long long int size,
     unsigned int offset) :
-    top(top),
+    bridge(bridge),
     socket("socket"),
     socket_to_bridge("socket_to_bridge"),
     transaction_in_progress(0),
@@ -58,7 +58,7 @@ Target::Target(sc_core::sc_module_name name, Top &top,
     socket.register_transport_dbg(this, &Target::transport_dbg);
     socket.register_nb_transport_fw(this, &Target::nb_transport_fw);
 
-    socket_to_bridge.bind(top.slave_bridge.tgt_socket);
+    socket_to_bridge.bind(bridge.slave_bridge.tgt_socket);
 
     /* allocate storage memory */
     // mem = new unsigned char[size];

@@ -49,8 +49,8 @@ AXILitePCConfig checker_config()
         return cfg;
 }
 
-Top::Top(sc_module_name name) :
-            clk("clk", sc_time(1, SC_NS)),
+axi_bridge::axi_bridge(sc_module_name name) :
+            clk("clk"),
             rst_n("rst_n"),
             slave_signals("slave_signals"),
             master_signals("master_signals"),
@@ -144,3 +144,13 @@ Top::Top(sc_module_name name) :
         dut.m00_axi_rresp(master_signals.rresp);
 }
 
+Top::Top(sc_module_name name, int bridge_num) :
+        clk("clk", sc_time(1, SC_NS)),
+        rst_n("rst_n")
+{
+    for (int i=0; i< bridge_num; i++) {
+        bridge.push_back(new axi_bridge("bridge" + i));
+        bridge[i]->clk(clk);
+        bridge[i]->rst_n(rst_n);
+    }
+}

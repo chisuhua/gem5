@@ -142,6 +142,7 @@ class CxxConfigManager
     /** Apply the first matching renaming in renamings to the given name */
     std::string rename(const std::string &from_name);
 
+  public:
     /** Apply the first matching renaming in reverse (toPrefix -> fromPrefix
      *  for the given name */
     std::string unRename(const std::string &to_name);

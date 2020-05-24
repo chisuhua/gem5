@@ -69,8 +69,25 @@ SCMasterPort::generatePacket(tlm::tlm_generic_payload& trans)
      * Allocate a new Packet. The packet will be deleted when it returns from
      * the gem5 world as a response.
      */
+    // TODO schi add for BE support
+    std::vector<bool> byte_enable;
+	unsigned be_len = trans.get_byte_enable_length();
+	unsigned char *be = trans.get_byte_enable_ptr();
+	unsigned int i;
+	for (i = 0; i < be_len; i++) {
+		if (be[i] != TLM_BYTE_ENABLED) {
+            byte_enable.push_back(false);
+		} else {
+            byte_enable.push_back(true);
+        }
+	}
+    if (i == be_len) {
+        req->setByteEnable(byte_enable);
+    }
+
     auto pkt = new Packet(req, cmd);
     pkt->dataStatic(trans.get_data_ptr());
+
 
     return pkt;
 }
@@ -151,10 +168,13 @@ SCMasterPort::nb_transport_fw(tlm::tlm_generic_payload& trans,
     unsigned width = trans.get_streaming_width();
 
     // check the transaction attributes for unsupported features ...
+    //FIXME schi i just comment out , since byte align address write
+    /*
     if (byteEnable != 0) {
         trans.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
         return tlm::TLM_COMPLETED;
     }
+    */
     if (width < len) { // is this a burst request?
         trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
         return tlm::TLM_COMPLETED;
@@ -163,6 +183,13 @@ SCMasterPort::nb_transport_fw(tlm::tlm_generic_payload& trans,
     // ... and queue the valid transaction
     trans.acquire();
     peq.notify(trans, phase, delay);
+
+    // FIXME schi, sc_initiator send END_RESP it is expect to TLM_COMPLETED
+    // and it need to check in future is it right to add trans.release() here
+    if (phase == tlm::END_RESP) {
+        trans.release();
+        return tlm::TLM_COMPLETED;
+    }
     return tlm::TLM_ACCEPTED;
 }
 

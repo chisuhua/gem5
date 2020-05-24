@@ -9,6 +9,10 @@
 #include "sc_initiator.hh"
 #include "sim_control.hh"
 #include "stats.hh"
+#include "cxx_config/ExternalMaster.hh"
+#include "cxx_config/ExternalSlave.hh"
+#include "base/addr_range.hh"
+
 
 int
 sc_main(int argc, char **argv)
@@ -25,30 +29,107 @@ sc_main(int argc, char **argv)
                                            parser.getSimulationEnd(),
                                            parser.getDebugFlags());
 
-    Top top("top");
-    // Master Transactor
-    Gem5SystemC::Gem5MasterTransactor master_transactor("master_transactor", "master_transactor");
+    std::map<std::string,int> tlmObjectByName;
+    std::map<std::string,std::string> tlmMasterPortName;
+    std::map<std::string,std::string> tlmSlavePortName;
+    std::map<std::string,AddrRange> tlmSlaveAddrRange;
+    std::vector<std::string> tlmName;
 
-    Initiator initiator("traffic_generator", top);
-    initiator.initiator_socket.bind(master_transactor.socket);
+    CxxConfigManager *config_manager = sim_control.config_manager;
+    std::list<SimObject *> objectsInOrder = config_manager->objectsInOrder;
 
-    master_transactor.sim_control.bind(sim_control);
+    for (auto i = objectsInOrder.begin(); i != objectsInOrder.end(); ++i)
+    {
+        SimObject *object = *i;
+        const std::string &instance_name = object->name();
+        std::string object_name = config_manager->unRename(instance_name);
+
+        std::string object_type;
+        const CxxConfigDirectoryEntry &entry = config_manager->findObjectType(object_name, object_type);
+        CxxConfigParams* params = config_manager->findObjectParams(object_name);
+
+        if (object_type == "ExternalMaster")
+        {
+            std::size_t pos = object_name.find("master");
+            object_name.replace(pos, 6,"");
+            tlmMasterPortName[object_name] = ((ExternalMasterCxxConfigParams*)params)->port_data;
+            if (tlmObjectByName.find(object_name) != tlmObjectByName.end())
+            {
+                tlmObjectByName[object_name] |= 0x1;
+            } else {
+                tlmObjectByName[object_name] = 1;
+            }
+        }
+
+        if (object_type == "ExternalSlave")
+        {
+            std::size_t pos = object_name.find("slave");
+            object_name.replace(pos, 5,"");
+            tlmSlavePortName[object_name] = ((ExternalSlaveCxxConfigParams*)params)->port_data;
+            tlmSlaveAddrRange[object_name] = ((ExternalSlaveCxxConfigParams*)params)->addr_ranges;
+            if (tlmObjectByName.find(object_name) != tlmObjectByName.end())
+            {
+                tlmObjectByName[object_name] |= 0x2;
+            } else {
+                tlmObjectByName[object_name] = 0x2;
+            }
+        }
+
+        // printf(object_type.c_str());
+    }
+
+    int num_of_bridge = 0;
+    for (auto i = tlmObjectByName.begin(); i != tlmObjectByName.end(); ++i)
+    {
+        std::string tlm_name = (*i).first;
+        tlmName.push_back(tlm_name);
+        int tlm_type = (*i).second;
+        if (tlm_type == 3) {
+            num_of_bridge++;
+        } else {
+            assert("only support bridge now");
+        }
+    }
+
+    Top top("top", num_of_bridge);
+    std::vector<Gem5SystemC::Gem5MasterTransactor*> master_transactor;
+    std::vector<Gem5SystemC::Gem5SlaveTransactor*> slave_transactor;
+
+    std::vector<Initiator*> initiator;
+    std::vector<Target*> target;
+
+    for (int i=0; i< num_of_bridge; i++) {
+        std::string object_name = tlmName[i];
+        // Master Transactor
+        master_transactor.push_back(new Gem5SystemC::Gem5MasterTransactor("master_transactor" + i, tlmMasterPortName[object_name]));
+
+        initiator.push_back(new Initiator("TrafficInitiator" + i, *(top.bridge[i])));
+        initiator[i]->initiator_socket.bind(master_transactor[i]->socket);
+
+        master_transactor[i]->sim_control.bind(sim_control);
 
 
-    // Slave Transactor
-    // unsigned long long int memorySize = 512*1024*1024ULL;
-    unsigned long long int memorySize = 16ULL;
-    Gem5SystemC::Gem5SlaveTransactor  slave_transactor("slave_transactor", "slave_transactor");
-    Target memory("memory", top,
+        // Slave Transactor
+        // unsigned long long int memorySize = 512*1024*1024ULL;
+        slave_transactor.push_back(new Gem5SystemC::Gem5SlaveTransactor("slave_transactor" + i, tlmSlavePortName[object_name]));
+
+        AddrRange range = tlmSlaveAddrRange[object_name];
+        unsigned long long int target_start = range.start();
+        unsigned long long int target_size = range.size();
+
+        target.push_back(new Target("TrafficTarget" + i, *(top.bridge[i]),
                   parser.getVerboseFlag(),
-                  memorySize,
-                  parser.getMemoryOffset());
+                  target_size,
+                  target_start));    // fixme
+                  // parser.getMemoryOffset());    // fixme
 
-    memory.socket.bind(slave_transactor.socket);
-    slave_transactor.sim_control.bind(sim_control);
+        target[i]->socket.bind(slave_transactor[i]->socket);
+        slave_transactor[i]->sim_control.bind(sim_control);
 
-    top.master_signals.Trace(trace_fp);
-    top.slave_signals.Trace(trace_fp);
+        top.bridge[i]->master_signals.Trace(trace_fp);
+        top.bridge[i]->slave_signals.Trace(trace_fp);
+    }
+
     sc_trace(trace_fp, top.rst_n, "rst_n");
     sc_trace(trace_fp, top.clk, "clk");
     // sc_trace(trace_fp, top.bridge.resetn, "bridge.resetn");
