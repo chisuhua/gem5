@@ -45,19 +45,19 @@ from m5.objects import *
 #         |      +----+       | (see this file)
 #         |      |            |
 # +-------v------v-------+    |
-# |        Membus        |    v
+# |        Membus1       |    v
 # +----------------+-----+    External Port (see sc_slave_port.*)
-#                  |          ^
-#              +---v---+      | TLM World
-#              |  TLM  |      | (see sc_target.*)
-#              +-------+      v
-##                  |          ^
-#              +---v---+      | TLM World
-#              |  TLM  |      | (see sc_initiator.*)
-#              +-------+      v
-#                  |          |
+#       |            |          ^
+#   +---v---+    +---v---+      | TLM World
+#   |  TLM  |    |  TLM  |      | (see sc_target.*)
+#   +-------+    +-------+      v
+##       |            |          ^
+#   +---v---+    +---v---+      | TLM World
+#   |  TLM  |    |  TLM  |      | (see sc_initiator.*)
+#   +-------+    +-------+      v
+#       |            |          |
 # +----------------v-----+    |
-# |        Membus        |    v
+# |        Membus2       |    v
 # +----------------+-----+    External Port (see sc_slave_port.*)
 #            |                | gem5 World
 #        +---v----+           |
@@ -75,7 +75,7 @@ system.physmem = SimpleMemory(range = AddrRange('512MB'))
 #system.cpu = TrafficGen(config_file = "conf/tgen.cfg")
 system.cpu = MemTest(max_loads = 1e5, progress_interval = 16,
                      progress_check = 1e4,
-                    size = 16,
+                    size = 0x20000000,
                     block_addrmask = 1,
                     base_addr1 = 0,
                     base_addr2 = 0,
@@ -89,13 +89,15 @@ system.clk_domain = SrcClockDomain(clock = '1.5GHz',
     voltage_domain = VoltageDomain(voltage = '1V'))
 
 # Create a external TLM port:
-system.tlm_slave = ExternalSlave()
-system.tlm_slave.addr_ranges = [AddrRange('512MB')]
+system.tlm_slave_0 = ExternalSlave()
+system.tlm_slave_0.addr_ranges = [AddrRange('256MB')]
 
 # sim_controll.cc will pre-register tlm_master&tlm_slave portHandler
+# so port_type is either tlm_master or tlm_slave
+
 # tlm_salve is register as to SCSlavePortHandler in ExternalSlave class (external_slave.cc)
 # sim_controll.cc also hook up event queue, load ini file, and instantiate all object
-system.tlm_slave.port_type = "tlm_slave"
+system.tlm_slave_0.port_type = "tlm_slave"
 
 # when bindPort, the ExternalSlave object will bind their port
 # by using SCSlavePortHandler's getExternalPort, the port_data is pass as argument
@@ -103,7 +105,7 @@ system.tlm_slave.port_type = "tlm_slave"
 # and call sim_control to register port_data into slavePorts via registerSlavePort
 #    std::map<const std::string, SCSlavePort*> slavePorts;
 #    std::map<const std::string, SCMasterPort*> masterPorts;
-system.tlm_slave.port_data = "slave_transactor"
+system.tlm_slave_0.port_data = "slave_transactor_0"
 
 # in main.c it need to create a Gem5SlaveTransactor, it use same port name as port_data
 # Gem5SlaveTransactor is sc_module it will call sim_control to get SlavePort and bind
@@ -120,20 +122,32 @@ system.tlm_slave.port_data = "slave_transactor"
 
 
 # Create a external TLM master port:
-system.tlm_master = ExternalMaster()
-system.tlm_slave.addr_ranges = [AddrRange('512MB')]
-system.tlm_master.port_type = "tlm_master"
-system.tlm_master.port_data = "master_transactor"
+system.tlm_master_0 = ExternalMaster()
+
+system.tlm_master_0.port_type = "tlm_master"
+system.tlm_master_0.port_data = "master_transactor_0"
 
 
+# pair 1
+system.tlm_slave_1 = ExternalSlave()
+system.tlm_slave_1.addr_ranges = [AddrRange(start=Addr(0x10000000), size='256MB')]
+system.tlm_slave_1.port_type = "tlm_slave"
+system.tlm_slave_1.port_data = "slave_transactor_1"
+
+system.tlm_master_1 = ExternalMaster()
+system.tlm_master_1.port_type = "tlm_master"
+system.tlm_master_1.port_data = "master_transactor_1"
 
 
 # Route the connections:
 system.cpu.port = system.membus1.slave
 system.system_port = system.membus1.slave
-system.membus1.master = system.tlm_slave.port
+system.membus1.master = system.tlm_slave_0.port
+system.membus1.master = system.tlm_slave_1.port
 
-system.tlm_master.port = system.membus2.slave
+system.tlm_master_0.port = system.membus2.slave
+system.tlm_master_1.port = system.membus2.slave
+
 system.physmem.port = system.membus2.master
 
 system.memchecker = MemChecker()

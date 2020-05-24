@@ -3,9 +3,9 @@
 #include "sc_initiator.hh"
 #include "top.hh"
 
-Initiator::Initiator(sc_core::sc_module_name name, Top &top)
+Initiator::Initiator(sc_core::sc_module_name name, axi_bridge &bridge)
   : sc_core::sc_module(name),
-    top(top),
+    bridge(bridge),
     target_socket("target_socket"),
     initiator_socket("initiator_socket"),
     request_peq("request_peq"),
@@ -16,7 +16,7 @@ Initiator::Initiator(sc_core::sc_module_name name, Top &top)
 
     // target_socket.bind(top.master_bridge.socket);
     // top.bridge.socket.bind(target_socket);
-    top.master_bridge.socket.bind(target_socket);
+    bridge.master_bridge.socket.bind(target_socket);
     target_socket.register_nb_transport_fw(this, &Initiator::nb_transport_fw);
 
     SC_THREAD(request_process);

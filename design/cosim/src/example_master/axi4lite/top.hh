@@ -51,10 +51,11 @@ using namespace std;
 
 
 // Top simulation module.
-SC_MODULE(Top)
+SC_MODULE(axi_bridge)
 {
-    sc_clock clk;
-    sc_signal<bool> rst_n; // Active low.
+public:
+    sc_in<bool> clk;
+    sc_in<bool> rst_n; // Active low.
 
     AXILiteSignals<ADDR_WIDTH, DATA_WIDTH > slave_signals;
     tlm2axilite_bridge<ADDR_WIDTH, DATA_WIDTH > slave_bridge;
@@ -65,9 +66,22 @@ SC_MODULE(Top)
     axilite2tlm_bridge<ADDR_WIDTH, DATA_WIDTH > master_bridge;
     AXILiteProtocolChecker<ADDR_WIDTH, DATA_WIDTH > master_checker;
 
+public:
     // dut is the RTL AXI4Lite device we're testing.
     Vaxilite_join dut;
+    axi_bridge(sc_module_name name);
+};
 
-    Top(sc_module_name name);
+SC_MODULE(Top)
+{
+public:
+    sc_clock clk;
+    sc_signal<bool> rst_n; // Active low.
+
+
+    // dut is the RTL AXI4Lite device we're testing.
+    std::vector<axi_bridge*> bridge;
+
+    Top(sc_module_name name, int bridge_num);
 };
 
