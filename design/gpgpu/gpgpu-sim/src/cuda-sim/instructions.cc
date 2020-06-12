@@ -43,9 +43,14 @@
 #include "../abstract_hardware_model.h"
 #include "ptx_loader.h"
 #include "cuda_device_printf.h"
+
+#ifndef LIBCUDA
 #include "gpu/gpgpu-sim/cuda_gpu.hh"
+
 #include "../gpgpu-sim/gpu-sim.h"
 #include "../gpgpu-sim/shader.h"
+#endif
+
 #include <assert.h>
 #include <string.h>
 #include <sstream>
@@ -852,6 +857,8 @@ void ptx_thread_info::set_wmma_vector_operand_values( const operand_info &dst,
 
    m_last_set_operand_value = data8;
 }
+
+#ifndef LIBCUDA
 
 #define my_abs(a) (((a)<0)?(-a):(a))
 
@@ -5712,3 +5719,4 @@ ptx_reg_t srcOperandModifiers(ptx_reg_t opData, operand_info opInfo, operand_inf
    return result;
 }
 
+#endif

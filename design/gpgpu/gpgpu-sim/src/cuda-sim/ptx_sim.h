@@ -29,8 +29,14 @@
 
 #include <stdlib.h>
 #include "half.h"
+
+#ifndef LIBCUDA
 #include "../abstract_hardware_model.h"
-#include "../tr1_hash_map.h" 
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#endif
+
+#include "../tr1_hash_map.h"
 
 #include <assert.h>
 #include "opcodes.h"
@@ -271,7 +277,7 @@ private:
                m_texmode_unified=true;
             else if( !strcmp(ext,"map_f64_to_f32") ) 
                m_map_f64_to_f32 = true; 
-            else abort();
+            // FIXME schi else abort();
          }
       }
 

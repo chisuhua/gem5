@@ -29,7 +29,7 @@
 #define STREAM_MANAGER_H_INCLUDED
 
 #include "abstract_hardware_model.h"
-#include "cpu/thread_context.hh"
+// FIXME on disable context #include "cpu/thread_context.hh"
 #include <list>
 #include <pthread.h>
 #include <time.h>
@@ -55,29 +55,19 @@ public:
       m_gpu_tot_sim_cycle = 0;
       m_issued = 0;
       m_done = false;
-
-      // TODO schi
-      m_needs_unblock = false;
-      m_ticks = 0;
    }
-   // void update( double cycle, time_t clk )
-   void update( double cycle, time_t clk, unsigned long long ticks)
+   void update( double cycle, time_t clk )
    {
       m_updates++;
       m_wallclock=clk;
       m_gpu_tot_sim_cycle=cycle;
       m_done = true;
-      m_ticks = ticks; // TODO schi
    }
    //void set_done() { assert(!m_done); m_done=true; }
    int get_uid() const { return m_uid; }
    unsigned num_updates() const { return m_updates; }
    bool done() const { return m_updates==m_issued; }
    time_t clock() const { return m_wallclock; }
-   unsigned long long ticks() const { return m_ticks; }
-   void set_needs_unblock(bool unblock) {m_needs_unblock = unblock;}
-   bool needs_unblock() { return m_needs_unblock;}
-   void reset() {m_needs_unblock = false; m_done = false;}
    void issue(){ m_issued++; }
    unsigned int num_issued() const{ return m_issued; }
 private:
@@ -88,11 +78,10 @@ private:
    unsigned int m_issued;
    time_t m_wallclock;
    double m_gpu_tot_sim_cycle;
-   unsigned long long m_ticks;
 
    static int m_next_event_uid;
-   bool m_needs_unblock;
 };
+
 
 enum stream_operation_type {
     stream_no_op,
@@ -115,7 +104,6 @@ public:
         m_type = stream_no_op;
         m_stream = NULL;
         m_done=true;
-        launchTime = curTick(); // TODO schi
     }
     stream_operation( const void *src, const char *symbol, size_t count, size_t offset, struct CUstream_st *stream )
     {
@@ -127,7 +115,6 @@ public:
         m_cnt=count;
         m_offset=offset;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( const char *symbol, void *dst, size_t count, size_t offset, struct CUstream_st *stream )
     {
@@ -139,7 +126,6 @@ public:
         m_cnt=count;
         m_offset=offset;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( kernel_info_t *kernel, bool sim_mode, struct CUstream_st *stream )
     {
@@ -148,7 +134,6 @@ public:
         m_sim_mode=sim_mode;
         m_stream=stream;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( struct CUevent_st *e, struct CUstream_st *stream )
     {
@@ -157,7 +142,6 @@ public:
         m_event=e;
         m_stream=stream;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( struct CUstream_st *stream, class CUevent_st *e, unsigned int flags )
     {
@@ -167,7 +151,6 @@ public:
         m_cnt = m_event->num_issued();
         m_stream=stream;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( const void *host_address_src, size_t device_address_dst, size_t cnt, struct CUstream_st *stream )
     {
@@ -181,7 +164,6 @@ public:
         m_stream=stream;
         m_sim_mode=false;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( size_t device_address_src, void *host_address_dst, size_t cnt, struct CUstream_st *stream  )
     {
@@ -195,7 +177,6 @@ public:
         m_stream=stream;
         m_sim_mode=false;
         m_done=false;
-        launchTime = curTick();
     }
     stream_operation( size_t device_address_src, size_t device_address_dst, size_t cnt, struct CUstream_st *stream  )
     {
@@ -209,7 +190,6 @@ public:
         m_stream=stream;
         m_sim_mode=false;
         m_done=false;
-        launchTime = curTick();
     }
     // TODO schi check it is need
     stream_operation( size_t device_address_dst, int value, size_t cnt, struct CUstream_st *stream )
@@ -225,7 +205,6 @@ public:
         m_stream=stream;
         m_sim_mode=false;
         m_done=false;
-        launchTime = curTick();
     }
 
     bool is_kernel() const { return m_type == stream_kernel_launch; }
@@ -241,11 +220,6 @@ public:
     void print( FILE *fp ) const;
     struct CUstream_st *get_stream() { return m_stream; }
     void set_stream( CUstream_st *stream ) { m_stream = stream; }
-
-    // TODO schi remove it in next step
-    // For handling the gem5 thread context
-    void setThreadContext(ThreadContext *_tc) { tc = _tc; }
-
 private:
     struct CUstream_st *m_stream;
 
@@ -265,12 +239,6 @@ private:
     bool m_sim_mode;
     kernel_info_t *m_kernel;
     struct CUevent_st *m_event;
-    Tick launchTime;
-
-    // TODO schi remove it 
-    // The gem5 thread context executing this stream
-    ThreadContext *tc;
-
 };
 struct CUstream_st {
 public:
@@ -285,9 +253,6 @@ public:
     stream_operation &front() { return m_operations.front(); }
     void print( FILE *fp );
     unsigned get_uid() const { return m_uid; }
-    // For handling the gem5 thread context
-    void setThreadContext(ThreadContext *_tc) { tc = _tc; }
-    ThreadContext *getThreadContext() { return tc; }
 
 private:
     unsigned m_uid;
@@ -297,8 +262,6 @@ private:
     bool m_pending; // front operation has started but not yet completed
 
     pthread_mutex_t m_lock; // ensure only one host or gpu manipulates stream operation at one time
-    // The gem5 thread context executing this stream
-    ThreadContext *tc;
 };
 
 class stream_manager {

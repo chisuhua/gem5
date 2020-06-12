@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 
+#include "stream_manager.h"
 #include "base/callback.hh"
 #include "debug/CudaGPU.hh"
 #include "debug/CudaGPUPageTable.hh"
@@ -48,7 +49,6 @@
 #include "sim/eventq.hh"
 #include "sim/process.hh"
 #include "sim/system.hh"
-#include "stream_manager.h"
 
 /**
  * A wrapper class to manage the clocking of GPGPU-Sim-side components.
@@ -610,6 +610,8 @@ class CudaGPU : public ClockedObject
     Stats::Scalar numKernelsStarted;
     Stats::Scalar numKernelsCompleted;
     void regStats();
+
+    bool is_active() { return theGPU->active(); }
 };
 
 /**

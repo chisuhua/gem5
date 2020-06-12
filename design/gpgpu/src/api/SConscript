@@ -3,6 +3,7 @@ Import('*')
 if env['TARGET_ISA'] != 'no':
     Source('gpu_syscall_helper.cc')
     #Source('cuda_syscalls.cc', Werror=False)
-    Source('cuda_syscalls.cc', append={'CXXFLAGS': '-Wno-error=pointer-arith -Wno-error=unused-variable -Wno-error=type-limits'})
+    #Source('cuda_syscalls.cc', append={'CXXFLAGS': '-Wno-error=pointer-arith -Wno-error=unused-variable -Wno-error=type-limits'})
+    Source('libcuda_syscalls.cc', append={'CXXFLAGS': '-Wno-error=pointer-arith -Wno-error=unused-variable -Wno-error=type-limits -Wno-error=unused-function'})
 
 DebugFlag('GPUSyscalls')

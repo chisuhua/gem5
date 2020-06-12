@@ -182,7 +182,8 @@ void gpgpu_functional_sim_config::ptx_set_tex_cache_linesize(unsigned linesize)
 gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu )
     : gem5CudaGPU(cuda_gpu), m_function_model_config(config)
 {
-   m_global_mem = new memory_space_impl<8192>("global",64*1024);
+   // m_global_mem = new memory_space_impl<8192>("global",64*1024);
+   m_global_mem = NULL; // Accesses to global memory should go through gem5-gpu
    
    m_tex_mem = new memory_space_impl<8192>("tex",64*1024);
    m_surf_mem = new memory_space_impl<8192>("surf",64*1024);

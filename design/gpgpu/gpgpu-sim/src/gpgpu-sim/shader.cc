@@ -810,7 +810,9 @@ void shader_core_ctx::fetch()
                 if( !m_warp[warp_id].functional_done() && !m_warp[warp_id].imiss_pending() && m_warp[warp_id].ibuffer_empty() ) {
                     address_type pc  = m_warp[warp_id].get_pc();
                     // TODO schi address_type ppc = pc + PROGRAM_MEM_START;
-                    address_type ppc = pc + m_kernel->get_inst_base_vaddr();
+                    // FIXME FIXME
+                    address_type ppc = pc + PROGRAM_MEM_START;
+                    // address_type ppc = pc + m_kernel->get_inst_base_vaddr();
                     unsigned nbytes=16;
                     unsigned offset_in_block = pc & (m_config->m_L1I_config.get_line_sz()-1);
                     if( (offset_in_block+nbytes) > m_config->m_L1I_config.get_line_sz() )

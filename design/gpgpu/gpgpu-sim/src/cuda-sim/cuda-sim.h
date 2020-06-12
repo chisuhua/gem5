@@ -28,8 +28,14 @@
 #ifndef CUDASIM_H_INCLUDED
 #define CUDASIM_H_INCLUDED
 
+#ifndef LIBCUDA
 #include "../abstract_hardware_model.h"
 #include"../gpgpu-sim/shader.h"
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#include"../option_parser.h"
+#endif
+
 #include <stdlib.h>
 #include <map>
 #include <vector>

@@ -426,7 +426,10 @@ readlinkFunc(SyscallDesc *desc, int num, ThreadContext *tc,
     BufferArg buf(buf_ptr, bufsiz);
 
     int result = -1;
-    if (path != "/proc/self/exe") {
+    std::size_t found = path.rfind("/proc/self/exe");
+    printf("found /proc/self/exe position: %ld\n", found);
+
+    if ((path != "/proc/self/exe") & (path.rfind("/proc/self/exe") == std::string::npos)) {
         result = readlink(path.c_str(), (char *)buf.bufferPtr(), bufsiz);
     } else {
         // Emulate readlink() called on '/proc/self/exe' should return the

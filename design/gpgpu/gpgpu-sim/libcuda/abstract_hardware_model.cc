@@ -32,19 +32,17 @@
 #include "cuda-sim/ptx_ir.h"
 #include "cuda-sim/ptx-stats.h"
 #include "cuda-sim/cuda-sim.h"
-#include "gpgpu-sim/gpu-sim.h"
+#include "../libcuda/gpu-sim.h"
 
-// TODO schi
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
+
 #include "option_parser.h"
 #include <algorithm>
 #include <sys/stat.h>
 #include <sstream>
 #include <iostream>
 
-extern gpgpu_sim *g_the_gpu;
 
-unsigned mem_access_t::sm_next_access_uid = 0;   
+unsigned mem_access_t::sm_next_access_uid = 0;
 unsigned warp_inst_t::sm_next_uid = 0;
 
 checkpoint::checkpoint()
@@ -73,7 +71,7 @@ void checkpoint::load_global_mem(class memory_space *temp_mem, char * f1name)
          {
 
            pch = strtok (NULL, " ");
-           
+
            std::stringstream ss;
             ss << std::hex << pch;
             ss >> index;
@@ -127,28 +125,28 @@ void gpgpu_functional_sim_config::reg_options(class OptionParser * opp)
 	                 &m_experimental_lib_support,
 	                 "Try to extract code from cuda libraries [Broken because of unknown cudaGetExportTable]",
 	                 "0");
-  option_parser_register(opp, "-checkpoint_option", OPT_INT32, &checkpoint_option, 
+  option_parser_register(opp, "-checkpoint_option", OPT_INT32, &checkpoint_option,
                " checkpointing flag (0 = no checkpoint)",
                "0");
-  option_parser_register(opp, "-checkpoint_kernel", OPT_INT32, &checkpoint_kernel, 
+  option_parser_register(opp, "-checkpoint_kernel", OPT_INT32, &checkpoint_kernel,
                " checkpointing during execution of which kernel (1- 1st kernel)",
                "1");
-  option_parser_register(opp, "-checkpoint_CTA", OPT_INT32, &checkpoint_CTA, 
+  option_parser_register(opp, "-checkpoint_CTA", OPT_INT32, &checkpoint_CTA,
                " checkpointing after # of CTA (< less than total CTA)",
                "0");
-  option_parser_register(opp, "-resume_option", OPT_INT32, &resume_option, 
+  option_parser_register(opp, "-resume_option", OPT_INT32, &resume_option,
                " resume flag (0 = no resume)",
                "0");
-  option_parser_register(opp, "-resume_kernel", OPT_INT32, &resume_kernel, 
+  option_parser_register(opp, "-resume_kernel", OPT_INT32, &resume_kernel,
                " Resume from which kernel (1= 1st kernel)",
                "0");
-   option_parser_register(opp, "-resume_CTA", OPT_INT32, &resume_CTA, 
+   option_parser_register(opp, "-resume_CTA", OPT_INT32, &resume_CTA,
                " resume from which CTA ",
                "0");
-      option_parser_register(opp, "-checkpoint_CTA_t", OPT_INT32, &checkpoint_CTA_t, 
+      option_parser_register(opp, "-checkpoint_CTA_t", OPT_INT32, &checkpoint_CTA_t,
                " resume from which CTA ",
                "0");
-         option_parser_register(opp, "-checkpoint_insn_Y", OPT_INT32, &checkpoint_insn_Y, 
+         option_parser_register(opp, "-checkpoint_insn_Y", OPT_INT32, &checkpoint_insn_Y,
                " resume from which CTA ",
                "0");
 
@@ -160,15 +158,15 @@ void gpgpu_functional_sim_config::reg_options(class OptionParser * opp)
                  &m_ptx_force_max_capability,
                  "Force maximum compute capability",
                  "0");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_to_file", OPT_BOOL, 
-                &g_ptx_inst_debug_to_file, 
-                "Dump executed instructions' debug information to file", 
+   option_parser_register(opp, "-gpgpu_ptx_inst_debug_to_file", OPT_BOOL,
+                &g_ptx_inst_debug_to_file,
+                "Dump executed instructions' debug information to file",
                 "0");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_file", OPT_CSTR, &g_ptx_inst_debug_file, 
+   option_parser_register(opp, "-gpgpu_ptx_inst_debug_file", OPT_CSTR, &g_ptx_inst_debug_file,
                   "Executed instructions' debug output file",
                   "inst_debug.txt");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_thread_uid", OPT_INT32, &g_ptx_inst_debug_thread_uid, 
-               "Thread UID for executed instructions' debug output", 
+   option_parser_register(opp, "-gpgpu_ptx_inst_debug_thread_uid", OPT_INT32, &g_ptx_inst_debug_thread_uid,
+               "Thread UID for executed instructions' debug output",
                "1");
 }
 
@@ -177,17 +175,16 @@ void gpgpu_functional_sim_config::ptx_set_tex_cache_linesize(unsigned linesize)
    m_texcache_linesize = linesize;
 }
 
-// TODO schi gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config )
-//    : m_function_model_config(config)
-gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu )
-    : gem5CudaGPU(cuda_gpu), m_function_model_config(config)
+gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config )
+    : m_function_model_config(config)
 {
-   m_global_mem = new memory_space_impl<8192>("global",64*1024);
-   
+   // m_global_mem = new memory_space_impl<8192>("global",64*1024);
+   m_global_mem = NULL; // Accesses to global memory should go through gem5-gpu
+
    m_tex_mem = new memory_space_impl<8192>("tex",64*1024);
    m_surf_mem = new memory_space_impl<8192>("surf",64*1024);
 
-   m_dev_malloc=GLOBAL_HEAP_START; 
+   m_dev_malloc=GLOBAL_HEAP_START;
    checkpoint_option = m_function_model_config.get_checkpoint_option();
    checkpoint_kernel = m_function_model_config.get_checkpoint_kernel();
    checkpoint_CTA = m_function_model_config.get_checkpoint_CTA();
@@ -203,7 +200,7 @@ gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu )
    m_TextureRefToName.clear();
    m_NameToAttribute.clear();
 
-   if(m_function_model_config.get_ptx_inst_debug_to_file() != 0) 
+   if(m_function_model_config.get_ptx_inst_debug_to_file() != 0)
       ptx_inst_debug_file = fopen(m_function_model_config.get_ptx_inst_debug_file(), "w");
 }
 
@@ -223,9 +220,9 @@ const char * mem_access_type_str(enum mem_access_type access_type)
    #undef MA_TUP
    #undef MA_TUP_END
 
-   assert(access_type < NUM_MEM_ACCESS_TYPE); 
+   assert(access_type < NUM_MEM_ACCESS_TYPE);
 
-   return access_type_str[access_type]; 
+   return access_type_str[access_type];
 }
 
 
@@ -287,15 +284,12 @@ void warp_inst_t::broadcast_barrier_reduction(const active_mask_t& access_mask)
 
 void warp_inst_t::generate_mem_accesses()
 {
-    if( empty() || op == MEMORY_BARRIER_OP || m_mem_accesses_created ) 
+    if( empty() || op == MEMORY_BARRIER_OP || m_mem_accesses_created )
         return;
     if (!((op == LOAD_OP) || (op==TENSOR_CORE_LOAD_OP)   || (op == STORE_OP)||(op==TENSOR_CORE_STORE_OP)))
-        return; 
-    if( m_warp_active_mask.count() == 0 ) 
-        return; // predicated off
-    // In gem5-gpu, global, const and local references go through the gem5-gpu LSQ
-    if ( space.get_type() == global_space || space.get_type() == const_space || space.get_type() == local_space )
         return;
+    if( m_warp_active_mask.count() == 0 )
+        return; // predicated off
 
     const size_t starting_queue_size = m_accessq.size();
 
@@ -307,26 +301,26 @@ void warp_inst_t::generate_mem_accesses()
     mem_access_type access_type;
     switch (space.get_type()) {
     case const_space:
-    case param_space_kernel: 
-        access_type = CONST_ACC_R; 
+    case param_space_kernel:
+        access_type = CONST_ACC_R;
         break;
-    case tex_space: 
-        access_type = TEXTURE_ACC_R;   
+    case tex_space:
+        access_type = TEXTURE_ACC_R;
         break;
-    case global_space:       
-        access_type = is_write? GLOBAL_ACC_W: GLOBAL_ACC_R;   
+    case global_space:
+        access_type = is_write? GLOBAL_ACC_W: GLOBAL_ACC_R;
         break;
     case local_space:
-    case param_space_local:  
-        access_type = is_write? LOCAL_ACC_W: LOCAL_ACC_R;   
+    case param_space_local:
+        access_type = is_write? LOCAL_ACC_W: LOCAL_ACC_R;
         break;
     case shared_space: break;
     case sstarr_space: break;
-    default: assert(0); break; 
+    default: assert(0); break;
     }
 
     // Calculate memory accesses generated by this warp
-    new_addr_type cache_block_size = 0; // in bytes 
+    new_addr_type cache_block_size = 0; // in bytes
 
     switch( space.get_type() ) {
     case shared_space:
@@ -335,16 +329,16 @@ void warp_inst_t::generate_mem_accesses()
         unsigned total_accesses=0;
         for( unsigned subwarp=0; subwarp <  m_config->mem_warp_parts; subwarp++ ) {
 
-            // data structures used per part warp 
+            // data structures used per part warp
             std::map<unsigned,std::map<new_addr_type,unsigned> > bank_accs; // bank -> word address -> access count
 
             // step 1: compute accesses to words in banks
             for( unsigned thread=subwarp*subwarp_size; thread < (subwarp+1)*subwarp_size; thread++ ) {
-                if( !active(thread) ) 
+                if( !active(thread) )
                     continue;
                 new_addr_type addr = m_per_scalar_thread[thread].memreqaddr[0];
                 //FIXME: deferred allocation of shared memory should not accumulate across kernel launches
-                //assert( addr < m_config->gpgpu_shmem_size ); 
+                //assert( addr < m_config->gpgpu_shmem_size );
                 unsigned bank = m_config->shmem_bank_func(addr);
                 new_addr_type word = line_size_based_tag_func(addr,m_config->WORD_SIZE);
                 bank_accs[bank][word]++;
@@ -369,17 +363,17 @@ void warp_inst_t::generate_mem_accesses()
                             break;
                         }
                     }
-                    if( broadcast_detected ) 
+                    if( broadcast_detected )
                         break;
                 }
-            
+
                 // step 3: figure out max bank accesses performed, taking account of broadcast case
                 unsigned max_bank_accesses=0;
                 for( b=bank_accs.begin(); b != bank_accs.end(); b++ ) {
                     unsigned bank_accesses=0;
                     std::map<new_addr_type,unsigned> &access_set = b->second;
                     std::map<new_addr_type,unsigned>::iterator w;
-                    for( w=access_set.begin(); w != access_set.end(); ++w ) 
+                    for( w=access_set.begin(); w != access_set.end(); ++w )
                         bank_accesses += w->second;
                     if( broadcast_detected && broadcast_bank == b->first ) {
                         for( w=access_set.begin(); w != access_set.end(); ++w ) {
@@ -392,14 +386,14 @@ void warp_inst_t::generate_mem_accesses()
                             }
                         }
                     }
-                    if( bank_accesses > max_bank_accesses ) 
+                    if( bank_accesses > max_bank_accesses )
                         max_bank_accesses = bank_accesses;
                 }
 
                 // step 4: accumulate
                 total_accesses+= max_bank_accesses;
             } else {
-                // step 2: look for the bank with the maximum number of access to different words 
+                // step 2: look for the bank with the maximum number of access to different words
                 unsigned max_bank_accesses=0;
                 std::map<unsigned,std::map<new_addr_type,unsigned> >::iterator b;
                 for( b=bank_accs.begin(); b != bank_accs.end(); b++ ) {
@@ -411,16 +405,16 @@ void warp_inst_t::generate_mem_accesses()
             }
         }
         assert( total_accesses > 0 && total_accesses <= m_config->warp_size );
-        cycles = total_accesses * g_the_gpu->sharedMemDelay; // shared memory conflicts modeled as larger initiation interval 
+        cycles = total_accesses; //  * g_the_gpu->sharedMemDelay; // shared memory conflicts modeled as larger initiation interval
         ptx_file_line_stats_add_smem_bank_conflict( pc, total_accesses );
         break;
     }
 
-    case tex_space: 
+    case tex_space:
         cache_block_size = m_config->gpgpu_cache_texl1_linesize;
         break;
     case const_space:  case param_space_kernel:
-        cache_block_size = m_config->gpgpu_cache_constl1_linesize; 
+        cache_block_size = m_config->gpgpu_cache_constl1_linesize;
         break;
 
     case global_space: case local_space: case param_space_local:
@@ -439,20 +433,20 @@ void warp_inst_t::generate_mem_accesses()
 
     if( cache_block_size ) {
         assert( m_accessq.empty() );
-        mem_access_byte_mask_t byte_mask; 
+        mem_access_byte_mask_t byte_mask;
         std::map<new_addr_type,active_mask_t> accesses; // block address -> set of thread offsets in warp
         std::map<new_addr_type,active_mask_t>::iterator a;
         for( unsigned thread=0; thread < m_config->warp_size; thread++ ) {
-            if( !active(thread) ) 
+            if( !active(thread) )
                 continue;
             new_addr_type addr = m_per_scalar_thread[thread].memreqaddr[0];
             unsigned block_address = line_size_based_tag_func(addr,cache_block_size);
             accesses[block_address].set(thread);
-            unsigned idx = addr-block_address; 
-            for( unsigned i=0; i < data_size; i++ ) 
+            unsigned idx = addr-block_address;
+            for( unsigned i=0; i < data_size; i++ )
                 byte_mask.set(idx+i);
         }
-        for( a=accesses.begin(); a != accesses.end(); ++a ) 
+        for( a=accesses.begin(); a != accesses.end(); ++a )
             m_accessq.push_back( mem_access_t(access_type,a->first,cache_block_size,is_write,a->second, byte_mask, mem_access_sector_mask_t()));
     }
 
@@ -688,11 +682,11 @@ void warp_inst_t::memory_coalescing_arch_reduce_and_send( bool is_write, mem_acc
    m_accessq.push_back( mem_access_t(access_type,addr,size,is_write,info.active,info.bytes, info.chunks) );
 }
 
-void warp_inst_t::completed( unsigned long long cycle ) const 
+void warp_inst_t::completed( unsigned long long cycle ) const
 {
-   unsigned long long latency = cycle - issue_cycle; 
-   assert(latency <= cycle); // underflow detection 
-   ptx_file_line_stats_add_latency(pc, latency * active_count());  
+   unsigned long long latency = cycle - issue_cycle;
+   assert(latency <= cycle); // underflow detection
+   ptx_file_line_stats_add_latency(pc, latency * active_count());
 }
 
 //Jin: CDP support
@@ -701,10 +695,11 @@ unsigned g_kernel_launch_latency;
 
 unsigned kernel_info_t::m_next_uid = 1;
 
-/*A snapshot of the texture mappings needs to be stored in the kernel's info as 
+/*A snapshot of the texture mappings needs to be stored in the kernel's info as
 kernels should use the texture bindings seen at the time of launch and textures
  can be bound/unbound asynchronously with respect to streams. */
-kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct cudaArray*> nameToCudaArray, std::map<std::string, const struct textureInfo*> nameToTextureInfo)   
+// FIXME kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct cudaArray*> nameToCudaArray, std::map<std::string, const struct textureInfo*> nameToTextureInfo)
+kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry)
 {
     m_kernel_entry=entry;
     m_grid_dim=gridDim;
@@ -719,13 +714,15 @@ kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *
 
     //Jin: parent and child kernel management for CDP
     m_parent_kernel = NULL;
-   
+
     //Jin: launch latency management
     m_launch_latency = g_kernel_launch_latency;
 
     volta_cache_config_set=false;
+    /* FIXME
     m_NameToCudaArray = nameToCudaArray;
     m_NameToTextureInfo = nameToTextureInfo;
+    */
 }
 
 kernel_info_t::~kernel_info_t()
@@ -741,7 +738,7 @@ std::string kernel_info_t::name() const
 }
 
 //Jin: parent and child kernel management for CDP
-void kernel_info_t::set_parent(kernel_info_t * parent, 
+void kernel_info_t::set_parent(kernel_info_t * parent,
     dim3 parent_ctaid, dim3 parent_tid) {
     m_parent_kernel = parent;
     m_parent_ctaid = parent_ctaid;
@@ -769,7 +766,7 @@ bool kernel_info_t::is_finished() {
 bool kernel_info_t::children_all_finished() {
    if(!m_child_kernels.empty())
          return false;
-   
+
    return true;
 }
 
@@ -812,7 +809,7 @@ bool kernel_info_t::cta_has_stream(dim3 ctaid, CUstream_st* stream) {
        return false;
 
     std::list<CUstream_st *> &stream_list = m_cta_streams[ctaid];
-    if(std::find(stream_list.begin(), stream_list.end(), stream) 
+    if(std::find(stream_list.begin(), stream_list.end(), stream)
          == stream_list.end())
        return false;
     else
@@ -821,8 +818,8 @@ bool kernel_info_t::cta_has_stream(dim3 ctaid, CUstream_st* stream) {
 
 void kernel_info_t::print_parent_info() {
     if(m_parent_kernel) {
-        printf("Parent %d: \'%s\', Block (%d, %d, %d), Thread (%d, %d, %d)\n", 
-            m_parent_kernel->get_uid(), m_parent_kernel->name().c_str(), 
+        printf("Parent %d: \'%s\', Block (%d, %d, %d), Thread (%d, %d, %d)\n",
+            m_parent_kernel->get_uid(), m_parent_kernel->name().c_str(),
             m_parent_ctaid.x, m_parent_ctaid.y, m_parent_ctaid.z,
             m_parent_tid.x, m_parent_tid.y, m_parent_tid.z);
     }
@@ -865,7 +862,7 @@ void simt_stack::launch( address_type start_pc, const simt_mask_t &active_mask )
 
 void simt_stack::resume( char * fname )
 {
-    reset();    
+    reset();
 
 
 
@@ -886,17 +883,17 @@ void simt_stack::resume( char * fname )
                 else
                     new_stack_entry.m_active_mask.reset(j);
                 pch = strtok (NULL," ");
-                
-          }  
-          
+
+          }
+
          new_stack_entry.m_pc=atoi(pch);
-         pch = strtok (NULL," "); 
+         pch = strtok (NULL," ");
          new_stack_entry.m_calldepth=atoi(pch);
-         pch = strtok (NULL," "); 
+         pch = strtok (NULL," ");
          new_stack_entry.m_recvg_pc=atoi(pch);
-         pch = strtok (NULL," "); 
+         pch = strtok (NULL," ");
          new_stack_entry.m_branch_div_cycle=atoi(pch);
-         pch = strtok (NULL," "); 
+         pch = strtok (NULL," ");
          if(pch[0]=='0')
             new_stack_entry.m_type= STACK_ENTRY_TYPE_NORMAL;
          else
@@ -905,7 +902,7 @@ void simt_stack::resume( char * fname )
       }
       fclose ( fp2 );
 
-    
+
 }
 
 const simt_mask_t &simt_stack::get_active_mask() const
@@ -921,8 +918,8 @@ void simt_stack::get_pdom_stack_top_info( unsigned *pc, unsigned *rpc ) const
    *rpc = m_stack.back().m_recvg_pc;
 }
 
-unsigned simt_stack::get_rp() const 
-{ 
+unsigned simt_stack::get_rp() const
+{
     assert(m_stack.size() > 0);
     return m_stack.back().m_recvg_pc;
 }
@@ -959,12 +956,12 @@ void simt_stack::print_checkpoint (FILE *fout) const
 {
     for ( unsigned k=0; k < m_stack.size(); k++ ) {
         simt_stack_entry stack_entry = m_stack[k];
-       
+
         for (unsigned j=0; j<m_warp_size; j++)
             fprintf(fout, "%c ", (stack_entry.m_active_mask.test(j)?'1':'0') );
         fprintf(fout, "%d %d %d %lld %d ", stack_entry.m_pc,stack_entry.m_calldepth,stack_entry.m_recvg_pc,stack_entry.m_branch_div_cycle,stack_entry.m_type );
         fprintf(fout, "%d %d\n",m_warp_id, m_warp_size );
-        
+
     }
 }
 
@@ -1101,10 +1098,11 @@ void simt_stack::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addre
 
 
     if (warp_diverged) {
-        ptx_file_line_stats_add_warp_divergence(top_pc, 1); 
+        ptx_file_line_stats_add_warp_divergence(top_pc, 1);
     }
 }
 
+#if 0
 void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 {
     for ( unsigned t=0; t < m_warp_size; t++ ) {
@@ -1113,25 +1111,20 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
                 warpId = inst.warp_id();
             unsigned tid=m_warp_size*warpId+t;
             m_thread[tid]->ptx_exec_inst(inst,t);
-            
+
             //virtual function
             checkExecutionStatusAndUpdate(inst,t,tid);
         }
-    } 
+    }
 }
+#endif
 
-// TODO schi add
-void core_t::writeRegister(const warp_inst_t &inst, unsigned warpSize, unsigned lane_id, char *data) {
-    assert(inst.active(lane_id));
-    int warpId = inst.warp_id();
-    m_thread[warpSize*warpId+lane_id]->writeRegister(inst, lane_id, data);
-}
 
-bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const  
+bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const
 {
     return ((m_thread[ hw_thread_id ]==NULL) || m_thread[ hw_thread_id ]->is_done());
 }
-  
+
 void core_t::updateSIMTStack(unsigned warpId, warp_inst_t * inst)
 {
     simt_mask_t thread_done;
@@ -1142,7 +1135,7 @@ void core_t::updateSIMTStack(unsigned warpId, warp_inst_t * inst)
             thread_done.set(i);
             next_pc.push_back( (address_type)-1 );
         } else {
-            if( inst->reconvergence_pc == RECONVERGE_RETURN_PC ) 
+            if( inst->reconvergence_pc == RECONVERGE_RETURN_PC )
                 inst->reconvergence_pc = get_return_pc(m_thread[wtid+i]);
             next_pc.push_back( m_thread[wtid+i]->get_pc() );
         }
@@ -1150,20 +1143,26 @@ void core_t::updateSIMTStack(unsigned warpId, warp_inst_t * inst)
     m_simt_stack[warpId]->update(thread_done,next_pc,inst->reconvergence_pc, inst->op,inst->isize,inst->pc);
 }
 
+// FIXME
+#if 0
 //! Get the warp to be executed using the data taken form the SIMT stack
 warp_inst_t core_t::getExecuteWarp(unsigned warpId)
 {
     unsigned pc,rpc;
+    fprintf("core_t::getExecuteWarp not supported\n");
+    assert(0);
     m_simt_stack[warpId]->get_pdom_stack_top_info(&pc,&rpc);
     warp_inst_t wi= *ptx_fetch_inst(pc);
     wi.set_active(m_simt_stack[warpId]->get_active_mask());
+
     return wi;
 }
+#endif
 
 void core_t::deleteSIMTStack()
 {
     if ( m_simt_stack ) {
-        for (unsigned i = 0; i < m_warp_count; ++i) 
+        for (unsigned i = 0; i < m_warp_count; ++i)
             delete m_simt_stack[i];
         delete[] m_simt_stack;
         m_simt_stack = NULL;
@@ -1171,9 +1170,9 @@ void core_t::deleteSIMTStack()
 }
 
 void core_t::initilizeSIMTStack(unsigned warp_count, unsigned warp_size)
-{ 
+{
     m_simt_stack = new simt_stack*[warp_count];
-    for (unsigned i = 0; i < warp_count; ++i) 
+    for (unsigned i = 0; i < warp_count; ++i)
         m_simt_stack[i] = new simt_stack(i,warp_size);
     m_warp_size = warp_size;
     m_warp_count = warp_count;

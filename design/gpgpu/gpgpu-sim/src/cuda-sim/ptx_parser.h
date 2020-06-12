@@ -28,7 +28,12 @@
 #ifndef ptx_parser_INCLUDED
 #define ptx_parser_INCLUDED
 
-#include "../abstract_hardware_model.h"
+#ifndef LIBCUDA
+#include "abstract_hardware_model.h"
+#else
+#include "../libcuda/abstract_hardware_model.h"
+#endif
+
 extern const char *g_filename;
 extern int g_error_detected;
 

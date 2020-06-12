@@ -74,7 +74,7 @@ CUDA_INSTALL_PATH ?= /usr/local/cuda/
 CPP = g++ $(SNOW)
 CC = gcc $(SNOW)
 CREATELIBRARY    =  1
-DEBUG ?= 0
+DEBUG ?= 1
 ifeq ($(DEBUG),1)
 	CXXFLAGS +=  -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
 	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
@@ -84,26 +84,42 @@ else
 endif
 
 
-
-# NOTE: You may need to change this path if you are not using the
-# canonical gem5-gpu directory structure. This directory includes
-# m5op.h, m5ops.h, and the m5op_<arch>.S assembly files
-#M5OP_PATH = ../../gem5/util/m5
-# we assume the depot dir is gem5
-#
 # TODO build to so file in next step
-
 
 PROG     =cuda
 M5OP = m5op_x86
-M5OP_PATH = ../../../../util/m5
-INCLUDES = -I./ -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I../../../../include -I../../../../build/X86_VI_hammer
+INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer
 
-#CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc
-CXX_SRCS =  cuda_runtime_api.cc
+CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc shader.cc gpu-cache.cc \
+	    gpu-sim.cc l2cache.cc mem_latency_stat.cc \
+	    ../src/cuda-sim/ptx_loader.cc \
+	    ../src/cuda-sim/ptx_sim.cc \
+	    ../src/cuda-sim/ptx_parser.cc \
+	    ../src/cuda-sim/ptx-stats.cc \
+	    ../src/cuda-sim/ptx_ir.cc \
+	    ../src/cuda-sim/instructions.cc \
+	    ../src/cuda-sim/cuda-sim.cc \
+	    ../src/cuda-sim/memory.cc \
+	    ../src/cuda-sim/decuda_pred_table/decuda_pred_table.cc \
+	    ../src/gpgpu-sim/addrdec.cc \
+	    ../src/gpgpu-sim/gpu-misc.cc \
+	    ../src/debug.cc \
+	    ../src/option_parser.cc
+
+	#	gpu-cache.cc \
+	#    ../src/gpgpu-sim/dram.cc \
+#            ../src/cuda-sim/cuda_device_printf.cc \
+#            ../src/cuda-sim/cuda_device_runtime.cc \
+
+C_SRCS =  ../src/cuda-sim/ptxinfo.tab.c \
+	  ../src/cuda-sim/ptx.tab.c \
+          ../src/cuda-sim/lex.ptx_.c \
+          ../src/cuda-sim/lex.ptxinfo_.c
+
 LEX_SRCS = cuobjdump.l
 YACC_SRCS = cuobjdump.y
-CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
+CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
+CCFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
 LEX			= flex
 LEXFLAGS	= -B
 YACC		= bison
@@ -115,6 +131,7 @@ YFLAGS		= -t -d -v --report=all
 OUTPUT_DIR=.
 
 OBJS = $(CXX_SRCS:%.cc=$(OUTPUT_DIR)/%.o)
+OBJS += $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o)
 OBJS += $(LEX_SRCS:%.l=$(OUTPUT_DIR)/%_lexer.o)
 OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 
@@ -124,18 +141,19 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 #	echo $(OBJS)
 #	ar rcs $(OUTPUT_DIR)/lib$(PROG).a $(OBJS)
 #	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
+all: libcudart.so libcudart_static.a
 
-libcudart.so: $(OBJS) $(M5OP).o
-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) $(M5OP).o -lm -lz -lGL -pthread -o $(OUTPUT_DIR)/libcudart.so
+libcudart.so: $(OBJS)
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) ../libgem5cuda/m5op_x86.o ../libgem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -pthread -o $(OUTPUT_DIR)/libcudart.so
+
+libcudart_static.a: $(OBJS)
+	$(AR) rcs libcudart_static.a $(OBJS) ../libgem5cuda/gem5cuda_runtime_api.o ../libgem5cuda/m5op_x86.o
 
 $(OUTPUT_DIR)/%.o: %.cc
 	$(CPP) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OUTPUT_DIR)/%.o: %.c
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
-
-$(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.c
-	$(CC) $(CCFLAGS) $(INCLUDE)  -c $< -o $@
 
 $(OUTPUT_DIR)/$(M5OP).o: $(M5OP_PATH)/$(M5OP).S
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@

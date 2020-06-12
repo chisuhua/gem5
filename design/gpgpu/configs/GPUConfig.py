@@ -34,7 +34,7 @@ from m5.util.convert import *
 from m5.util import fatal
 import pdb
 
-gpu_core_configs = ['Fermi', 'Maxwell', 'Volta']
+gpu_core_configs = ['Fermi', 'Maxwell', 'Volta', 'Ppu']
 
 def addGPUOptions(parser):
     parser.add_option("--clusters", default=16, help="Number of shader core clusters in the gpu that GPGPU-sim is simulating", type="int")
@@ -45,7 +45,7 @@ def addGPUOptions(parser):
     parser.add_option("--sc_l1_assoc", default=4, help="associativity of l1 cache hooked up to each sc", type="int")
     parser.add_option("--sc_l2_assoc", default=16, help="associativity of L2 cache backing SC L1's", type="int")
     parser.add_option("--shMemDelay", default=1, help="delay to access shared memory in gpgpu-sim ticks", type="int")
-    parser.add_option("--gpu_core_config", type="choice", choices=gpu_core_configs, default='Volta', help="configure the GPU cores like %s" % gpu_core_configs)
+    parser.add_option("--gpu_core_config", type="choice", choices=gpu_core_configs, default='Ppu', help="configure the GPU cores like %s" % gpu_core_configs)
     parser.add_option("--kernel_stats", default=False, action="store_true", help="Dump statistics on GPU kernel boundaries")
     parser.add_option("--total-mem-size", default='2GB', help="Total size of memory in system")
     parser.add_option("--gpu_l1_buf_depth", type="int", default=96, help="Number of buffered L1 requests per shader")
@@ -90,7 +90,7 @@ def configureMemorySpaces(options):
     return (cpu_mem_range, gpu_mem_range, total_mem_range)
 
 def parseGpgpusimConfig(options):
-    pdb.set_trace()
+    #pdb.set_trace()
     # parse gpgpu config file
     # First check the cwd, and if there is not a gpgpusim.config file there
     # Use the template found in gem5-fusion/configs/gpu_config and fill in
@@ -105,6 +105,8 @@ def parseGpgpusimConfig(options):
             gpgpusimconfig = os.path.join(os.path.dirname(__file__), 'gpu_config/gpgpusim.maxwell.config.template')
         elif options.gpu_core_config == 'Volta':
             gpgpusimconfig = os.path.join(os.path.dirname(__file__), 'gpu_config/gpgpusim.volta.config.template')
+        elif options.gpu_core_config == 'Ppu':
+            gpgpusimconfig = os.path.join(os.path.dirname(__file__), 'gpu_config/gpgpusim.ppu.config.template')
         usingTemplate = True
     if not os.path.isfile(gpgpusimconfig):
         fatal("Unable to find gpgpusim config (%s)" % gpgpusimconfig)
@@ -125,6 +127,8 @@ def parseGpgpusimConfig(options):
             icnt_outfile = os.path.join(m5.options.outdir, 'config_maxwell_islip.icnt')
         elif options.gpu_core_config == 'Volta':
             icnt_outfile = os.path.join(m5.options.outdir, 'config_volta_islip.icnt')
+        elif options.gpu_core_config == 'Ppu':
+            icnt_outfile = os.path.join(m5.options.outdir, 'config_ppu_islip.icnt')
         config = config.replace("%icnt_file%", icnt_outfile)
         config = config.replace("%warp_size%", str(options.gpu_warp_size))
         # GPGPU-Sim config expects freq in MHz
@@ -145,6 +149,8 @@ def parseGpgpusimConfig(options):
             icnt_template = os.path.join(os.path.dirname(__file__), 'gpu_config/config_maxwell_islip.template.icnt')
         elif options.gpu_core_config == 'Volta':
             icnt_template = os.path.join(os.path.dirname(__file__), 'gpu_config/config_volta_islip.template.icnt')
+        elif options.gpu_core_config == 'Ppu':
+            icnt_template = os.path.join(os.path.dirname(__file__), 'gpu_config/config_ppu_islip.template.icnt')
         f = open(icnt_template)
         icnt_config = f.read()
         f.close()
@@ -273,6 +279,14 @@ def createGPU(options, gpu_mem_range):
             # 8-10 cycles quicker than Fermi, and tag access appears shorter
             sc.lsq.l1_tag_cycles = 1
             sc.lsq.latency = 6
+        elif options.gpu_core_config == 'Ppu':
+            # FIXME, temp copy from Maxwell
+            # Maxwell latency for zero-load independent memory instructions is
+            # 8-10 cycles quicker than Fermi, and tag access appears shorter
+            sc.lsq.l1_tag_cycles = 1
+            sc.lsq.latency = 6
+
+
 
 
     # This is a stop-gap solution until we implement a better way to register device memory
