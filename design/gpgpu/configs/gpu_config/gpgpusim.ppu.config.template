@@ -1,7 +1,7 @@
 # This config models the Volta Titan V
 # For more info about volta architecture:
 # http://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
-# https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8344474&tag=1# 
+# https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8344474&tag=1#
 # http://on-demand.gputechconf.com/gtc/2018/presentation/s8122-dissecting-the-volta-gpu-architecture-through-microbenchmarking.pdf
 # https://en.wikipedia.org/wiki/Volta_(microarchitecture)
 # https://www.hotchips.org/wp-content/uploads/hc_archives/hc29/HC29.21-Monday-Pub/HC29.21.10-GPU-Gaming-Pub/HC29.21.132-Volta-Choquette-NVIDIA-Final3.pdf
@@ -11,7 +11,7 @@
 # functional simulator specification
 -gpgpu_ptx_instruction_classification 0
 -gpgpu_ptx_sim_mode 0
--gpgpu_ptx_force_max_capability 70 
+-gpgpu_ptx_force_max_capability 70
 
 
 # Device Limits
@@ -29,17 +29,17 @@
 -gpgpu_ptx_save_converted_ptxplus 0
 
 # high level architecture configuration
--gpgpu_n_clusters 40
--gpgpu_n_cores_per_cluster 2
-#-gpgpu_n_mem 24
+-gpgpu_n_clusters %clusters%
+-gpgpu_n_cores_per_cluster %cores_per_cluster%
+#-gpgpu_n_mem 1
 -gpgpu_n_mem 1
--gpgpu_n_sub_partition_per_mchannel 2 
+-gpgpu_n_sub_partition_per_mchannel 2
 
 # volta clock domains
 #-gpgpu_clock_domains <Core Clock>:<Interconnect Clock>:<L2 Clock>:<DRAM Clock>
-# Volta NVIDIA TITANV  clock domains are adopted from 
+# Volta NVIDIA TITANV  clock domains are adopted from
 # https://en.wikipedia.org/wiki/Volta_(microarchitecture)
--gpgpu_clock_domains 1200.0:1200.0:1200.0:850.0
+-gpgpu_clock_domains %freq%:1200.0:1200.0:850.0
 # boost mode
 # -gpgpu_clock_domains 1455.0:1455.0:1455.0:850.0
 
@@ -48,9 +48,9 @@
 -gpgpu_occupancy_sm_number 70
 
 # This implies a maximum of 64 warps/SM
--gpgpu_shader_core_pipeline 2048:32 
--gpgpu_shader_cta 32
--gpgpu_simd_model 1 
+-gpgpu_shader_core_pipeline %threads_per_sm%:%warp_size%
+-gpgpu_shader_cta %ctas_per_shader%
+-gpgpu_simd_model 1
 
 # Pipeline widths and number of FUs
 # ID_OC_SP,ID_OC_DP,ID_OC_INT,ID_OC_SFU,ID_OC_MEM,OC_EX_SP,OC_EX_DP,OC_EX_INT,OC_EX_SFU,OC_EX_MEM,EX_WB,ID_OC_TENSOR_CORE,OC_EX_TENSOR_CORE
@@ -67,7 +67,7 @@
 # Instruction latencies and initiation intervals
 # "ADD,MAX,MUL,MAD,DIV"
 # All Div operations are executed on SFU unit
-# Throughput (initiation latency except shfl) are adopted from 
+# Throughput (initiation latency except shfl) are adopted from
 # http://on-demand.gputechconf.com/gtc/2018/presentation/s8122-dissecting-the-volta-gpu-architecture-through-microbenchmarking.pdf
 -ptx_opcode_latency_int 4,13,4,5,145,32
 -ptx_opcode_initiation_int 2,2,2,2,8,4
@@ -83,14 +83,17 @@
 # <nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>:<set_index_fn>,<mshr>:<N>:<merge>,<mq>:**<fifo_entry>
 # ** Optional parameter - Required when mshr_type==Texture Fifo
 # Defualt config is 32KB DL1 and 96KB shared memory
-# In Volta, we assign the remaining shared memory to L1 cache 
+# In Volta, we assign the remaining shared memory to L1 cache
 # if the assigned shd mem = 0, then L1 cache = 128KB
-# For more info, see https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory-7-x 
+# For more info, see https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory-7-x
 # disable this mode in case of multi kernels/apps execution
 -adaptive_volta_cache_config 1
 # Volta unified cache has four ports
 -mem_unit_ports 4
--gpgpu_cache:dl1  S:4:128:64,L:L:s:N:L,A:256:8,16:0,32
+
+### FIXME from SECTOR to NORMAL
+### -gpgpu_cache:dl1  S:4:128:64,L:L:s:N:L,A:256:8,16:0,32
+-gpgpu_cache:dl1  N:4:128:64,L:L:s:N:L,A:256:8,16:0,32
 -gpgpu_shmem_size 98304
 -gmem_skip_L1D 0
 -icnt_flit_size 40
@@ -99,20 +102,26 @@
 -smem_latency 19
 -gpgpu_flush_l1_cache 1
 
+# FIXME on baseline_cache::fill mshr assert on SECTOR
+#
 # 32 sets, each 128 bytes 24-way for each memory sub partition (96 KB per memory sub partition). This gives us 4.5MB L2 cache
--gpgpu_cache:dl2 S:32:128:24,L:B:m:L:L,A:192:4,32:0,32
+### FIXME from SECTOR to NORMAL
+###-gpgpu_cache:dl2 S:32:128:24,L:B:m:L:L,A:192:4,32:0,32
+-gpgpu_cache:dl2 N:32:128:24,L:B:m:L:L,A:192:4,32:0,32
 -gpgpu_cache:dl2_texture_only 0
 -gpgpu_dram_partition_queues 64:64:64:64
 -perf_sim_memcpy 1
 -memory_partition_indexing 0
 
 # 128 KB Inst.
--gpgpu_cache:il1 N:64:128:16,L:R:f:N:L,S:2:48,4
+#### assert SECTOR -gpgpu_cache:il1 N:64:128:16,L:R:f:N:L,S:2:48,4
+-gpgpu_cache:il1 N:64:128:16,L:R:f:N:L,A:2:48,4
 # 48 KB Tex
 # Note, TEX is deprected in Volta, It is used for legacy apps only. Use L1D cache instead with .nc modifier or __ldg mehtod
 -gpgpu_tex_cache:l1 N:16:128:24,L:R:m:N:L,T:128:4,128:2
 # 64 KB Const
--gpgpu_const_cache:l1 N:128:64:8,L:R:f:N:L,S:2:64,4
+#### assert SECTOR -gpgpu_const_cache:l1 N:128:64:8,L:R:f:N:L,S:2:64,4
+-gpgpu_const_cache:l1 N:128:64:8,L:R:f:N:L,A:2:64,4
 
 # Volta has sub core model, in which each scheduler has its own register file and EUs
 # i.e. schedulers are isolated
@@ -125,7 +134,7 @@
 # volta has 8 banks, 4 schedulers, two banks per scheduler
 -gpgpu_num_reg_banks 8
 
-# shared memory bankconflict detection 
+# shared memory bankconflict detection
 -gpgpu_shmem_num_banks 32
 -gpgpu_shmem_limited_broadcast 0
 -gpgpu_shmem_warp_parts 1
@@ -136,10 +145,10 @@
 -gpgpu_dual_issue_diff_exec_units 1
 
 # interconnection
--network_mode 1 
--inter_config_file config_volta_islip.icnt
+-network_mode 1
+-inter_config_file %icnt_file%
 
-# memory partition latency config 
+# memory partition latency config
 -rop_latency 120
 -dram_latency 100
 
@@ -185,7 +194,7 @@
 -gpgpu_scheduler gto
 
 # stat collection
--gpgpu_memlatency_stat 14 
+-gpgpu_memlatency_stat 14
 -gpgpu_runtime_stat 500
 -enable_ptx_file_line_stats 1
 -visualizer_enabled 0

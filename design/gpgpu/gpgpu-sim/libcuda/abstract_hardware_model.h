@@ -28,8 +28,6 @@
 #ifndef ABSTRACT_HARDWARE_MODEL_INCLUDED
 #define ABSTRACT_HARDWARE_MODEL_INCLUDED
 
-struct CudaGPU;
-
 // Forward declarations
 // class gpgpu_sim;
 // class kernel_info_t;
@@ -198,7 +196,7 @@ struct dim3comp {
 void increment_x_then_y_then_z( dim3 &i, const dim3 &bound);
 
 //Jin: child kernel information for CDP
-#include "stream_manager.h"
+#include "../libcuda/stream_manager.h"
 // class stream_manager;
 struct stream_manager;
 
@@ -327,11 +325,6 @@ private:
    class memory_space *m_param_mem;
 
 public:
-   // TODO schi
-   address_type m_inst_text_base_vaddr;
-   address_type get_inst_base_vaddr() { return m_inst_text_base_vaddr; };
-   void set_inst_base_vaddr(address_type addr) { m_inst_text_base_vaddr = addr; };
-
    //Jin: parent and child kernel management for CDP
    void set_parent(kernel_info_t * parent, dim3 parent_ctaid, dim3 parent_tid);
    void set_child(kernel_info_t * child);
@@ -578,7 +571,7 @@ private:
 
 class gpgpu_t {
 public:
-    gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu );
+    gpgpu_t( const gpgpu_functional_sim_config &config );
     int checkpoint_option;
     int checkpoint_kernel;
     int checkpoint_CTA;
@@ -637,11 +630,6 @@ public:
     //  These maps return the current texture mappings for the GPU at any given time.
     std::map<std::string, const struct cudaArray*> getNameArrayMapping() {return m_NameToCudaArray;}
     std::map<std::string, const struct textureInfo*> getNameInfoMapping() {return m_NameToTextureInfo;}
-
-    // gem5 stuff
-    CudaGPU *gem5CudaGPU;
-    int sharedMemDelay;
-
 
 protected:
     const gpgpu_functional_sim_config &m_function_model_config;
@@ -954,7 +942,6 @@ public:
     unsigned initiation_interval;
 
     unsigned data_size; // what is the size of the word being operated on?
-    int data_type;      // TODO schi add
     memory_space_t space;
     cache_operator_type cache_op;
 
@@ -969,8 +956,6 @@ enum divergence_support_t {
 };
 
 const unsigned MAX_ACCESSES_PER_INSN_PER_THREAD = 8;
-// TODO schi add
-const unsigned MAX_DATA_BYTES_PER_INSN_PER_THREAD = 16;
 
 class warp_inst_t: public inst_t {
 public:
@@ -1042,19 +1027,6 @@ public:
         for(unsigned i=0; i<num_addrs; i++)
             m_per_scalar_thread[n].memreqaddr[i] = addr[i];
     }
-
-    // TODO schi add
-    void set_data( unsigned n, const uint8_t *_data )
-    {
-        assert( op == STORE_OP || memory_op == memory_store );
-        assert( space == global_space || space == const_space || space == local_space );
-        assert( m_per_scalar_thread_valid );
-        assert( !m_per_scalar_thread[n].data_valid );
-        m_per_scalar_thread[n].data_valid = true;
-        assert( _data );
-        memcpy(&m_per_scalar_thread[n].data, _data, MAX_DATA_BYTES_PER_INSN_PER_THREAD);
-    }
-
     void print_m_accessq(){
     		
 		if(accessq_empty())
@@ -1141,14 +1113,6 @@ public:
         return m_per_scalar_thread[n].memreqaddr[0];
     }
 
-    // TODO schi add
-    const uint8_t *get_data( unsigned n ) const
-    {
-        assert( m_per_scalar_thread_valid );
-        assert( m_per_scalar_thread[n].data_valid );
-        return &(m_per_scalar_thread[n].data[0]);
-    }
-
     bool isatomic() const { return m_isatomic; }
 
     unsigned warp_size() const { return m_config->warp_size; }
@@ -1173,10 +1137,6 @@ public:
     unsigned get_uid() const { return m_uid; }
     unsigned get_schd_id() const { return m_scheduler_id; }
 
-    // TODO schi add fro gpu/gpgpu-sim/cuda_core use it
-    int vectorLength;
-    int get_atomic() const { return m_atomic_spec; }
-
 
 protected:
 
@@ -1186,7 +1146,6 @@ protected:
     unsigned long long issue_cycle;
     unsigned cycles; // used for implementing initiation interval delay
     bool m_isatomic;
-    int m_atomic_spec; // TODO schi add 
     bool m_is_printf;
     unsigned m_warp_id;
     unsigned m_dynamic_warp_id; 
@@ -1198,15 +1157,9 @@ protected:
         per_thread_info() {
             for(unsigned i=0; i<MAX_ACCESSES_PER_INSN_PER_THREAD; i++)
                 memreqaddr[i] = 0;
-            // TODO schi add
-            data_valid = false;
         }
         dram_callback_t callback;
         new_addr_type memreqaddr[MAX_ACCESSES_PER_INSN_PER_THREAD]; // effective address, upto 8 different requests (to support 32B access in 8 chunks of 4B each)
-
-        // TODO schi add
-        bool data_valid;
-        uint8_t data[MAX_DATA_BYTES_PER_INSN_PER_THREAD];
     };
     bool m_per_scalar_thread_valid;
     std::vector<per_thread_info> m_per_scalar_thread;
@@ -1291,10 +1244,6 @@ class core_t {
         kernel_info_t * get_kernel_info(){ return m_kernel;}
         class ptx_thread_info ** get_thread_info() { return m_thread; }
         unsigned get_warp_size() const { return m_warp_size; }
-
-        // TODO schi add
-        void writeRegister(const warp_inst_t &inst, unsigned warpSize, unsigned lane_id, char* data);
-
         void and_reduction(unsigned ctaid, unsigned barid, bool value) { reduction_storage[ctaid][barid] &= value; }
         void or_reduction(unsigned ctaid, unsigned barid, bool value) { reduction_storage[ctaid][barid] |= value; }
         void popc_reduction(unsigned ctaid, unsigned barid, bool value) { reduction_storage[ctaid][barid] += value;}

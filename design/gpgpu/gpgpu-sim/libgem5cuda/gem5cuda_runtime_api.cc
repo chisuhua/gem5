@@ -33,16 +33,16 @@
 // Changes Copyright 2009,  Tor M. Aamodt, Ali Bakhoda and George L. Yuan
 // University of British Columbia
 
-/* 
+/*
  * cuda_runtime_api.cc
  *
- * Copyright © 2009 by Tor M. Aamodt, Wilson W. L. Fung, Ali Bakhoda, 
- * George L. Yuan and the University of British Columbia, Vancouver, 
+ * Copyright © 2009 by Tor M. Aamodt, Wilson W. L. Fung, Ali Bakhoda,
+ * George L. Yuan and the University of British Columbia, Vancouver,
  * BC V6T 1Z4, All Rights Reserved.
- * 
+ *
  * THIS IS A LEGAL DOCUMENT BY DOWNLOADING GPGPU-SIM, YOU ARE AGREEING TO THESE
  * TERMS AND CONDITIONS.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -54,80 +54,80 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * NOTE: The files libcuda/cuda_runtime_api.c and src/cuda-sim/cuda-math.h
  * are derived from the CUDA Toolset available from http://www.nvidia.com/cuda
- * (property of NVIDIA).  The files benchmarks/BlackScholes/ and 
- * benchmarks/template/ are derived from the CUDA SDK available from 
- * http://www.nvidia.com/cuda (also property of NVIDIA).  The files from 
- * src/intersim/ are derived from Booksim (a simulator provided with the 
- * textbook "Principles and Practices of Interconnection Networks" available 
- * from http://cva.stanford.edu/books/ppin/). As such, those files are bound by 
- * the corresponding legal terms and conditions set forth separately (original 
- * copyright notices are left in files from these sources and where we have 
- * modified a file our copyright notice appears before the original copyright 
- * notice).  
- * 
- * Using this version of GPGPU-Sim requires a complete installation of CUDA 
- * which is distributed seperately by NVIDIA under separate terms and 
+ * (property of NVIDIA).  The files benchmarks/BlackScholes/ and
+ * benchmarks/template/ are derived from the CUDA SDK available from
+ * http://www.nvidia.com/cuda (also property of NVIDIA).  The files from
+ * src/intersim/ are derived from Booksim (a simulator provided with the
+ * textbook "Principles and Practices of Interconnection Networks" available
+ * from http://cva.stanford.edu/books/ppin/). As such, those files are bound by
+ * the corresponding legal terms and conditions set forth separately (original
+ * copyright notices are left in files from these sources and where we have
+ * modified a file our copyright notice appears before the original copyright
+ * notice).
+ *
+ * Using this version of GPGPU-Sim requires a complete installation of CUDA
+ * which is distributed seperately by NVIDIA under separate terms and
  * conditions.  To use this version of GPGPU-Sim with OpenCL requires a
  * recent version of NVIDIA's drivers which support OpenCL.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  * this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the University of British Columbia nor the names of
  * its contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
- * 4. This version of GPGPU-SIM is distributed freely for non-commercial use only.  
- *  
+ *
+ * 4. This version of GPGPU-SIM is distributed freely for non-commercial use only.
+ *
  * 5. No nonprofit user may place any restrictions on the use of this software,
  * including as modified by the user, by any other authorized user.
- * 
- * 6. GPGPU-SIM was developed primarily by Tor M. Aamodt, Wilson W. L. Fung, 
- * Ali Bakhoda, George L. Yuan, at the University of British Columbia, 
+ *
+ * 6. GPGPU-SIM was developed primarily by Tor M. Aamodt, Wilson W. L. Fung,
+ * Ali Bakhoda, George L. Yuan, at the University of British Columbia,
  * Vancouver, BC V6T 1Z4
  */
 
 /*
  * Copyright 1993-2007 NVIDIA Corporation.  All rights reserved.
  *
- * NOTICE TO USER:   
+ * NOTICE TO USER:
  *
- * This source code is subject to NVIDIA ownership rights under U.S. and 
- * international Copyright laws.  Users and possessors of this source code 
- * are hereby granted a nonexclusive, royalty-free license to use this code 
+ * This source code is subject to NVIDIA ownership rights under U.S. and
+ * international Copyright laws.  Users and possessors of this source code
+ * are hereby granted a nonexclusive, royalty-free license to use this code
  * in individual and commercial software.
  *
- * NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE 
- * CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR 
- * IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF 
+ * NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE
+ * CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR
+ * IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.
- * IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS 
- * OF USE, DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE 
- * OR OTHER TORTIOUS ACTION,  ARISING OUT OF OR IN CONNECTION WITH THE USE 
- * OR PERFORMANCE OF THIS SOURCE CODE.  
+ * IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL,
+ * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF OR IN CONNECTION WITH THE USE
+ * OR PERFORMANCE OF THIS SOURCE CODE.
  *
- * U.S. Government End Users.   This source code is a "commercial item" as 
- * that term is defined at  48 C.F.R. 2.101 (OCT 1995), consisting  of 
- * "commercial computer  software"  and "commercial computer software 
- * documentation" as such terms are  used in 48 C.F.R. 12.212 (SEPT 1995) 
- * and is provided to the U.S. Government only as a commercial end item.  
- * Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 
- * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
- * source code with only those rights set forth herein. 
+ * U.S. Government End Users.   This source code is a "commercial item" as
+ * that term is defined at  48 C.F.R. 2.101 (OCT 1995), consisting  of
+ * "commercial computer  software"  and "commercial computer software
+ * documentation" as such terms are  used in 48 C.F.R. 12.212 (SEPT 1995)
+ * and is provided to the U.S. Government only as a commercial end item.
+ * Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through
+ * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the
+ * source code with only those rights set forth herein.
  *
- * Any use of this source code in individual and commercial software must 
+ * Any use of this source code in individual and commercial software must
  * include, in the user documentation and internal comments to the code,
  * the above Disclaimer and U.S. Government End Users Notice.
  */
@@ -165,6 +165,8 @@ namespace m5op {
 #endif
 
 #include "gem5cuda_runtime_util.h"
+#include "../libcuda/abstract_hardware_model.h"
+#include "../src/cuda-sim/ptx_ir.h"
 
 inline void m5_gpu(uint64_t __gpusysno, uint64_t call_params) {
 #ifndef __MEM_DEBUG__
@@ -405,6 +407,7 @@ blockThread()
 *                                                                              *
 *******************************************************************************/
 // cudaMemcpy syscall
+//
  cudaError_t  gem5cudaMemcpyAsync(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
 #ifndef NO_TOUCH_PAGES
@@ -441,6 +444,55 @@ blockThread()
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&count, call_params.arg_lengths[2]);
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&kind, call_params.arg_lengths[3]);
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&stream, call_params.arg_lengths[4]);
+
+    m5_gpu(7, (uint64_t)&call_params);
+    bool block_thread = *((bool*)call_params.ret);
+
+    delete call_params.args;
+    delete call_params.arg_lengths;
+    delete call_params.ret;
+
+    if (block_thread) {
+        blockThread();
+    }
+
+    return cudaSuccess;
+}
+
+__host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind)
+{
+#ifndef NO_TOUCH_PAGES
+    // If transfer will access host memory, touch it to ensure OS page mapping
+    if (kind == cudaMemcpyHostToDevice) {
+        touchPages((unsigned char*)src, count);
+    } else if(kind == cudaMemcpyDeviceToHost) {
+        touchPages((unsigned char*)dst, count);
+    }
+#endif
+
+    gpusyscall_t call_params;
+    call_params.num_args = 4;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(void*);
+    call_params.arg_lengths[1] = sizeof(const void*);
+    call_params.arg_lengths[2] = sizeof(size_t);
+    call_params.arg_lengths[3] = sizeof(enum cudaMemcpyKind);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+            call_params.arg_lengths[1] + call_params.arg_lengths[2] +
+            call_params.arg_lengths[3];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(bool)];
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&dst, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&src, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&count, call_params.arg_lengths[2]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&kind, call_params.arg_lengths[3]);
 
     m5_gpu(7, (uint64_t)&call_params);
     bool block_thread = *((bool*)call_params.ret);
@@ -713,7 +765,7 @@ blockThread()
 *                                                                              *
 *                                                                              *
 *******************************************************************************/
-
+/*
  cudaError_t  gem5cudaMemsetAsync(void *mem, int c, size_t count, cudaStream_t stream)
 {
     gpusyscall_t call_params;
@@ -757,6 +809,51 @@ blockThread()
     }
 
     return ret;
+}
+*/
+
+// FIXME schi add it
+cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 3;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(void*);
+    call_params.arg_lengths[1] = sizeof(int);
+    call_params.arg_lengths[2] = sizeof(size_t);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+                  call_params.arg_lengths[1] + call_params.arg_lengths[2];
+
+    call_params.args = new char[call_params.total_bytes];
+
+    call_params.ret = new char[sizeof(cudaError_t)];
+    cudaError_t* ret_spot = (cudaError_t*)call_params.ret;
+    *ret_spot = cudaSuccess;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&mem, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&c, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&count, call_params.arg_lengths[2]);
+
+    m5_gpu(23, (uint64_t)&call_params);
+    cudaError_t ret = *((cudaError_t*)call_params.ret);
+
+    delete call_params.args;
+    delete call_params.arg_lengths;
+    delete call_params.ret;
+
+    if (ret == cudaErrorApiFailureBase) {
+        // This return code indicates that memory management must be handled
+        // outside the simulator, so CPU must allocate memory for GPU
+        memset(mem, c, count);
+        ret = g_last_cudaError = cudaSuccess;
+    }
+
+    return ret;
+
 }
 
  cudaError_t  gem5cudaMemset2D(void *mem, size_t pitch, int c, size_t width, size_t height)
@@ -857,7 +954,7 @@ blockThread()
 //   *device = dev->get_id();
 //   return g_last_cudaError = cudaSuccess;
 }
- 
+
  cudaError_t  gem5cudaSetDevice(int device)
 {
     gpusyscall_t call_params;
@@ -886,7 +983,8 @@ blockThread()
 
     return ret;
 }
- 
+
+
  cudaError_t  gem5cudaGetDevice(int *device)
 {
     gpusyscall_t call_params;
@@ -1081,7 +1179,38 @@ blockThread()
     return ret;
 }
 
+ cudaError_t  gem5cudaSetupArgument(function_info *f, const void **args)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 2;
+    call_params.arg_lengths = new int[call_params.num_args];
 
+    call_params.arg_lengths[0] = sizeof(function_info*);
+    call_params.arg_lengths[1] = sizeof(const void**);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+            call_params.arg_lengths[1];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(cudaError_t)];
+    cudaError_t* ret_spot = (cudaError_t*)call_params.ret;
+    *ret_spot = cudaSuccess;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&f, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&args, call_params.arg_lengths[1]);
+
+    m5_gpu(42, (uint64_t)&call_params);
+    cudaError_t ret = *((cudaError_t*)call_params.ret);
+
+    delete call_params.args;
+    delete call_params.arg_lengths;
+    delete call_params.ret;
+
+    return ret;
+}
+
+/*
  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset)
 {
     gpusyscall_t call_params;
@@ -1114,6 +1243,7 @@ blockThread()
 
     return ret;
 }
+*/
 
  cudaError_t  gem5cudaFuncSetCacheConfig(const char *func, enum cudaFuncCache cacheConfig)
 {
@@ -1121,13 +1251,15 @@ blockThread()
     return g_last_cudaError = cudaSuccess;
 }
 
- cudaError_t  gem5cudaLaunch(const char *hostFun)
+ cudaError_t  gem5cudaLaunch(const char *hostFun) // , kernel_info_t* grid)
 {
     gpusyscall_t call_params;
     call_params.num_args = 1;
     call_params.arg_lengths = new int[call_params.num_args];
 
     call_params.arg_lengths[0] = sizeof(const char*);
+    // call_params.arg_lengths[1] = sizeof(kernel_info_t*);
+    // call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1];
     call_params.total_bytes = call_params.arg_lengths[0];
 
     call_params.args = new char[call_params.total_bytes];
@@ -1138,7 +1270,9 @@ blockThread()
     int bytes_off = 0;
     int lengths_off = 0;
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&hostFun, call_params.arg_lengths[0]);
+    // pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&grid, call_params.arg_lengths[1]);
 
+    // call libgem5cudaLaunch
     m5_gpu(43, (uint64_t)&call_params);
     cudaError_t ret = *((cudaError_t*)call_params.ret);
 
@@ -1148,33 +1282,6 @@ blockThread()
 
     return ret;
 }
-
-#if 0
- cudaError_t  gem5cudaLaunchKernel ( const char* hostFun, dim3 gridDim, dim3 blockDim, const void** args, size_t sharedMem, cudaStream_t stream )
-{
-/*
-	if(g_debug_execution >= 3){
-	    announce_call(__my_func__);
-    	}
-        CUctx_st *context = GPGPUSim_Context();
-        function_info *entry = context->get_kernel(hostFun);
-*/
-#if CUDART_VERSION >= 10000
-  assert(g_cudaPushArgsBuffer::g_is_initialized == false);
-  cudaConfigureCall(g_cudaPushArgsBuffer::g_gridDim, g_cudaPushArgsBuffer::g_blockDim, g_cudaPushArgsBuffer::g_sharedMem, g_cudaPushArgsBuffer::g_stream);
-#else
-  cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
-#endif // #if CUDART_VERSION >= 10000
-/*
-    	for(unsigned i = 0; i < entry->num_args(); i++){
-        	std::pair<size_t, unsigned> p = entry->get_param_config(i);
-        	cudaSetupArgument(args[i], p.first, p.second);
-    	}
-*/
-	gem5cudaLaunch(hostFun);
-	return g_last_cudaError = cudaSuccess;
-}
-#endif
 
 
 /*******************************************************************************
@@ -1378,44 +1485,49 @@ int  __cudaSynchronizeThreads(void**, void*)
 }
 */
 
+void gem5cudaRegisterPtxInfo(const char *ptxinfo_kname, gpgpu_ptx_sim_info ptxinfo_kinfo)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 2;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(const char *);
+    call_params.arg_lengths[1] = sizeof(gpgpu_ptx_sim_info);
+    call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = (char*)new int;
+
+    int* ret_spot1 = (int*)call_params.ret;
+    *ret_spot1 = -1;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&ptxinfo_kname, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&ptxinfo_kinfo, call_params.arg_lengths[1]);
+
+    m5_gpu(86, (uint64_t)&call_params);
+
+    delete call_params.args;
+    delete call_params.arg_lengths;
+}
+
 /*******************************************************************************
 *                                                                              *
 *                                                                              *
 *                                                                              *
 *******************************************************************************/
-#if 0
-void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
+// void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle, char *ptxinfo_kname, gpgpu_ptx_sim_info ptxinfo_kinfo)
+void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
 {
-    // First, touch all fatCubin and PTX entries to ensure that the operating
-    // system has mapped the pages before they are accessed in the simulator
-    __cudaFatCudaBinary *info = (__cudaFatCudaBinary*)fatCubin;
-    printf("gem5 + GPGPU-Sim CUDA RT: __cudaRegisterFatBinary2(*fatCubin = %p, size = %u)\n", fatCubin, (unsigned int)size);
-    printf("gem5 + GPGPU-Sim CUDA RT: Touching parts/pages of the binary...\n");
-    printf("gem5 + GPGPU-Sim CUDA RT: magic: %lu\n", info->magic);
-    printf("gem5 + GPGPU-Sim CUDA RT: ident: %s\n", info->ident);
-    printf("gem5 + GPGPU-Sim CUDA RT: elf: %s\n", info->elf->elf);
-    int ptx_version = 0;
-    while (info->ptx[ptx_version].gpuProfileName != NULL) {
-        unsigned long long int hash = 0;
-        for (unsigned int i = 0; i < size; i += PAGE_SIZE_BYTES) {
-            hash += info->ptx[ptx_version].ptx[i];
-        }
-        hash += info->ptx[ptx_version].ptx[size-1];
-        printf("gem5 + GPGPU-Sim CUDA RT: ptx[%d] code hash = %llu\n", ptx_version, hash);
-        printf("gem5 + GPGPU-Sim CUDA RT: ptx[%d]->gpuProfileName: %s\n", ptx_version, info->ptx->gpuProfileName);
-        assert(info->cubin[ptx_version].cubin == NULL);
-        ptx_version++;
-    }
-    fflush(stdout);
-    assert(info->version >= 3);
-
     // Now, tell gem5 + GPGPU-Sim to register the binary
     gpusyscall_t call_params;
     call_params.num_args = 2;
     call_params.arg_lengths = new int[call_params.num_args];
 
-    call_params.arg_lengths[0] = sizeof(void *);
-    call_params.arg_lengths[1] = sizeof(size_t);
+    call_params.arg_lengths[0] = sizeof(symbol_table *);
+    call_params.arg_lengths[1] = sizeof(unsigned int);
     call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1];
 
     call_params.args = new char[call_params.total_bytes];
@@ -1426,8 +1538,8 @@ void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
     int bytes_off = 0;
     int lengths_off = 0;
 
-    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&fatCubin, call_params.arg_lengths[0]);
-    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&size, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&symtab, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&handle, call_params.arg_lengths[1]);
 
     m5_gpu(57, (uint64_t)&call_params);
 
@@ -1459,6 +1571,7 @@ void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
     call_params.ret = new char[sizeof(unsigned long long)];
     unsigned long long* ret_spot3 = (unsigned long long*)call_params.ret;
     *ret_spot3 = 0;
+    // Call __cudaCheckAllocateLocal
     m5_gpu(84, (uint64_t)&call_params);
     unsigned long long allocate_local = *((unsigned long long*)call_params.ret);
     delete call_params.ret;
@@ -1486,6 +1599,7 @@ void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
         // knows how to access it. The return value from this upcall is whether
         // the simulator needs the CPU to touch the memory pages to ensure
         // they are mapped by the OS.
+        // call __cudaSetLocalAllocation
         m5_gpu(85, (uint64_t)&call_params);
         bool map_local = *((bool*)call_params.ret);
 
@@ -1525,6 +1639,7 @@ void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
     lengths_off = 0;
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&alloc_ptr, call_params.arg_lengths[0]);
 
+    // call libcudaRegisterFatBinaryFinalize
     m5_gpu(81, (uint64_t)&call_params);
     void** ret = *((void***)call_params.ret);
 
@@ -1535,11 +1650,39 @@ void**  __cudaRegisterFatBinary2( void *fatCubin, size_t size )
     return ret;
 }
 
-void**  __cudaRegisterFatBinary( void *fatCubin )
+void  gem5cudaRegisterFunction(void *fatCubinHandle,
+        const char *hostFun, const char *deviceFun )
 {
-    cuda_not_implemented(__FILE__, "__cudaRegisterFatBinary shouldn't be called. Use sizeHack.py for __cudaRegisterFatBinary2!", __LINE__);
-    return NULL;
+    gpusyscall_t call_params;
+    call_params.num_args = 3;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(void*);
+    call_params.arg_lengths[1] = sizeof(const char*);
+    call_params.arg_lengths[2] = sizeof(const char*);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+            call_params.arg_lengths[1] + call_params.arg_lengths[2];
+
+    call_params.args = new char[call_params.total_bytes];
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+
+    touchPages((unsigned char*)hostFun, strlen(hostFun));
+    touchPages((unsigned char*)deviceFun, strlen(deviceFun));
+
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&fatCubinHandle, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&hostFun, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&deviceFun, call_params.arg_lengths[2]);
+
+    m5_gpu(59, (uint64_t)&call_params);
+
+    delete call_params.args;
+    delete call_params.arg_lengths;
 }
+
+
+#if 0
 
 void __cudaUnregisterFatBinary(void **fatCubinHandle)
 {
@@ -1960,7 +2103,212 @@ void   __cudaTextureFetch(const void *tex, void *index, int integer, void *val)
 }
 */
 
+bool  gem5gpu_active()
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 0;
+    call_params.total_bytes = 0;
+    call_params.ret = new char[sizeof(bool)];
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    // gem5gpu_active
+    m5_gpu(87, (uint64_t)&call_params);
+    bool ret = *((bool*)call_params.ret);
+
+    delete call_params.ret;
+
+    return ret;
 }
+
+int gem5gpu_system_call(const char *command)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 1;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(const char*);
+    call_params.total_bytes = call_params.arg_lengths[0];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(bool)];
+
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&command, call_params.arg_lengths[0]);
+
+    // gem5gpu_active
+    m5_gpu(88, (uint64_t)&call_params);
+
+    int ret = *((int*)call_params.ret);
+
+    // delete[] call_params.args;
+    // delete[] call_params.arg_lengths;
+    // delete call_params.ret;
+
+    return ret;
+}
+
+void gem5gpu_extract_ptx_files_using_cuobjdump(const char *ptx_list_file_name)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 1;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(const char*);
+    call_params.total_bytes = call_params.arg_lengths[0];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(bool)];
+
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&ptx_list_file_name, call_params.arg_lengths[0]);
+
+    // gem5gpu_active
+    m5_gpu(89, (uint64_t)&call_params);
+
+    // int ret = *((int*)call_params.ret);
+
+    delete[] call_params.args;
+    delete[] call_params.arg_lengths;
+    delete call_params.ret;
+
+    // return ret;
+}
+
+symbol_table* gem5gpu_cuobjdumpParseBinary(const char *ptxfile, unsigned  int handle)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 2;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(const char*);
+    call_params.arg_lengths[1] = sizeof(unsigned int);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+                              call_params.arg_lengths[1];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(void*)];
+
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&ptxfile, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&handle, call_params.arg_lengths[1]);
+
+    // gem5gpu_cuobjdumpParseBinary
+    m5_gpu(90, (uint64_t)&call_params);
+
+    symbol_table* ret = *((symbol_table**)call_params.ret);
+
+    delete[] call_params.args;
+    delete[] call_params.arg_lengths;
+    delete call_params.ret;
+
+    return ret;
+}
+
+symbol* gem5gpu_symbol_lookup(symbol_table *symtab, const char* name)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 2;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(symbol_table*);
+    call_params.arg_lengths[1] = sizeof(const char*);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+                              call_params.arg_lengths[1];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(symbol*)];
+
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&symtab, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&name, call_params.arg_lengths[1]);
+
+    // gem5gpu_symbol_lookup
+    m5_gpu(91, (uint64_t)&call_params);
+
+    symbol* ret = *((symbol**)call_params.ret);
+
+    delete[] call_params.args;
+    delete[] call_params.arg_lengths;
+    delete call_params.ret;
+
+    return ret;
+}
+
+function_info* gem5gpu_symbol_get_function(symbol_table *symtab, const char* name)
+{
+    gpusyscall_t call_params;
+    call_params.num_args = 2;
+    call_params.arg_lengths = new int[call_params.num_args];
+
+    call_params.arg_lengths[0] = sizeof(symbol_table*);
+    call_params.arg_lengths[1] = sizeof(const char*);
+    call_params.total_bytes = call_params.arg_lengths[0] +
+                              call_params.arg_lengths[1];
+
+    call_params.args = new char[call_params.total_bytes];
+    call_params.ret = new char[sizeof(function_info*)];
+
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    int bytes_off = 0;
+    int lengths_off = 0;
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&symtab, call_params.arg_lengths[0]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&name, call_params.arg_lengths[1]);
+
+    // gem5gpu_symbol_lookup
+    m5_gpu(92, (uint64_t)&call_params);
+
+    function_info* ret = *((function_info**)call_params.ret);
+
+    delete[] call_params.args;
+    delete[] call_params.arg_lengths;
+    delete call_params.ret;
+
+    return ret;
+}
+
+
+bool  gem5gpu_cycle_insn_cta_max_hit()
+{
+    /*
+    gpusyscall_t call_params;
+    call_params.num_args = 0;
+    call_params.total_bytes = 0;
+    call_params.ret = new char[sizeof(bool)];
+    bool* ret_spot = (bool*)call_params.ret;
+    *ret_spot = false;
+
+    // gem5gpu_cycle_inst_cta_max_hit
+    m5_gpu(88, (uint64_t)&call_params);
+    bool ret = *((bool*)call_params.ret);
+
+    delete call_params.ret;
+
+    return ret;
+    */
+    return false;
+}
+
+
+}  // extern "C"
 /*
 namespace cuda_math {
 
@@ -1969,7 +2317,7 @@ void  __cudaMutexOperation(int lock)
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
 }
 
-void   __cudaTextureFetch(const void *tex, void *index, int integer, void *val) 
+void   __cudaTextureFetch(const void *tex, void *index, int integer, void *val)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
 }
@@ -1984,3 +2332,5 @@ int  __cudaSynchronizeThreads(void**, void*)
 
 }
 */
+
+

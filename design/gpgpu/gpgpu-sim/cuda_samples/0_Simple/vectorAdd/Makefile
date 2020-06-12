@@ -54,9 +54,13 @@ NVCC          := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 TARGET_SIZE := 64
 
 # internal flags
-NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcuda -lm5op_x86
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcudart.so.10.0 -Xcompiler "-Wl\,-rpath=."
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda  -Xcompiler "-Wl\,-rpath=."
+NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
 LDFLAGS     :=
+#LDFLAGS     := "-lcuda -Wl,-rpath=."
 
 # Install directory of different arch
 CUDA_INSTALL_TARGET_DIR :=

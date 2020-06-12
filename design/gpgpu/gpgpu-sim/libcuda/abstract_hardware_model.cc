@@ -32,10 +32,8 @@
 #include "cuda-sim/ptx_ir.h"
 #include "cuda-sim/ptx-stats.h"
 #include "cuda-sim/cuda-sim.h"
-
-// TODO schi
-// #include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "../libcuda/gpu-sim.h"
+
 
 #include "option_parser.h"
 #include <algorithm>
@@ -43,7 +41,6 @@
 #include <sstream>
 #include <iostream>
 
-extern gpgpu_sim *g_the_gpu;
 
 unsigned mem_access_t::sm_next_access_uid = 0;
 unsigned warp_inst_t::sm_next_uid = 0;
@@ -178,10 +175,8 @@ void gpgpu_functional_sim_config::ptx_set_tex_cache_linesize(unsigned linesize)
    m_texcache_linesize = linesize;
 }
 
-// TODO schi gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config )
-//    : m_function_model_config(config)
-gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu )
-    : gem5CudaGPU(cuda_gpu), m_function_model_config(config)
+gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config )
+    : m_function_model_config(config)
 {
    // m_global_mem = new memory_space_impl<8192>("global",64*1024);
    m_global_mem = NULL; // Accesses to global memory should go through gem5-gpu
@@ -295,9 +290,6 @@ void warp_inst_t::generate_mem_accesses()
         return;
     if( m_warp_active_mask.count() == 0 )
         return; // predicated off
-    // In gem5-gpu, global, const and local references go through the gem5-gpu LSQ
-    if ( space.get_type() == global_space || space.get_type() == const_space || space.get_type() == local_space )
-        return;
 
     const size_t starting_queue_size = m_accessq.size();
 
@@ -413,7 +405,7 @@ void warp_inst_t::generate_mem_accesses()
             }
         }
         assert( total_accesses > 0 && total_accesses <= m_config->warp_size );
-        cycles = total_accesses * g_the_gpu->sharedMemDelay; // shared memory conflicts modeled as larger initiation interval
+        cycles = total_accesses; //  * g_the_gpu->sharedMemDelay; // shared memory conflicts modeled as larger initiation interval
         ptx_file_line_stats_add_smem_bank_conflict( pc, total_accesses );
         break;
     }
@@ -1127,12 +1119,6 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 }
 #endif
 
-// TODO schi add
-void core_t::writeRegister(const warp_inst_t &inst, unsigned warpSize, unsigned lane_id, char *data) {
-    assert(inst.active(lane_id));
-    int warpId = inst.warp_id();
-    m_thread[warpSize*warpId+lane_id]->writeRegister(inst, lane_id, data);
-}
 
 bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const
 {

@@ -65,6 +65,18 @@ OPTION="--debug-flags=RubySlicc"
 OPTION="${OPTION},ProtocolTrace"
 OPTION="${OPTION},RubyTest"
 
+OPTION="--debug-flags=SyscallBase"
+
+#OPTION="--debug-flags=SyscallVerbose"
+
+OPTION="--debug-flags=CudaCoreFetch"
+OPTION="${OPTION},CudaCoreAccess"
+OPTION="${OPTION},CudaGPUPageTable"
+OPTION="${OPTION},MemoryAccess"
+OPTION="${OPTION},AddrRanges"
+#OPTION="${OPTION},ShaderTLB"
+#OPTION="${OPTION},ShaderMMU"
+#OPTION="${OPTION},ShaderLSQ"
 OPTION="${OPTION} --debug-file=run_debug.log"
 
 CMD="tests/test-progs/hello/bin/x86/linux/hello"
@@ -75,9 +87,13 @@ CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
 #RUN=./build/X86_VI_hammer_GPU/gem5.debug
 #CMD="tests/test-progs/hello/bin/x86/linux/hello"
 
+#GDB="-w"
+GDB=""
+ENV="-e design/gpgpu/gpgpu-sim/gem5.env"
+CMD="$CMD $ENV"
+echo $RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
+$RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
 
-echo $RUN $OPTION design/gpgpu/configs/se_fusion.py -c $CMD
-$RUN $OPTION design/gpgpu/configs/se_fusion.py -c $CMD
 #$RUN $OPTION design/gpgpu/configs/my_fusion.py -c /mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd
 #$RUN $OPTION design/gpgpu/configs/ruby_random_test_fusion.py
 

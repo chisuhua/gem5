@@ -97,11 +97,21 @@ extern "C" {
 extern  cudaError_t  gem5gpu_finish_kernel();
 extern  cudaError_t  gem5gpu_stop_all_running_kernels();
 extern  cudaError_t  gem5gpu_print_stats();
-extern  cudaError_t  gem5gpu_cycle_insn_cta_max_hit();
 extern  cudaError_t  gem5gpu_scheduleStreamEvent();
 // extern  cudaError_t  gem5gpu_scheduleStreamEvent();
-extern  cudaError_t  gem5gpu_active();
+extern  bool  gem5gpu_cycle_insn_cta_max_hit();
+extern  bool  gem5gpu_active();
+extern  int  gem5gpu_system_call(const char *command);
+extern  void gem5gpu_extract_ptx_files_using_cuobjdump(const char *ptx_list_file_name);
+extern  symbol_table* gem5gpu_cuobjdumpParseBinary(const char *ptx_file, unsigned int);
+extern  symbol* gem5gpu_symbol_lookup(symbol_table *symtab, const char *name);
+extern  function_info* gem5gpu_symbol_get_function(symbol_table *symtab, const char *name);
 extern  cudaError_t  gem5gpu_deadlock_check();
+
+
+extern  void  gem5cudaRegisterFunction(void *fatCubinHandle, const char *hostFun, const char *deviceFun );
+extern  cudaError_t  gem5cudaRegisterPtxInfo(const char *, gpgpu_ptx_sim_info);
+extern  cudaError_t  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle);
 
 /**
  * \defgroup gem5cudaRT_THREAD Thread Management
@@ -1082,7 +1092,8 @@ extern  cudaError_t  gem5cudaConfigureCall(dim3 gridDim, dim3 blockDim, size_t s
  * ::cudaSetDoubleForHost,
  * \ref ::cudaSetupArgument(T, size_t) "cudaSetupArgument (C++ API)",
  */
-extern  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset);
+// extern  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset);
+extern  cudaError_t  gem5cudaSetupArgument(function_info* f, const void **args);
 
 /**
  * \brief Sets the preferred cache configuration for a device function
@@ -1163,7 +1174,7 @@ extern  cudaError_t  gem5cudaFuncSetCacheConfig(const char *func, enum cudaFuncC
  * ::cudaThreadGetCacheConfig,
  * ::cudaThreadSetCacheConfig
  */
-extern  cudaError_t  gem5cudaLaunch(const char *entry);
+extern  cudaError_t  gem5cudaLaunch(const char *entry); // , kernel_info_t* grid);
 
 /**
  * \brief Find out attributes for a given function

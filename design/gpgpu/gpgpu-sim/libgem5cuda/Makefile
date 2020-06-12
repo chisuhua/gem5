@@ -110,7 +110,7 @@ ifeq ($(ARCH),ARM32)
 	AR = arm-linux-gnueabihf-ar
 endif
 
-DEBUG ?= 0
+DEBUG ?= 1
 RELEASE ?= 0
 ifeq ($(RELEASE),1)
 ifeq ($(DEBUG),1)

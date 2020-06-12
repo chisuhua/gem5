@@ -159,7 +159,7 @@ void *gpgpu_sim_thread_concurrent(void*)
             if( gem5gpu_active() ) {
                 // TODO schi g_the_gpu->cycle();
                 sim_cycles = true;
-                gem5gpu_deadlock_check();
+                // FIXME   gem5gpu_deadlock_check();
             }else {
                 if(gem5gpu_cycle_insn_cta_max_hit()){
                     g_stream_manager->stop_all_running_kernels();
@@ -230,6 +230,7 @@ extern bool g_cuda_launch_blocking;
 
 gpgpu_sim *gpgpu_ptx_sim_init_perf()
 {
+    /*
    srand(1);
    print_splash();
    read_sim_environment_variables();
@@ -239,7 +240,8 @@ gpgpu_sim *gpgpu_ptx_sim_init_perf()
    ptx_reg_options(opp);
    ptx_opcocde_latency_options(opp);
 
-   // FIXMEicnt_reg_options(opp);
+   // FIXME
+   // icnt_reg_options(opp);
    g_the_gpu_config.reg_options(opp); // register GPU microrachitecture options
 
    option_parser_cmdline(opp, sg_argc, sg_argv); // parse configuration options
@@ -248,9 +250,11 @@ gpgpu_sim *gpgpu_ptx_sim_init_perf()
    // Set the Numeric locale to a standard locale where a decimal point is a "dot" not a "comma"
    // so it does the parsing correctly independent of the system environment variables
    assert(setlocale(LC_NUMERIC,"C"));
+   */
    g_the_gpu_config.init();
 
    g_the_gpu = new gpgpu_sim(g_the_gpu_config);
+   /*
    g_stream_manager = new stream_manager(g_the_gpu,g_cuda_launch_blocking);
 
    g_simulation_starttime = time((time_t *)NULL);
@@ -258,10 +262,12 @@ gpgpu_sim *gpgpu_ptx_sim_init_perf()
    sem_init(&g_sim_signal_start,0,0);
    sem_init(&g_sim_signal_finish,0,0);
    sem_init(&g_sim_signal_exit,0,0);
+   */
 
    return g_the_gpu;
 }
 // TODO schi 
+/*
 gpgpu_sim *gem5_ptx_sim_init_perf(stream_manager **p_stream_manager, CudaGPU *cuda_gpu, const char *config_path)
 {
    print_splash();
@@ -291,6 +297,7 @@ gpgpu_sim *gem5_ptx_sim_init_perf(stream_manager **p_stream_manager, CudaGPU *cu
    *p_stream_manager = g_stream_manager;
    return g_the_gpu;
 }
+*/
 
 void start_sim_thread(int api)
 {

@@ -23,6 +23,12 @@
 #include <cuda_runtime.h>
 
 #include <helper_cuda.h>
+
+
+extern "C" void debug_hook()
+{
+    printf("called from cuda_runtime_api\n");
+}
 /**
  * CUDA Kernel Device code
  *
@@ -50,7 +56,8 @@ main(void)
     cudaError_t err = cudaSuccess;
 
     // Print the vector length to be used, and compute its size
-    int numElements = 50000;
+    // int numElements = 50000;
+    int numElements = 32;
     size_t size = numElements * sizeof(float);
     printf("[Vector addition of %d elements]\n", numElements);
 

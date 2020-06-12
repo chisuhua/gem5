@@ -74,7 +74,7 @@ CUDA_INSTALL_PATH ?= /usr/local/cuda/
 CPP = g++ $(SNOW)
 CC = gcc $(SNOW)
 CREATELIBRARY    =  1
-DEBUG ?= 0
+DEBUG ?= 1
 ifeq ($(DEBUG),1)
 	CXXFLAGS +=  -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
 	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
@@ -90,8 +90,8 @@ PROG     =cuda
 M5OP = m5op_x86
 INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer
 
-CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc \
-	    gpu-sim.cc \
+CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc shader.cc gpu-cache.cc \
+	    gpu-sim.cc l2cache.cc mem_latency_stat.cc \
 	    ../src/cuda-sim/ptx_loader.cc \
 	    ../src/cuda-sim/ptx_sim.cc \
 	    ../src/cuda-sim/ptx_parser.cc \
@@ -102,9 +102,12 @@ CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstrac
 	    ../src/cuda-sim/memory.cc \
 	    ../src/cuda-sim/decuda_pred_table/decuda_pred_table.cc \
 	    ../src/gpgpu-sim/addrdec.cc \
+	    ../src/gpgpu-sim/gpu-misc.cc \
 	    ../src/debug.cc \
 	    ../src/option_parser.cc
 
+	#	gpu-cache.cc \
+	#    ../src/gpgpu-sim/dram.cc \
 #            ../src/cuda-sim/cuda_device_printf.cc \
 #            ../src/cuda-sim/cuda_device_runtime.cc \
 
@@ -138,9 +141,13 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 #	echo $(OBJS)
 #	ar rcs $(OUTPUT_DIR)/lib$(PROG).a $(OBJS)
 #	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
+all: libcudart.so libcudart_static.a
 
-libcudart.so: $(OBJS) ../libgem5cuda/gem5cuda_runtime_api.o ../libgem5cuda/m5op_x86.o
+libcudart.so: $(OBJS)
 	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) ../libgem5cuda/m5op_x86.o ../libgem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -pthread -o $(OUTPUT_DIR)/libcudart.so
+
+libcudart_static.a: $(OBJS)
+	$(AR) rcs libcudart_static.a $(OBJS) ../libgem5cuda/gem5cuda_runtime_api.o ../libgem5cuda/m5op_x86.o
 
 $(OUTPUT_DIR)/%.o: %.cc
 	$(CPP) $(CXXFLAGS) $(INCLUDES) -c $< -o $@

@@ -133,12 +133,13 @@ void CUstream_st::print(FILE *fp)
 
 bool stream_operation::do_operation( gpgpu_sim *gpu )
 {
+    printf("LIBCUDA API: it is  ", m_stream->get_uid() );
+    assert(0);
+#if 0
     if( is_noop() )
         return true;
 
     assert(!m_done && m_stream);
-    // TODO schi remote tc
-    m_stream->setThreadContext(tc);
     if(g_debug_execution >= 3)
        printf("GPGPU-Sim API: stream %u performing ", m_stream->get_uid() );
     switch( m_type ) {
@@ -146,7 +147,6 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
         if(g_debug_execution >= 3)
             printf("memcpy host-to-device\n");
         // gpu->memcpy_to_gpu(m_device_address_dst,m_host_address_src,m_cnt);
-        // gpu->gem5CudaGPU->memcpy((void *)m_host_address_src,(void *)m_device_address_dst,m_cnt, m_stream, m_type);
         gem5cudaMemcpyAsync((void *)m_device_address_dst, (void *)m_host_address_src, m_cnt, cudaMemcpyHostToDevice, m_stream);
         m_stream->record_next_done();
         break;
@@ -154,7 +154,6 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
         if(g_debug_execution >= 3)
             printf("memcpy device-to-host\n");
         // gpu->memcpy_from_gpu(m_host_address_dst,m_device_address_src,m_cnt);
-        // gpu->gem5CudaGPU->memcpy((void *)m_device_address_src,m_host_address_dst,m_cnt, m_stream, m_type);
         gem5cudaMemcpyAsync(m_host_address_dst, (void *)m_device_address_src, m_cnt, cudaMemcpyDeviceToHost, m_stream);
         m_stream->record_next_done();
         break;
@@ -194,23 +193,18 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
             */
         }
         else { //Performance Sim
-            /*
-                gem5cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
-                gem5cudaSetupArgument(const void *arg, size_t size, size_t offset)
-                gem5cudaLaunch(const char *hostFun)
-                */
-
-/*
-            if( gpu->can_start_kernel() && m_kernel->m_launch_latency == 0) {
+            // if( gpu->can_start_kernel() && m_kernel->m_launch_latency == 0) {
+            if( m_kernel->m_launch_latency == 0) {
                 if(g_debug_execution >= 3) {
                     printf("kernel %d: \'%s\' transfer to GPU hardware scheduler\n", m_kernel->get_uid(), m_kernel->name().c_str() );
                     m_kernel->print_parent_info();
                 }
-
-
+                gem5cudaLaunch(m_kernel->name().c_str(), m_kernel);
+/*
                 gpu->set_cache_config(m_kernel->name());
                 gpu->launch( m_kernel );
                 gpu->gem5CudaGPU->beginRunning(launchTime, m_stream);
+*/
             }
             else {
                 if(m_kernel->m_launch_latency)
@@ -220,47 +214,25 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
                         m_kernel->get_uid(), m_kernel->name().c_str(), m_kernel->m_launch_latency);
                 return false;
             }
-            */
         }
         break;
     case stream_event: {
         printf("event update\n");
-        gem5cudaEventRecord(m_event, m_stream);
-        m_stream->record_next_done();
-        gem5gpu_scheduleStreamEvent();
-        /*
         time_t wallclock = time((time_t *)NULL);
-        // m_event->update( gpu_tot_sim_cycle, wallclock );
-        m_event->update( gpu_tot_sim_cycle, wallclock, gpu->gem5CudaGPU->getCurTick() );
-        if (m_event->needs_unblock()) {
-            gpu->gem5CudaGPU->unblockThread(NULL);
-            m_event->reset();
-        }
+        // FIXME m_event->update( gpu_tot_sim_cycle, wallclock );
         m_stream->record_next_done();
-        gpu->gem5CudaGPU->scheduleStreamEvent();
-        */
         }
         break;
     case stream_memset:
         if (g_debug_execution >= 3)
             printf("memset\n");
-        // gpu->gem5CudaGPU->memset((Addr)m_device_address_dst, m_write_value, m_cnt, m_stream);
-        gem5cudaMemsetAsync((void *)m_device_address_dst, m_write_value, m_cnt, m_stream);
+        // gem5cudaMemsetAsync((void *)m_device_address_dst, m_write_value, m_cnt, m_stream);
+        gem5cudaMemset((void *)m_device_address_dst, m_write_value, m_cnt);
         break;
     case stream_wait_event:
         //only allows next op to go if event is done
         //otherwise stays in the stream queue
         printf("stream wait event processing...\n");
-        // FIXME on flags
-        if (gem5cudaStreamWaitEvent(m_stream, m_event, 0)) {
-            printf("stream wait event done\n");
-            m_stream->record_next_done();
-        }
-        else{
-            return false;
-        }
-        /*
-        m_stream->record_next_done();
         if(m_event->num_updates()>=m_cnt){
             printf("stream wait event done\n");
             m_stream->record_next_done();
@@ -268,13 +240,13 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
         else{
             return false;
         }
-        */
         break;
     default:
         abort();
     }
     m_done=true;
     fflush(stdout);
+#endif
     return true;
 }
 
@@ -290,8 +262,6 @@ void stream_operation::print( FILE *fp ) const
     case stream_memcpy_to_symbol: fprintf(fp,"memcpy to symbol"); break;
     case stream_memcpy_from_symbol: fprintf(fp,"memcpy from symbol"); break;
     case stream_no_op: fprintf(fp,"no-op"); break;
-    case stream_memset: fprintf(fp,"memset"); break;
-    case stream_wait_event: fprintf(fp,"wait_event"); break;
     }
 }
 
@@ -329,8 +299,9 @@ bool stream_manager::operation( bool * sim)
 bool stream_manager::check_finished_kernel()
 {
     // unsigned grid_uid = m_gpu->finished_kernel();
-    unsigned grid_uid = gem5gpu_finish_kernel();
-    bool check=register_finished_kernel(grid_uid);
+    // FIXME unsigned grid_uid = gem5gpu_finish_kernel();
+    m5op::m5_panic();
+    bool check=true; // FIXME register_finished_kernel(grid_uid);
     return check;
 }
 
@@ -372,7 +343,8 @@ void stream_manager::stop_all_running_kernels(){
 
     // Signal m_gpu to stop all running kernels
     // m_gpu->stop_all_running_kernels();
-    gem5gpu_stop_all_running_kernels();
+    // FIXME gem5gpu_stop_all_running_kernels();
+    m5op::m5_panic();
 
     // Clean up all streams waiting on running kernels
     int count=0;
@@ -383,7 +355,8 @@ void stream_manager::stop_all_running_kernels(){
     // If any kernels completed, print out the current stats
     if(count > 0) {
         // m_gpu->print_stats();
-        gem5gpu_print_stats();
+        // FIXME gem5gpu_print_stats();
+        m5op::m5_panic();
     }
 
     pthread_mutex_unlock(&m_lock);
@@ -586,10 +559,12 @@ void stream_manager::push( stream_operation op )
     }
 
     // TODO schi fixme
+    /*
     if (ready()) {
         // m_gpu->gem5CudaGPU->scheduleStreamEvent();
         gem5gpu_scheduleStreamEvent();
     }
+    */
 }
 
 void stream_manager::pushCudaStreamWaitEventToAllStreams( CUevent_st *e, unsigned int flags ){

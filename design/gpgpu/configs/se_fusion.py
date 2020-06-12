@@ -103,6 +103,11 @@ process = Process()
 process.executable = options.cmd
 process.cmd = [options.cmd] + options.options.split()
 
+if options.env:
+    with open(options.env, 'r') as f:
+        process.env = [line.rstrip() for line in f]
+
+
 if options.input != "":
     process.input = options.input
 if options.output != "":
@@ -119,9 +124,16 @@ if options.cacheline_size != 128:
 #
 # Instantiate system
 #
+# add multip-thread to support clone syscall
+#   clone is need for system() in user app
+multi_thread = False
+num_threads = 1
 system = System(cpu = [CPUClass(cpu_id = i,
-                                workload = process)
+                                workload = process,
+                                numThreads = num_threads
+                               )
                        for i in xrange(options.num_cpus)],
+                multi_thread = multi_thread,
                 mem_mode = test_mem_mode,
                 mem_ranges = [cpu_mem_range],
                 cache_line_size = options.cacheline_size)

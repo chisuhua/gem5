@@ -276,7 +276,8 @@ void CudaGPU::startup()
         runningTC = system->getThreadContext(runningTID);
         assert(runningTC);
     }
-
+    // FIXME don't support checkpoint
+#if 0
     // Setting everything up again!
     std::vector<_FatBinary>::iterator binaries;
     for (binaries = fatBinaries.begin(); binaries != fatBinaries.end(); ++binaries) {
@@ -299,6 +300,7 @@ void CudaGPU::startup()
         _CudaVar var = *variables;
         register_var(var.sim_deviceAddress, var.deviceName.c_str(), var.sim_size, var.sim_constant, var.sim_global, var.sim_ext, var.sim_hostVar);
     }
+#endif
 }
 
 void CudaGPU::clearStats()

@@ -26,19 +26,19 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 #include <float.h>
-#include "shader.h"
-#include "gpu-sim.h"
+#include "../libcuda/shader.h"
+#include "../libcuda/gpu-sim.h"
+/*
 #include "addrdec.h"
+
 #include "dram.h"
 #include "stat-tool.h"
 #include "gpu-misc.h"
 #include "../cuda-sim/ptx_sim.h"
 #include "../cuda-sim/ptx-stats.h"
 #include "../cuda-sim/cuda-sim.h"
-#include "gpu-cache_gem5.h"
-#include "gpu-sim.h"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "mem_fetch.h"
 #include "mem_latency_stat.h"
 #include "visualizer.h"
@@ -48,13 +48,13 @@
 #include <limits.h>
 #include "traffic_breakdown.h"
 #include "shader_trace.h"
+*/
 
 #define PRIORITIZE_MSHR_OVER_WB 1
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
     
-extern gpgpu_sim *g_the_gpu;
-
+#if 0
 /////////////////////////////////////////////////////////////////////////////
 
 std::list<unsigned> shader_core_ctx::get_regs_written( const inst_t &fvt ) const
@@ -79,9 +79,6 @@ shader_core_ctx::shader_core_ctx( class gpgpu_sim *gpu,
      m_barriers( this, config->max_warps_per_shader, config->max_cta_per_core, config->max_barriers_per_cta, config->warp_size ),
      m_dynamic_warp_id(0), m_active_warps(0)
 {
-    // TODO schi 
-    m_kernel_finishing = false;
-
     m_cluster = cluster;
     m_config = config;
     m_memory_config = mem_config;
@@ -136,7 +133,7 @@ shader_core_ctx::shader_core_ctx( class gpgpu_sim *gpu,
     #define STRSIZE 1024
     char name[STRSIZE];
     snprintf(name, STRSIZE, "L1I_%03d", m_sid);
-    m_L1I = new l1icache_gem5(m_gpu, name,m_config->m_L1I_config,m_sid,get_shader_instruction_cache_id(),m_icnt,IN_L1I_MISS_QUEUE);
+    m_L1I = new read_only_cache( name,m_config->m_L1I_config,m_sid,get_shader_instruction_cache_id(),m_icnt,IN_L1I_MISS_QUEUE);
     
     m_warp.resize(m_config->max_warps_per_shader, shd_warp_t(this, warp_size));
     m_scoreboard = new Scoreboard(m_sid, m_config->max_warps_per_shader);
@@ -771,10 +768,7 @@ void shader_core_ctx::fetch()
             mem_fetch *mf = m_L1I->next_access();
             m_warp[mf->get_wid()].clear_imiss_pending();
             m_inst_fetch_buffer = ifetch_buffer_t(m_warp[mf->get_wid()].get_pc(), mf->get_access_size(), mf->get_wid());
-
-
-            // TODO schi assert( m_warp[mf->get_wid()].get_pc() == (mf->get_addr()-PROGRAM_MEM_START)); // Verify that we got the instruction we were expecting.
-
+            assert( m_warp[mf->get_wid()].get_pc() == (mf->get_addr()-PROGRAM_MEM_START)); // Verify that we got the instruction we were expecting.
             m_inst_fetch_buffer.m_valid = true;
             m_warp[mf->get_wid()].set_last_fetch(gpu_sim_cycle);
             delete mf;
@@ -809,10 +803,7 @@ void shader_core_ctx::fetch()
                 // this code fetches instructions from the i-cache or generates memory requests
                 if( !m_warp[warp_id].functional_done() && !m_warp[warp_id].imiss_pending() && m_warp[warp_id].ibuffer_empty() ) {
                     address_type pc  = m_warp[warp_id].get_pc();
-                    // TODO schi address_type ppc = pc + PROGRAM_MEM_START;
-                    // FIXME FIXME
                     address_type ppc = pc + PROGRAM_MEM_START;
-                    // address_type ppc = pc + m_kernel->get_inst_base_vaddr();
                     unsigned nbytes=16;
                     unsigned offset_in_block = pc & (m_config->m_L1I_config.get_line_sz()-1);
                     if( (offset_in_block+nbytes) > m_config->m_L1I_config.get_line_sz() )
@@ -820,9 +811,6 @@ void shader_core_ctx::fetch()
 
                     // TODO: replace with use of allocator
                     // mem_fetch *mf = m_mem_fetch_allocator->alloc()
-                    // HACK: This access will get sent into gem5, so the control
-                // header size must be zero, since gem5 packets will assess
-                // control header sizing
                     mem_access_t acc(INST_ACC_R,ppc,nbytes,false);
                     mem_fetch *mf = new mem_fetch(acc,
                             NULL/*we don't have an instruction yet*/,
@@ -864,11 +852,6 @@ void shader_core_ctx::func_exec_inst( warp_inst_t &inst )
 	inst.generate_mem_accesses();
         //inst.print_m_accessq();	
     }	
-}
-
-// TODO schi add
-void shader_core_ctx::warp_reaches_barrier(warp_inst_t &inst) {
-    m_barriers.warp_reaches_barrier(m_warp[inst.warp_id()].get_cta_id(), inst.warp_id(), &inst);
 }
 
 void shader_core_ctx::issue_warp( register_set& pipe_reg_set, const warp_inst_t* next_inst, const active_mask_t &active_mask, unsigned warp_id, unsigned sch_id )
@@ -1410,7 +1393,6 @@ unsigned shader_core_ctx::translate_local_memaddr( address_type localaddr, unsig
                        + tid % kernel_padded_threads_per_cta); 
       max_concurrent_threads = kernel_padded_threads_per_cta * kernel_max_cta_per_shader * num_shader;
    } else {
-      panic("gem5-gpu does not work with legacy local mapping!\n");
       // legacy mapping that maps the same address in the local memory space of all threads 
       // to a single contiguous address region 
       thread_base = 4*(m_config->n_thread_per_shader * m_sid + tid);
@@ -1430,10 +1412,7 @@ unsigned shader_core_ctx::translate_local_memaddr( address_type localaddr, unsig
       assert(localaddr%4 == 0); // Address must be 4B aligned - required if accessing 4B per request, otherwise access will overflow into next thread's space
       for(unsigned i=0; i<num_accesses; i++) {
           address_type local_word = localaddr/4 + i;
-          // TODO schi 
-          // address_type linear_address = local_word*max_concurrent_threads*4 + thread_base + LOCAL_GENERIC_START;
-          address_type linear_address = local_word*max_concurrent_threads*4 + thread_base + get_gpu()->gem5CudaGPU->getLocalBaseVaddr();
-          assert(linear_address < get_gpu()->gem5CudaGPU->getLocalBaseVaddr() + (LOCAL_MEM_SIZE_MAX * max_concurrent_threads));
+          address_type linear_address = local_word*max_concurrent_threads*4 + thread_base + LOCAL_GENERIC_START;
           translated_addrs[i] = linear_address;
       }
    } else {
@@ -1443,9 +1422,7 @@ unsigned shader_core_ctx::translate_local_memaddr( address_type localaddr, unsig
       address_type local_word = localaddr/4;
       address_type local_word_offset = localaddr%4;
       assert( (localaddr+datasize-1)/4  == local_word ); // Make sure access doesn't overflow into next 4B chunk
-      // address_type linear_address = local_word*max_concurrent_threads*4 + local_word_offset + thread_base + LOCAL_GENERIC_START;
-      address_type linear_address = local_word*max_concurrent_threads*4 + local_word_offset + thread_base + get_gpu()->gem5CudaGPU->getLocalBaseVaddr();
-      assert(linear_address < get_gpu()->gem5CudaGPU->getLocalBaseVaddr() + (LOCAL_MEM_SIZE_MAX * max_concurrent_threads));
+      address_type linear_address = local_word*max_concurrent_threads*4 + local_word_offset + thread_base + LOCAL_GENERIC_START;
       translated_addrs[0] = linear_address;
    }
    return num_accesses;
@@ -1625,7 +1602,6 @@ ldst_unit::process_cache_access( cache_t* cache,
 
     }
     if ( status == HIT ) {
-        // HACK for gem5-gpu: Reads should not be sent with hit status
         assert( !read_sent );
         inst.accessq_pop_back();
         if ( inst.is_load() ) {
@@ -1637,9 +1613,7 @@ ldst_unit::process_cache_access( cache_t* cache,
             delete mf;
     } else if ( status == RESERVATION_FAIL ) {
         result = BK_CONF;
-        // HACK for gem5-gpu: Reads should not be sent with reservation_fail status
-        if (read_sent) assert( !read_sent );
-        // assert( !read_sent );
+        assert( !read_sent );
         assert( !write_sent );
         delete mf;
     } else {
@@ -1861,54 +1835,6 @@ bool ldst_unit::memory_cycle( warp_inst_t &inst, mem_stage_stall_type &stall_rea
    return inst.accessq_empty(); 
 }
 
-bool ldst_unit::memory_cycle_gem5( warp_inst_t &inst, mem_stage_stall_type &stall_reason, mem_stage_access_type &access_type )
-{
-    if ( inst.empty()) {
-        return true;
-    }
-    if (inst.space.get_type() != global_space &&
-        inst.space.get_type() != const_space &&
-        inst.space.get_type() != local_space &&
-        inst.op != BARRIER_OP &&
-        inst.op != MEMORY_BARRIER_OP) {
-        return memory_cycle(inst, stall_reason, access_type);
-    }
-    if ( inst.active_count() == 0 ) {
-        return true;
-    }
-
-    // GPGPU-Sim should NOT have generated accesses for gem5-gpu requests
-    assert( inst.accessq_empty() );
-    mem_stage_stall_type stall_cond = NO_RC_FAIL;
-
-    // bool rc_fail = m_core->get_gpu()->gem5CudaGPU->getCudaCore(m_core->m_sid)->executeMemOp(inst);
-    bool rc_fail = m_core->get_gpu()->gem5CudaGPU->getCudaCore(m_sid)->executeMemOp(inst);
-
-    if (rc_fail) {
-        stall_cond = ICNT_RC_FAIL;
-    } else {
-        if ( inst.is_load() ) {
-            for ( unsigned r=0; r < 4; r++) {
-                if (inst.out[r] > 0) {
-                    m_pending_writes[inst.warp_id()][inst.out[r]]++;
-                }
-            }
-        }
-    }
-
-    if (stall_cond != NO_RC_FAIL) {
-        stall_reason = stall_cond;
-        bool iswrite = inst.is_store();
-        if (inst.space.is_local()) {
-            access_type = (iswrite)?L_MEM_ST:L_MEM_LD;
-        } else {
-            access_type = (iswrite)?G_MEM_ST:G_MEM_LD;
-        }
-        return false;
-    }
-
-    return true;
-}
 
 bool ldst_unit::response_buffer_full() const
 {
@@ -2279,10 +2205,6 @@ void ldst_unit::writeback()
                 m_core->warp_inst_complete(m_next_wb);
             }
             m_next_wb.clear();
-
-            // signal gem5 that the wb hazard has cleared
-            // m_core->get_gpu()->gem5CudaGPU->getCudaCore(m_core->m_sid)->writebackClear();
-            m_core->get_gpu()->gem5CudaGPU->getCudaCore(m_sid)->writebackClear();
             m_last_inst_gpu_sim_cycle = gpu_sim_cycle;
             m_last_inst_gpu_tot_sim_cycle = gpu_tot_sim_cycle;
         }
@@ -2322,7 +2244,6 @@ void ldst_unit::writeback()
             break;
         case 3: // global/local
             if( m_next_global ) {
-                panic("This should never execute in gem5-gpu! Writebacks from CudaCore must occur with writebackInst()!");
                 m_next_wb = m_next_global->get_inst();
                 if( m_next_global->isatomic() ) 
                     m_core->decrement_atomic_count(m_next_global->get_wid(),m_next_global->get_access_warp_mask().count());
@@ -2348,21 +2269,6 @@ void ldst_unit::writeback()
     if (serviced_client != (unsigned)-1) {
         m_writeback_arb = (serviced_client + 1) % m_num_writeback_clients; 
     }
-}
-
-
-// TODO schi add
-bool ldst_unit::writebackInst(warp_inst_t &inst)
-{
-    if (m_next_wb.empty()) {
-        m_next_wb = inst;
-        if ( m_next_wb.isatomic() ) {
-            m_core->decrement_atomic_count(m_next_wb.warp_id(),m_next_wb.active_count());
-        }
-    } else if (m_next_wb.get_uid() != inst.get_uid()) {
-        return false; // WB reg full
-    }
-    return true;
 }
 
 unsigned ldst_unit::clock_multiplier() const
@@ -2463,8 +2369,7 @@ void ldst_unit::cycle()
    done &= shared_cycle(pipe_reg, rc_fail, type);
    done &= constant_cycle(pipe_reg, rc_fail, type);
    done &= texture_cycle(pipe_reg, rc_fail, type);
-   // TODO schi done &= memory_cycle(pipe_reg, rc_fail, type);
-   done &= memory_cycle_gem5(pipe_reg, rc_fail, type);
+   done &= memory_cycle(pipe_reg, rc_fail, type);
    m_mem_rc = rc_fail;
 
    if (!done) { // log stall types and return
@@ -2528,11 +2433,6 @@ void shader_core_ctx::register_cta_thread_exit( unsigned cta_num, kernel_info_t 
       m_n_active_cta--;
       m_barriers.deallocate_barrier(cta_num);
       shader_CTA_count_unlog(m_sid, 1);
-//      printf("GPGPU-Sim uArch: Shader %d finished CTA #%d (%lld,%lld), %u CTAs running\n", m_sid, cta_num, gpu_sim_cycle, gpu_tot_sim_cycle,
-//             m_n_active_cta );
-      m_gpu->gem5CudaGPU->getCudaCore(m_sid)->record_block_commit(cta_num);
-
-
 
      SHADER_DPRINTF(LIVENESS, "GPGPU-Sim uArch: Finished CTA #%d (%lld,%lld), %u CTAs running\n",
         cta_num, gpu_sim_cycle, gpu_tot_sim_cycle, m_n_active_cta);
@@ -2565,29 +2465,6 @@ void shader_core_ctx::register_cta_thread_exit( unsigned cta_num, kernel_info_t 
       }
 
    }
-}
-void shader_core_ctx::start_kernel_finish()
-{
-    assert(!m_kernel_finishing);
-    m_kernel_finishing = true;
-    m_gpu->gem5CudaGPU->getCudaCore(m_sid)->finishKernel();
-}
-
-void shader_core_ctx::finish_kernel()
-{
-  assert( m_kernel != NULL );
-  m_kernel->dec_running();
-  printf("GPGPU-Sim uArch: Shader %u empty (release kernel %u \'%s\').\n", m_sid, m_kernel->get_uid(),
-         m_kernel->name().c_str() );
-  if ( m_kernel->no_more_ctas_to_run() ) {
-      if ( !m_kernel->running() ) {
-          printf("GPGPU-Sim uArch: GPU detected kernel \'%s\' finished on shader %u.\n", m_kernel->name().c_str(), m_sid );
-          m_gpu->set_kernel_done( m_kernel );
-      }
-  }
-  m_kernel=NULL;
-  m_kernel_finishing = false;
-  fflush(stdout);
 }
 
 void gpgpu_sim::shader_print_runtime_stat( FILE *fout ) 
@@ -3907,6 +3784,7 @@ void opndcoll_rfu_t::collector_unit_t::dispatch()
    for( unsigned i=0; i<MAX_REG_OPERANDS*2;i++)
       m_src_op[i].reset();
 }
+#endif
 
 simt_core_cluster::simt_core_cluster( class gpgpu_sim *gpu, 
                                       unsigned cluster_id, 
@@ -3921,14 +3799,17 @@ simt_core_cluster::simt_core_cluster( class gpgpu_sim *gpu,
     m_gpu = gpu;
     m_stats = stats;
     m_memory_stats = mstats;
+    /*
     m_core = new shader_core_ctx*[ config->n_simt_cores_per_cluster ];
     for( unsigned i=0; i < config->n_simt_cores_per_cluster; i++ ) {
         unsigned sid = m_config->cid_to_sid(i,m_cluster_id);
         m_core[i] = new shader_core_ctx(gpu,this,sid,m_cluster_id,config,mem_config,stats);
         m_core_sim_order.push_back(i); 
     }
+    */
 }
 
+#if 0
 void simt_core_cluster::core_cycle()
 {
     for( std::list<unsigned>::iterator it = m_core_sim_order.begin(); it != m_core_sim_order.end(); ++it ) {
@@ -4242,4 +4123,4 @@ void shader_core_ctx::checkExecutionStatusAndUpdate(warp_inst_t &inst, unsigned 
         }
     }
 }
-
+#endif

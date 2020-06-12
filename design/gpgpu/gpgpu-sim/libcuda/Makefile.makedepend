@@ -19,25 +19,21 @@
 ./cuda_runtime_api.o: /usr/include/bits/sys_errlist.h /usr/include/string.h
 ./cuda_runtime_api.o: /usr/include/xlocale.h /usr/include/assert.h cuda_api.h
 ./cuda_runtime_api.o: /usr/include/stdint.h /usr/include/bits/wchar.h
-./cuda_runtime_api.o: ../libcuda/gpu-sim.h
+./cuda_runtime_api.o: ../libcuda/gpu-sim.h ../src/option_parser.h
 ./cuda_runtime_api.o: ../libcuda/abstract_hardware_model.h
-./cuda_runtime_api.o: ../libcuda/gpgpusim_entrypoint.h
-./cuda_runtime_api.o: abstract_hardware_model.h ../libcuda/stream_manager.h
-./cuda_runtime_api.o: /usr/include/pthread.h /usr/include/sched.h
-./cuda_runtime_api.o: /usr/include/bits/sched.h /usr/include/bits/setjmp.h
-./cuda_runtime_api.o: ../src/cuda-sim/ptx_loader.h ../src/cuda-sim/cuda-sim.h
-./cuda_runtime_api.o: ../src/abstract_hardware_model.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/shader.h /usr/include/math.h
+./cuda_runtime_api.o: ../libcuda/gpu-cache.h ../src/gpgpu-sim/gpu-misc.h
+./cuda_runtime_api.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/addrdec.h
+./cuda_runtime_api.o: ../src/option_parser.h ../src/abstract_hardware_model.h
+./cuda_runtime_api.o: ../libcuda/shader.h /usr/include/math.h
 ./cuda_runtime_api.o: /usr/include/bits/math-vector.h
 ./cuda_runtime_api.o: /usr/include/bits/libm-simd-decl-stubs.h
 ./cuda_runtime_api.o: /usr/include/bits/huge_val.h
 ./cuda_runtime_api.o: /usr/include/bits/huge_valf.h
 ./cuda_runtime_api.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
 ./cuda_runtime_api.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
-./cuda_runtime_api.o: /usr/include/bits/mathcalls.h
+./cuda_runtime_api.o: /usr/include/bits/mathcalls.h ../src/gpgpu-sim/dram.h
 ./cuda_runtime_api.o: ../src/gpgpu-sim/delayqueue.h ../src/statwrapper.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/gpu-misc.h ../src/gpgpu-sim/stack.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/dram.h /usr/include/zlib.h
+./cuda_runtime_api.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
 ./cuda_runtime_api.o: /usr/include/zconf.h /usr/include/limits.h
 ./cuda_runtime_api.o: /usr/include/bits/posix1_lim.h
 ./cuda_runtime_api.o: /usr/include/bits/local_lim.h
@@ -46,14 +42,14 @@
 ./cuda_runtime_api.o: /usr/include/bits/posix_opt.h
 ./cuda_runtime_api.o: /usr/include/bits/environments.h
 ./cuda_runtime_api.o: /usr/include/bits/confname.h /usr/include/getopt.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/scoreboard.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/mem_fetch.h ../src/gpgpu-sim/addrdec.h
-./cuda_runtime_api.o: ../src/option_parser.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/mem_fetch_status.tup
 ./cuda_runtime_api.o: ../src/gpgpu-sim/stats.h ../src/gpgpu-sim/gpu-cache.h
-./cuda_runtime_api.o: ../src/tr1_hash_map.h
-./cuda_runtime_api.o: ../src/gpgpu-sim/traffic_breakdown.h
-./cuda_runtime_api.o: ../src/cuda-sim/ptx_sim.h ../src/cuda-sim/half.h
+./cuda_runtime_api.o: ../libcuda/gpgpusim_entrypoint.h
+./cuda_runtime_api.o: abstract_hardware_model.h ../libcuda/stream_manager.h
+./cuda_runtime_api.o: /usr/include/pthread.h /usr/include/sched.h
+./cuda_runtime_api.o: /usr/include/bits/sched.h /usr/include/bits/setjmp.h
+./cuda_runtime_api.o: ../src/cuda-sim/ptx_loader.h ../src/cuda-sim/cuda-sim.h
+./cuda_runtime_api.o: ../src/gpgpu-sim/shader.h ../src/cuda-sim/ptx_sim.h
+./cuda_runtime_api.o: ../src/cuda-sim/half.h ../src/tr1_hash_map.h
 ./cuda_runtime_api.o: ../src/cuda-sim/opcodes.h ../src/cuda-sim/opcodes.def
 ./cuda_runtime_api.o: ../src/cuda-sim/memory.h ../src/cuda-sim/ptx_ir.h
 ./cuda_runtime_api.o: ../src/cuda-sim/ptx_parser.h
@@ -89,30 +85,57 @@
 ./gpgpusim_entrypoint.o: /usr/include/_G_config.h /usr/include/wchar.h
 ./gpgpusim_entrypoint.o: /usr/include/bits/stdio_lim.h
 ./gpgpusim_entrypoint.o: /usr/include/bits/sys_errlist.h ../libcuda/gpu-sim.h
+./gpgpusim_entrypoint.o: ../src/option_parser.h /usr/include/stdlib.h
+./gpgpusim_entrypoint.o: /usr/include/bits/waitflags.h
+./gpgpusim_entrypoint.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+./gpgpusim_entrypoint.o: /usr/include/bits/endian.h
+./gpgpusim_entrypoint.o: /usr/include/bits/byteswap.h
+./gpgpusim_entrypoint.o: /usr/include/bits/byteswap-16.h
+./gpgpusim_entrypoint.o: /usr/include/sys/types.h /usr/include/time.h
+./gpgpusim_entrypoint.o: /usr/include/sys/select.h /usr/include/bits/select.h
+./gpgpusim_entrypoint.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+./gpgpusim_entrypoint.o: /usr/include/sys/sysmacros.h
+./gpgpusim_entrypoint.o: /usr/include/bits/pthreadtypes.h
+./gpgpusim_entrypoint.o: /usr/include/alloca.h
+./gpgpusim_entrypoint.o: /usr/include/bits/stdlib-float.h
 ./gpgpusim_entrypoint.o: ../libcuda/abstract_hardware_model.h
+./gpgpusim_entrypoint.o: ../libcuda/gpu-cache.h ../src/gpgpu-sim/gpu-misc.h
+./gpgpusim_entrypoint.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/addrdec.h
+./gpgpusim_entrypoint.o: /usr/include/assert.h ../src/option_parser.h
+./gpgpusim_entrypoint.o: ../src/abstract_hardware_model.h ../libcuda/shader.h
+./gpgpusim_entrypoint.o: /usr/include/math.h /usr/include/bits/math-vector.h
+./gpgpusim_entrypoint.o: /usr/include/bits/libm-simd-decl-stubs.h
+./gpgpusim_entrypoint.o: /usr/include/bits/huge_val.h
+./gpgpusim_entrypoint.o: /usr/include/bits/huge_valf.h
+./gpgpusim_entrypoint.o: /usr/include/bits/huge_vall.h
+./gpgpusim_entrypoint.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+./gpgpusim_entrypoint.o: /usr/include/bits/mathdef.h
+./gpgpusim_entrypoint.o: /usr/include/bits/mathcalls.h
+./gpgpusim_entrypoint.o: ../src/gpgpu-sim/dram.h
+./gpgpusim_entrypoint.o: ../src/gpgpu-sim/delayqueue.h ../src/statwrapper.h
+./gpgpusim_entrypoint.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
+./gpgpusim_entrypoint.o: /usr/include/zconf.h /usr/include/limits.h
+./gpgpusim_entrypoint.o: /usr/include/bits/posix1_lim.h
+./gpgpusim_entrypoint.o: /usr/include/bits/local_lim.h
+./gpgpusim_entrypoint.o: /usr/include/linux/limits.h
+./gpgpusim_entrypoint.o: /usr/include/bits/posix2_lim.h /usr/include/unistd.h
+./gpgpusim_entrypoint.o: /usr/include/bits/posix_opt.h
+./gpgpusim_entrypoint.o: /usr/include/bits/environments.h
+./gpgpusim_entrypoint.o: /usr/include/bits/confname.h /usr/include/getopt.h
+./gpgpusim_entrypoint.o: ../src/gpgpu-sim/stats.h
+./gpgpusim_entrypoint.o: ../src/gpgpu-sim/gpu-cache.h
 ./gpgpusim_entrypoint.o: ../libcuda/stream_manager.h
 ./gpgpusim_entrypoint.o: abstract_hardware_model.h /usr/include/pthread.h
-./gpgpusim_entrypoint.o: /usr/include/endian.h /usr/include/bits/endian.h
-./gpgpusim_entrypoint.o: /usr/include/bits/byteswap.h
-./gpgpusim_entrypoint.o: /usr/include/bits/byteswap-16.h /usr/include/sched.h
-./gpgpusim_entrypoint.o: /usr/include/time.h /usr/include/bits/sched.h
-./gpgpusim_entrypoint.o: /usr/include/bits/pthreadtypes.h
+./gpgpusim_entrypoint.o: /usr/include/sched.h /usr/include/bits/sched.h
 ./gpgpusim_entrypoint.o: /usr/include/bits/setjmp.h
 ./gpgpusim_entrypoint.o: ../libcuda/gpgpusim_entrypoint.h
 ./gpgpusim_entrypoint.o: ../libgem5cuda/gem5cuda_runtime_api.h
 ./gpgpusim_entrypoint.o: ../libgem5cuda/./driver_types.h
-./gpgpusim_entrypoint.o: /usr/include/limits.h /usr/include/bits/posix1_lim.h
-./gpgpusim_entrypoint.o: /usr/include/bits/local_lim.h
-./gpgpusim_entrypoint.o: /usr/include/linux/limits.h
-./gpgpusim_entrypoint.o: /usr/include/bits/posix2_lim.h
-./gpgpusim_entrypoint.o: /usr/include/semaphore.h /usr/include/sys/types.h
-./gpgpusim_entrypoint.o: /usr/include/sys/select.h /usr/include/bits/select.h
-./gpgpusim_entrypoint.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-./gpgpusim_entrypoint.o: /usr/include/sys/sysmacros.h
+./gpgpusim_entrypoint.o: /usr/include/semaphore.h
 ./gpgpusim_entrypoint.o: /usr/include/bits/semaphore.h
 ./abstract_hardware_model.o: abstract_hardware_model.h ../libcuda/gpu-sim.h
-./abstract_hardware_model.o: ../libcuda/abstract_hardware_model.h
-./abstract_hardware_model.o: /usr/include/stdio.h /usr/include/features.h
+./abstract_hardware_model.o: ../src/option_parser.h /usr/include/stdio.h
+./abstract_hardware_model.o: /usr/include/features.h
 ./abstract_hardware_model.o: /usr/include/stdc-predef.h
 ./abstract_hardware_model.o: /usr/include/sys/cdefs.h
 ./abstract_hardware_model.o: /usr/include/bits/wordsize.h
@@ -123,54 +146,240 @@
 ./abstract_hardware_model.o: /usr/include/wchar.h
 ./abstract_hardware_model.o: /usr/include/bits/stdio_lim.h
 ./abstract_hardware_model.o: /usr/include/bits/sys_errlist.h
-./abstract_hardware_model.o: /usr/include/sys/stat.h /usr/include/time.h
-./abstract_hardware_model.o: /usr/include/bits/stat.h
-./gpu-sim.o: ../libcuda/gpu-sim.h ../libcuda/abstract_hardware_model.h
-./gpu-sim.o: /usr/include/stdio.h /usr/include/features.h
-./gpu-sim.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
-./gpu-sim.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
-./gpu-sim.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
-./gpu-sim.o: /usr/include/libio.h /usr/include/_G_config.h
-./gpu-sim.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
-./gpu-sim.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
-./gpu-sim.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
-./gpu-sim.o: /usr/include/endian.h /usr/include/bits/endian.h
-./gpu-sim.o: /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h
-./gpu-sim.o: /usr/include/sys/types.h /usr/include/time.h
-./gpu-sim.o: /usr/include/sys/select.h /usr/include/bits/select.h
-./gpu-sim.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-./gpu-sim.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
-./gpu-sim.o: /usr/include/alloca.h /usr/include/bits/stdlib-float.h
-./gpu-sim.o: /usr/include/math.h /usr/include/bits/math-vector.h
+./abstract_hardware_model.o: /usr/include/stdlib.h
+./abstract_hardware_model.o: /usr/include/bits/waitflags.h
+./abstract_hardware_model.o: /usr/include/bits/waitstatus.h
+./abstract_hardware_model.o: /usr/include/endian.h /usr/include/bits/endian.h
+./abstract_hardware_model.o: /usr/include/bits/byteswap.h
+./abstract_hardware_model.o: /usr/include/bits/byteswap-16.h
+./abstract_hardware_model.o: /usr/include/sys/types.h /usr/include/time.h
+./abstract_hardware_model.o: /usr/include/sys/select.h
+./abstract_hardware_model.o: /usr/include/bits/select.h
+./abstract_hardware_model.o: /usr/include/bits/sigset.h
+./abstract_hardware_model.o: /usr/include/bits/time.h
+./abstract_hardware_model.o: /usr/include/sys/sysmacros.h
+./abstract_hardware_model.o: /usr/include/bits/pthreadtypes.h
+./abstract_hardware_model.o: /usr/include/alloca.h
+./abstract_hardware_model.o: /usr/include/bits/stdlib-float.h
+./abstract_hardware_model.o: ../libcuda/abstract_hardware_model.h
+./abstract_hardware_model.o: ../libcuda/gpu-cache.h
+./abstract_hardware_model.o: ../src/gpgpu-sim/gpu-misc.h
+./abstract_hardware_model.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/addrdec.h
+./abstract_hardware_model.o: /usr/include/assert.h ../src/option_parser.h
+./abstract_hardware_model.o: ../src/abstract_hardware_model.h
+./abstract_hardware_model.o: ../libcuda/shader.h /usr/include/math.h
+./abstract_hardware_model.o: /usr/include/bits/math-vector.h
+./abstract_hardware_model.o: /usr/include/bits/libm-simd-decl-stubs.h
+./abstract_hardware_model.o: /usr/include/bits/huge_val.h
+./abstract_hardware_model.o: /usr/include/bits/huge_valf.h
+./abstract_hardware_model.o: /usr/include/bits/huge_vall.h
+./abstract_hardware_model.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+./abstract_hardware_model.o: /usr/include/bits/mathdef.h
+./abstract_hardware_model.o: /usr/include/bits/mathcalls.h
+./abstract_hardware_model.o: ../src/gpgpu-sim/dram.h
+./abstract_hardware_model.o: ../src/gpgpu-sim/delayqueue.h
+./abstract_hardware_model.o: ../src/statwrapper.h ../src/gpgpu-sim/gpu-misc.h
+./abstract_hardware_model.o: /usr/include/zlib.h /usr/include/zconf.h
+./abstract_hardware_model.o: /usr/include/limits.h
+./abstract_hardware_model.o: /usr/include/bits/posix1_lim.h
+./abstract_hardware_model.o: /usr/include/bits/local_lim.h
+./abstract_hardware_model.o: /usr/include/linux/limits.h
+./abstract_hardware_model.o: /usr/include/bits/posix2_lim.h
+./abstract_hardware_model.o: /usr/include/unistd.h
+./abstract_hardware_model.o: /usr/include/bits/posix_opt.h
+./abstract_hardware_model.o: /usr/include/bits/environments.h
+./abstract_hardware_model.o: /usr/include/bits/confname.h
+./abstract_hardware_model.o: /usr/include/getopt.h ../src/gpgpu-sim/stats.h
+./abstract_hardware_model.o: ../src/gpgpu-sim/gpu-cache.h
+./abstract_hardware_model.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+./shader.o: ../libcuda/shader.h /usr/include/stdio.h /usr/include/features.h
+./shader.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+./shader.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+./shader.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+./shader.o: /usr/include/libio.h /usr/include/_G_config.h
+./shader.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+./shader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+./shader.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+./shader.o: /usr/include/endian.h /usr/include/bits/endian.h
+./shader.o: /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h
+./shader.o: /usr/include/sys/types.h /usr/include/time.h
+./shader.o: /usr/include/sys/select.h /usr/include/bits/select.h
+./shader.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+./shader.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+./shader.o: /usr/include/alloca.h /usr/include/bits/stdlib-float.h
+./shader.o: /usr/include/math.h /usr/include/bits/math-vector.h
+./shader.o: /usr/include/bits/libm-simd-decl-stubs.h
+./shader.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+./shader.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+./shader.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+./shader.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
+./shader.o: ../src/gpgpu-sim/dram.h ../src/gpgpu-sim/delayqueue.h
+./shader.o: ../src/statwrapper.h ../src/gpgpu-sim/gpu-misc.h
+./shader.o: /usr/include/zlib.h /usr/include/zconf.h /usr/include/limits.h
+./shader.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
+./shader.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
+./shader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+./shader.o: /usr/include/bits/environments.h /usr/include/bits/confname.h
+./shader.o: /usr/include/getopt.h ../libcuda/abstract_hardware_model.h
+./shader.o: ../src/gpgpu-sim/stats.h ../src/gpgpu-sim/gpu-cache.h
+./shader.o: ../libcuda/gpu-sim.h ../src/option_parser.h
+./shader.o: ../libcuda/gpu-cache.h ../src/gpgpu-sim/gpu-misc.h
+./shader.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/addrdec.h
+./shader.o: ../src/option_parser.h ../src/abstract_hardware_model.h
+./gpu-cache.o: ../libcuda/gpu-cache.h /usr/include/stdio.h
+./gpu-cache.o: /usr/include/features.h /usr/include/stdc-predef.h
+./gpu-cache.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+./gpu-cache.o: /usr/include/gnu/stubs.h /usr/include/bits/types.h
+./gpu-cache.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+./gpu-cache.o: /usr/include/_G_config.h /usr/include/wchar.h
+./gpu-cache.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+./gpu-cache.o: /usr/include/stdlib.h /usr/include/bits/waitflags.h
+./gpu-cache.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+./gpu-cache.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+./gpu-cache.o: /usr/include/bits/byteswap-16.h /usr/include/sys/types.h
+./gpu-cache.o: /usr/include/time.h /usr/include/sys/select.h
+./gpu-cache.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+./gpu-cache.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+./gpu-cache.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+./gpu-cache.o: /usr/include/bits/stdlib-float.h ../src/gpgpu-sim/gpu-misc.h
+./gpu-cache.o: ../libcuda/abstract_hardware_model.h ../src/tr1_hash_map.h
+./gpu-cache.o: ../src/gpgpu-sim/addrdec.h /usr/include/assert.h
+./gpu-cache.o: ../src/option_parser.h ../src/abstract_hardware_model.h
+./gpu-cache.o: ../src/gpgpu-sim/stat-tool.h ../src/gpgpu-sim/histogram.h
+./gpu-cache.o: ../src/tr1_hash_map.h /usr/include/zlib.h /usr/include/zconf.h
+./gpu-cache.o: /usr/include/limits.h /usr/include/bits/posix1_lim.h
+./gpu-cache.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+./gpu-cache.o: /usr/include/bits/posix2_lim.h /usr/include/unistd.h
+./gpu-cache.o: /usr/include/bits/posix_opt.h /usr/include/bits/environments.h
+./gpu-cache.o: /usr/include/bits/confname.h /usr/include/getopt.h
+./gpu-sim.o: ../libcuda/gpu-sim.h ../src/option_parser.h /usr/include/stdio.h
+./gpu-sim.o: /usr/include/features.h /usr/include/stdc-predef.h
+./gpu-sim.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+./gpu-sim.o: /usr/include/gnu/stubs.h /usr/include/bits/types.h
+./gpu-sim.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+./gpu-sim.o: /usr/include/_G_config.h /usr/include/wchar.h
+./gpu-sim.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+./gpu-sim.o: /usr/include/stdlib.h /usr/include/bits/waitflags.h
+./gpu-sim.o: /usr/include/bits/waitstatus.h /usr/include/endian.h
+./gpu-sim.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+./gpu-sim.o: /usr/include/bits/byteswap-16.h /usr/include/sys/types.h
+./gpu-sim.o: /usr/include/time.h /usr/include/sys/select.h
+./gpu-sim.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+./gpu-sim.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+./gpu-sim.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+./gpu-sim.o: /usr/include/bits/stdlib-float.h
+./gpu-sim.o: ../libcuda/abstract_hardware_model.h ../libcuda/gpu-cache.h
+./gpu-sim.o: ../src/gpgpu-sim/gpu-misc.h ../src/tr1_hash_map.h
+./gpu-sim.o: ../src/gpgpu-sim/addrdec.h /usr/include/assert.h
+./gpu-sim.o: ../src/option_parser.h ../src/abstract_hardware_model.h
+./gpu-sim.o: ../libcuda/shader.h /usr/include/math.h
+./gpu-sim.o: /usr/include/bits/math-vector.h
 ./gpu-sim.o: /usr/include/bits/libm-simd-decl-stubs.h
 ./gpu-sim.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
 ./gpu-sim.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
 ./gpu-sim.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
-./gpu-sim.o: /usr/include/bits/mathcalls.h /usr/include/signal.h
-./gpu-sim.o: /usr/include/bits/signum.h /usr/include/bits/siginfo.h
-./gpu-sim.o: /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h
-./gpu-sim.o: /usr/include/bits/sigstack.h /usr/include/sys/ucontext.h
-./gpu-sim.o: /usr/include/bits/sigthread.h /usr/include/zlib.h
+./gpu-sim.o: /usr/include/bits/mathcalls.h ../src/gpgpu-sim/dram.h
+./gpu-sim.o: ../src/gpgpu-sim/delayqueue.h ../src/statwrapper.h
+./gpu-sim.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
 ./gpu-sim.o: /usr/include/zconf.h /usr/include/limits.h
 ./gpu-sim.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
 ./gpu-sim.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
 ./gpu-sim.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
 ./gpu-sim.o: /usr/include/bits/environments.h /usr/include/bits/confname.h
-./gpu-sim.o: /usr/include/getopt.h ../src/cuda-sim/ptx-stats.h
-./gpu-sim.o: ../src/option_parser.h ../src/debug.h abstract_hardware_model.h
-./gpu-sim.o: ../libcuda/gpgpusim_entrypoint.h ../src/cuda-sim/cuda-sim.h
-./gpu-sim.o: ../src/abstract_hardware_model.h ../src/gpgpu-sim/shader.h
-./gpu-sim.o: /usr/include/assert.h ../src/gpgpu-sim/delayqueue.h
-./gpu-sim.o: ../src/statwrapper.h ../src/gpgpu-sim/gpu-misc.h
-./gpu-sim.o: ../src/gpgpu-sim/stack.h ../src/gpgpu-sim/dram.h
-./gpu-sim.o: ../src/gpgpu-sim/scoreboard.h ../src/gpgpu-sim/mem_fetch.h
-./gpu-sim.o: ../src/gpgpu-sim/addrdec.h ../src/gpgpu-sim/mem_fetch_status.tup
-./gpu-sim.o: ../src/gpgpu-sim/stats.h ../src/gpgpu-sim/gpu-cache.h
-./gpu-sim.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/traffic_breakdown.h
+./gpu-sim.o: /usr/include/getopt.h ../src/gpgpu-sim/stats.h
+./gpu-sim.o: ../src/gpgpu-sim/gpu-cache.h /usr/include/signal.h
+./gpu-sim.o: /usr/include/bits/signum.h /usr/include/bits/siginfo.h
+./gpu-sim.o: /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h
+./gpu-sim.o: /usr/include/bits/sigstack.h /usr/include/sys/ucontext.h
+./gpu-sim.o: /usr/include/bits/sigthread.h ../src/gpgpu-sim/icnt_wrapper.h
+./gpu-sim.o: ../libcuda/l2cache.h ../src/cuda-sim/ptx-stats.h ../src/debug.h
+./gpu-sim.o: abstract_hardware_model.h ../libcuda/gpgpusim_entrypoint.h
+./gpu-sim.o: ../src/cuda-sim/cuda-sim.h ../src/gpgpu-sim/shader.h
 ./gpu-sim.o: ../src/cuda-sim/ptx_sim.h ../src/cuda-sim/half.h
-./gpu-sim.o: ../src/cuda-sim/opcodes.h ../src/cuda-sim/opcodes.def
-./gpu-sim.o: ../src/cuda-sim/memory.h /usr/include/string.h
-./gpu-sim.o: /usr/include/xlocale.h ../src/cuda-sim/ptx_ir.h
+./gpu-sim.o: ../src/tr1_hash_map.h ../src/cuda-sim/opcodes.h
+./gpu-sim.o: ../src/cuda-sim/opcodes.def ../src/cuda-sim/memory.h
+./gpu-sim.o: /usr/include/string.h /usr/include/xlocale.h
+./gpu-sim.o: ../src/cuda-sim/ptx_ir.h ../libcuda/mem_latency_stat.h
+./l2cache.o: /usr/include/stdlib.h /usr/include/features.h
+./l2cache.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
+./l2cache.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+./l2cache.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+./l2cache.o: /usr/include/endian.h /usr/include/bits/endian.h
+./l2cache.o: /usr/include/bits/byteswap.h /usr/include/bits/types.h
+./l2cache.o: /usr/include/bits/typesizes.h /usr/include/bits/byteswap-16.h
+./l2cache.o: /usr/include/sys/types.h /usr/include/time.h
+./l2cache.o: /usr/include/sys/select.h /usr/include/bits/select.h
+./l2cache.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+./l2cache.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+./l2cache.o: /usr/include/alloca.h /usr/include/bits/stdlib-float.h
+./l2cache.o: /usr/include/stdio.h /usr/include/libio.h
+./l2cache.o: /usr/include/_G_config.h /usr/include/wchar.h
+./l2cache.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+./l2cache.o: /usr/include/string.h /usr/include/xlocale.h
+./l2cache.o: ../src/option_parser.h ../libcuda/gpu-cache.h
+./l2cache.o: ../src/gpgpu-sim/gpu-misc.h ../libcuda/abstract_hardware_model.h
+./l2cache.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/addrdec.h
+./l2cache.o: /usr/include/assert.h ../src/option_parser.h
+./l2cache.o: ../src/abstract_hardware_model.h ../libcuda/l2cache.h
+./l2cache.o: ../libcuda/gpu-sim.h ../libcuda/shader.h /usr/include/math.h
+./l2cache.o: /usr/include/bits/math-vector.h
+./l2cache.o: /usr/include/bits/libm-simd-decl-stubs.h
+./l2cache.o: /usr/include/bits/huge_val.h /usr/include/bits/huge_valf.h
+./l2cache.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+./l2cache.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+./l2cache.o: /usr/include/bits/mathcalls.h ../src/gpgpu-sim/dram.h
+./l2cache.o: ../src/gpgpu-sim/delayqueue.h ../src/statwrapper.h
+./l2cache.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
+./l2cache.o: /usr/include/zconf.h /usr/include/limits.h
+./l2cache.o: /usr/include/bits/posix1_lim.h /usr/include/bits/local_lim.h
+./l2cache.o: /usr/include/linux/limits.h /usr/include/bits/posix2_lim.h
+./l2cache.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+./l2cache.o: /usr/include/bits/environments.h /usr/include/bits/confname.h
+./l2cache.o: /usr/include/getopt.h ../src/gpgpu-sim/stats.h
+./l2cache.o: ../src/gpgpu-sim/gpu-cache.h
+./mem_latency_stat.o: ../libcuda/abstract_hardware_model.h
+./mem_latency_stat.o: ../libcuda/mem_latency_stat.h /usr/include/stdio.h
+./mem_latency_stat.o: /usr/include/features.h /usr/include/stdc-predef.h
+./mem_latency_stat.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+./mem_latency_stat.o: /usr/include/gnu/stubs.h /usr/include/bits/types.h
+./mem_latency_stat.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+./mem_latency_stat.o: /usr/include/_G_config.h /usr/include/wchar.h
+./mem_latency_stat.o: /usr/include/bits/stdio_lim.h
+./mem_latency_stat.o: /usr/include/bits/sys_errlist.h /usr/include/zlib.h
+./mem_latency_stat.o: /usr/include/zconf.h /usr/include/limits.h
+./mem_latency_stat.o: /usr/include/bits/posix1_lim.h
+./mem_latency_stat.o: /usr/include/bits/local_lim.h
+./mem_latency_stat.o: /usr/include/linux/limits.h
+./mem_latency_stat.o: /usr/include/bits/posix2_lim.h /usr/include/sys/types.h
+./mem_latency_stat.o: /usr/include/time.h /usr/include/endian.h
+./mem_latency_stat.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+./mem_latency_stat.o: /usr/include/bits/byteswap-16.h
+./mem_latency_stat.o: /usr/include/sys/select.h /usr/include/bits/select.h
+./mem_latency_stat.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+./mem_latency_stat.o: /usr/include/sys/sysmacros.h
+./mem_latency_stat.o: /usr/include/bits/pthreadtypes.h /usr/include/unistd.h
+./mem_latency_stat.o: /usr/include/bits/posix_opt.h
+./mem_latency_stat.o: /usr/include/bits/environments.h
+./mem_latency_stat.o: /usr/include/bits/confname.h /usr/include/getopt.h
+./mem_latency_stat.o: ../libcuda/gpu-sim.h ../src/option_parser.h
+./mem_latency_stat.o: /usr/include/stdlib.h /usr/include/bits/waitflags.h
+./mem_latency_stat.o: /usr/include/bits/waitstatus.h /usr/include/alloca.h
+./mem_latency_stat.o: /usr/include/bits/stdlib-float.h ../libcuda/gpu-cache.h
+./mem_latency_stat.o: ../src/gpgpu-sim/gpu-misc.h ../src/tr1_hash_map.h
+./mem_latency_stat.o: ../src/gpgpu-sim/addrdec.h /usr/include/assert.h
+./mem_latency_stat.o: ../src/option_parser.h ../src/abstract_hardware_model.h
+./mem_latency_stat.o: ../libcuda/shader.h /usr/include/math.h
+./mem_latency_stat.o: /usr/include/bits/math-vector.h
+./mem_latency_stat.o: /usr/include/bits/libm-simd-decl-stubs.h
+./mem_latency_stat.o: /usr/include/bits/huge_val.h
+./mem_latency_stat.o: /usr/include/bits/huge_valf.h
+./mem_latency_stat.o: /usr/include/bits/huge_vall.h /usr/include/bits/inf.h
+./mem_latency_stat.o: /usr/include/bits/nan.h /usr/include/bits/mathdef.h
+./mem_latency_stat.o: /usr/include/bits/mathcalls.h ../src/gpgpu-sim/dram.h
+./mem_latency_stat.o: ../src/gpgpu-sim/delayqueue.h ../src/statwrapper.h
+./mem_latency_stat.o: ../src/gpgpu-sim/gpu-misc.h ../src/gpgpu-sim/stats.h
+./mem_latency_stat.o: ../src/gpgpu-sim/gpu-cache.h /usr/include/string.h
+./mem_latency_stat.o: /usr/include/xlocale.h
 ./../src/cuda-sim/ptx_loader.o: ../src/cuda-sim/ptx_loader.h
 ./../src/cuda-sim/ptx_loader.o: ../src/cuda-sim/ptx_ir.h
 ./../src/cuda-sim/ptx_loader.o: ../src/abstract_hardware_model.h
@@ -209,42 +418,18 @@
 ./../src/cuda-sim/ptx_loader.o: /usr/include/bits/sys_errlist.h
 ./../src/cuda-sim/ptx_loader.o: ../src/option_parser.h
 ./../src/cuda-sim/ptx_loader.o: ../src/cuda-sim/cuda-sim.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/shader.h /usr/include/math.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/math-vector.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/libm-simd-decl-stubs.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/huge_val.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/huge_valf.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/huge_vall.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/inf.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/nan.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/mathdef.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/mathcalls.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/delayqueue.h
-./../src/cuda-sim/ptx_loader.o: ../src/statwrapper.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/gpu-misc.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/stack.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/dram.h /usr/include/zlib.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/zconf.h /usr/include/limits.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/posix1_lim.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/local_lim.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/linux/limits.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/bits/posix2_lim.h
+./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/shader.h
+./../src/cuda-sim/ptx_loader.o: ../src/cuda-sim/ptx_parser.h
+./../src/cuda-sim/ptx_loader.o: abstract_hardware_model.h
 ./../src/cuda-sim/ptx_loader.o: /usr/include/unistd.h
 ./../src/cuda-sim/ptx_loader.o: /usr/include/bits/posix_opt.h
 ./../src/cuda-sim/ptx_loader.o: /usr/include/bits/environments.h
 ./../src/cuda-sim/ptx_loader.o: /usr/include/bits/confname.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/getopt.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/scoreboard.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/mem_fetch.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/addrdec.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/mem_fetch_status.tup
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/stats.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/gpu-cache.h
-./../src/cuda-sim/ptx_loader.o: ../src/gpgpu-sim/traffic_breakdown.h
-./../src/cuda-sim/ptx_loader.o: ../src/cuda-sim/ptx_parser.h
-./../src/cuda-sim/ptx_loader.o: ../libcuda/abstract_hardware_model.h
-./../src/cuda-sim/ptx_loader.o: /usr/include/dirent.h
+./../src/cuda-sim/ptx_loader.o: /usr/include/getopt.h /usr/include/dirent.h
 ./../src/cuda-sim/ptx_loader.o: /usr/include/bits/dirent.h
+./../src/cuda-sim/ptx_loader.o: /usr/include/bits/posix1_lim.h
+./../src/cuda-sim/ptx_loader.o: /usr/include/bits/local_lim.h
+./../src/cuda-sim/ptx_loader.o: /usr/include/linux/limits.h
 ./../src/cuda-sim/ptx_sim.o: ../src/cuda-sim/ptx_sim.h /usr/include/stdlib.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/features.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/stdc-predef.h
@@ -282,8 +467,8 @@
 ./../src/cuda-sim/ptx_sim.o: ../src/cuda-sim/ptx.tab.h
 ./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/gpu-sim.h ../src/trace.h
 ./../src/cuda-sim/ptx_sim.o: ../src/trace_streams.tup
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/addrdec.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/shader.h /usr/include/math.h
+./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/addrdec.h shader.h
+./../src/cuda-sim/ptx_sim.o: /usr/include/math.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/math-vector.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/libm-simd-decl-stubs.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/huge_val.h
@@ -292,9 +477,9 @@
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/mathdef.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/mathcalls.h
+./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/dram.h
 ./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/delayqueue.h
 ./../src/cuda-sim/ptx_sim.o: ../src/statwrapper.h ../src/gpgpu-sim/gpu-misc.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/stack.h ../src/gpgpu-sim/dram.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/zlib.h /usr/include/zconf.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/limits.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/posix1_lim.h
@@ -306,15 +491,12 @@
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/environments.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/bits/confname.h
 ./../src/cuda-sim/ptx_sim.o: /usr/include/getopt.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/scoreboard.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/mem_fetch.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/mem_fetch_status.tup
+./../src/cuda-sim/ptx_sim.o: ../libcuda/abstract_hardware_model.h
 ./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/stats.h
 ./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/gpu-cache.h
-./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/traffic_breakdown.h
 ./../src/cuda-sim/ptx_sim.o: ../src/gpgpu-sim/shader.h
 ./../src/cuda-sim/ptx_parser.o: ../src/cuda-sim/ptx_parser.h
-./../src/cuda-sim/ptx_parser.o: ../libcuda/abstract_hardware_model.h
+./../src/cuda-sim/ptx_parser.o: abstract_hardware_model.h
 ./../src/cuda-sim/ptx_parser.o: ../src/cuda-sim/ptx_ir.h
 ./../src/cuda-sim/ptx_parser.o: ../src/abstract_hardware_model.h
 ./../src/cuda-sim/ptx_parser.o: /usr/include/assert.h /usr/include/features.h
@@ -391,7 +573,7 @@
 ./../src/cuda-sim/ptx-stats.o: ../src/option_parser.h
 ./../src/cuda-sim/ptx-stats.o: ../src/cuda-sim/ptx-stats.h
 ./../src/cuda-sim/ptx_ir.o: ../src/cuda-sim/ptx_parser.h
-./../src/cuda-sim/ptx_ir.o: ../libcuda/abstract_hardware_model.h
+./../src/cuda-sim/ptx_ir.o: abstract_hardware_model.h
 ./../src/cuda-sim/ptx_ir.o: ../src/cuda-sim/ptx_ir.h
 ./../src/cuda-sim/ptx_ir.o: ../src/abstract_hardware_model.h
 ./../src/cuda-sim/ptx_ir.o: /usr/include/assert.h /usr/include/features.h
@@ -427,36 +609,7 @@
 ./../src/cuda-sim/ptx_ir.o: /usr/include/bits/sys_errlist.h
 ./../src/cuda-sim/ptx_ir.o: ../src/option_parser.h ../src/cuda-sim/ptx.tab.h
 ./../src/cuda-sim/ptx_ir.o: ../src/cuda-sim/cuda-sim.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/shader.h /usr/include/math.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/math-vector.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/libm-simd-decl-stubs.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/huge_val.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/huge_valf.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/huge_vall.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/mathdef.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/mathcalls.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/delayqueue.h
-./../src/cuda-sim/ptx_ir.o: ../src/statwrapper.h ../src/gpgpu-sim/gpu-misc.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/stack.h ../src/gpgpu-sim/dram.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/zlib.h /usr/include/zconf.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/limits.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/posix1_lim.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/local_lim.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/linux/limits.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/posix2_lim.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/unistd.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/posix_opt.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/environments.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/bits/confname.h
-./../src/cuda-sim/ptx_ir.o: /usr/include/getopt.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/scoreboard.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/mem_fetch.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/addrdec.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/mem_fetch_status.tup
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/stats.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/gpu-cache.h
-./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/traffic_breakdown.h
+./../src/cuda-sim/ptx_ir.o: ../src/gpgpu-sim/shader.h
 ./../src/cuda-sim/instructions.o: ../src/cuda-sim/half.h
 ./../src/cuda-sim/instructions.o: ../src/cuda-sim/half.hpp
 ./../src/cuda-sim/instructions.o: ../src/cuda-sim/instructions.h
@@ -519,14 +672,13 @@
 ./../src/cuda-sim/instructions.o: ../src/cuda-sim/cuda_device_printf.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/gpu-sim.h ../src/trace.h
 ./../src/cuda-sim/instructions.o: ../src/trace_streams.tup
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/addrdec.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/shader.h
+./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/addrdec.h shader.h
+./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/dram.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/delayqueue.h
 ./../src/cuda-sim/instructions.o: ../src/statwrapper.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/gpu-misc.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/stack.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/dram.h /usr/include/zlib.h
-./../src/cuda-sim/instructions.o: /usr/include/zconf.h /usr/include/limits.h
+./../src/cuda-sim/instructions.o: /usr/include/zlib.h /usr/include/zconf.h
+./../src/cuda-sim/instructions.o: /usr/include/limits.h
 ./../src/cuda-sim/instructions.o: /usr/include/bits/posix1_lim.h
 ./../src/cuda-sim/instructions.o: /usr/include/bits/local_lim.h
 ./../src/cuda-sim/instructions.o: /usr/include/linux/limits.h
@@ -536,34 +688,26 @@
 ./../src/cuda-sim/instructions.o: /usr/include/bits/environments.h
 ./../src/cuda-sim/instructions.o: /usr/include/bits/confname.h
 ./../src/cuda-sim/instructions.o: /usr/include/getopt.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/scoreboard.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/mem_fetch.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/mem_fetch_status.tup
+./../src/cuda-sim/instructions.o: ../libcuda/abstract_hardware_model.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/stats.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/gpu-cache.h
-./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/traffic_breakdown.h
 ./../src/cuda-sim/instructions.o: ../src/gpgpu-sim/shader.h
 ./../src/cuda-sim/instructions.o: ../src/cuda-sim/cuda_device_runtime.h
 ./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/cuda-sim.h
 ./../src/cuda-sim/cuda-sim.o: ../src/abstract_hardware_model.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/shader.h /usr/include/stdio.h
+./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/shader.h /usr/include/stdlib.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/features.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/stdc-predef.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/sys/cdefs.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/wordsize.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/gnu/stubs.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/bits/types.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/bits/typesizes.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/libio.h /usr/include/_G_config.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/wchar.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/bits/stdio_lim.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/bits/sys_errlist.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/stdlib.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/waitflags.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/waitstatus.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/endian.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/endian.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/byteswap.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/bits/types.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/bits/typesizes.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/byteswap-16.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/sys/types.h /usr/include/time.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/sys/select.h
@@ -574,6 +718,27 @@
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/pthreadtypes.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/alloca.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/stdlib-float.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_sim.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/half.h ../src/tr1_hash_map.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/assert.h ../src/cuda-sim/opcodes.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/opcodes.def
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/memory.h /usr/include/string.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/xlocale.h /usr/include/stdio.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/libio.h /usr/include/_G_config.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/wchar.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/bits/stdio_lim.h
+./../src/cuda-sim/cuda-sim.o: /usr/include/bits/sys_errlist.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/instructions.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_ir.h ../src/option_parser.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx.tab.h ../src/statwrapper.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx-stats.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_loader.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_parser.h
+./../src/cuda-sim/cuda-sim.o: abstract_hardware_model.h
+./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/decuda_pred_table/decuda_pred_table.h
+./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/gpu-sim.h ../src/trace.h
+./../src/cuda-sim/cuda-sim.o: ../src/trace_streams.tup
+./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/addrdec.h shader.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/math.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/math-vector.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/libm-simd-decl-stubs.h
@@ -583,12 +748,9 @@
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/mathdef.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/mathcalls.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/assert.h
+./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/dram.h
 ./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/delayqueue.h
-./../src/cuda-sim/cuda-sim.o: ../src/statwrapper.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/gpu-misc.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/stack.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/dram.h /usr/include/zlib.h
+./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/zconf.h /usr/include/limits.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/posix1_lim.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/local_lim.h
@@ -599,34 +761,10 @@
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/environments.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/confname.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/getopt.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/scoreboard.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/mem_fetch.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/addrdec.h
-./../src/cuda-sim/cuda-sim.o: ../src/option_parser.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/mem_fetch_status.tup
+./../src/cuda-sim/cuda-sim.o: ../libcuda/abstract_hardware_model.h
 ./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/stats.h
 ./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/gpu-cache.h
-./../src/cuda-sim/cuda-sim.o: ../src/tr1_hash_map.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/traffic_breakdown.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_sim.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/half.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/opcodes.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/opcodes.def
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/memory.h /usr/include/string.h
-./../src/cuda-sim/cuda-sim.o: /usr/include/xlocale.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/instructions.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_ir.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx.tab.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx-stats.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_loader.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/ptx_parser.h
-./../src/cuda-sim/cuda-sim.o: ../libcuda/abstract_hardware_model.h
-./../src/cuda-sim/cuda-sim.o: ../src/cuda-sim/decuda_pred_table/decuda_pred_table.h
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/gpu-sim.h ../src/trace.h
-./../src/cuda-sim/cuda-sim.o: ../src/trace_streams.tup
-./../src/cuda-sim/cuda-sim.o: ../src/gpgpu-sim/shader.h
 ./../src/cuda-sim/cuda-sim.o: ../src/gpgpusim_entrypoint.h
-./../src/cuda-sim/cuda-sim.o: abstract_hardware_model.h
 ./../src/cuda-sim/cuda-sim.o: ../src/stream_manager.h /usr/include/pthread.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/sched.h /usr/include/bits/sched.h
 ./../src/cuda-sim/cuda-sim.o: /usr/include/bits/setjmp.h
@@ -694,8 +832,38 @@
 ./../src/gpgpu-sim/addrdec.o: /usr/include/bits/stdlib-float.h
 ./../src/gpgpu-sim/addrdec.o: /usr/include/assert.h ../src/option_parser.h
 ./../src/gpgpu-sim/addrdec.o: ../src/abstract_hardware_model.h gpu-sim.h
+./../src/gpgpu-sim/addrdec.o: ../src/option_parser.h
 ./../src/gpgpu-sim/addrdec.o: ../libcuda/abstract_hardware_model.h
+./../src/gpgpu-sim/addrdec.o: ../libcuda/gpu-cache.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/gpu-misc.h
 ./../src/gpgpu-sim/addrdec.o: ../src/tr1_hash_map.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/addrdec.h ../libcuda/shader.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/math.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/math-vector.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/libm-simd-decl-stubs.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/huge_val.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/huge_valf.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/huge_vall.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/inf.h /usr/include/bits/nan.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/mathdef.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/mathcalls.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/dram.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/delayqueue.h
+./../src/gpgpu-sim/addrdec.o: ../src/statwrapper.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/gpu-misc.h /usr/include/zlib.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/zconf.h /usr/include/limits.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/posix1_lim.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/local_lim.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/linux/limits.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/posix2_lim.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/unistd.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/posix_opt.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/environments.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/bits/confname.h
+./../src/gpgpu-sim/addrdec.o: /usr/include/getopt.h ../src/gpgpu-sim/stats.h
+./../src/gpgpu-sim/addrdec.o: ../src/gpgpu-sim/gpu-cache.h
+./../src/gpgpu-sim/addrdec.o: ../src/tr1_hash_map.h
+./../src/gpgpu-sim/gpu-misc.o: ../src/gpgpu-sim/gpu-misc.h
 ./../src/debug.o: ../src/debug.h abstract_hardware_model.h
 ./../src/debug.o: ../src/gpgpu-sim/shader.h /usr/include/stdio.h
 ./../src/debug.o: /usr/include/features.h /usr/include/stdc-predef.h
@@ -733,16 +901,20 @@
 ./../src/debug.o: ../src/gpgpu-sim/scoreboard.h ../src/gpgpu-sim/mem_fetch.h
 ./../src/debug.o: ../src/gpgpu-sim/addrdec.h ../src/option_parser.h
 ./../src/debug.o: ../src/gpgpu-sim/mem_fetch_status.tup
-./../src/debug.o: ../src/gpgpu-sim/stats.h ../src/gpgpu-sim/gpu-cache.h
-./../src/debug.o: ../src/tr1_hash_map.h ../src/gpgpu-sim/traffic_breakdown.h
+./../src/debug.o: ../src/gpgpu-sim/stats.h gpu-cache.h
+./../src/debug.o: ../src/gpgpu-sim/gpu-misc.h
+./../src/debug.o: ../libcuda/abstract_hardware_model.h ../src/tr1_hash_map.h
+./../src/debug.o: ../src/gpgpu-sim/addrdec.h
+./../src/debug.o: ../src/gpgpu-sim/traffic_breakdown.h
 ./../src/debug.o: ../src/gpgpu-sim/gpu-sim.h ../src/trace.h
-./../src/debug.o: ../src/trace_streams.tup ../src/gpgpu-sim/shader.h
+./../src/debug.o: ../src/trace_streams.tup shader.h ../src/gpgpu-sim/dram.h
+./../src/debug.o: ../src/gpgpu-sim/stats.h ../src/gpgpu-sim/gpu-cache.h
 ./../src/debug.o: ../src/cuda-sim/ptx_sim.h ../src/cuda-sim/half.h
-./../src/debug.o: ../src/cuda-sim/opcodes.h ../src/cuda-sim/opcodes.def
-./../src/debug.o: ../src/cuda-sim/memory.h /usr/include/string.h
-./../src/debug.o: /usr/include/xlocale.h ../src/cuda-sim/cuda-sim.h
-./../src/debug.o: ../src/gpgpu-sim/shader.h ../src/cuda-sim/ptx_sim.h
-./../src/debug.o: ../src/cuda-sim/ptx_ir.h
+./../src/debug.o: ../src/tr1_hash_map.h ../src/cuda-sim/opcodes.h
+./../src/debug.o: ../src/cuda-sim/opcodes.def ../src/cuda-sim/memory.h
+./../src/debug.o: /usr/include/string.h /usr/include/xlocale.h
+./../src/debug.o: ../src/cuda-sim/cuda-sim.h ../src/gpgpu-sim/shader.h
+./../src/debug.o: ../src/cuda-sim/ptx_sim.h ../src/cuda-sim/ptx_ir.h
 ./../src/option_parser.o: /usr/include/stdio.h /usr/include/features.h
 ./../src/option_parser.o: /usr/include/stdc-predef.h /usr/include/sys/cdefs.h
 ./../src/option_parser.o: /usr/include/bits/wordsize.h

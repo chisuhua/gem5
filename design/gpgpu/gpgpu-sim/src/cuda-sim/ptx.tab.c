@@ -96,6 +96,8 @@
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
+// FIXME schi add it
+int ptx_debug = 0;
 #endif
 #if YYDEBUG
 extern int ptx_debug;

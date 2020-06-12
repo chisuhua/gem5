@@ -316,7 +316,6 @@ void function_info::ptx_assemble()
    fflush(stdout);
 
    //disable pdom analysis  here and do it at runtime
-#if 0
    printf("GPGPU-Sim PTX: finding reconvergence points for \'%s\'...\n", m_name.c_str() );
    create_basic_blocks();
    connect_basic_blocks();
@@ -351,7 +350,6 @@ void function_info::ptx_assemble()
    fflush(stdout);
 
    m_assembled = true;
-#endif
 }
 
 addr_t shared_to_generic( unsigned smid, addr_t addr )
@@ -2093,7 +2091,7 @@ size_t get_kernel_code_size( class function_info *entry )
    return entry->get_function_size();
 }
 
-
+/* FIXME schi disable opencl temperaly
 kernel_info_t *gpgpu_opencl_ptx_sim_init_grid(class function_info *entry,
                                              gpgpu_ptx_sim_arg_list_t args,
                                              struct dim3 gridDim,
@@ -2113,6 +2111,7 @@ kernel_info_t *gpgpu_opencl_ptx_sim_init_grid(class function_info *entry,
 
    return result;
 }
+*/
 
 #include "../version"
 #include "../detailed_version"
