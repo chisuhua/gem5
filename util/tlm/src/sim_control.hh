@@ -122,6 +122,7 @@ class Gem5SimControl : public Module, public Gem5SimControlInterface
     SCMasterPort* getMasterPort(const std::string& name) override;
 
     void end_of_elaboration();
+    void start_of_elaboration();
 
     void run();
 };

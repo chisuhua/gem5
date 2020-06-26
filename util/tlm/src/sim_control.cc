@@ -126,7 +126,7 @@ Gem5SimControl::Gem5SimControl(sc_core::sc_module_name name,
     }
 
     CxxConfig::statsEnable();
-    getEventQueue(0)->dump();
+    // getEventQueue(0)->dump();
 
     // FIXME schi sim/core.cc 's freqency need to be setup
     fixClockFrequency();
@@ -151,6 +151,12 @@ Gem5SimControl::end_of_elaboration()
             << e.name << ": " << e.message << "\n";
         std::exit(EXIT_FAILURE);
     }
+}
+
+void
+Gem5SimControl::start_of_elaboration()
+{
+    std::cout << "Config problem in sim object " << "\n";
 }
 
 void

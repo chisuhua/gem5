@@ -6,7 +6,6 @@ import os
 import sys
 import pdb
 
-gem5_arch = 'X86_VI_hammer'
 
 #gem5_variant = 'opt'
 gem5_variant = 'debug'
@@ -18,6 +17,15 @@ env = Environment()
 
 #Make the gem5 root available in SConscripts
 env['GEM5_ROOT'] = gem5_root
+
+#    print("Please setup setup env GEM5_ARCH")
+#    exit(1)
+
+gem5_arch = os.environ.get('GEM5_ARCH')
+if not gem5_arch:
+    print("GEM5_ARCH is {}".format(gem5_arch))
+    exit(1)
+#gem5_arch = 'X86_VI_hammer'
 
 shlibsuffix = env['SHLIBSUFFIX']
 

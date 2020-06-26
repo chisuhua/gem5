@@ -22,12 +22,17 @@
 
 #scons build/MSI/gem5.debug --verbose -j6 PROTOCOL=MSI
 
-#scons build/X86_MSI/gem5.debug -j6 --verbose PROTOCOL=MSI
+#############################
+# for learning_gem5 MSI
+#scons build/X86_MSI/gem5.debug -j8 --verbose PROTOCOL=MSI
 
 #scons build/MSI/gem5.opt --verbose -j6
 
 
-rm build/variables/X86_VI_hammer
+
+#############################
+# for GPGPU
+#rm build/variables/X86_VI_hammer
 scons build/X86_VI_hammer/gem5.debug --verbose -j8 BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
 
 #scons --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_debug.so --verbose BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu

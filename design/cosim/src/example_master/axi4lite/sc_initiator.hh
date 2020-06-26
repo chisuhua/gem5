@@ -48,14 +48,14 @@ class Initiator : public sc_core::sc_module
     }
 
   public:
-    axi_bridge &bridge;
+    axilite_bridge &bridge;
     InitiatorSocketType initiator_socket;
     TargetSocketType target_socket;
 
     SC_HAS_PROCESS(Initiator);
 
 
-    Initiator(sc_core::sc_module_name name, axi_bridge &bridge);
+    Initiator(sc_core::sc_module_name name, axilite_bridge &bridge);
 
     void request_process();
     void response_process();

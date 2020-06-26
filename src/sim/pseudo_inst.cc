@@ -607,7 +607,6 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     }
 }
 
-#ifdef BUILD_PPU_SYSTEM
 void
 gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 {
@@ -616,8 +615,12 @@ gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
         return;
     }
 
+#ifdef BUILD_PPU_SYSTEM
     gpgpu_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
-}
+#else
+    warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", gpusysno);
+    return;
 #endif
+}
 
 } // namespace PseudoInst

@@ -156,16 +156,38 @@ env.Append(CPPPATH=[gem5_root + '/ext/libsystemctlm-soc',
                    ])
 
 design = []
-design.append(SConscript('example_slave/axi4lite/SConscript',
-                        variant_dir=env['OUT_DIR'] + '/example_slave/axi4lite',
+co_design = os.environ.get('CO_DESIGN')
+design.append(SConscript(co_design + '/SConscript',
+                        variant_dir=env['OUT_DIR'] + '/' + co_design,
                         exports=['env', 'deps', 'compile_design'])
              )
 
-design.append(SConscript('example_master/axi4lite/SConscript',
-                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
-                        exports=['env', 'deps', 'compile_design'])
-             )
 
+#design.append(SConscript('example_slave/axi4lite/SConscript',
+#                        variant_dir=env['OUT_DIR'] + '/example_slave/axi4lite',
+#                        exports=['env', 'deps', 'compile_design'])
+#             )
+
+#design.append(SConscript('example_master/axi4lite/SConscript',
+#                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
+#                        exports=['env', 'deps', 'compile_design'])
+#             )
+
+
+#design.append(SConscript('example_master/axi/SConscript',
+#                        variant_dir=env['OUT_DIR'] + '/example_master/axi',
+#                        exports=['env', 'deps', 'compile_design'])
+#             )
+
+#design.append(SConscript('example_master/axis/SConscript',
+#                        variant_dir=env['OUT_DIR'] + '/example_master/axis',
+#                        exports=['env', 'deps', 'compile_design'])
+#             )
+
+#design.append(SConscript('example_master/simple_ppu/SConscript',
+#                        variant_dir=env['OUT_DIR'] + '/example_master/simple_ppu',
+#                        exports=['env', 'deps', 'compile_design'])
+#             )
 
 
 Return('design')

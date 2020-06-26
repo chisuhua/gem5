@@ -46,12 +46,12 @@ using namespace std;
 #include "Vaxilite_join.h"
 
 // using namespace utils;
-#define ADDR_WIDTH 29
+#define ADDR_WIDTH 32
 #define DATA_WIDTH 32
 
 
 // Top simulation module.
-SC_MODULE(axi_bridge)
+SC_MODULE(axilite_bridge)
 {
 public:
     sc_in<bool> clk;
@@ -69,7 +69,7 @@ public:
 public:
     // dut is the RTL AXI4Lite device we're testing.
     Vaxilite_join dut;
-    axi_bridge(sc_module_name name);
+    axilite_bridge(sc_module_name name);
 };
 
 SC_MODULE(Top)
@@ -80,7 +80,7 @@ public:
 
 
     // dut is the RTL AXI4Lite device we're testing.
-    std::vector<axi_bridge*> bridge;
+    std::vector<axilite_bridge*> bridge;
 
     Top(sc_module_name name, int bridge_num);
 };

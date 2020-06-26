@@ -33,8 +33,8 @@ $GEM5 $TEST
 fi
 
 #CMD="./build/examples/slave_port/gem5.sc m5out/config.ini $OPTION "
-CMD="./build/output/example_master/axi4lite/gem5.sc "
-#CMD="./build/output/rtl_bridge/axi4lite_slave/gem5.sc"
+#CMD="./build/output/example_master/axi4lite/gem5.sc "
+CMD="./build/output/$CO_DESIGN/gem5.sc "
 
 CMD="$CMD m5out/config.ini $OPTION "
 

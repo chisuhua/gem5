@@ -35,13 +35,21 @@
 #include "base/random.hh"
 #include "base/stl_helpers.hh"
 #include "debug/RubyQueue.hh"
+#include "debug/RubyMessageBuffer.hh"
 #include "mem/ruby/system/RubySystem.hh"
+#include "mem/ruby/network/Network.hh"
+#include "mem/ruby/slicc_interface/RubyRequest.hh"
 
 using namespace std;
 using m5::stl_helpers::operator<<;
 
 MessageBuffer::MessageBuffer(const Params *p)
-    : SimObject(p), m_stall_map_size(0),
+    : SimObject(p),
+    m_out_port(p->name + ".out_port", this),
+    m_in_port(p->name + ".in_port", this),
+    m_enqueue_blocked(false),
+    blocked(false),
+    m_stall_map_size(0),
     m_max_size(p->buffer_size), m_time_last_time_size_checked(0),
     m_time_last_time_enqueue(0), m_time_last_time_pop(0),
     m_last_arrival_time(0), m_strict_fifo(p->ordered),
@@ -79,6 +87,8 @@ MessageBuffer::getSize(Tick curTime)
 bool
 MessageBuffer::areNSlotsAvailable(unsigned int n, Tick current_time)
 {
+    if (m_enqueue_blocked)
+        return false;
 
     // fast path when message buffers have infinite size
     if (m_max_size == 0) {
@@ -207,9 +217,37 @@ MessageBuffer::enqueue(MsgPtr message, Tick current_time, Tick delta)
     msg_ptr->setLastEnqueueTime(arrival_time);
     msg_ptr->setMsgCounter(m_msg_counter);
 
+    // TODO: move push_heap into handleEnqueueRequest
     // Insert the message into the priority heap
     m_prio_heap.push_back(message);
     push_heap(m_prio_heap.begin(), m_prio_heap.end(), greater<MsgPtr>());
+
+    // TODO for axi intercept
+    if (m_out_port.isConnected()) {
+        // TODO schi add from axi intercept
+        RubyRequest* ruby_req = dynamic_cast<RubyRequest*>(msg_ptr);
+        uint32_t msg_size;
+        if (ruby_req != nullptr) {
+            // FIXME on msg_size it should be RubyRequest size instead of data size
+            msg_size = ruby_req->getSize();
+        } else {
+            MessageSizeType msg_size_type = msg_ptr->getMessageSize();
+            msg_size = Network::MessageSizeType_to_int(msg_size_type);
+        }
+
+        Request::Flags flags;
+        RequestPtr req = std::make_shared<Request>(0, msg_size, flags, 0);
+        PacketPtr pkt = new Packet(req, MemCmd::WriteReq);
+        pkt->dataStatic(msg_ptr);
+
+        DPRINTF(RubyMessageBuffer, "enqueue: send pkt_data %#x，pkt_addr %#x, and msg_ptr %#x,  Message: %s \n", pkt->getPtr<Message>(), pkt->getAddr(), msg_ptr, (*msg_ptr));
+
+        m_enqueue_blocked = true;
+        m_out_port.sendPacket(pkt);
+        // when pkt send to m_in_port, it will call handleEnqueueRequest
+        // handleEnqueueRequest(pkt);
+    }
+
     // Increment the number of messages statistic
     m_buf_msgs++;
 
@@ -469,6 +507,219 @@ MessageBuffer::functionalWrite(Packet *pkt)
 
     return num_functional_writes;
 }
+
+Port &
+MessageBuffer::getPort(const std::string &if_name, PortID idx)
+{
+    // panic_if(idx != InvalidPortID, "This object doesn't support vector ports");
+
+    // This is the name from the Python SimObject declaration (MessageBuffer.py)
+    if (if_name == "out_port") {
+        return m_out_port;
+    } else if (if_name == "in_port") {
+        return m_in_port;
+    } else {
+        return RubyDummyPort::instance();
+    }
+}
+
+void MessageBuffer::InPort::sendPacket(PacketPtr pkt)
+{
+    panic_if(blockedPacket != nullptr, "Should never try to send if blocked!");
+
+    // If we can't send the packet across the port, store it for later.
+    if (!sendTimingResp(pkt)) {
+        blockedPacket = pkt;
+    }
+}
+
+AddrRangeList
+MessageBuffer::InPort::getAddrRanges() const
+{
+    return owner->getAddrRanges();
+}
+
+void
+MessageBuffer::InPort::trySendRetry()
+{
+    if (needRetry && blockedPacket == nullptr) {
+        // Only send a retry if the port is now completely free
+        needRetry = false;
+        DPRINTF(RubyMessageBuffer, "Sending retry req for %d\n", id);
+        sendRetryReq();
+    }
+}
+
+void
+MessageBuffer::InPort::recvFunctional(PacketPtr pkt)
+{
+    // Just forward to the memobj.
+    return owner->handleFunctional(pkt);
+}
+
+bool
+MessageBuffer::InPort::recvTimingReq(PacketPtr pkt)
+{
+    // Just forward to the memobj.
+    if (!owner->handleEnqueueRequest(pkt)) {
+        needRetry = true;
+        return false;
+    } else {
+        return true;
+    }
+}
+
+void
+MessageBuffer::InPort::recvRespRetry()
+{
+    // We should have a blocked packet if this function is called.
+    assert(blockedPacket != nullptr);
+
+    // Grab the blocked packet.
+    PacketPtr pkt = blockedPacket;
+    blockedPacket = nullptr;
+
+    // Try to resend it. It's possible that it fails again.
+    sendPacket(pkt);
+}
+
+void
+MessageBuffer::OutPort::sendPacket(PacketPtr pkt)
+{
+    // Note: This flow control is very simple since the memobj is blocking.
+
+    panic_if(blockedPacket != nullptr, "Should never try to send if blocked!");
+
+    // If we can't send the packet across the port, store it for later.
+    if (!sendTimingReq(pkt)) {
+        blockedPacket = pkt;
+    }
+}
+
+bool
+MessageBuffer::OutPort::recvTimingResp(PacketPtr pkt)
+{
+    // Just forward to the memobj.
+    return owner->handleEnqueueResponse(pkt);
+}
+
+void
+MessageBuffer::OutPort::recvReqRetry()
+{
+    // We should have a blocked packet if this function is called.
+    assert(blockedPacket != nullptr);
+
+    // Grab the blocked packet.
+    PacketPtr pkt = blockedPacket;
+    blockedPacket = nullptr;
+
+    // Try to resend it. It's possible that it fails again.
+    sendPacket(pkt);
+}
+
+void
+MessageBuffer::OutPort::recvRangeChange()
+{
+    owner->sendRangeChange();
+}
+
+bool
+MessageBuffer::handleEnqueueRequest(PacketPtr pkt)
+{
+    if (blocked) {
+        // There is currently an outstanding request. Stall.
+        return false;
+    }
+
+    // TODO fix blocked since it check areNSlotAvailable before go
+    blocked = true;
+
+    // unsigned size = pkt->getSize();
+
+    // uint8_t *data = new uint8_t[size];
+    Message* pkt_msg_ptr = pkt->getPtr<Message>();
+
+    const Message* msg_ptr = m_prio_heap.front().get();
+
+    DPRINTF(RubyMessageBuffer, "handleEnqueueReuest: Got msg in pkt_data %#x, pkt_addr %#x, and msg_ptr is %#x, Message is %s\n", pkt_msg_ptr, pkt->getAddr(), msg_ptr, (*msg_ptr));
+
+    // Insert the message into the priority heap
+    // m_prio_heap.push_back(std::shared_ptr<Message>(msg_ptr));
+    // push_heap(m_prio_heap.begin(), m_prio_heap.end(), greater<MsgPtr>());
+
+    return true;
+}
+
+bool
+MessageBuffer::handleEnqueueResponse(PacketPtr pkt)
+{
+    // since Response is return from tlm2axis bridge, it can be set to true
+    //    in m_in_port side before response
+    DPRINTF(RubyMessageBuffer, "handleEnqueueResponse: Got response for addr %#x\n", pkt->getAddr());
+
+    // The packet is now done. We're about to put it in the port, no need for
+    // this object to continue to stall.
+    // We need to free the resource before sending the packet in case the CPU
+    // tries to send another request immediately (e.g., in the same callchain).
+    assert(m_enqueue_blocked);
+    m_enqueue_blocked = false;
+
+    return true;
+}
+
+#if 0
+bool
+MessageBuffer::handleResponse(PacketPtr pkt)
+{
+    assert(blocked);
+    DPRINTF(RubyMessageBuffer, "Got response for addr %#x\n", pkt->getAddr());
+
+    // The packet is now done. We're about to put it in the port, no need for
+    // this object to continue to stall.
+    // We need to free the resource before sending the packet in case the CPU
+    // tries to send another request immediately (e.g., in the same callchain).
+    blocked = false;
+
+    // Simply forward to the memory port
+    m_in_port.sendPacket(pkt);
+    /*
+    if (pkt->req->isInstFetch()) {
+        instPort.sendPacket(pkt);
+    } else {
+        dataPort.sendPacket(pkt);
+    }
+    */
+
+    // For each of the cpu ports, if it needs to send a retry, it should do it
+    // now since this memory object may be unblocked now.
+    // m_in_port.trySendRetry();
+
+    return true;
+}
+#endif
+
+void
+MessageBuffer::handleFunctional(PacketPtr pkt)
+{
+    // Just pass this on to the memory side to handle for now.
+    m_out_port.sendFunctional(pkt);
+}
+
+AddrRangeList
+MessageBuffer::getAddrRanges() const
+{
+    DPRINTF(RubyMessageBuffer, "Sending new ranges\n");
+    // Just use the same ranges as whatever is on the memory side.
+    return m_out_port.getAddrRanges();
+}
+
+void
+MessageBuffer::sendRangeChange()
+{
+    m_in_port.sendRangeChange();
+}
+
+
 
 MessageBuffer *
 MessageBufferParams::create()

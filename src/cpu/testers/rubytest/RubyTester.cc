@@ -100,7 +100,9 @@ RubyTester::RubyTester(const Params *p)
     }
 
     // add the check start event to the event queue
-    schedule(checkStartEvent, 1);
+    // for cosim sc have reset for 10ns
+    // schedule(checkStartEvent, 1);
+    schedule(checkStartEvent, 20000);
 }
 
 RubyTester::~RubyTester()

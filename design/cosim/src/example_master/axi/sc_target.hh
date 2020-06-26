@@ -51,7 +51,7 @@ using namespace std;
 struct Target: sc_module
 {
   public:
-    Top &top;
+    axi_bridge &bridge;
 
     /** TLM interface socket: */
     tlm_utils::simple_target_socket<Target> socket;
@@ -61,7 +61,7 @@ struct Target: sc_module
 
     /** TLM related member variables: */
     tlm::tlm_generic_payload*  transaction_in_progress;
-    sc_event                   target_done_event;
+    sc_event                   target_start_event;
     bool                       response_in_progress;
     bool                       debug;
     tlm::tlm_generic_payload*  next_response_pending;
@@ -72,7 +72,7 @@ struct Target: sc_module
     unsigned char *mem;
 
     Target(sc_core::sc_module_name name,
-        Top &top,
+        axi_bridge &bridge,
         bool debug,
         unsigned long long int size,
         unsigned int offset);

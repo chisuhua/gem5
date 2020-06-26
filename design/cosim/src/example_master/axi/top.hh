@@ -33,57 +33,100 @@ using namespace sc_core;
 using namespace sc_dt;
 using namespace std;
 
+#include "checkers/pc-axi.h"
+#include "test-modules/signals-axi.h"
 #include "tlm.h"
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
-
 #include "tlm-bridges/tlm2axi-bridge.h"
 #include "tlm-bridges/axi2tlm-bridge.h"
-#include "checkers/pc-axi.h"
-#include "test-modules/signals-axi.h"
+
 // #include "test-modules/utils.h"
 
 #include "Vaxi_join.h"
 
 // using namespace utils;
-#define AXI_ADDR_WIDTH 29
-#define AXI_DATA_WIDTH 32
-#define AXI_ID_WIDTH   4
-#define AXI_AXLOCK_WIDTH 1
+#define AXI_ADDR_WIDTH   32
+#define AXI_DATA_WIDTH   32
+#define AXI_ID_WIDTH     16
 #define AXI_AXLEN_WIDTH  8
+#define AXI_AXLOCK_WIDTH 2
+#define AXI_AWUSER_WIDTH 2
+#define AXI_WUSER_WIDTH  2
+#define AXI_BUSER_WIDTH  2
+#define AXI_ARUSER_WIDTH 2
+#define AXI_RUSER_WIDTH  2
+
 
 
 // Top simulation module.
-SC_MODULE(Top)
+SC_MODULE(axi_bridge)
 {
-    sc_clock clk;
-    sc_signal<bool> rst_n; // Active low.
+public:
+    sc_in<bool> clk;
+    sc_in<bool> rst_n; // Active low.
 
 
     // slave side: tlm2axi
 	AXISignals<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_signals;
+		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH,
+        AXI_AWUSER_WIDTH,
+        AXI_ARUSER_WIDTH,
+        AXI_WUSER_WIDTH,
+        AXI_RUSER_WIDTH,
+        AXI_BUSER_WIDTH
+            > slave_signals;
 
 	tlm2axi_bridge<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_bridge;
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH,
+        AXI_AWUSER_WIDTH,
+        AXI_ARUSER_WIDTH,
+        AXI_WUSER_WIDTH,
+        AXI_RUSER_WIDTH,
+        AXI_BUSER_WIDTH
+            > slave_bridge;
 
-	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_checker("checker", checker_config());
+//	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+//			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> slave_checker("checker", checker_config());
 
 
     // master side: axi2tlm
 	AXISignals<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_signals;
+		AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH,
+        AXI_AWUSER_WIDTH,
+        AXI_ARUSER_WIDTH,
+        AXI_WUSER_WIDTH,
+        AXI_RUSER_WIDTH,
+        AXI_BUSER_WIDTH
+            > master_signals;
 
 	axi2tlm_bridge<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_bridge;
+			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH,
+        AXI_AWUSER_WIDTH,
+        AXI_ARUSER_WIDTH,
+        AXI_WUSER_WIDTH,
+        AXI_RUSER_WIDTH,
+        AXI_BUSER_WIDTH
+                > master_bridge;
 
-	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
-			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_checker("checker", checker_config());
-
+//	AXIProtocolChecker<AXI_ADDR_WIDTH, AXI_DATA_WIDTH, AXI_ID_WIDTH,
+//			AXI_AXLEN_WIDTH, AXI_AXLOCK_WIDTH> master_checker("checker", checker_config());
+public:
     // dut is the RTL AXI4Lite device we're testing.
     Vaxi_join dut;
+    axi_bridge(sc_module_name name);
+};
 
-    Top(sc_module_name name);
+SC_MODULE(Top)
+{
+public:
+    sc_clock clk;
+    sc_signal<bool> rst_n; // Active low.
+
+
+    // dut is the RTL AXI4Lite device we're testing.
+    std::vector<axi_bridge*> bridge;
+
+    Top(sc_module_name name, int bridge_num);
 };
 

@@ -47,6 +47,7 @@
  * Port object definitions.
  */
 #include "mem/port.hh"
+#include "mem/ruby/network/dummy_port.hh"
 
 #include "base/trace.hh"
 #include "sim/sim_object.hh"
@@ -68,6 +69,11 @@ MasterPort::bind(Port &peer)
 {
     auto *slave_port = dynamic_cast<SlavePort *>(&peer);
     if (!slave_port) {
+        auto *ruby_dummy_port = dynamic_cast<RubyDummyPort *>(&peer);
+        if (ruby_dummy_port) {
+            warn("Skip Bind %s to RubyDummyPort Port %s.", name(), peer.name());
+            return;
+        }
         fatal("Attempt to bind port %s to non-slave port %s.",
                 name(), peer.name());
     }

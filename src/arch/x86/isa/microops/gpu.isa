@@ -36,7 +36,9 @@
 // Authors: Jason Power
 
 output header {{
+#if defined(BUILD_PPU) || defined(BUILD_GPU)
         void gpuFinishPageFault(int gpuId, ThreadContext *tc);
+#endif
     class GPUFaultFinish : public X86ISA::X86MicroopBase
     {
       public:
@@ -60,7 +62,9 @@ output exec {{
     GPUFaultFinish::execute(ExecContext *xc,
             Trace::InstRecord * traceData) const
     {
+#if defined(BUILD_PPU) || defined(BUILD_GPU)
         gpuFinishPageFault(0, xc->tcBase());
+#endif
         return NoFault;
     }
 }};

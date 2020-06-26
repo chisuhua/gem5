@@ -180,8 +180,10 @@ Module::serviceExternalEvent()
 {
     EventQueue *eventq = getEventQueue(0);
 
-    if (!in_simulate && !async_event)
+    if (!in_simulate && !async_event) {
         warn("Gem5SystemC external event received while not in simulate");
+        sc_core::sc_stop();
+    }
 
     if (async_event)
         serviceAsyncEvent();

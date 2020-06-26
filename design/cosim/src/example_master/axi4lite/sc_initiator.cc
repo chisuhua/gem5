@@ -3,7 +3,7 @@
 #include "sc_initiator.hh"
 #include "top.hh"
 
-Initiator::Initiator(sc_core::sc_module_name name, axi_bridge &bridge)
+Initiator::Initiator(sc_core::sc_module_name name, axilite_bridge &bridge)
   : sc_core::sc_module(name),
     bridge(bridge),
     target_socket("target_socket"),

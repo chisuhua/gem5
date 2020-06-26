@@ -44,3 +44,6 @@ class MessageBuffer(SimObject):
 
     master = MasterPort("Master port to MessageBuffer receiver")
     slave = SlavePort("Slave port from MessageBuffer sender")
+
+    out_port = MasterPort("Master port inside MessageBuffer for AXI intercept")
+    in_port = SlavePort("Slave port inside MessageBuffer for AXI intercept")

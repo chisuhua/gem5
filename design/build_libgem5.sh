@@ -23,6 +23,7 @@ rm build/variables.global
 #scons build/MSI/gem5.debug --verbose -j6 PROTOCOL=MSI
 
 #scons build/X86_MSI/gem5.debug -j6 --verbose PROTOCOL=MSI
+#scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_MSI/libgem5_debug.so --verbose
 
 #scons build/MSI/gem5.opt --verbose -j6
 

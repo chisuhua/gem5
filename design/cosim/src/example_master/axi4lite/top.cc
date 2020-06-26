@@ -49,12 +49,12 @@ AXILitePCConfig checker_config()
         return cfg;
 }
 
-axi_bridge::axi_bridge(sc_module_name name) :
+axilite_bridge::axilite_bridge(sc_module_name name) :
             clk("clk"),
             rst_n("rst_n"),
             slave_signals("slave_signals"),
             master_signals("master_signals"),
-            slave_bridge("slave_bridge"),
+            slave_bridge("slave_bridge", false),
             master_bridge("master_bridge"),
             master_checker("master_checker", checker_config()),
             slave_checker("slave_checker", checker_config()),
@@ -148,8 +148,11 @@ Top::Top(sc_module_name name, int bridge_num) :
         clk("clk", sc_time(1, SC_NS)),
         rst_n("rst_n")
 {
+    std::stringstream bridge_name;
     for (int i=0; i< bridge_num; i++) {
-        bridge.push_back(new axi_bridge("bridge" + i));
+        bridge_name.str("");
+        bridge_name << "bridge" << i;
+        bridge.push_back(new axilite_bridge(bridge_name.str().c_str()));
         bridge[i]->clk(clk);
         bridge[i]->rst_n(rst_n);
     }

@@ -37,7 +37,7 @@
 using namespace sc_core;
 using namespace std;
 
-Target::Target(sc_core::sc_module_name name, axi_bridge &bridge,
+Target::Target(sc_core::sc_module_name name, axilite_bridge &bridge,
     bool debug,
     unsigned long long int size,
     unsigned int offset) :
@@ -91,14 +91,15 @@ Target::transport_dbg(tlm::tlm_generic_payload& trans)
 {
     // auto phase = tlm::BEGIN_REQ;
     trans.acquire();
-    sc_time delay = sc_time(0, SC_NS); // Accept delay
+    // sc_time delay = sc_time(0, SC_NS); // Accept delay
+    sc_time delay = sc_core::SC_ZERO_TIME;
     while (transaction_in_progress != 0) {
         sleep(1);
     }
     transaction_in_progress = &trans;
     // m_peq.notify(trans, phase, delay);
     tlm::tlm_response_status tlm_status = trans.get_response_status();
-    target_done_event.notify(delay);
+    target_start_event.notify(delay);
     unsigned int     len = trans.get_data_length();
 
     while (tlm_status != trans.get_response_status()) {
@@ -179,6 +180,7 @@ Target::peq_cb(tlm::tlm_generic_payload& trans,
                const tlm::tlm_phase& phase)
 {
     sc_time delay;
+    delay = sc_core::SC_ZERO_TIME;
 
     if (phase == tlm::BEGIN_REQ) {
         if (debug) SC_REPORT_INFO("target", "tlm::BEGIN_REQ");
@@ -230,13 +232,14 @@ Target::send_end_req(tlm::tlm_generic_payload& trans)
 
     /* Queue the acceptance and the response with the appropriate latency */
     bw_phase = tlm::END_REQ;
-    delay = sc_time(10.0, SC_NS); // Accept delay
+    // delay = sc_time(10.0, SC_NS); // Accept delay
+    delay = sc_core::SC_ZERO_TIME;
 
     /* Ignore return value;
      * initiator cannot terminate transaction at this point
      * Queue internal event to mark beginning of response: */
-    delay = delay + sc_time(40.0, SC_NS); // Latency
-    target_done_event.notify(delay);
+    // delay = delay + sc_time(40.0, SC_NS); // Latency
+    target_start_event.notify(delay);
 
     tlm::tlm_sync_enum status;
     status = socket->nb_transport_bw(trans, bw_phase, delay);
@@ -249,7 +252,7 @@ void
 Target::execute_transaction_process()
 {
     while (true) {
-        wait(target_done_event);
+        wait(target_start_event);
         /* Execute the read or write commands */
         execute_transaction( *transaction_in_progress );
 
@@ -298,7 +301,8 @@ Target::execute_transaction(tlm::tlm_generic_payload& trans)
     // // FIXME 
 
         tlm::tlm_generic_payload trans_to_bridge;
-        sc_time delay = sc_time(10, SC_NS);
+        // sc_time delay = sc_time(10, SC_NS);
+        sc_time delay = sc_core::SC_ZERO_TIME;
         // uint8_t *data = NULL;
 
         trans_to_bridge.set_command(cmd);
@@ -354,7 +358,8 @@ Target::send_response(tlm::tlm_generic_payload& trans)
 
     response_in_progress = true;
     bw_phase = tlm::BEGIN_RESP;
-    delay = sc_time(10.0, SC_NS);
+    // delay = sc_time(10.0, SC_NS);
+    delay = sc_core::SC_ZERO_TIME;
     status = socket->nb_transport_bw( trans, bw_phase, delay );
 
     if (status == tlm::TLM_UPDATED) {
