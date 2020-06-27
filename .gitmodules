@@ -4,3 +4,6 @@
 [submodule "ext/axi"]
 	path = ext/axi
 	url = git@github.com:chisuhua/axi.git
+[submodule "design/cosim/firrtl"]
+	path = design/cosim/firrtl
+	url = git@gitee.com:chisuhua/firrtl.git
