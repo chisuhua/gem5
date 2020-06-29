@@ -10,6 +10,7 @@ import pdb
 #gem5_variant = 'opt'
 gem5_variant = 'debug'
 
+
 gem5_root = Dir('#../..').srcnode().abspath
 gem5_tlm = gem5_root + '/util/tlm'
 
@@ -18,6 +19,12 @@ env = Environment()
 #Make the gem5 root available in SConscripts
 env['GEM5_ROOT'] = gem5_root
 
+co_build_dir = os.environ.get('CO_BUILD_DIR')
+if not co_build_dir:
+    co_build_dir = 'build'
+
+env['CO_BUILD_DIR'] = co_build_dir
+
 #    print("Please setup setup env GEM5_ARCH")
 #    exit(1)
 
@@ -25,7 +32,7 @@ gem5_arch = os.environ.get('GEM5_ARCH')
 if not gem5_arch:
     print("GEM5_ARCH is {}".format(gem5_arch))
     exit(1)
-#gem5_arch = 'X86_VI_hammer'
+env['GEM5_ARCH'] = gem5_arch
 
 shlibsuffix = env['SHLIBSUFFIX']
 
@@ -50,11 +57,11 @@ if gem5_variant == 'debug':
 deps = [] # keep track of all dependencies required for building the binaries
 
 
-deps += SConscript(gem5_tlm + '/src/SConscript', variant_dir='build/tlm', exports='env')
+deps += SConscript(gem5_tlm + '/src/SConscript', variant_dir= co_build_dir + '/tlm', exports='env')
 
 
 deps += SConscript(gem5_tlm + '/examples/common/SConscript',
-                   variant_dir='build/examples/common',
+                   variant_dir= co_build_dir + '/examples/common',
                    exports=['env'])
 
 # the SystemC SConscript makes certain assumptions, we need to fulfill these
@@ -65,26 +72,31 @@ AddOption('--no-colors', dest='use_colors', action='store_false',
           help="Don't add color to abbreviated scons output")
 
 SConscript(gem5_root + '/ext/systemc/SConscript',
-           variant_dir='build/systemc',
+           variant_dir= co_build_dir + '/systemc',
            exports='main')
 
 # By adding libraries as dependencies instead of using LIBS, we avoid that
 # the user needs to set the LD_LIBRARY_PATH
-deps.append(File('build/systemc/libsystemc' + shlibsuffix))
+deps.append(File( co_build_dir + '/systemc/libsystemc' + shlibsuffix))
 deps.append(File(os.path.join(gem5_root, 'build', gem5_arch,
              'libgem5_' + gem5_variant + shlibsuffix)))
 
 ex_master = SConscript('examples/master_port/SConscript',
-                       variant_dir='build/examples/master_port',
+                       variant_dir= co_build_dir + '/examples/master_port',
                        exports=['env', 'deps'])
 
 ex_slave = SConscript('examples/slave_port/SConscript',
-                      variant_dir='build/examples/slave_port',
+                      variant_dir= co_build_dir + '/examples/slave_port',
                       exports=['env', 'deps'])
 
 
 env['SYSTEMC_INCLUDE'] = gem5_root + '/ext/systemc/src'
 env['SYSTEMC_LIBDIR'] = gem5_tlm + '/build/systemc'
+env['COSIM_DIR'] = gem5_root + '/design/cosim'
+
+cosim_dir = env['COSIM_DIR']
+env['VERILOG_DESIGN_DIR'] = cosim_dir + '/src/verilog_design'
+env['CHISEL_DESIGN_DIR'] = cosim_dir + '/src/chisel_design'
 
 
 
@@ -107,8 +119,9 @@ print("# of job: %d" % GetOption('num_jobs'))
 
 design = SConscript(
     'src/SConscript',
-    variant_dir='build',
+    variant_dir=co_build_dir,
     exports=[ 'env', 'deps'
     ])
 
-Default(ex_master + ex_slave + design)
+#Default(ex_master + ex_slave + design)
+Default(design)

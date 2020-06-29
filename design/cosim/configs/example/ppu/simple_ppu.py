@@ -97,7 +97,7 @@ class PPSystem(BareMetalPpuSystem):
         #self.dcache_bridge = Bridge()
 
         # Create a external TLM port:
-        if False:
+        if True:
             self.tlm_slave_dcache = ExternalSlave()
             self.tlm_slave_dcache.addr_ranges = [AddrRange('4GB')]
             self.tlm_slave_dcache.port_type = "tlm_slave"
@@ -132,14 +132,14 @@ class PPSystem(BareMetalPpuSystem):
 
 
         #self.cpu.connectAllPorts(self.membus)
-        self.cpu.dcache_port = self.membus.slave
-        self.cpu.icache_port = self.membus.slave
+        #self.cpu.dcache_port = self.membus.slave
+        #self.cpu.icache_port = self.membus.slave
 
-        #self.cpu.dcache_port = self.tlm_slave_dcache.port
-        #self.cpu.icache_port = self.tlm_slave_icache.port
+        self.cpu.dcache_port = self.tlm_slave_dcache.port
+        self.cpu.icache_port = self.tlm_slave_icache.port
 
-        #self.tlm_master_dcache.port = self.membus.slave
-        #self.tlm_master_icache.port = self.membus.slave
+        self.tlm_master_dcache.port = self.membus.slave
+        self.tlm_master_icache.port = self.membus.slave
 
         self.system_port = self.membus.slave
 

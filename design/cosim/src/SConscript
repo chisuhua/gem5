@@ -1,7 +1,75 @@
 import os
 import logging
+import datetime
 from operator import add
 from functools import reduce
+
+import pdb
+
+Import('env')
+Import('deps')
+
+cosim_dir = env['COSIM_DIR']
+
+
+#####################################
+# scala to verilog
+# def compile_verilog(env):
+#####################################
+def compile_scala(env, PROJECT, DESIGN):
+    # Compile FIRRTL first
+    def publish(target, source, env):
+        with open(target[0].name, 'w') as _f:
+            _f.write(str(datetime.datetime.now()))
+
+    env.SBT('publish', [],
+            SBT_CWD='firrtl',
+            SBT_CMD='publishLocal',
+            SBT_ACTIONS=[publish])
+    env.Precious('publish')
+    env.NoClean('publish')
+
+    targets = env.SBT(
+        [
+            os.path.join(env['GEN_DIR'], DESIGN, DESIGN + '.v'),
+            os.path.join(env['GEN_DIR'], DESIGN, DESIGN + '.macros.v'),
+            os.path.join(env['GEN_DIR'], DESIGN, DESIGN + '-const.h'),
+            os.path.join(env['GEN_DIR'], DESIGN, DESIGN + '-const.vh'),
+            os.path.join(env['GEN_DIR'], DESIGN, 'defines.vh')
+        ],
+        ['publish'] + [
+            os.path.abspath(os.path.join(cosim_dir, 'src', 'macro.45nm.json')),
+            os.path.abspath(os.path.join(cosim_dir, 'src', 'model.tsmc45.csv')),
+            os.path.abspath(os.path.join(cosim_dir, 'src', 'cad-opt.txt'))
+        ],
+        SBT_CMD='"%s"' % ' '.join([
+            "runMain",
+            'dessert.examples.Generator',
+            os.path.join(env['GEN_DIR'], DESIGN),
+            PROJECT,
+            DESIGN,
+            '+macro=%s' % os.path.join(cosim_dir, "src", "macro.45nm.json")
+        ]))
+
+
+#            'dessert.rocketchip.Generator',
+#            'midas',
+#            env['PLATFORM'],
+#            env['GEN_DIR'],
+#            'dessert.rocketchip',
+#            'HwachaTop',
+#            'dessert.rocketchip',
+#            'ExampleHwachaConfig',
+#            '+svf=%s' % os.path.abspath("cad-opt.txt"),
+#            '+macro=%s' % os.path.abspath("macro.45nm.json"),
+#            '+model=%s' % os.path.abspath("model.tsmc45.csv")]))
+    env.Precious(targets)
+    env.Alias('rtl-v', targets)
+    env.SideEffect('#sbt', targets)
+    env.Default('rtl-v')
+
+    return [t.abspath for t in targets]
+
 
 ######################
 #  sbt action
@@ -16,24 +84,38 @@ def _get_submodule_files(submodule):
             submodule, 'src', 'main', 'scala'))
     ], [])
 
+def _get_submodule_test_files(submodule):
+    return reduce(add, [
+        [
+            os.path.join(dirpath, f)
+            for f in filenames if f.endswith('.scala')
+        ]
+        for dirpath, _, filenames in os.walk(os.path.join(
+            submodule, 'src', 'test', 'scala'))
+    ], [])
+
+
 
 def _scala_srcs(target, source, env):
     if target[0].name == 'publish':
-        return target, source + _get_submodule_files('firrtl')
+        return target, source + _get_submodule_files(os.path.join(cosim_dir, 'firrtl'))
 
     extra_srcs = ['publish']
 
     submodules = [
         os.path.curdir,
-        os.path.join('designs', 'rocket-chip'),
-        os.path.join('designs', 'testchipip'),
-        os.path.join('designs', 'sifive-blocks'),
-        os.path.join('designs', 'hwacha')
+        os.path.join(cosim_dir, 'src', 'chisel_design', 'example'),
+        os.path.join(cosim_dir, 'src', 'chisel_design', 'riscv-mini')
+#        os.path.join('designs', 'rocket-chip'),
+#        os.path.join('designs', 'testchipip'),
+#        os.path.join('designs', 'sifive-blocks'),
+#        os.path.join('designs', 'hwacha')
     ]
 
     return target, source + ['publish'] + reduce(add, [
-        _get_submodule_files(submodule) for submodule in submodules
-    ], [])
+        _get_submodule_files(submodule) for submodule in submodules ], [])
+#+ reduce(add, [_get_submodule_test_files(submodule) for submodule in submodules ], [])
+
 
 
 def _sbt_actions(target, source, env, for_signature):
@@ -48,6 +130,7 @@ def _sbt_actions(target, source, env, for_signature):
 #                env['CSRC_DIR'], 'V' + env['VERILATOR_TOP'] + '.h')),
 #            '-CFLAGS', '\"%s\"' % (' '.join(env['CXXFLAGS'])),
 #            '-o', target[0].abspath
+
 
 ######################
 ### Verilator
@@ -92,6 +175,11 @@ def compile_verilator(env, gen_dir, out_dir, srcs, binary, cmd):
     #env.Clean(cmd, csrc_dir)
     return [verilated_o, verilated_obj, verilated_header]
 
+######################
+### compiler verilog by verilator
+### (modify form compiler_emul)
+######################
+
 def compile_design(env, vfiles, verilator_top, design, VFLAGS = ""):
 
     env['VERILATOR_TOP'] = verilator_top
@@ -120,10 +208,6 @@ variables.AddVariables(
     EnumVariable('EMUL', 'Program for emulation, RTL/gate-level simulation',
                  'verilator', allowed_values=['vcs', 'verilator']))
 
-
-Import('env')
-Import('deps')
-
 gem5_root = env['GEM5_ROOT']
 
 env.Append(
@@ -135,7 +219,7 @@ env.Append(
         '-J-Xmx16G',
         '-J-Xss8M',
         '-J-XX:MaxMetaspaceSize=512M',
-        '++2.12.4'
+        '++2.12.11'
     ]),
     VERILATOR='verilator --cc',
     VERILATOR_FLAGS=[],
@@ -146,7 +230,6 @@ env.Append(
 
 env.Append(
     BUILDERS={
-        #'Verilator': Builder(generator=_verilator_actions, suffix = '.vo', src_suffix = '.v'),
         'Verilator': Builder(generator=_verilator_actions),
         'SBT': Builder(generator=_sbt_actions, emitter=_scala_srcs)
 })
@@ -159,35 +242,9 @@ design = []
 co_design = os.environ.get('CO_DESIGN')
 design.append(SConscript(co_design + '/SConscript',
                         variant_dir=env['OUT_DIR'] + '/' + co_design,
-                        exports=['env', 'deps', 'compile_design'])
+                        exports=['env', 'deps', 'compile_design', 'compile_scala'])
              )
 
-
-#design.append(SConscript('example_slave/axi4lite/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_slave/axi4lite',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
-
-#design.append(SConscript('example_master/axi4lite/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_master/axi4lite',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
-
-
-#design.append(SConscript('example_master/axi/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_master/axi',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
-
-#design.append(SConscript('example_master/axis/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_master/axis',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
-
-#design.append(SConscript('example_master/simple_ppu/SConscript',
-#                        variant_dir=env['OUT_DIR'] + '/example_master/simple_ppu',
-#                        exports=['env', 'deps', 'compile_design'])
-#             )
 
 
 Return('design')

@@ -4,6 +4,7 @@ import pdb
 Import('env')
 Import('deps')
 Import('compile_design')
+Import('compile_scala')
 
 env = env.Clone()
 gem5_root = env['GEM5_ROOT']
@@ -15,10 +16,17 @@ src_sc = [File('sc_target.cc'), File('sc_initiator.cc'), File('top.cc')]
 
 vfiles = [File(os.path.join(Dir('.').abspath, 'axi_join.v'))]
 
-
 verilated_o, verilated_obj, verilated_header = compile_design(env, vfiles, "axi_join", "axi_join")
 
 verilated_dir = os.path.dirname(verilated_header)
+
+# modify from compiler_verilog(env)
+GCD_v, GCD_macros_v, GCD_const_h, GCD_const_vh, GCD_defines = compile_scala(env, 'dessert.examples', 'GCD')
+
+pdb.set_trace()
+
+#fpga_o, fpga_obj, fpga_header = compile_design(env, [GDC_v], "GCD", "GCD")
+
 
 
 env.Append(CPPPATH=[verilated_dir])

@@ -96,7 +96,8 @@ Tick
 Uart8250::read(PacketPtr pkt)
 {
     assert(pkt->getAddr() >= pioAddr && pkt->getAddr() < pioAddr + pioSize);
-    assert(pkt->getSize() == 1);
+    // TODO after axi bridge the size bus width
+    // assert(pkt->getSize() == 1);
 
     Addr daddr = pkt->getAddr() - pioAddr;
 
@@ -178,7 +179,8 @@ Uart8250::write(PacketPtr pkt)
 {
 
     assert(pkt->getAddr() >= pioAddr && pkt->getAddr() < pioAddr + pioSize);
-    assert(pkt->getSize() == 1);
+    // TODO after axi bridge the size bus width
+    // assert(pkt->getSize() == 1);
 
     Addr daddr = pkt->getAddr() - pioAddr;
 
