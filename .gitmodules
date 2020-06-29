@@ -7,3 +7,12 @@
 [submodule "design/cosim/firrtl"]
 	path = design/cosim/firrtl
 	url = git@gitee.com:chisuhua/firrtl.git
+[submodule "design/cosim/src/chisel_design/riscv-mini"]
+	path = design/cosim/src/chisel_design/riscv-mini
+	url = https://gitee.com/chisuhua/riscv-mini.git
+[submodule "design/cosim/src/chisel_design/rocket-chip"]
+	path = design/cosim/src/chisel_design/rocket-chip
+	url = https://gitee.com/chisuhua/rocket-chip.git
+[submodule "design/cosim/src/chisel_design/hwacha"]
+	path = design/cosim/src/chisel_design/hwacha
+	url = https://gitee.com/chisuhua/hwacha.git
