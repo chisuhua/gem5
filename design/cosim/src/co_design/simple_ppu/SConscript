@@ -34,7 +34,7 @@ verilated_dir = os.path.dirname(verilated_header)
 ####################################
 # GDC
 # modify from compiler_verilog(env)
-mini_v, mini_macros_v, mini_const_h, mini_const_vh, mini_defines = compile_scala(env, 'mini', 'Tile')
+#mini_v, mini_macros_v, mini_const_h, mini_const_vh, mini_defines = compile_scala(env, 'mini', 'Tile')
 
 #fpga_o, fpga_obj, fpga_header = compile_design(env, [mini_v], "mini", "mini")
 

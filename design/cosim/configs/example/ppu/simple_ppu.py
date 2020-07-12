@@ -34,6 +34,9 @@ from m5.objects import *
 #from minor_custom_fu import PpuMinorCustomFUPool
 import pdb
 
+#use_tlm = True
+use_tlm = False
+
 class PPUFUPool(PpuMinorFUPool):
     funcUnits = [PpuMinorDefaultIntFU(), PpuMinorDefaultIntFU(),
                  PpuMinorDefaultIntMulFU(), PpuMinorDefaultIntDivFU(),
@@ -97,7 +100,7 @@ class PPSystem(BareMetalPpuSystem):
         #self.dcache_bridge = Bridge()
 
         # Create a external TLM port:
-        if True:
+        if use_tlm:
             self.tlm_slave_dcache = ExternalSlave()
             self.tlm_slave_dcache.addr_ranges = [AddrRange('4GB')]
             self.tlm_slave_dcache.port_type = "tlm_slave"
@@ -130,16 +133,16 @@ class PPSystem(BareMetalPpuSystem):
         # connect cache ports of cpu to membus
         # no caches -> connect directly to mem bus
 
-
         #self.cpu.connectAllPorts(self.membus)
-        #self.cpu.dcache_port = self.membus.slave
-        #self.cpu.icache_port = self.membus.slave
-
-        self.cpu.dcache_port = self.tlm_slave_dcache.port
-        self.cpu.icache_port = self.tlm_slave_icache.port
-
-        self.tlm_master_dcache.port = self.membus.slave
-        self.tlm_master_icache.port = self.membus.slave
+        if use_tlm:
+            self.cpu.dcache_port = self.tlm_slave_dcache.port
+            self.cpu.icache_port = self.tlm_slave_icache.port
+            self.tlm_master_dcache.port = self.membus.slave
+            self.tlm_master_icache.port = self.membus.slave
+        else:
+            self.cpu.connectAllPorts(self.membus)
+            #self.cpu.dcache_port = self.membus.slave
+            #self.cpu.icache_port = self.membus.slave
 
         self.system_port = self.membus.slave
 

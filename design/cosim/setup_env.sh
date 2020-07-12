@@ -10,4 +10,4 @@ export CO_BUILD_DIR=build
 #export CO_DESIGN=example_master/simple_ppu
 #export GEM5_ARCH=X86_MSI
 
-source ~/p372_init.sh
+#source ~/p372_init.sh

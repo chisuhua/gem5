@@ -21,7 +21,7 @@ verilated_o, verilated_obj, verilated_header = compile_design(env, vfiles, "axi_
 verilated_dir = os.path.dirname(verilated_header)
 
 # modify from compiler_verilog(env)
-GCD_v, GCD_macros_v, GCD_const_h, GCD_const_vh, GCD_defines = compile_scala(env, 'dessert.examples', 'GCD')
+#GCD_v, GCD_macros_v, GCD_const_h, GCD_const_vh, GCD_defines = compile_scala(env, 'dessert.examples', 'GCD')
 
 pdb.set_trace()
 
