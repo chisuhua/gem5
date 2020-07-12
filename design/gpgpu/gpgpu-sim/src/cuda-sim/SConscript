@@ -36,7 +36,7 @@ Source('instructions.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wn
 Source('memory.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=format'})
 Source('ptx-stats.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('ptx_ir.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=format'})
-Source('ptx_loader.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=format'})
+Source('ptx_loader.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=format -Wno-error=format-truncation='})
 Source('ptx_parser.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=format -Wno-error=type-limits -Wno-error=maybe-uninitialized'})
 Source('ptx_sim.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=implicit-fallthrough -Wno-error=unused-function -Wno-error=format'})
 Source('lex.ptx_.c', append={'CFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=unused-function'})
