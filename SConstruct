@@ -966,6 +966,8 @@ all_isa_list.sort()
 all_gpu_isa_list.sort()
 all_ppu_isa_list.sort()
 
+have_zephyr = False
+
 sticky_vars.AddVariables(
     EnumVariable('TARGET_ISA', 'Target ISA', 'alpha', all_isa_list),
     EnumVariable('TARGET_GPU_ISA', 'Target GPU ISA', 'hsail', all_gpu_isa_list),
@@ -988,6 +990,8 @@ sticky_vars.AddVariables(
                  False),
     BoolVariable('USE_KVM', 'Enable hardware virtualized (KVM) CPU models',
                  have_kvm),
+    BoolVariable('USE_ZEPHYR', 'Enable hardware to run Zephyr OS',
+                 have_zephyr),
     BoolVariable('USE_TUNTAP',
                  'Enable using a tap device to bridge to the host network',
                  have_tuntap),
@@ -1250,6 +1254,9 @@ for variant_path in variant_paths:
 
     if env['EFENCE']:
         env.Append(LIBS=['efence'])
+
+    if env['USE_ZEPHYR']:
+        env.Append(LIBS=['dl'])
 
     if env['USE_KVM']:
         if not have_kvm:
