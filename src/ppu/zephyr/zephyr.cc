@@ -92,19 +92,29 @@ std::function<T> GetFunction(void * func)
 
 static Zephyr *zephyr_instance;
 static EventQueue *event_queue;
+// __thread std::condition_variable data_read_done;
 
-static void zephyr_api_mem_access(bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, bool functional) {
+
+// TODO add  api to exit sim
+static void zephyr_api_exit_sim() {
+    exitSimLoop("maximum number of loads reached");
+}
+
+static uint32_t zephyr_api_mem_access(Addr paddr, uint32_t data, bool cmd_read, bool uncacheable, bool functional) {
     curEventQueue(event_queue);
-    Tick duration_per_access = 100000;
+    Tick duration_per_access = 2000;
+    Tick duration_progress = 100000;
     // Tick now = curTick() + duration_per_access;
-    Tick now = event_queue->nextTick() + duration_per_access;
+    // Tick now = event_queue->nextTick() + duration_per_access;
+    Tick now = event_queue->getCurTick() + duration_per_access;
 
-    zephyr_instance->schedule(new EventFunctionWrapper(
+    event_queue->schedule(new EventFunctionWrapper(
                 [cmd_read, data, uncacheable, paddr, functional]{
                     zephyr_instance->memAccess(cmd_read, data, uncacheable, paddr, functional);
                 }, zephyr_instance->name() + ".memAcess", true
                 ),
-            now);
+            now, true);
+    now += duration_progress;
     while (true) {
         if (event_queue->empty()){
             break;
@@ -113,12 +123,25 @@ static void zephyr_api_mem_access(bool cmd_read, uint32_t data, bool uncacheable
 
         if (next <= now) {
             event_queue->serviceEvents(now);
+            //event_queue->serviceOne();
             continue;
         }
         break;
     }
-    // zephyr_instance->memAccess(cmd_read, data, uncacheable, paddr, functional);
+
+    if (cmd_read)
+        return zephyr_instance->referenceData[paddr];
+    return 0;
 }
+
+static void zephyr_api_mem_write(Addr paddr, uint32_t data, bool uncacheable = false) {
+    zephyr_api_mem_access(paddr, data, false, uncacheable, false);
+}
+
+static uint32_t zephyr_api_mem_read(Addr paddr, bool uncacheable = false) {
+    return zephyr_api_mem_access(paddr, 0, true, uncacheable, false);
+}
+
 
 Zephyr::Zephyr(const Params *p)
     : ClockedObject(p),
@@ -160,19 +183,20 @@ Zephyr::Zephyr(const Params *p)
 
 
     zephyr_instance = this;
-    // event_queue = _curEventQueue;
-    event_queue = getEventQueue(2);
+    event_queue = _curEventQueue;
 
     fileName = p->file_name;
 
 
     // kick things into action
     // zephyrOs();
-    schedule(zephyrOsEvent, curTick() + startTick);
+    // schedule(zephyrOsEvent, curTick() + startTick);
     // schedule(noRequestEvent, clockEdge(progressCheck));
+    zephyr_thread = new std::thread([this](){ this->zephyrOs();});
+    zephyr_thread->detach();
 }
 
-static void* gem5api_vector[] = {(void*)zephyr_api_mem_access, (void*)zephyr_api_mem_access};
+static void* gem5api_vector[] = {(void*)zephyr_api_mem_read, (void*)zephyr_api_mem_write, (void*)zephyr_api_exit_sim};
 
 void Zephyr::zephyrOs()
 {
@@ -189,6 +213,7 @@ void Zephyr::zephyrOs()
     pFunc gem5_main = (pFunc)lib.GetSymbol("gem5_main");
 
     int zephyr_ret = gem5_main(argc, argv);
+    // zephyr_thread = new std::thread(gem5_main, argc, argv);
     DPRINTF(Zephyr, "gem5_main argc=%d, argv=%s, %d\n", argc, argv[0], zephyr_ret);
 }
 
@@ -205,7 +230,7 @@ void
 Zephyr::completeRequest(PacketPtr pkt, bool functional)
 {
     const RequestPtr &req = pkt->req;
-    assert(req->getSize() == 1);
+    assert(req->getSize() == 4);        // only 4byte access
 
     // this address is no longer outstanding
     auto remove_addr = outstandingAddrs.find(req->getPaddr());
@@ -217,7 +242,7 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
             req->getPaddr(), blockAlign(req->getPaddr()),
             pkt->isError() ? "error" : "success");
 
-    const uint8_t *pkt_data = pkt->getConstPtr<uint8_t>();
+    const uint32_t *pkt_data = pkt->getConstPtr<uint32_t>();
 
     if (pkt->isError()) {
         if (!functional || !suppressFuncWarnings) {
@@ -226,12 +251,13 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
         }
     } else {
         if (pkt->isRead()) {
-            uint8_t ref_data = referenceData[req->getPaddr()];
+            uint32_t ref_data = referenceData[req->getPaddr()];
             if (pkt_data[0] != ref_data) {
-                panic("%s: read of %x (blk %x) @ cycle %d "
+                warn("%s: read of %x (blk %x) @ cycle %d "
                       "returns %x, expected %x\n", name(),
                       req->getPaddr(), blockAlign(req->getPaddr()), curTick(),
                       pkt_data[0], ref_data);
+                referenceData[req->getPaddr()] = pkt_data[0];
             }
 
             numReads++;
@@ -243,8 +269,6 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
                 nextProgressMessage += progressInterval;
             }
 
-            if (maxLoads != 0 && numReads >= maxLoads)
-                exitSimLoop("maximum number of loads reached");
         } else {
             assert(pkt->isWrite());
 
@@ -305,7 +329,7 @@ Zephyr::memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, b
     }
 
     bool do_functional = functional && !uncacheable;
-    RequestPtr req = std::make_shared<Request>(paddr, 1, flags, masterId);
+    RequestPtr req = std::make_shared<Request>(paddr, 4, flags, masterId); // it is 4Byte access
     req->setContext(id);
 
     outstandingAddrs.insert(paddr);
@@ -321,7 +345,7 @@ Zephyr::memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, b
     if (cmd_read) {
         // start by ensuring there is a reference value if we have not
         // seen this address before
-        uint8_t M5_VAR_USED ref_data = 0;
+        uint32_t M5_VAR_USED ref_data = 0;
         auto ref = referenceData.find(req->getPaddr());
         if (ref == referenceData.end()) {
             referenceData[req->getPaddr()] = 0;
@@ -371,7 +395,18 @@ Zephyr::memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, b
 
     // Schedule noResponseEvent now if we are expecting a response
     if (!noResponseEvent.scheduled() && (outstandingAddrs.size() != 0))
-        schedule(noResponseEvent, clockEdge(progressCheck));
+    {
+        event_queue->schedule(&noResponseEvent, clockEdge(progressCheck));
+        /*
+        event_queue->schedule(new EventFunctionWrapper(
+                [](){
+                },
+                zephyr_instance->name() + ".progressCheck", true
+                ),
+            clockEdge(progressCheck));
+            */
+    }
+
 }
 
 void
@@ -383,6 +418,7 @@ Zephyr::noRequest()
 void
 Zephyr::noResponse()
 {
+    // warn("%s did not see a response for %d cycles", name(), progressCheck);
     panic("%s did not see a response for %d cycles", name(), progressCheck);
 }
 

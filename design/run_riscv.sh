@@ -98,7 +98,7 @@ CMD="tests/test-progs/threads/bin/X86/linux/threads"
 #CONF="configs/example/ppu/fs_simple_ppu.py"
 CONF="configs/example/ppu/fs_bare_metal.py"
 #CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
-CMD="-b /mnt/d/yunpan/source/github/sim/zephyreproject/zephyr/build_ppu32/zephyr/zephyr.elf"
+CMD="-b /mnt/d/source/github/sim/zephyrproject/zephyr/build_ppu32/zephyr/zephyr.elf"
 CMD="${CMD} -w"
 
 echo $RUN $OPTION $CONF $CMD

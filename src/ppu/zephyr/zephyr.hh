@@ -46,6 +46,7 @@
 #define __CPU_ZEPHYR_ZEPHYR_HH__
 
 #include <set>
+#include <thread>
 #include <unordered_map>
 
 #include "base/statistics.hh"
@@ -83,6 +84,10 @@ class Zephyr : public ClockedObject
 
 
     void memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, bool functional);
+
+    // store the expected value for the addresses we have touched
+    std::unordered_map<Addr, uint32_t> referenceData;
+
 
   protected:
     void zephyrOs();
@@ -127,6 +132,7 @@ class Zephyr : public ClockedObject
 
     const Cycles interval;
 
+    std::thread *zephyr_thread;
     std::string fileName;
 
     const unsigned percentReads;
@@ -139,9 +145,6 @@ class Zephyr : public ClockedObject
     unsigned int id;
 
     std::set<Addr> outstandingAddrs;
-
-    // store the expected value for the addresses we have touched
-    std::unordered_map<Addr, uint8_t> referenceData;
 
     const unsigned blockSize;
 
