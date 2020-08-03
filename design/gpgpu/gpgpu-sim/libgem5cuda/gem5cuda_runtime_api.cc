@@ -1541,6 +1541,7 @@ void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&symtab, call_params.arg_lengths[0]);
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&handle, call_params.arg_lengths[1]);
 
+    //    libgem5cudaRegisterFatBinary,    /* 57 */
     m5_gpu(57, (uint64_t)&call_params);
 
     int allocation_size = *((int*)call_params.ret);
@@ -1675,6 +1676,7 @@ void  gem5cudaRegisterFunction(void *fatCubinHandle,
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&hostFun, call_params.arg_lengths[1]);
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&deviceFun, call_params.arg_lengths[2]);
 
+    // libcudaRegisterFunction,        /* 59 */
     m5_gpu(59, (uint64_t)&call_params);
 
     delete call_params.args;
@@ -2171,7 +2173,7 @@ void gem5gpu_extract_ptx_files_using_cuobjdump(const char *ptx_list_file_name)
     int lengths_off = 0;
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&ptx_list_file_name, call_params.arg_lengths[0]);
 
-    // gem5gpu_active
+    // sysgem5gpu_extract_ptx_files_using_cuobjdump
     m5_gpu(89, (uint64_t)&call_params);
 
     // int ret = *((int*)call_params.ret);

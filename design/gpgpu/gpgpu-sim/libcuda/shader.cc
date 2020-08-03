@@ -726,9 +726,15 @@ void shader_core_stats::visualizer_print( gzFile visualizer_file )
    gzprintf(visualizer_file, "\n");
 }
 
-#define PROGRAM_MEM_START 0xF0000000 /* should be distinct from other memory spaces... 
-                                        check ptx_ir.h to verify this does not overlap 
+extern long long g_program_memory_start;
+#define PROGRAM_MEM_START g_program_memory_start;
+
+#if 0
+#define PROGRAM_MEM_START 0xF0000000 /* should be distinct from other memory spaces...
+                                        check ptx_ir.h to verify this does not overlap
                                         other memory spaces */
+#endif
+
 void shader_core_ctx::decode()
 {
     if( m_inst_fetch_buffer.m_valid ) {

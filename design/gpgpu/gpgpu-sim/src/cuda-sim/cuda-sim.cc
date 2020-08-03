@@ -65,7 +65,7 @@ int gpgpu_ptx_instruction_classification;
 void ** g_inst_classification_stat = NULL;
 void ** g_inst_op_classification_stat= NULL;
 int g_ptx_kernel_count = -1; // used for classification stat collection purposes
-int g_debug_execution = 0;
+int g_debug_execution = 3;
 int g_debug_thread_uid = 0;
 addr_t g_debug_pc = 0xBEEF1518;
 // Output debug information to file options

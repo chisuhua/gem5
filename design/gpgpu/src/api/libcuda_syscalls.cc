@@ -173,6 +173,8 @@ static int load_static_globals(GPUSyscallHelper *helper, symbol_table *symtab, u
 static int load_constants(GPUSyscallHelper *helper, symbol_table *symtab, addr_t min_gaddr);
 
 unsigned g_active_device = 0; // Active CUDA-enabled GPU that runs the code
+long long g_program_memory_start = 0xF0000000;
+
 cudaError_t g_last_cudaError = cudaSuccess;
 
 extern stream_manager *g_stream_manager;
@@ -917,6 +919,31 @@ void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
 
     g_last_cudaError = cudaSuccess;
 }
+/*
+#define CACHE_BLOCK_SIZE_BYTES 128
+#define PAGE_SIZE_BYTES 4096
+
+unsigned char touchPages(unsigned char *ptr, size_t size)
+{
+    unsigned char sum = 0;
+    for (unsigned i = 0; i < size; i += PAGE_SIZE_BYTES) {
+        sum += ptr[i];
+    }
+    sum += ptr[size-1];
+    return sum;
+}
+
+__inline__ void *checkedAlignedAlloc(size_t size, size_t align_gran = CACHE_BLOCK_SIZE_BYTES)
+{
+    void *to_return = NULL;
+    int error = posix_memalign(&to_return, align_gran, size);
+    if (error) {
+        fprintf(stderr, "ERROR: allocation failed with code: %d, Exiting...\n", error);
+        exit(-1);
+    }
+    return to_return;
+}
+*/
 
 
 void libgem5cudaLaunch(ThreadContext *tc, gpusyscall_t *call_params)
@@ -947,7 +974,22 @@ void libgem5cudaLaunch(ThreadContext *tc, gpusyscall_t *call_params)
     g_last_cudaError = cudaSuccess;
 
     // FIXME hack temp
-    cudaGPU->registerDeviceMemory(tc, 0xF0000000, 0x4000);
+#if 0
+    char *device_mstart = getenv("CUDA_PROGRAM_MEMORY_START");
+    if (device_mstart)
+        sscanf(device_mstart,"%llx", &g_program_memory_start);
+
+    int program_memory_size = 0x1000;
+
+    // void *device_program_memory = malloc(program_memory_size);
+    void *ptr = checkedAlignedAlloc(program_memory_size);
+    g_program_memory_start = (long long)ptr;
+
+    touchPages((unsigned char*)ptr, program_memory_size);
+
+    // cudaGPU->registerDeviceMemory(tc, 0xF0000000, 0x4000);
+    cudaGPU->registerDeviceMemory(tc, (Addr)ptr, program_memory_size);
+#endif
 }
 
 size_t getMaxThreadsPerBlock(struct cudaFuncAttributes attr) {
@@ -1212,8 +1254,6 @@ void registerFatBinaryTop(GPUSyscallHelper *helper,
     // Read ident member
     cudaGPU->add_binary(registering_symtab, registering_fat_cubin_handle);
 
-    // FIXME now cudart load global and use cudaMemcpy instead
-    // registering_allocation_size = get_global_and_constant_alloc_size(registering_symtab);
 
 }
 
@@ -1276,11 +1316,13 @@ sysgem5gpu_cuobjdumpParseBinary(ThreadContext *tc, gpusyscall_t *call_params)
         }
     }
 
-    registerFatBinaryTop(&helper, symtab, handle);
+    // register in cudaRegisterFatBinary
+    // registerFatBinaryTop(&helper, symtab, handle);
 
     // FIXME checkout libcuda_syscalls on load_global_const
-    load_static_globals(&helper, symtab,STATIC_ALLOC_LIMIT); // ,context->get_device()->get_gpgpu());
-    load_constants(&helper, symtab,STATIC_ALLOC_LIMIT); // ,context->get_device()->get_gpgpu());
+    // load_static_globals(&helper, symtab,STATIC_ALLOC_LIMIT); // ,context->get_device()->get_gpgpu());
+    // load_constants(&helper, symtab,STATIC_ALLOC_LIMIT); // ,context->get_device()->get_gpgpu());
+    /*
     std::map<unsigned,std::set<std::string> >::iterator itr_m;
     for (itr_m = version_filename.begin(); itr_m!=version_filename.end(); itr_m++){
        std::set<std::string>::iterator itr_s;
@@ -1290,9 +1332,10 @@ sysgem5gpu_cuobjdumpParseBinary(ThreadContext *tc, gpusyscall_t *call_params)
           gpgpu_ptx_info_load_from_filename( ptx_filename.c_str(), itr_m->first );
        }
     }
+    */
 
-    symbol *s = symtab->lookup("_Z9vectorAddPKfS0_Pfi");
-    printf("symbol lookup %s", s->name().c_str());
+    // symbol *s = symtab->lookup("_Z9vectorAddPKfS0_Pfi");
+    // printf("symbol lookup %s", s->name().c_str());
     helper.setReturn((uint8_t*)&symtab, sizeof(void*));
 }
 
@@ -1345,7 +1388,7 @@ libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
     // Get CUDA call simulated parameters
     // Addr sim_fatCubin = *((Addr*)helper.getParam(0, true));
     // int sim_binSize = *((int*)helper.getParam(1));
-    symbol_table* symtab = ((symbol_table*)helper.getParam(0, true));
+    symbol_table* symtab = *((symbol_table**)helper.getParam(0, true));
     unsigned int handle = *((int*)helper.getParam(1));
 
     // DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterFatBinary(fatCubin* = %x, binSize = %d)\n", sim_fatCubin, sim_binSize);
@@ -1360,13 +1403,32 @@ libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
     // registerFatBinaryTop(&helper, sim_fatCubin, sim_binSize);
     registerFatBinaryTop(&helper, registering_symtab, registering_fat_cubin_handle);
 
+    std::map<unsigned,std::set<std::string> >::iterator itr_m;
+    for (itr_m = version_filename.begin(); itr_m!=version_filename.end(); itr_m++){
+       std::set<std::string>::iterator itr_s;
+       for (itr_s = itr_m->second.begin(); itr_s!=itr_m->second.end(); itr_s++){
+          std::string ptx_filename = *itr_s;
+          printf("LIBCUDA PTX: Loading PTXInfo from %s\n",ptx_filename.c_str());
+          gpgpu_ptx_info_load_from_filename( ptx_filename.c_str(), itr_m->first );
+       }
+    }
+
+    // FIXME now cudart load global and use cudaMemcpy instead
+    registering_allocation_size = get_global_and_constant_alloc_size(registering_symtab);
+
+    // FIXME register_allocation_size will used return to gem5cudaRegisterFatBinary
+    //  and it call libcudaRegisterFatBinaryFinalize, which will call
+    //  registerDeviceMemory, the size 0x4000 is hardcode now
+    registering_allocation_size += 0x4000;
+
+
     // FIXME i don't think it is need cudaGPU->saveFatBinaryInfoTop(tc->threadId(), registering_fat_cubin_handle, sim_fatCubin, sim_binSize);
 
     if (!cudaGPU->isManagingGPUMemory()) {
         helper.setReturn((uint8_t*)&registering_allocation_size, sizeof(int));
 
         // FIXME hack temp for inst text
-        cudaGPU->registerDeviceMemory(tc, 0xF0000000, 0x4000);
+        // cudaGPU->registerDeviceMemory(tc, 0xF0000000, 0x4000);
     } else {
 
 
@@ -1407,14 +1469,12 @@ unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_pt
 
     if (registering_allocation_size > 0) {
         // FIXME , i think libcuda runtime have dont it, so skip in here
-        // finalize_global_and_constant_setup(helper->getThreadContext(), sim_alloc_ptr, registering_symtab);
+        finalize_global_and_constant_setup(helper->getThreadContext(), sim_alloc_ptr, registering_symtab);
     }
 
     // FIXME , i think libcuda runtime have dont it, so skip in here
-    /*
-    load_static_globals(helper, registering_symtab);
-    load_constants(helper, registering_symtab);
-    */
+    load_static_globals(helper, registering_symtab, STATIC_ALLOC_LIMIT);
+    load_constants(helper, registering_symtab, STATIC_ALLOC_LIMIT);
 
     unsigned int handle = registering_fat_cubin_handle;
 
@@ -1439,20 +1499,23 @@ libcudaRegisterFatBinaryFinalize(ThreadContext *tc, gpusyscall_t *call_params)
 
     unsigned int handle;
     if (!cudaGPU->isManagingGPUMemory()) {
-        cudaGPU->saveFatBinaryInfoBottom(sim_alloc_ptr);
+        // cudaGPU->saveFatBinaryInfoBottom(sim_alloc_ptr);
         handle = registerFatBinaryBottom(&helper, sim_alloc_ptr);
+        g_program_memory_start = sim_alloc_ptr;
+        cudaGPU->registerDeviceMemory(tc, sim_alloc_ptr, 0x4000);
     } else {
         assert(!sim_alloc_ptr);
         assert(registering_allocation_ptr || registering_allocation_size == 0);
-        cudaGPU->saveFatBinaryInfoBottom(registering_allocation_ptr);
+        // cudaGPU->saveFatBinaryInfoBottom(registering_allocation_ptr);
         handle = registerFatBinaryBottom(&helper, registering_allocation_ptr);
     }
 
+
     // TODO: If local memory has been allocated and has been mapped by the CPU
     // thread, register the allocation with the GPU for address translation.
-    // if (registering_local_alloc_ptr && !cudaGPU->getAccessHostPagetable()) {
-    //    cudaGPU->registerDeviceMemory(tc, registering_local_alloc_ptr, get_local_alloc_size(cudaGPU));
-    // }
+    if (registering_local_alloc_ptr /*FIXME && !cudaGPU->getAccessHostPagetable()*/) {
+        cudaGPU->registerDeviceMemory(tc, registering_local_alloc_ptr, get_local_alloc_size(cudaGPU));
+    }
 
     helper.setReturn((uint8_t*)&handle, sizeof(void**), true);
 }

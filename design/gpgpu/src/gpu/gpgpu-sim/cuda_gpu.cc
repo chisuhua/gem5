@@ -712,12 +712,17 @@ void CudaGPU::registerDeviceMemory(ThreadContext *tc, Addr vaddr, size_t size)
     DPRINTF(CudaGPUPageTable, "Registering device memory vaddr: %x, size: %d\n", vaddr, size);
     // Get the physical address of full memory allocation (i.e. all pages)
     Addr page_vaddr, page_paddr;
+    bool success = true;
     for (ChunkGenerator gen(vaddr, size, TheISA::PageBytes); !gen.done(); gen.next()) {
         page_vaddr = pageTable.addrToPage(gen.addr());
         if (FullSystem) {
             page_paddr = TheISA::vtophys(tc, page_vaddr);
         } else {
-            tc->getProcessPtr()->pTable->translate(page_vaddr, page_paddr);
+            success = tc->getProcessPtr()->pTable->translate(page_vaddr, page_paddr);
+            if (!success) {
+                printf("CudaGPU registerDeviceMemory translate vaddr %lx failed\n", page_vaddr);
+                panic("registerDeviceMemory error");
+            }
         }
         pageTable.insert(page_vaddr, page_paddr);
     }
