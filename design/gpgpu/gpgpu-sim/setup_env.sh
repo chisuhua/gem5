@@ -4,10 +4,10 @@
 
 # please source this script before compile the cuda_sample
 
-export CUDA_INSTALL_PATH=/usr/local/cuda-10.0
+export CUDA_INSTALL_PATH=/usr/local/cuda
 export GPGPUSIM_ROOT="$( cd "$( dirname "$BASH_SOURCE" )" && pwd )"
 
-export CUDA_VERSION_NUMBER=10000
+export CUDA_VERSION_NUMBER=10010
 export PTX_SIM_USE_PTX_FILE=1.ptx
 export PTX_SIM_KERNELFILE=_1.ptx
 export CUOBJDUMP_SIM_FILE=jj

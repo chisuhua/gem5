@@ -53,10 +53,9 @@ TARGET_SIZE := 64
 
 # internal flags
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcudart.so.10.0 -Xcompiler "-Wl\,-rpath=."
-#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda  -Xcompiler "-Wl\,-rpath=."
-#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
-NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
-#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
+NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
 LDFLAGS     :=
@@ -121,7 +120,7 @@ endif
 # Target rules
 all: build
 
-build: vectorAdd
+build: hello
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -130,19 +129,19 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-vectorAdd.o:vectorAdd.cu
+hello.o:hello.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-vectorAdd: vectorAdd.o
+hello: hello.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	#$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	#$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 run: build
-	$(EXEC) ./vectorAdd
+	$(EXEC) ./hello
 
 clean:
-	rm -f vectorAdd vectorAdd.o
-	#rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/vectorAdd
+	rm -f hello hello.o
+	#rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/hello
 
 clobber: clean

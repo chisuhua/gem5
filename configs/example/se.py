@@ -245,6 +245,9 @@ for i in range(np):
             ObjectList.indirect_bp_list.get(options.indirect_bp_type)
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
 
+    if options.wait_for_gdb:
+        system.cpu[i].wait_for_remote_gdb = True
+
     system.cpu[i].createThreads()
 
 if options.ruby:
