@@ -37,12 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Lisa Hsu
- *          Nathan Binkert
- *          Ali Saidi
- *          Rick Strong
  */
 
 #include "ppu_sim/system.hh"
@@ -57,8 +51,8 @@
 #include "base/trace.hh"
 #include "config/use_kvm.hh"
 #if USE_KVM
-#include "ppu/kvm/base.hh"
-#include "ppu/kvm/vm.hh"
+// #include "ppu/kvm/base.hh"
+// #include "ppu/kvm/vm.hh"
 #endif
 #include "ppu/base.hh"
 #include "ppu/thread_context.hh"
@@ -94,15 +88,12 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
       pagePtr(0),
       init_param(p->init_param),
       physProxy(_systemPort, p->cache_line_size),
-      kernelSymtab(nullptr),
-      kernel(nullptr),
-      loadAddrMask(p->load_addr_mask),
-      loadAddrOffset(p->load_offset),
-#if USE_KVM
-      kvmVM(p->kvm_vm),
-#else
+      // , workload(p->workload),
+//#if USE_KVM
+//      kvmVM(p->kvm_vm),
+//#else
       kvmVM(nullptr),
-#endif
+//#endif
       physmem(name() + ".physmem", p->memories, p->mmap_using_noreserve),
       memoryMode(p->mem_mode),
       _cacheLineSize(p->cache_line_size),
@@ -118,22 +109,26 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
       redirectPaths(p->redirect_paths),
       system(p->system)
 {
+    /* TODO
+    if (workload)
+        workload->system = dynamic_cast<System*>(this);
+        */
 
     // add self to global system list
     systemList.push_back(this);
 
 #if USE_KVM
-    if (kvmVM) {
-        kvmVM->setSystem(this);
-    }
+//    if (kvmVM) {
+//        kvmVM->setSystem(this);
+//    }
 #endif
-
+/*
     if (PpuFullSystem) {
         kernelSymtab = new SymbolTable;
         if (!debugSymbolTable)
             debugSymbolTable = new SymbolTable;
     }
-
+*/
     // check if the cache line size is a value known to work
     if (!(_cacheLineSize == 16 || _cacheLineSize == 32 ||
           _cacheLineSize == 64 || _cacheLineSize == 128))
@@ -147,7 +142,7 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
     assert(tmp_id == Request::PpufuncMasterId);
     tmp_id = getMasterId(this, "interrupt");
     assert(tmp_id == Request::PpuintMasterId);
-
+/*
     if (PpuFullSystem) {
         if (params()->kernel == "") {
             inform("No kernel set for full system simulation. "
@@ -209,7 +204,7 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
             kernelExtras.push_back(obj);
         }
     }
-
+*/
     // increment the number of running systems
     numSystemsRunning++;
 
@@ -221,9 +216,6 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
 
 PpuSOCSystem::~PpuSOCSystem()
 {
-    delete kernelSymtab;
-    delete kernel;
-
     for (uint32_t j = 0; j < numWorkIds; j++)
         delete workItemStats[j];
 }
@@ -234,6 +226,32 @@ PpuSOCSystem::init()
     // check that the system port is connected
     if (!_systemPort.isConnected())
         panic("System port on %s is not connected.\n", name());
+}
+
+void
+PpuSOCSystem::startup()
+{
+    SimObject::startup();
+
+    // Now that we're about to start simulation, wait for GDB connections if
+    // requested.
+#if THE_ISA != NULL_ISA
+    for (auto *tc_: threadContexts) {
+        PpuThreadContext *tc = dynamic_cast<PpuThreadContext*>(tc_);
+        PpuBaseCPU *cpu = tc->PpugetCpuPtr();
+        auto id = tc->contextId();
+        if (remoteGDB.size() <= id)
+            continue;
+        PpuBaseRemoteGDB *rgdb = remoteGDB[id];
+
+        if (cpu->waitForRemoteGDB()) {
+            inform("%s: Waiting for a remote GDB connection on port %d.\n",
+                   cpu->name(), rgdb->port());
+
+            rgdb->connect();
+        }
+    }
+#endif
 }
 
 Port &
@@ -285,16 +303,8 @@ PpuSOCSystem::registerThreadContext(ThreadContext *tc_, ContextID assigned)
         RemoteGDB *rgdb = new PpuISA::RemoteGDB(this, tc, port + id);
         rgdb->listen();
 
-        PpuBaseCPU *cpu = tc->PpugetCpuPtr();
-        if (cpu->waitForRemoteGDB()) {
-            inform("%s: Waiting for a remote GDB connection on port %d.\n",
-                   cpu->name(), rgdb->port());
-
-            rgdb->connect();
-        }
-        if (remoteGDB.size() <= id) {
+        if (remoteGDB.size() <= id)
             remoteGDB.resize(id + 1);
-        }
 
         remoteGDB[id] = rgdb;
     }
@@ -349,50 +359,6 @@ PpuSOCSystem::numRunningContexts()
 }
 
 void
-PpuSOCSystem::initState()
-{
-    if (PpuFullSystem) {
-        // Moved from the constructor to here since it relies on the
-        // address map being resolved in the interconnect
-        /**
-         * Load the kernel code into memory
-         */
-        auto mapper = [this](Addr a) {
-            return (a & loadAddrMask) + loadAddrOffset;
-        };
-        if (params()->kernel != "")  {
-            if (params()->kernel_addr_check) {
-                // Validate kernel mapping before loading binary
-                if (!isMemAddr(mapper(kernelStart)) ||
-                        !isMemAddr(mapper(kernelEnd))) {
-                    fatal("Kernel is mapped to invalid location (not memory). "
-                          "kernelStart 0x(%x) - kernelEnd 0x(%x) %#x:%#x\n",
-                          kernelStart, kernelEnd,
-                          mapper(kernelStart), mapper(kernelEnd));
-                }
-            }
-            // Load program sections into memory
-            kernelImage.write(physProxy);
-
-            DPRINTF(PpuLoader, "Kernel start = %#x\n", kernelStart);
-            DPRINTF(PpuLoader, "Kernel end   = %#x\n", kernelEnd);
-            DPRINTF(PpuLoader, "Kernel entry = %#x\n", kernelEntry);
-            DPRINTF(PpuLoader, "Kernel loaded...\n");
-        }
-        std::function<Addr(Addr)> extra_mapper;
-        for (auto ker_idx = 0; ker_idx < kernelExtras.size(); ker_idx++) {
-            const Addr load_addr = params()->kernel_extras_addrs[ker_idx];
-            auto image = kernelExtras[ker_idx]->buildImage();
-            if (load_addr != MaxAddr)
-                image = image.offset(load_addr);
-            else
-                image = image.move(mapper);
-            image.write(physProxy);
-        }
-    }
-}
-
-void
 PpuSOCSystem::replaceThreadContext(ThreadContext *tc, ContextID context_id)
 {
     if (context_id >= threadContexts.size()) {
@@ -412,6 +378,7 @@ PpuSOCSystem::replaceThreadContext(ThreadContext *tc, ContextID context_id)
 bool
 PpuSOCSystem::validKvmEnvironment() const
 {
+    /*
 #if USE_KVM
     if (threadContexts.empty())
         return false;
@@ -423,8 +390,9 @@ PpuSOCSystem::validKvmEnvironment() const
     }
     return true;
 #else
+*/
     return false;
-#endif
+//#endif
 }
 
 Addr
@@ -473,10 +441,7 @@ PpuSOCSystem::drainResume()
 void
 PpuSOCSystem::serialize(CheckpointOut &cp) const
 {
-    if (PpuFullSystem)
-        kernelSymtab->serialize("kernel_symtab", cp);
     SERIALIZE_SCALAR(pagePtr);
-    serializeSymtab(cp);
 
     // also serialize the memories in the system
     physmem.serializeSection(cp, "physmem");
@@ -486,10 +451,7 @@ PpuSOCSystem::serialize(CheckpointOut &cp) const
 void
 PpuSOCSystem::unserialize(CheckpointIn &cp)
 {
-    if (PpuFullSystem)
-        kernelSymtab->unserialize("kernel_symtab", cp);
     UNSERIALIZE_SCALAR(pagePtr);
-    unserializeSymtab(cp);
 
     // also unserialize the memories in the system
     physmem.unserializeSection(cp, "physmem");

@@ -25,10 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Korey Sewell
- *          Alec Roelke
  */
 
 #ifndef __PPU_LINUX_PROCESS_HH__
@@ -46,9 +42,7 @@ class PpuLinuxProcess64 : public PpuProcess64
 {
   public:
     /// Constructor.
-    PpuLinuxProcess64(PpuSOCProcessParams * params, ObjectFile *objFile);
-
-    SyscallDesc* getDesc(int callnum) override;
+    PpuLinuxProcess64(PpuSOCProcessParams * params, ::Loader::ObjectFile *objFile);
 
     /// The target system's hostname.
     static const char *hostname;
@@ -58,17 +52,15 @@ class PpuLinuxProcess64 : public PpuProcess64
 
     void syscall(ThreadContext *tc, Fault *fault) override;
 
-    /// Array of syscall descriptors, indexed by call number.
-    static std::map<int, SyscallDescABI<DefaultSyscallABI>> syscallDescs;
+    /// Syscall descriptors, indexed by call number.
+    static SyscallDescTable<SyscallABI> syscallDescs;
 };
 
 class PpuLinuxProcess32 : public PpuProcess32
 {
   public:
     /// Constructor.
-    PpuLinuxProcess32(PpuSOCProcessParams * params, ObjectFile *objFile);
-
-    SyscallDesc* getDesc(int callnum) override;
+    PpuLinuxProcess32(PpuSOCProcessParams * params, ::Loader::ObjectFile *objFile);
 
     /// The target system's hostname.
     static const char *hostname;
@@ -79,7 +71,7 @@ class PpuLinuxProcess32 : public PpuProcess32
     void syscall(ThreadContext *tc, Fault *fault) override;
 
     /// Array of syscall descriptors, indexed by call number.
-    static std::map<int, SyscallDescABI<DefaultSyscallABI>> syscallDescs;
+    static SyscallDescTable<SyscallABI> syscallDescs;
 };
 
 #endif // __PPU_LINUX_PROCESS_HH__

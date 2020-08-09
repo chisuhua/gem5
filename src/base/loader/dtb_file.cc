@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Anthony Gutierrez
  */
 
 #include "base/loader/dtb_file.hh"
@@ -38,6 +36,9 @@
 #include "fdt.h"
 #include "libfdt.h"
 #include "sim/byteswap.hh"
+
+namespace Loader
+{
 
 DtbFile::DtbFile(const std::string &filename) :
     ImageFile(ImageFileDataPtr(new ImageFileData(filename)))
@@ -154,3 +155,5 @@ DtbFile::buildImage() const
     else
         return {{ "data", 0, fileData, length }};
 }
+
+} // namespace Loader

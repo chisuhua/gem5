@@ -24,9 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
  */
 
 #ifndef __BASE_LOADER_OBJECT_FILE_HH__
@@ -40,39 +37,39 @@
 #include "base/logging.hh"
 #include "base/types.hh"
 
+namespace Loader
+{
+
+enum Arch {
+    UnknownArch,
+    SPARC64,
+    SPARC32,
+    Mips,
+    X86_64,
+    I386,
+    Arm64,
+    Arm,
+    Thumb,
+    Power,
+    Riscv64,
+    Riscv32,
+    Ppu64,
+    Ppu32
+};
+
+enum OpSys {
+    UnknownOpSys,
+    Tru64,
+    Linux,
+    Solaris,
+    LinuxArmOABI,
+    FreeBSD
+};
+
 class SymbolTable;
 
 class ObjectFile : public ImageFile
 {
-  public:
-
-    enum Arch {
-        UnknownArch,
-        Alpha,
-        SPARC64,
-        SPARC32,
-        Mips,
-        X86_64,
-        I386,
-        Arm64,
-        Arm,
-        Thumb,
-        Power,
-        Riscv64,
-        Riscv32,
-        Ppu64,
-        Ppu32
-    };
-
-    enum OpSys {
-        UnknownOpSys,
-        Tru64,
-        Linux,
-        Solaris,
-        LinuxArmOABI,
-        FreeBSD
-    };
-
   protected:
     Arch arch = UnknownArch;
     OpSys opSys = UnknownOpSys;
@@ -146,5 +143,7 @@ class ObjectFileFormat
 };
 
 ObjectFile *createObjectFile(const std::string &fname, bool raw=false);
+
+} // namespace Loader
 
 #endif // __BASE_LOADER_OBJECT_FILE_HH__

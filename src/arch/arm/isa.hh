@@ -36,8 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_ARM_ISA_HH__
@@ -52,9 +50,9 @@
 #include "arch/generic/isa.hh"
 #include "arch/generic/traits.hh"
 #include "debug/Checkpoint.hh"
+#include "enums/DecoderFlavor.hh"
 #include "enums/VecRegRenameMode.hh"
 #include "sim/sim_object.hh"
-#include "enums/DecoderFlavour.hh"
 
 struct ArmISAParams;
 struct DummyArmISADeviceParams;
@@ -71,7 +69,7 @@ namespace ArmISA
         ArmSystem *system;
 
         // Micro Architecture
-        const Enums::DecoderFlavour _decoderFlavour;
+        const Enums::DecoderFlavor _decoderFlavor;
         const Enums::VecRegRenameMode _vecRegRenameMode;
 
         /** Dummy device for to handle non-existing ISA devices */
@@ -93,7 +91,6 @@ namespace ArmISA
         bool haveVirtualization;
         bool haveCrypto;
         bool haveLargeAsid64;
-        bool haveGICv3CPUInterface;
         uint8_t physAddrRange;
         bool haveSVE;
         bool haveLSE;
@@ -465,9 +462,10 @@ namespace ArmISA
         }
 
       public:
-        void clear();
+        void clear(ThreadContext *tc);
 
       protected:
+        void clear();
         void clear32(const ArmISAParams *p, const SCTLR &sctlr_rst);
         void clear64(const ArmISAParams *p);
         void initID32(const ArmISAParams *p);
@@ -728,14 +726,14 @@ namespace ArmISA
                                            unsigned eCount);
 
         void
-        serialize(CheckpointOut &cp) const
+        serialize(CheckpointOut &cp) const override
         {
             DPRINTF(Checkpoint, "Serializing Arm Misc Registers\n");
             SERIALIZE_ARRAY(miscRegs, NUM_PHYS_MISCREGS);
         }
 
         void
-        unserialize(CheckpointIn &cp)
+        unserialize(CheckpointIn &cp) override
         {
             DPRINTF(Checkpoint, "Unserializing Arm Misc Registers\n");
             UNSERIALIZE_ARRAY(miscRegs, NUM_PHYS_MISCREGS);
@@ -745,16 +743,19 @@ namespace ArmISA
 
         void startup(ThreadContext *tc);
 
-        Enums::DecoderFlavour decoderFlavour() const { return _decoderFlavour; }
+        void takeOverFrom(ThreadContext *new_tc,
+                          ThreadContext *old_tc) override;
 
-        /** Getter for haveGICv3CPUInterface */
+        Enums::DecoderFlavor decoderFlavor() const { return _decoderFlavor; }
+
+        /** Returns true if the ISA has a GICv3 cpu interface */
         bool haveGICv3CpuIfc() const
         {
-            // haveGICv3CPUInterface is initialized at startup time, hence
+            // gicv3CpuInterface is initialized at startup time, hence
             // trying to read its value before the startup stage will lead
             // to an error
             assert(afterStartup);
-            return haveGICv3CPUInterface;
+            return gicv3CpuInterface != nullptr;
         }
 
         Enums::VecRegRenameMode
@@ -778,9 +779,11 @@ template<>
 struct RenameMode<ArmISA::ISA>
 {
     static Enums::VecRegRenameMode
-    init(const ArmISA::ISA* isa)
+    init(const BaseISA* isa)
     {
-        return isa->vecRegRenameMode();
+        auto arm_isa = dynamic_cast<const ArmISA::ISA *>(isa);
+        assert(arm_isa);
+        return arm_isa->vecRegRenameMode();
     }
 
     static Enums::VecRegRenameMode
@@ -794,7 +797,7 @@ struct RenameMode<ArmISA::ISA>
     }
 
     static bool
-    equalsInit(const ArmISA::ISA* isa1, const ArmISA::ISA* isa2)
+    equalsInit(const BaseISA* isa1, const BaseISA* isa2)
     {
         return init(isa1) == init(isa2);
     }

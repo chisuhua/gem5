@@ -2,6 +2,7 @@
  * Copyright (c) 2016 RISC-V Foundation
  * Copyright (c) 2016 The University of Virginia
  * Copyright (c) 2018 TU Dresden
+ * Copyright (c) 2020 Barkhausen Institut
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +28,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Alec Roelke
- *          Robert Scheffel
  */
 #include "arch/ppu/faults.hh"
 
+#include "arch/ppu/fs_workload.hh"
 #include "arch/ppu/isa.hh"
 #include "arch/ppu/registers.hh"
-#include "arch/ppu/system.hh"
 #include "arch/ppu/utility.hh"
 #include "ppu/base.hh"
 #include "ppu/thread_context.hh"
@@ -55,6 +54,9 @@ void
 PpuFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 {
     PCState pcState = tc->pcState();
+
+    // DPRINTFS(PpuFault, tc->getCpuPtr(), "Fault (%s) at PC: %s\n",
+    //         name(), pcState);
 
     if (PpuFullSystem) {
         PrivilegeMode pp = (PrivilegeMode)tc->readMiscReg(MISCREG_PRV);
@@ -128,7 +130,7 @@ PpuFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)
         tc->setMiscReg(MISCREG_STATUS, status);
 
         // Set PC to fault handler address
-        Addr addr = tc->readMiscReg(tvec) >> 2;
+        Addr addr = mbits(tc->readMiscReg(tvec), 63, 2);
         if (isInterrupt() && bits(tc->readMiscReg(tvec), 1, 0) == 1)
             addr += 4 * _code;
         pcState.set(addr);
@@ -164,8 +166,9 @@ void Reset::invoke(ThreadContext *tc_, const StaticInstPtr &inst)
     }
 
     // Advance the PC to the implementation-defined reset vector
-    PCState pc = static_cast<PpuSystem *>(tc->PpugetSystemPtr())->resetVect();
-    tc->pcState(pc);
+    // auto workload = dynamic_cast<FsWorkload *>(tc->PpugetSystemPtr()->workload);
+    // PCState pc = workload->resetVect();
+    // tc->pcState(pc);
 }
 
 void

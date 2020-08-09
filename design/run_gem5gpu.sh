@@ -92,7 +92,7 @@ GDB=""
 ENV="-e design/gpgpu/gpgpu-sim/gem5.env"
 CMD="$CMD $ENV"
 echo $RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
-$RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
+#$RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
 
 #$RUN $OPTION design/gpgpu/configs/my_fusion.py -c /mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd
 #$RUN $OPTION design/gpgpu/configs/ruby_random_test_fusion.py

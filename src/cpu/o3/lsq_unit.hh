@@ -37,9 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
- *          Korey Sewell
  */
 
 #ifndef __CPU_O3_LSQ_UNIT_HH__
@@ -54,7 +51,6 @@
 #include "arch/generic/vec_reg.hh"
 #include "arch/isa_traits.hh"
 #include "arch/locked_mem.hh"
-#include "arch/mmapped_ipr.hh"
 #include "config/the_isa.hh"
 #include "cpu/inst_seq.hh"
 #include "cpu/timebuf.hh"
@@ -668,7 +664,7 @@ LSQUnit<Impl>::read(LSQRequest *req, int load_idx)
         load_inst->recordResult(true);
     }
 
-    if (req->mainRequest()->isMmappedIpr()) {
+    if (req->mainRequest()->isLocalAccess()) {
         assert(!load_inst->memData);
         load_inst->memData = new uint8_t[MaxDataBytes];
 
@@ -677,7 +673,7 @@ LSQUnit<Impl>::read(LSQRequest *req, int load_idx)
 
         main_pkt->dataStatic(load_inst->memData);
 
-        Cycles delay = req->handleIprRead(thread, main_pkt);
+        Cycles delay = req->mainRequest()->localAccessor(thread, main_pkt);
 
         WritebackEvent *wb = new WritebackEvent(load_inst, main_pkt, this);
         cpu->schedule(wb, cpu->clockEdge(delay));

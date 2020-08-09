@@ -4,6 +4,7 @@
  * Copyright (c) 2014 Sven Karlsson
  * Copyright (c) 2016 RISC-V Foundation
  * Copyright (c) 2016 The University of Virginia
+ * Copyright (c) 2020 Barkhausen Institut
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +29,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Timothy M. Jones
- *          Sven Karlsson
- *          Alec Roelke
  */
 
 #ifndef __ARCH_RISCV_ISA_HH__
@@ -57,10 +53,19 @@ class EventManager;
 namespace RiscvISA
 {
 
-enum PrivilegeMode {
+enum PrivilegeMode
+{
     PRV_U = 0,
     PRV_S = 1,
     PRV_M = 3
+};
+
+enum FPUStatus
+{
+    OFF = 0,
+    INITIAL = 1,
+    CLEAN = 2,
+    DIRTY = 3,
 };
 
 class ISA : public BaseISA
@@ -73,8 +78,12 @@ class ISA : public BaseISA
   public:
     typedef RiscvISAParams Params;
 
+    void clear(ThreadContext *tc) { clear(); }
+
+  protected:
     void clear();
 
+  public:
     RegVal readMiscRegNoEffect(int misc_reg) const;
     RegVal readMiscReg(int misc_reg, ThreadContext *tc);
     void setMiscRegNoEffect(int misc_reg, RegVal val);
@@ -90,6 +99,9 @@ class ISA : public BaseISA
     int flattenMiscIndex(int reg) const { return reg; }
 
     void startup(ThreadContext *tc) {}
+
+    void serialize(CheckpointOut &cp) const;
+    void unserialize(CheckpointIn &cp);
 
     /// Explicitly import the otherwise hidden startup
     using BaseISA::startup;

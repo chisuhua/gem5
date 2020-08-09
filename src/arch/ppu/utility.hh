@@ -38,11 +38,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Andreas Hansson
- *          Sven Karlsson
- *          Alec Roelke
- *          Robert Scheffel
  */
 
 #ifndef __ARCH_PPU_UTILITY_HH__
@@ -114,7 +109,14 @@ buildRetPC(const PCState &curPC, const PCState &callPC)
 inline uint64_t
 getArgument(ThreadContext *tc, int &number, uint16_t size, bool fp)
 {
-    return 0;
+    panic_if(fp, "getArgument(): Floating point arguments not implemented");
+    panic_if(size != 8, "getArgument(): Can only handle 64-bit arguments.");
+    panic_if(number >= ArgumentRegs.size(),
+             "getArgument(): Don't know how to handle stack arguments");
+
+    // The first 8 integer arguments are passed in registers, the rest
+    // are passed on the stack.
+    return tc->readIntReg(ArgumentRegs[number]);
 }
 
 inline void
@@ -161,12 +163,6 @@ registerName(RegId reg)
         }
         return FloatRegNames[reg.index()];
     }
-}
-
-inline void
-skipFunction(ThreadContext *tc)
-{
-    panic("Not Implemented for Ppu");
 }
 
 inline void

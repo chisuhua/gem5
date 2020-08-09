@@ -32,8 +32,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Andreas Sandberg
 
 from m5.objects import *
 from arm_generic import *
@@ -41,6 +39,7 @@ import switcheroo
 
 root = LinuxArmFSSwitcheroo(
     aarch64_kernel=False,
+    machine_type='VExpress_GEM5_V1',
     mem_class=DDR3_1600_8x8,
     cpu_classes=(DerivO3CPU, DerivO3CPU)
     ).create_root()

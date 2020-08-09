@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Jason Lowe-Power
 
 '''
 Test file containing simple workloads to run on CPU models.
@@ -58,7 +56,7 @@ if config.bin_path:
 else:
     base_path = joinpath(absdirpath(__file__), 'benchmarks', 'bin')
 
-base_url = 'http://dist.gem5.org/dist/current/gem5/cpu_tests/benchmarks/bin/'
+base_url = config.resource_url + '/gem5/cpu_tests/benchmarks/bin/'
 for isa in valid_isas:
     path = joinpath(base_path, isa)
     for workload in workloads:
@@ -72,11 +70,11 @@ for isa in valid_isas:
         binary = joinpath(workload_binary.path, workload)
 
         for cpu in valid_isas[isa]:
-           gem5_verify_config(
+            gem5_verify_config(
                   name='cpu_test_{}_{}'.format(cpu,workload),
                   verifiers=verifiers,
                   config=joinpath(getcwd(), 'run.py'),
                   config_args=['--cpu={}'.format(cpu), binary],
                   valid_isas=(isa.upper(),),
                   fixtures=[workload_binary]
-           )
+            )

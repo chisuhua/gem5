@@ -32,13 +32,12 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Andreas Hansson
 
 from __future__ import print_function
 from __future__ import absolute_import
 
 import gzip
+import six
 import optparse
 import os
 
@@ -53,6 +52,9 @@ from common import MemConfig
 
 addToPath('../../util')
 import protolib
+
+if six.PY3:
+    long = int
 
 # this script is helpful to observe the memory latency for various
 # levels in a cache hierarchy, and various cache and memory

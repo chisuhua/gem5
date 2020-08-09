@@ -23,8 +23,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Ali Saidi
 
 from __future__ import print_function
 from __future__ import absolute_import
@@ -57,10 +55,10 @@ class PathSearchFunc(object):
                     paths = [ '/dist/m5/system', '/n/poolfs/z/dist/m5/system' ]
 
                 # expand '~' and '~user' in paths
-                paths = map(os.path.expanduser, paths)
+                paths = list(map(os.path.expanduser, paths))
 
                 # filter out non-existent directories
-                paths = filter(os.path.isdir, paths)
+                paths = list(filter(os.path.isdir, paths))
 
                 if not paths:
                     raise IOError(

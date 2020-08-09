@@ -33,9 +33,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Giacomo Travaglini
  */
 
 #ifndef __ARCH_ARM_INSTS_MISC64_HH__
@@ -54,7 +51,7 @@ class ImmOp64 : public ArmStaticInst
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegImmImmOp64 : public ArmStaticInst
@@ -73,7 +70,7 @@ class RegRegImmImmOp64 : public ArmStaticInst
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegRegImmOp64 : public ArmStaticInst
@@ -92,7 +89,7 @@ class RegRegRegImmOp64 : public ArmStaticInst
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class UnknownOp64 : public ArmStaticInst
@@ -104,7 +101,7 @@ class UnknownOp64 : public ArmStaticInst
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -167,7 +164,7 @@ class MiscRegImmOp64 : public MiscRegOp64
     RegVal miscRegImm() const;
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MiscRegRegImmOp64 : public MiscRegOp64
@@ -185,7 +182,7 @@ class MiscRegRegImmOp64 : public MiscRegOp64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegMiscRegImmOp64 : public MiscRegOp64
@@ -203,7 +200,7 @@ class RegMiscRegImmOp64 : public MiscRegOp64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MiscRegImplDefined64 : public MiscRegOp64
@@ -231,7 +228,7 @@ class MiscRegImplDefined64 : public MiscRegOp64
                   Trace::InstRecord *traceData) const override;
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 #endif

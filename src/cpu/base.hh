@@ -37,10 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Nathan Binkert
- *          Rick Strong
  */
 
 #ifndef __CPU_BASE_HH__
@@ -73,18 +69,6 @@
 
 #include "debug/Mwait.hh"
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class ThreadContext;
-
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class ThreadContext;
 
 

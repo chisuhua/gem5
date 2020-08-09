@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Sean Wilson
 
 '''
 Test file for the util m5 exit assembly instruction.
@@ -55,8 +53,7 @@ else:
     path = joinpath(absdirpath(__file__), '..',
                     'test-progs', 'hello', 'bin', 'x86', 'linux')
 filename = 'm5_exit'
-url = ('http://dist.gem5.org/dist/current/test-progs/' +
-       'm5-exit/bin/x86/linux/m5_exit')
+url = (config.resource_url + '/test-progs/m5-exit/bin/x86/linux/m5_exit')
 test_program = DownloadedProgram(url, path, filename)
 
 a = verifier.MatchRegex(m5_exit_regex)

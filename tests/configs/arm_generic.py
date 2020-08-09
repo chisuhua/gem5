@@ -32,8 +32,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Andreas Sandberg
 
 from abc import ABCMeta, abstractmethod
 import m5
@@ -96,6 +94,7 @@ class LinuxArmSystemBuilder(object):
 
         default_kernels = {
             "VExpress_GEM5_V1": gem5_kernel,
+            "VExpress_GEM5_Foundation": gem5_kernel,
         }
 
         sc = SysConfig(None, self.mem_size, [disk_image], "/dev/sda")
@@ -106,14 +105,17 @@ class LinuxArmSystemBuilder(object):
         # We typically want the simulator to panic if the kernel
         # panics or oopses. This prevents the simulator from running
         # an obviously failed test case until the end of time.
-        system.panic_on_panic = True
-        system.panic_on_oops = True
+        system.workload.panic_on_panic = True
+        system.workload.panic_on_oops = True
 
-        system.kernel = SysPaths.binary(default_kernels[self.machine_type])
+        system.workload.object_file = SysPaths.binary(
+                    default_kernels[self.machine_type])
 
         self.init_system(system)
 
-        system.generateDtb(m5.options.outdir, 'system.dtb')
+        system.workload.dtb_filename = \
+            os.path.join(m5.options.outdir, 'system.dtb')
+        system.generateDtb(system.workload.dtb_filename)
         return system
 
 class LinuxArmFSSystem(LinuxArmSystemBuilder,
@@ -121,7 +123,7 @@ class LinuxArmFSSystem(LinuxArmSystemBuilder,
     """Basic ARM full system builder."""
 
     def __init__(self,
-                 machine_type='VExpress_GEM5_V1',
+                 machine_type='VExpress_GEM5_Foundation',
                  aarch64_kernel=True,
                  **kwargs):
         """Initialize an ARM system that supports full system simulation.
@@ -152,7 +154,7 @@ class LinuxArmFSSystemUniprocessor(LinuxArmSystemBuilder,
     """
 
     def __init__(self,
-                 machine_type='VExpress_GEM5_V1',
+                 machine_type='VExpress_GEM5_Foundation',
                  aarch64_kernel=True,
                  **kwargs):
         BaseFSSystemUniprocessor.__init__(self, **kwargs)
@@ -163,7 +165,7 @@ class LinuxArmFSSwitcheroo(LinuxArmSystemBuilder, BaseFSSwitcheroo):
     """Uniprocessor ARM system prepared for CPU switching"""
 
     def __init__(self,
-                 machine_type='VExpress_GEM5_V1',
+                 machine_type='VExpress_GEM5_Foundation',
                  aarch64_kernel=True,
                  **kwargs):
         BaseFSSwitcheroo.__init__(self, **kwargs)

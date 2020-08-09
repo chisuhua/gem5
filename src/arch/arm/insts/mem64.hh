@@ -33,9 +33,8 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
+
 #ifndef __ARCH_ARM_MEM64_HH__
 #define __ARCH_ARM_MEM64_HH__
 
@@ -62,7 +61,7 @@ class SysDC64 : public MiscRegOp64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MightBeMicro64 : public ArmStaticInst
@@ -143,7 +142,7 @@ class MemoryImm64 : public Memory64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryDImm64 : public MemoryImm64
@@ -159,7 +158,7 @@ class MemoryDImm64 : public MemoryImm64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryDImmEx64 : public MemoryDImm64
@@ -175,7 +174,7 @@ class MemoryDImmEx64 : public MemoryDImm64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryPreIndex64 : public MemoryImm64
@@ -188,7 +187,7 @@ class MemoryPreIndex64 : public MemoryImm64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryPostIndex64 : public MemoryImm64
@@ -201,7 +200,7 @@ class MemoryPostIndex64 : public MemoryImm64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryReg64 : public Memory64
@@ -220,7 +219,7 @@ class MemoryReg64 : public Memory64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryRaw64 : public Memory64
@@ -232,7 +231,7 @@ class MemoryRaw64 : public Memory64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryEx64 : public Memory64
@@ -247,7 +246,7 @@ class MemoryEx64 : public Memory64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MemoryLiteral64 : public Memory64
@@ -261,7 +260,7 @@ class MemoryLiteral64 : public Memory64
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 }

@@ -24,14 +24,15 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Ali Saidi
  */
 
 #ifndef __BASE_LOADER_RAW_IMAGE_HH__
 #define __BASE_LOADER_RAW_IMAGE_HH__
 
 #include "base/loader/object_file.hh"
+
+namespace Loader
+{
 
 class RawImage: public ObjectFile
 {
@@ -49,6 +50,6 @@ class RawImage: public ObjectFile
     }
 };
 
-
+} // namespace Loader
 
 #endif // __BASE_LOADER_RAW_IMAGE_HH__

@@ -53,7 +53,7 @@ output header {{
         %(BasicExecDeclare)s
 
         std::string generateDisassembly(Addr pc,
-                const SymbolTable *symtab) const;
+                const Loader::SymbolTable *symtab) const;
     };
 }};
 
@@ -71,7 +71,7 @@ output exec {{
 
 output decoder {{
     std::string GPUFaultFinish::generateDisassembly(Addr pc,
-            const SymbolTable *symtab) const
+            const Loader::SymbolTable *symtab) const
     {
         std::stringstream response;
 

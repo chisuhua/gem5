@@ -294,6 +294,7 @@ def create_system(options, full_system, system, dma_devices, ruby_system):
             dev_dir_cntrl.dmaRequestToDir.slave = ruby_system.network.master
 
             dev_dir_cntrl.triggerQueue = MessageBuffer(ordered = True)
+            dev_dir_cntrl.requestToMemory = MessageBuffer()
             dev_dir_cntrl.responseFromMemory = MessageBuffer()
 
             dev_mem_ctrl = MemConfig.create_mem_ctrl(

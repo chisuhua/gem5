@@ -36,8 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
  */
 
 #ifndef __CPU_O3_THREAD_STATE_HH__
@@ -106,7 +104,7 @@ struct O3ThreadState : public ThreadState {
 
         if (cpu->params()->profile) {
             profile = new FunctionProfile(
-                    cpu->params()->system->kernelSymtab);
+                    cpu->params()->system->workload->symtab(tc));
             Callback *cb =
                 new MakeCallback<O3ThreadState,
                 &O3ThreadState::dumpFuncProfile>(this);

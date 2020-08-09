@@ -36,9 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Andreas Sandberg
  */
 
 #include "config/use_hdf5.hh"
@@ -131,5 +128,6 @@ pybind_init_stats(py::module &m_native)
         .def("getStats", &Stats::Group::getStats)
         .def("getStatGroups", &Stats::Group::getStatGroups)
         .def("addStatGroup", &Stats::Group::addStatGroup)
+        .def("resolveStat", &Stats::Group::resolveStat)
         ;
 }

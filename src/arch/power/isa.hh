@@ -25,9 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Timothy M. Jones
  */
 
 #ifndef __ARCH_POWER_ISA_HH__
@@ -58,10 +55,18 @@ class ISA : public BaseISA
     typedef PowerISAParams Params;
 
     void
+    clear(ThreadContext *tc)
+    {
+        clear();
+    }
+
+  protected:
+    void
     clear()
     {
     }
 
+  public:
     RegVal
     readMiscRegNoEffect(int misc_reg) const
     {

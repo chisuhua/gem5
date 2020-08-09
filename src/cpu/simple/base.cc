@@ -37,15 +37,12 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #include "cpu/simple/base.hh"
 
 #include "arch/stacktrace.hh"
 #include "arch/utility.hh"
-#include "arch/vtophys.hh"
 #include "base/cp_annotate.hh"
 #include "base/cprintf.hh"
 #include "base/inifile.hh"
@@ -424,12 +421,6 @@ change_thread_state(ThreadID tid, int activate, int priority)
 {
 }
 
-Addr
-BaseSimpleCPU::dbg_vtophys(Addr addr)
-{
-    return vtophys(threadContexts[curThread], addr);
-}
-
 void
 BaseSimpleCPU::wakeup(ThreadID tid)
 {
@@ -486,9 +477,6 @@ BaseSimpleCPU::preExecute()
 
     // maintain $r0 semantics
     thread->setIntReg(ZeroReg, 0);
-#if THE_ISA == ALPHA_ISA
-    thread->setFloatReg(ZeroReg, 0);
-#endif // ALPHA_ISA
 
     // resets predicates
     t_info.setPredicate(true);

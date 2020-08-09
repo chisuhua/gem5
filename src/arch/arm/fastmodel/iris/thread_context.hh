@@ -23,8 +23,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_ARM_FASTMODEL_IRIS_THREAD_CONTEXT_HH__
@@ -71,6 +69,7 @@ class ThreadContext : public ::ThreadContext
     mutable std::vector<ArmISA::VecPredRegContainer> vecPredRegs;
 
     Status _status = Active;
+    Event *enableAfterPseudoEvent;
 
     virtual void initFromIrisInstance(const ResourceMap &resources);
 
@@ -111,14 +110,15 @@ class ThreadContext : public ::ThreadContext
     struct BpInfo
     {
         Addr pc;
-        BpId id;
-        std::list<PCEvent *> events;
+        std::vector<BpId> ids;
+        using EventList = std::list<PCEvent *>;
+        std::shared_ptr<EventList> events;
 
-        BpInfo(Addr _pc) : pc(_pc), id(iris::IRIS_UINT64_MAX) {}
+        BpInfo(Addr _pc) : pc(_pc), events(new EventList) {}
 
-        bool empty() const { return events.empty(); }
-        bool validId() const { return id != iris::IRIS_UINT64_MAX; }
-        void clearId() { id = iris::IRIS_UINT64_MAX; }
+        bool empty() const { return events->empty(); }
+        bool validIds() const { return !ids.empty(); }
+        void clearIds() { ids.clear(); }
     };
 
     using BpInfoPtr = std::unique_ptr<BpInfo>;
@@ -133,7 +133,7 @@ class ThreadContext : public ::ThreadContext
     void uninstallBp(BpInfoIt it);
     void delBp(BpInfoIt it);
 
-    virtual iris::MemorySpaceId getBpSpaceId(Addr pc) const = 0;
+    virtual const std::vector<iris::MemorySpaceId> &getBpSpaceIds() const = 0;
 
 
     iris::IrisErrorCode instanceRegistryChanged(
@@ -148,11 +148,15 @@ class ThreadContext : public ::ThreadContext
     iris::IrisErrorCode breakpointHit(
             uint64_t esId, const iris::IrisValueMap &fields, uint64_t time,
             uint64_t sInstId, bool syncEc, std::string &error_message_out);
+    iris::IrisErrorCode semihostingEvent(
+            uint64_t esId, const iris::IrisValueMap &fields, uint64_t time,
+            uint64_t sInstId, bool syncEc, std::string &error_message_out);
 
     iris::EventStreamId regEventStreamId;
     iris::EventStreamId initEventStreamId;
     iris::EventStreamId timeEventStreamId;
     iris::EventStreamId breakpointEventStreamId;
+    iris::EventStreamId semihostingEventStreamId;
 
     mutable iris::IrisInstance client;
     iris::IrisCppAdapter &call() const { return client.irisCall(); }
@@ -197,11 +201,7 @@ class ThreadContext : public ::ThreadContext
     {
         return _dtb;
     }
-    CheckerCPU *
-    getCheckerCpuPtr() override
-    {
-        panic("%s not implemented.", __FUNCTION__);
-    }
+    CheckerCPU *getCheckerCpuPtr() override { return nullptr; }
     ArmISA::Decoder *
     getDecoderPtr() override
     {
@@ -295,7 +295,7 @@ class ThreadContext : public ::ThreadContext
     void
     clearArchRegs() override
     {
-        panic("%s not implemented.", __FUNCTION__);
+        warn("Ignoring clearArchRegs()");
     }
 
     //

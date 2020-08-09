@@ -38,9 +38,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Steve Reinhardt
- *          Dave Greene
- *          Nathan Binkert
  */
 
 #ifndef __PPU_SIMPLE_BASE_HH__
@@ -110,7 +107,7 @@ class BaseSimpleCPU : public PpuBaseCPU
     void init() override;
   public:
     Trace::InstRecord *traceData;
-    PpuCheckerCPU *checker;
+    // PpuCheckerCPU *checker;
 
     std::vector<SimpleExecContext*> threadInfo;
     std::list<ThreadID> activeThreads;

@@ -36,9 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
- *          Geoffrey Blake
  */
 
 #include "cpu/checker/cpu.hh"
@@ -47,7 +44,6 @@
 #include <string>
 
 #include "arch/generic/tlb.hh"
-#include "arch/vtophys.hh"
 #include "cpu/base.hh"
 #include "cpu/simple_thread.hh"
 #include "cpu/static_inst.hh"
@@ -217,7 +213,7 @@ CheckerCPU::readMem(Addr addr, uint8_t *data, unsigned size,
 
             pkt->dataStatic(data);
 
-            if (!(mem_req->isUncacheable() || mem_req->isMmappedIpr())) {
+            if (!(mem_req->isUncacheable() || mem_req->isLocalAccess())) {
                 // Access memory to see if we have the same data
                 dcachePort->sendFunctional(pkt);
             } else {
@@ -357,12 +353,6 @@ CheckerCPU::writeMem(uint8_t *data, unsigned size,
    }
 
    return fault;
-}
-
-Addr
-CheckerCPU::dbg_vtophys(Addr addr)
-{
-    return vtophys(tc, addr);
 }
 
 /**

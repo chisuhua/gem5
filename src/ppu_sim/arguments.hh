@@ -36,10 +36,6 @@
 
 #include "ppu/thread_context.hh"
 #include "ppu_mem/fs_translating_port_proxy.hh"
-/*
-namespace PpuISA
-{
-*/
 
 class Arguments
 {
@@ -151,6 +147,5 @@ class Arguments
     }
 };
 
-// } // namespace PpuISA
 
 #endif // __SIM_ARGUMENTS_HH__

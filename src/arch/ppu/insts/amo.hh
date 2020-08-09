@@ -25,8 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Alec Roelke
  */
 
 #ifndef __ARCH_PPU_INSTS_AMO_HH__
@@ -51,11 +49,11 @@ class MemFenceMicro : public PpuMicroInst
   protected:
     using PpuMicroInst::PpuMicroInst;
 
-    ~MemFenceMicro() {};
+//    ~MemFenceMicro() {};
 
     Fault execute(ExecContext *, Trace::InstRecord *) const override;
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 // load-reserved
@@ -65,7 +63,7 @@ class LoadReserved : public PpuMacroInst
     using PpuMacroInst::PpuMacroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class LoadReservedMicro : public PpuMicroInst
@@ -75,7 +73,7 @@ class LoadReservedMicro : public PpuMicroInst
     using PpuMicroInst::PpuMicroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 // store-cond
@@ -85,7 +83,7 @@ class StoreCond : public PpuMacroInst
     using PpuMacroInst::PpuMacroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class StoreCondMicro : public PpuMicroInst
@@ -95,7 +93,7 @@ class StoreCondMicro : public PpuMicroInst
     using PpuMicroInst::PpuMicroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 // AMOs
@@ -105,7 +103,7 @@ class AtomicMemOp : public PpuMacroInst
     using PpuMacroInst::PpuMacroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class AtomicMemOpMicro : public PpuMicroInst
@@ -115,7 +113,7 @@ class AtomicMemOpMicro : public PpuMicroInst
     using PpuMicroInst::PpuMicroInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 /**

@@ -23,18 +23,19 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #include "arch/arm/fastmodel/iris/thread_context.hh"
 
 #include <utility>
 
+#include "arch/arm/system.hh"
+#include "arch/arm/utility.hh"
 #include "iris/detail/IrisCppAdapter.h"
 #include "iris/detail/IrisObjects.h"
-#include "mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
+#include "mem/translating_port_proxy.hh"
+#include "sim/pseudo_inst.hh"
 
 namespace Iris
 {
@@ -63,6 +64,17 @@ ThreadContext::initFromIrisInstance(const ResourceMap &resources)
 
     for (auto it = bps.begin(); it != bps.end(); it++)
         installBp(it);
+
+    client.registerEventCallback<Self, &Self::semihostingEvent>(
+            this, "ec_IRIS_SEMIHOSTING_CALL_EXTENSION",
+            "Handle a semihosting call", "Iris::ThreadContext");
+    call().event_getEventSource(_instId, evSrcInfo,
+            "IRIS_SEMIHOSTING_CALL_EXTENSION");
+    call().eventStream_create(_instId, semihostingEventStreamId,
+            evSrcInfo.evSrcId, client.getInstId(),
+            // Set all arguments to their defaults, except syncEc which is
+            // changed to true.
+            nullptr, "", false, 0, nullptr, false, false, true);
 }
 
 iris::ResourceId
@@ -133,18 +145,21 @@ ThreadContext::getOrAllocBp(Addr pc)
 void
 ThreadContext::installBp(BpInfoIt it)
 {
-    BpId id;
     Addr pc = it->second->pc;
-    auto space_id = getBpSpaceId(pc);
-    call().breakpoint_set_code(_instId, id, pc, space_id, 0, true);
-    it->second->id = id;
+    const auto &space_ids = getBpSpaceIds();
+    for (auto sid: space_ids) {
+        BpId id;
+        call().breakpoint_set_code(_instId, id, pc, sid, 0, true);
+        it->second->ids.push_back(id);
+    }
 }
 
 void
 ThreadContext::uninstallBp(BpInfoIt it)
 {
-    call().breakpoint_delete(_instId, it->second->id);
-    it->second->clearId();
+    for (auto id: it->second->ids)
+        call().breakpoint_delete(_instId, id);
+    it->second->clearIds();
 }
 
 void
@@ -153,7 +168,7 @@ ThreadContext::delBp(BpInfoIt it)
     panic_if(!it->second->empty(),
              "BP info still had events associated with it.");
 
-    if (it->second->validId())
+    if (it->second->validIds())
         uninstallBp(it);
 
     bps.erase(it);
@@ -229,14 +244,37 @@ ThreadContext::breakpointHit(
 
     auto it = getOrAllocBp(pc);
 
-    auto e_it = it->second->events.begin();
-    while (e_it != it->second->events.end()) {
+    std::shared_ptr<BpInfo::EventList> events = it->second->events;
+    auto e_it = events->begin();
+    while (e_it != events->end()) {
         PCEvent *e = *e_it;
         // Advance e_it here since e might remove itself from the list.
         e_it++;
         e->process(this);
     }
 
+    return iris::E_ok;
+}
+
+iris::IrisErrorCode
+ThreadContext::semihostingEvent(
+        uint64_t esId, const iris::IrisValueMap &fields, uint64_t time,
+        uint64_t sInstId, bool syncEc, std::string &error_message_out)
+{
+    if (ArmSystem::callSemihosting(this, true)) {
+        // Stop execution in case an exit of the sim loop was scheduled. We
+        // don't want to keep executing instructions in the mean time.
+        call().perInstanceExecution_setState(_instId, false);
+
+        // Schedule an event to resume execution right after any exit has
+        // had a chance to happen.
+        if (!enableAfterPseudoEvent->scheduled())
+            getCpuPtr()->schedule(enableAfterPseudoEvent, curTick());
+
+        call().semihosting_return(_instId, readIntReg(0));
+    } else {
+        call().semihosting_notImplemented(_instId);
+    }
     return iris::E_ok;
 }
 
@@ -296,6 +334,14 @@ ThreadContext::ThreadContext(
             evSrcInfo.evSrcId, client.getInstId());
 
     breakpointEventStreamId = iris::IRIS_UINT64_MAX;
+    semihostingEventStreamId = iris::IRIS_UINT64_MAX;
+
+    auto enable_lambda = [this]{
+        call().perInstanceExecution_setState(_instId, true);
+    };
+    enableAfterPseudoEvent = new EventFunctionWrapper(
+            enable_lambda, "resume after pseudo inst",
+            false, Event::Sim_Exit_Pri + 1);
 }
 
 ThreadContext::~ThreadContext()
@@ -314,15 +360,19 @@ ThreadContext::~ThreadContext()
             iris::IrisInstIdGlobalInstance, timeEventStreamId);
     timeEventStreamId = iris::IRIS_UINT64_MAX;
     client.unregisterEventCallback("ec_IRIS_SIMULATION_TIME_EVENT");
+
+    if (enableAfterPseudoEvent->scheduled())
+        getCpuPtr()->deschedule(enableAfterPseudoEvent);
+    delete enableAfterPseudoEvent;
 }
 
 bool
 ThreadContext::schedule(PCEvent *e)
 {
     auto it = getOrAllocBp(e->pc());
-    it->second->events.push_back(e);
+    it->second->events->push_back(e);
 
-    if (_instId != iris::IRIS_UINT64_MAX && !it->second->validId())
+    if (_instId != iris::IRIS_UINT64_MAX && !it->second->validIds())
         installBp(it);
 
     return true;
@@ -332,7 +382,7 @@ bool
 ThreadContext::remove(PCEvent *e)
 {
     auto it = getOrAllocBp(e->pc());
-    it->second->events.remove(e);
+    it->second->events->remove(e);
 
     if (it->second->empty())
         delBp(it);
@@ -404,11 +454,10 @@ ThreadContext::initMemProxies(::ThreadContext *tc)
         assert(!physProxy && !virtProxy);
         physProxy.reset(new PortProxy(_cpu->getSendFunctional(),
                                       _cpu->cacheLineSize()));
-        virtProxy.reset(new FSTranslatingPortProxy(tc));
+        virtProxy.reset(new TranslatingPortProxy(tc));
     } else {
         assert(!virtProxy);
-        virtProxy.reset(new SETranslatingPortProxy(
-                        _cpu->getSendFunctional(), getProcessPtr(),
+        virtProxy.reset(new SETranslatingPortProxy(this,
                         SETranslatingPortProxy::NextPage));
     }
 }
@@ -422,6 +471,8 @@ ThreadContext::status() const
 void
 ThreadContext::setStatus(Status new_status)
 {
+    if (enableAfterPseudoEvent->scheduled())
+        getCpuPtr()->deschedule(enableAfterPseudoEvent);
     if (new_status == Active) {
         if (_status != Active)
             call().perInstanceExecution_setState(_instId, true);
@@ -445,6 +496,8 @@ ThreadContext::pcState() const
     pc.aarch64(!cpsr.width);
     pc.nextAArch64(!cpsr.width);
     pc.illegalExec(false);
+    pc.itstate(ArmISA::itState(cpsr));
+    pc.nextItstate(0);
 
     iris::ResourceReadResult result;
     call().resource_read(_instId, result, pcRscId);
@@ -584,7 +637,7 @@ ThreadContext::readVecReg(const RegId &reg_id) const
     iris::ResourceReadResult result;
     call().resource_read(_instId, result, vecRegIds.at(idx));
     size_t data_size = result.data.size() * (sizeof(*result.data.data()));
-    size_t size = std::min(data_size, reg.SIZE);
+    size_t size = std::min(data_size, reg.size());
     memcpy(reg.raw_ptr<void>(), (void *)result.data.data(), size);
 
     return reg;

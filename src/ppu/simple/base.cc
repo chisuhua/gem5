@@ -37,15 +37,12 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #include "ppu/simple/base.hh"
 
 #include "arch/stacktrace.hh"
 #include "arch/utility.hh"
-#include "arch/vtophys.hh"
 #include "base/cp_annotate.hh"
 #include "base/cprintf.hh"
 #include "base/inifile.hh"
@@ -56,8 +53,15 @@
 #include "base/types.hh"
 #include "config/the_isa.hh"
 #include "ppu/base.hh"
-#include "ppu/checker/cpu.hh"
-#include "ppu/checker/thread_context.hh"
+
+// #include "ppu/checker/cpu.hh"
+// #include "ppu/checker/thread_context.hh"
+#include "debug/PpuDecode.hh"
+#include "debug/PpuFetch.hh"
+#include "debug/PpuQuiesce.hh"
+#include "mem/packet.hh"
+#include "mem/request.hh"
+#include "params/BaseSimpleCPU.hh"
 #include "ppu/exetrace.hh"
 #include "ppu/pred/bpred_unit.hh"
 #include "ppu/profile.hh"
@@ -66,12 +70,6 @@
 #include "ppu/smt.hh"
 #include "ppu/static_inst.hh"
 #include "ppu/thread_context.hh"
-#include "debug/PpuDecode.hh"
-#include "debug/PpuFetch.hh"
-#include "debug/PpuQuiesce.hh"
-#include "mem/packet.hh"
-#include "mem/request.hh"
-#include "params/BaseSimpleCPU.hh"
 #include "sim/byteswap.hh"
 #include "sim/debug.hh"
 #include "sim/faults.hh"
@@ -109,7 +107,7 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
         PpuThreadContext *tc = thread->getTC();
         threadContexts.push_back(tc);
     }
-
+/*
     if (p->checker) {
         if (numThreads != 1)
             fatal("Checker currently does not support SMT");
@@ -123,6 +121,7 @@ BaseSimpleCPU::BaseSimpleCPU(BaseSimpleCPUParams *p)
     } else {
         checker = NULL;
     }
+*/
 }
 
 void
@@ -427,12 +426,6 @@ change_thread_state(ThreadID tid, int activate, int priority)
 {
 }
 
-Addr
-BaseSimpleCPU::dbg_vtophys(Addr addr)
-{
-    return vtophys(threadContexts[curThread], addr);
-}
-
 void
 BaseSimpleCPU::wakeup(ThreadID tid)
 {
@@ -489,9 +482,6 @@ BaseSimpleCPU::preExecute()
 
     // maintain $r0 semantics
     thread->setIntReg(ZeroReg, 0);
-#if THE_PPU_ISA == ALPHA_ISA
-    thread->setFloatReg(ZeroReg, 0);
-#endif // ALPHA_ISA
 
     // resets predicates
     t_info.setPredicate(true);

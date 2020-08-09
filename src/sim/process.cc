@@ -37,11 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
- *          Ali Saidi
- *          Brandon Potter
  */
 
 #include "sim/process.hh"
@@ -95,7 +90,7 @@ Process::Loader::Loader()
 }
 
 Process *
-Process::tryLoaders(ProcessParams *params, ObjectFile *obj_file)
+Process::tryLoaders(ProcessParams *params, ::Loader::ObjectFile *obj_file)
 {
     for (auto &loader: process_loaders()) {
         Process *p = loader->load(params, obj_file);
@@ -115,14 +110,12 @@ normalize(std::string& directory)
 }
 
 Process::Process(ProcessParams *params, EmulationPageTable *pTable,
-                 ObjectFile *obj_file)
+                 ::Loader::ObjectFile *obj_file)
     : SimObject(params), system(params->system),
       useArchPT(params->useArchPT),
       kvmInSE(params->kvmInSE),
       useForClone(false),
       pTable(pTable),
-      initVirtMem(system->getSystemPort(), this,
-                  SETranslatingPortProxy::Always),
       objFile(obj_file),
       argv(params->cmd), envp(params->env),
       executable(params->executable),
@@ -162,13 +155,13 @@ Process::Process(ProcessParams *params, EmulationPageTable *pTable,
 
     image = objFile->buildImage();
 
-    if (!debugSymbolTable) {
-        debugSymbolTable = new SymbolTable();
-        if (!objFile->loadGlobalSymbols(debugSymbolTable) ||
-            !objFile->loadLocalSymbols(debugSymbolTable) ||
-            !objFile->loadWeakSymbols(debugSymbolTable)) {
-            delete debugSymbolTable;
-            debugSymbolTable = nullptr;
+    if (!::Loader::debugSymbolTable) {
+        ::Loader::debugSymbolTable = new ::Loader::SymbolTable();
+        if (!objFile->loadGlobalSymbols(::Loader::debugSymbolTable) ||
+            !objFile->loadLocalSymbols(::Loader::debugSymbolTable) ||
+            !objFile->loadWeakSymbols(::Loader::debugSymbolTable)) {
+            delete ::Loader::debugSymbolTable;
+            ::Loader::debugSymbolTable = nullptr;
         }
     }
 }
@@ -194,9 +187,6 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
          */
         delete np->pTable;
         np->pTable = pTable;
-        auto &proxy = dynamic_cast<SETranslatingPortProxy &>(
-                ntc->getVirtProxy());
-        proxy.setPageTable(np->pTable);
 
         np->memState = memState;
     } else {
@@ -317,9 +307,12 @@ Process::initState()
 
     pTable->initState();
 
+    initVirtMem.reset(new SETranslatingPortProxy(
+                tc, SETranslatingPortProxy::Always));
+
     // load object file into target memory
-    image.write(initVirtMem);
-    interpImage.write(initVirtMem);
+    image.write(*initVirtMem);
+    interpImage.write(*initVirtMem);
 }
 
 DrainState
@@ -359,33 +352,9 @@ Process::replicatePage(Addr vaddr, Addr new_paddr, ThreadContext *old_tc,
 }
 
 bool
-Process::fixupStackFault(Addr vaddr)
+Process::fixupFault(Addr vaddr)
 {
-    Addr stack_min = memState->getStackMin();
-    Addr stack_base = memState->getStackBase();
-    Addr max_stack_size = memState->getMaxStackSize();
-
-    // Check if this is already on the stack and there's just no page there
-    // yet.
-    if (vaddr >= stack_min && vaddr < stack_base) {
-        allocateMem(roundDown(vaddr, PageBytes), PageBytes);
-        return true;
-    }
-
-    // We've accessed the next page of the stack, so extend it to include
-    // this address.
-    if (vaddr < stack_min && vaddr >= stack_base - max_stack_size) {
-        while (vaddr < stack_min) {
-            stack_min -= TheISA::PageBytes;
-            if (stack_base - stack_min > max_stack_size)
-                fatal("Maximum stack size exceeded\n");
-            allocateMem(stack_min, TheISA::PageBytes);
-            inform("Increasing stack size by one page.");
-        }
-        memState->setStackMin(stack_min);
-        return true;
-    }
-    return false;
+    return memState->fixupFault(vaddr);
 }
 
 void
@@ -425,7 +394,7 @@ Process::map(Addr vaddr, Addr paddr, int size, bool cacheable)
                             EmulationPageTable::Uncacheable);
     return true;
 }
-
+/* TODO remove after merge
 void
 Process::doSyscall(int64_t callnum, ThreadContext *tc, Fault *fault)
 {
@@ -436,12 +405,6 @@ Process::doSyscall(int64_t callnum, ThreadContext *tc, Fault *fault)
         fatal("Syscall %d out of range", callnum);
 
     desc->doSyscall(callnum, tc, fault);
-}
-/*
-RegVal
-Process::getSyscallArg(ThreadContext *tc, int &i, int width)
-{
-    return getSyscallArg(tc, i);
 }
 */
 
@@ -492,7 +455,7 @@ Process::checkPathRedirect(const std::string &filename)
 void
 Process::updateBias()
 {
-    ObjectFile *interp = objFile->getInterpreter();
+    auto *interp = objFile->getInterpreter();
 
     if (!interp || !interp->relocatable())
         return;
@@ -515,7 +478,7 @@ Process::updateBias()
     interp->updateBias(ld_bias);
 }
 
-ObjectFile *
+Loader::ObjectFile *
 Process::getInterpreter()
 {
     return objFile->getInterpreter();
@@ -524,7 +487,7 @@ Process::getInterpreter()
 Addr
 Process::getBias()
 {
-    ObjectFile *interp = getInterpreter();
+    auto *interp = getInterpreter();
 
     return interp ? interp->bias() : objFile->bias();
 }
@@ -532,7 +495,7 @@ Process::getBias()
 Addr
 Process::getStartPC()
 {
-    ObjectFile *interp = getInterpreter();
+    auto *interp = getInterpreter();
 
     return interp ? interp->entryPoint() : objFile->entryPoint();
 }
@@ -573,7 +536,7 @@ ProcessParams::create()
         executable = cmd[0];
     }
 
-    ObjectFile *obj_file = createObjectFile(executable);
+    auto *obj_file = Loader::createObjectFile(executable);
     fatal_if(!obj_file, "Cannot load object file %s.", executable);
 
     Process *process = Process::tryLoaders(this, obj_file);

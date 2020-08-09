@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: David Hashe
 
 from __future__ import print_function
 
@@ -134,7 +132,7 @@ def config_filesystem(system, options = None):
         file_append((procdir, 'cpuinfo'), one_cpu)
 
     file_append((procdir, 'stat'), 'cpu 0 0 0 0 0 0 0\n')
-    for i in xrange(len(cpus)):
+    for i in range(len(cpus)):
         file_append((procdir, 'stat'), 'cpu%d 0 0 0 0 0 0 0\n' % i)
 
     # Set up /sys

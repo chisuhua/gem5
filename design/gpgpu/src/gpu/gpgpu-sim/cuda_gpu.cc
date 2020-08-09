@@ -34,7 +34,7 @@
 
 #include "api/gpu_syscall_helper.hh"
 #include "arch/utility.hh"
-#include "arch/vtophys.hh"
+// #include "arch/vtophys.hh"
 #include "arch/x86/regs/misc.hh"
 #include "base/chunk_generator.hh"
 #include "base/statistics.hh"
@@ -716,7 +716,9 @@ void CudaGPU::registerDeviceMemory(ThreadContext *tc, Addr vaddr, size_t size)
     for (ChunkGenerator gen(vaddr, size, TheISA::PageBytes); !gen.done(); gen.next()) {
         page_vaddr = pageTable.addrToPage(gen.addr());
         if (FullSystem) {
-            page_paddr = TheISA::vtophys(tc, page_vaddr);
+            // panic("FIXME: need to find a way for vtophys call");
+            // page_paddr = TheISA::vtophys(tc, page_vaddr);
+            tc->getProcessPtr()->pTable->translate(page_vaddr, page_paddr);
         } else {
             success = tc->getProcessPtr()->pTable->translate(page_vaddr, page_paddr);
             if (!success) {

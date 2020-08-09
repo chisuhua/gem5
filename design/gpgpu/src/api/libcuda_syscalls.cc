@@ -1202,8 +1202,11 @@ get_local_alloc_size(CudaGPU *cudaGPU) {
     // thread as a more reasonable baseline. This may need to be changed if
     // benchmarks trip on the GPGPU-Sim-side panic of too much local memory
     // usage per thread.
-    unsigned max_local_mem_per_thread = 8 * 1024;
-    return cores * threads_per_core * max_local_mem_per_thread;
+    //
+    // FIXME
+    return 0;
+    // unsigned max_local_mem_per_thread = 8 * 1024;
+    // return cores * threads_per_core * max_local_mem_per_thread;
 }
 
 void

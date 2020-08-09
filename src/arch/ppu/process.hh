@@ -25,10 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Ali Saidi
- *          Alec Roelke
  */
 
 #ifndef __PPU_PROCESS_HH__
@@ -39,38 +35,68 @@
 
 #include "mem/page_table.hh"
 #include "ppu_sim/process.hh"
+#include "sim/syscall_abi.hh"
 
+namespace Loader
+{
 class ObjectFile;
+} // namespace Loader
+
 class PpuSOCSystem;
 
 class PpuProcess : public PpuSOCProcess
 {
   protected:
-    PpuProcess(PpuSOCProcessParams * params, ObjectFile *objFile);
+    PpuProcess(PpuSOCProcessParams * params, ::Loader::ObjectFile *objFile);
     template<class IntType>
     void argsInit(int pageSize);
 
   public:
-    RegVal getSyscallArg(ThreadContext *tc, int &i) override;
-    /// Explicitly import the otherwise hidden getSyscallArg
-    using PpuSOCProcess::getSyscallArg;
-    void setSyscallReturn(ThreadContext *tc,
-                          SyscallReturn return_value) override;
-
     virtual bool mmapGrowsDown() const override { return false; }
+
+    //FIXME RISCV needs to handle 64 bit arguments in its 32 bit ISA.
+    struct SyscallABI : public GenericSyscallABI64
+    {
+        static const std::vector<int> ArgumentRegs;
+    };
 };
+
+namespace GuestABI
+{
+
+template <>
+struct Result<PpuProcess::SyscallABI, SyscallReturn>
+{
+    static void
+    store(ThreadContext *tc, const SyscallReturn &ret)
+    {
+        if (ret.suppressed() || ret.needsRetry())
+            return;
+
+        if (ret.successful()) {
+            // no error
+            tc->setIntReg(PpuISA::ReturnValueReg, ret.returnValue());
+        } else {
+            // got an error, return details
+            tc->setIntReg(PpuISA::ReturnValueReg, ret.encodedValue());
+        }
+    }
+};
+
+};
+
 
 class PpuProcess64 : public PpuProcess
 {
   protected:
-    PpuProcess64(PpuSOCProcessParams * params, ObjectFile *objFile);
+    PpuProcess64(PpuSOCProcessParams * params, ::Loader::ObjectFile *objFile);
     void initState() override;
 };
 
 class PpuProcess32 : public PpuProcess
 {
   protected:
-    PpuProcess32(PpuSOCProcessParams * params, ObjectFile *objFile);
+    PpuProcess32(PpuSOCProcessParams * params, ::Loader::ObjectFile *objFile);
     void initState() override;
 };
 

@@ -49,7 +49,7 @@ class CompRegOp : public PpuStaticInst
     using PpuStaticInst::PpuStaticInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 }

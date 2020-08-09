@@ -24,24 +24,22 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
  */
 
 #include "ppu/thread_state.hh"
 
 #include "base/output.hh"
-#include "ppu/base.hh"
-#include "ppu/profile.hh"
-#include "ppu/quiesce_event.hh"
 #include "kern/kernel_stats.hh"
-#include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/port.hh"
 #include "mem/port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
+#include "ppu/base.hh"
+#include "ppu/profile.hh"
+#include "ppu/quiesce_event.hh"
+#include "ppu_mem/translating_port_proxy.hh"
+#include "ppu_sim/system.hh"
 #include "sim/full_system.hh"
 #include "sim/serialize.hh"
-#include "ppu_sim/system.hh"
 
 ThreadState::ThreadState(PpuBaseCPU *cpu, ThreadID _tid, PpuSOCProcess *_process)
     : numInst(0), numOp(0), numLoad(0), startNumLoad(0),
@@ -114,7 +112,7 @@ ThreadState::initMemProxies(PpuThreadContext *tc)
                                   baseCpu->cacheLineSize());
 
         assert(virtProxy == NULL);
-        virtProxy = new PpuFSTranslatingPortProxy(tc);
+        // FIXME virtProxy = new PpuTranslatingPortProxy(tc);
     } else {
         panic("PPU don't suport SE ThreadState::initMemProxies\n");
         /*

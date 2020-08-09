@@ -36,8 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #ifndef __BASE_LOADER_ELF_OBJECT_HH__
@@ -48,6 +46,9 @@
 
 #include "base/loader/object_file.hh"
 #include "gelf.h"
+
+namespace Loader
+{
 
 class ElfObjectFormat : public ObjectFileFormat
 {
@@ -138,5 +139,7 @@ class ElfObject : public ObjectFile
  * @param dirname base path for the interpreter
  */
 void setInterpDir(const std::string &dirname);
+
+} // namespace Loader
 
 #endif // __BASE_LOADER_ELF_OBJECT_HH__

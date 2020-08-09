@@ -34,8 +34,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #include "arch/x86/utility.hh"
@@ -106,12 +104,6 @@ copyRegs(ThreadContext *src, ThreadContext *dest)
          dest->setCCRegFlat(i, src->readCCRegFlat(i));
     copyMiscRegs(src, dest);
     dest->pcState(src->pcState());
-}
-
-void
-skipFunction(ThreadContext *tc)
-{
-    panic("Not implemented for x86\n");
 }
 
 uint64_t

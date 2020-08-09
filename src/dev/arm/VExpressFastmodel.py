@@ -22,8 +22,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Chun-Chen TK Hsu
 
 from m5.objects.FastModelGIC import FastModelGIC, SCFastModelGIC
 from m5.objects.RealView import VExpress_GEM5_Base, HDLcd
@@ -48,7 +46,8 @@ class VExpressFastmodel(VExpress_GEM5_Base):
         devices.remove(self.generic_timer)
         return devices
 
-    def setupBootLoader(self, cur_sys, loc):
-        super(VExpressFastmodel,self).setupBootLoader(cur_sys, loc)
-        # Override the boot_loader setting
-        cur_sys.boot_loader = [ loc('boot_v2.arm64') ]
+    def setupBootLoader(self, cur_sys, loc, boot_loader=None):
+        if boot_loader is None:
+            boot_loader = [ loc('boot_v2.arm64') ]
+        super(VExpressFastmodel, self).setupBootLoader(
+                cur_sys, boot_loader)

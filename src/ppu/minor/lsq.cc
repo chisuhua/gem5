@@ -33,8 +33,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Andrew Bardsley
  */
 
 #include "ppu/minor/lsq.hh"
@@ -43,7 +41,6 @@
 #include <sstream>
 
 #include "arch/locked_mem.hh"
-#include "arch/mmapped_ipr.hh"
 #include "base/logging.hh"
 #include "ppu/minor/cpu.hh"
 #include "ppu/minor/exec_context.hh"
@@ -1193,11 +1190,12 @@ LSQ::tryToSend(LSQRequestPtr request)
 
             if (request->isLoad) {
                 DPRINTF(PpuMinorMem, "IPR read inst: %s\n", *(request->inst));
-                ThePpuISA::handleIprRead(thread, packet);
+                // ThePpuISA::handleIprRead(thread, packet);
             } else {
                 DPRINTF(PpuMinorMem, "IPR write inst: %s\n", *(request->inst));
-                ThePpuISA::handleIprWrite(thread, packet);
+                // ThePpuISA::handleIprWrite(thread, packet);
             }
+            request->request->localAccessor(thread, packet);
 
             request->stepToNextPacket();
             ret = request->sentAllPackets();

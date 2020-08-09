@@ -33,8 +33,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_X86_TLB_HH__
@@ -48,6 +46,7 @@
 #include "base/trie.hh"
 #include "mem/request.hh"
 #include "params/X86TLB.hh"
+#include "sim/stats.hh"
 
 class ThreadContext;
 
@@ -108,7 +107,7 @@ namespace X86ISA
         Stats::Scalar rdMisses;
         Stats::Scalar wrMisses;
 
-        Fault translateInt(const RequestPtr &req, ThreadContext *tc);
+        Fault translateInt(bool read, RequestPtr req, ThreadContext *tc);
 
         Fault translate(const RequestPtr &req, ThreadContext *tc,
                 Translation *translation, Mode mode,
@@ -125,6 +124,8 @@ namespace X86ISA
         }
 
         Fault translateAtomic(
+            const RequestPtr &req, ThreadContext *tc, Mode mode) override;
+        Fault translateFunctional(
             const RequestPtr &req, ThreadContext *tc, Mode mode) override;
         void translateTiming(
             const RequestPtr &req, ThreadContext *tc,
