@@ -38,6 +38,9 @@
 from abc import *
 import os
 import subprocess
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 from .region import *
 from .style import modified_regions
