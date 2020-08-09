@@ -32,8 +32,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Nikos Nikoleris
 
 '''
 Arm FS simulation tests
@@ -83,7 +81,7 @@ arm_fs_long_tests = [
 ]
 
 tarball = 'aarch-system-201901106.tar.bz2'
-url = "http://dist.gem5.org/dist/current/arm/" + tarball
+url = config.resource_url + "/arm/" + tarball
 filepath = os.path.dirname(os.path.abspath(__file__))
 path = config.bin_path if config.bin_path else filepath
 arm_fs_binaries = DownloadedArchive(url, path, tarball)

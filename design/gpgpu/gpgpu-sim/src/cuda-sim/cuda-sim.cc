@@ -1532,8 +1532,8 @@ static unsigned get_tex_datasize( const ptx_instruction *pI, ptx_thread_info *th
    kernel_info_t& k = thread->get_kernel();
 
    // FIXME
-   // const struct textureInfo* texInfo = k.get_texinfo(texname);
-   const struct textureInfo* texInfo = NULL; // k.get_texinfo(texname);
+   const struct textureInfo* texInfo = k.get_texinfo(texname);
+   // const struct textureInfo* texInfo = NULL; // k.get_texinfo(texname);
 
    unsigned data_size = texInfo->texel_size;
    return data_size;

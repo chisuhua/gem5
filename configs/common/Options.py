@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 ARM Limited
+# Copyright (c) 2013-2020 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Lisa Hsu
 
 from __future__ import print_function
 from __future__ import absolute_import
@@ -45,8 +43,8 @@ import m5
 from m5.defines import buildEnv
 from m5.objects import *
 
-from .Benchmarks import *
-from . import ObjectList
+from common.Benchmarks import *
+from common import ObjectList
 
 vio_9p_help = """\
 Enable the Virtio 9P device and set the path to share. The default 9p path is
@@ -112,6 +110,8 @@ def addNoISAOptions(parser):
                       help="Specify the physical memory size (single memory)")
     parser.add_option("--enable-dram-powerdown", action="store_true",
                        help="Enable low-power states in DRAMCtrl")
+    parser.add_option("--mem-channels-intlv", type="int", default=0,
+                      help="Memory channels interleave")
 
 
     parser.add_option("--memchecker", action="store_true")
@@ -412,11 +412,13 @@ def addSEOptions(parser):
                            "to be used in syscall emulation."
                            "Usage: gem5.opt [...] --redirects /dir1=/path/"
                            "to/host/dir1 --redirects /dir2=/path/to/host/dir2")
+    parser.add_option("--wait-gdb", default=False,
+                      help="Wait for remote GDB to connect.")
 
 
 
 def addFSOptions(parser):
-    from .FSConfig import os_types
+    from common.FSConfig import os_types
 
     # Simulation options
     parser.add_option("--timesync", action="store_true",

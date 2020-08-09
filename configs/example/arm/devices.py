@@ -32,20 +32,22 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Andreas Sandberg
-#          Gabor Dozsa
 
 # System components used by the bigLITTLE.py configuration script
 
 from __future__ import print_function
 from __future__ import absolute_import
 
+import six
+
 import m5
 from m5.objects import *
 m5.util.addToPath('../../')
 from common.Caches import *
 from common import ObjectList
+
+if six.PY3:
+    long = int
 
 have_kvm = "ArmV8KvmCPU" in ObjectList.cpu_list.get_names()
 have_fastmodel = "FastModelCortexA76" in ObjectList.cpu_list.get_names()

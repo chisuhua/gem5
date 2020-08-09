@@ -24,9 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
  */
 
 #ifndef __BASE_LOADER_IMAGE_FILE_HH__
@@ -38,6 +35,9 @@
 #include "base/loader/image_file_data.hh"
 #include "base/loader/memory_image.hh"
 
+namespace Loader
+{
+
 class ImageFile
 {
   protected:
@@ -48,5 +48,7 @@ class ImageFile
   public:
     virtual MemoryImage buildImage() const = 0;
 };
+
+} // namespace Loader
 
 #endif // __BASE_LOADER_IMAGE_FILE_HH__

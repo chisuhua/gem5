@@ -86,7 +86,8 @@ if not env['BUILD_PPU']:
 #Source('mem_delay.cc')
 #
 #if env['TARGET_ISA'] != 'null':
-Source('fs_translating_port_proxy.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('fs_translating_port_proxy.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('translating_port_proxy.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 #    Source('se_translating_port_proxy.cc')
 #    Source('page_table.cc')
 #

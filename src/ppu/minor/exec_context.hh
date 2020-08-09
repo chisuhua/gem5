@@ -37,11 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Dave Greene
- *          Nathan Binkert
- *          Andrew Bardsley
  */
 
 /**
@@ -99,9 +94,6 @@ class ExecContext : public ::ExecContext
         setPredicate(inst->readPredicate());
         setMemAccPredicate(inst->readMemAccPredicate());
         thread.setIntReg(ThePpuISA::ZeroReg, 0);
-#if THE_PPU_ISA == ALPHA_ISA
-        thread.setFloatReg(ThePpuISA::ZeroReg, 0);
-#endif
     }
 
     ~ExecContext()

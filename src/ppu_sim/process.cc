@@ -37,11 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
- *          Ali Saidi
- *          Brandon Potter
  */
 
 #include "ppu_sim/process.hh"
@@ -61,16 +56,16 @@
 #include "base/loader/symtab.hh"
 #include "base/statistics.hh"
 #include "config/the_isa.hh"
-#include "ppu/thread_context.hh"
 #include "mem/page_table.hh"
-// #include "mem/se_translating_port_proxy.hh"
+#include "mem/se_translating_port_proxy.hh"
 #include "params/PpuSOCProcess.hh"
+#include "ppu/thread_context.hh"
+#include "ppu_sim/system.hh"
 #include "sim/emul_driver.hh"
 #include "sim/fd_array.hh"
 #include "sim/fd_entry.hh"
 #include "sim/redirect_path.hh"
-// #include "sim/syscall_desc.hh"
-#include "ppu_sim/system.hh"
+#include "sim/syscall_desc.hh"
 
 using namespace std;
 using namespace ThePpuISA;
@@ -95,7 +90,7 @@ PpuSOCProcess::Loader::Loader()
 }
 
 PpuSOCProcess *
-PpuSOCProcess::tryLoaders(PpuSOCProcessParams *params, ObjectFile *obj_file)
+PpuSOCProcess::tryLoaders(PpuSOCProcessParams *params, ::Loader::ObjectFile *obj_file)
 {
     for (auto &loader: process_loaders()) {
         PpuSOCProcess *p = loader->load(params, obj_file);
@@ -115,7 +110,7 @@ normalize(std::string& directory)
 }
 
 PpuSOCProcess::PpuSOCProcess(PpuSOCProcessParams *params, EmulationPageTable *pTable,
-                 ObjectFile *obj_file)
+                 ::Loader::ObjectFile *obj_file)
     : SimObject(params), system(params->system),
       useArchPT(params->useArchPT),
       kvmInSE(params->kvmInSE),
@@ -162,13 +157,13 @@ PpuSOCProcess::PpuSOCProcess(PpuSOCProcessParams *params, EmulationPageTable *pT
 
     image = objFile->buildImage();
 
-    if (!debugSymbolTable) {
-        debugSymbolTable = new SymbolTable();
-        if (!objFile->loadGlobalSymbols(debugSymbolTable) ||
-            !objFile->loadLocalSymbols(debugSymbolTable) ||
-            !objFile->loadWeakSymbols(debugSymbolTable)) {
-            delete debugSymbolTable;
-            debugSymbolTable = nullptr;
+    if (!::Loader::debugSymbolTable) {
+        ::Loader::debugSymbolTable = new ::Loader::SymbolTable();
+        if (!objFile->loadGlobalSymbols(::Loader::debugSymbolTable) ||
+            !objFile->loadLocalSymbols(::Loader::debugSymbolTable) ||
+            !objFile->loadWeakSymbols(::Loader::debugSymbolTable)) {
+            delete ::Loader::debugSymbolTable;
+            ::Loader::debugSymbolTable = nullptr;
         }
     }
 }
@@ -194,9 +189,6 @@ PpuSOCProcess::clone(ThreadContext *otc, ThreadContext *ntc,
          */
         delete np->pTable;
         np->pTable = pTable;
-        auto &proxy = dynamic_cast<SETranslatingPortProxy &>(
-                ntc->getVirtProxy());
-        proxy.setPageTable(np->pTable);
 
         np->memState = memState;
     } else {
@@ -317,6 +309,9 @@ PpuSOCProcess::initState()
 
     pTable->initState();
 
+    initVirtMem.reset(new SETranslatingPortProxy(
+                tc, SETranslatingPortProxy::Always));
+
     // load object file into target memory
     /* FIMXE schi no SE in Ppu
     image.write(initVirtMem);
@@ -361,33 +356,9 @@ PpuSOCProcess::replicatePage(Addr vaddr, Addr new_paddr, ThreadContext *old_tc,
 }
 
 bool
-PpuSOCProcess::fixupStackFault(Addr vaddr)
+PpuSOCProcess::fixupFault(Addr vaddr)
 {
-    Addr stack_min = memState->getStackMin();
-    Addr stack_base = memState->getStackBase();
-    Addr max_stack_size = memState->getMaxStackSize();
-
-    // Check if this is already on the stack and there's just no page there
-    // yet.
-    if (vaddr >= stack_min && vaddr < stack_base) {
-        allocateMem(roundDown(vaddr, PageBytes), PageBytes);
-        return true;
-    }
-
-    // We've accessed the next page of the stack, so extend it to include
-    // this address.
-    if (vaddr < stack_min && vaddr >= stack_base - max_stack_size) {
-        while (vaddr < stack_min) {
-            stack_min -= ThePpuISA::PageBytes;
-            if (stack_base - stack_min > max_stack_size)
-                fatal("Maximum stack size exceeded\n");
-            allocateMem(stack_min, ThePpuISA::PageBytes);
-            inform("Increasing stack size by one page.");
-        }
-        memState->setStackMin(stack_min);
-        return true;
-    }
-    return false;
+    return memState->fixupFault(vaddr);
 }
 
 void
@@ -428,24 +399,6 @@ PpuSOCProcess::map(Addr vaddr, Addr paddr, int size, bool cacheable)
     return true;
 }
 
-void
-PpuSOCProcess::doSyscall(int64_t callnum, ThreadContext *tc, Fault *fault)
-{
-    numSyscalls++;
-
-    SyscallDesc *desc = getDesc(callnum);
-    if (desc == nullptr)
-        fatal("Syscall %d out of range", callnum);
-
-    desc->doSyscall(callnum, tc, fault);
-}
-/*
-RegVal
-PpuSOCProcess::getSyscallArg(ThreadContext *tc, int &i, int width)
-{
-    return getSyscallArg(tc, i);
-}
-*/
 
 EmulatedDriver *
 PpuSOCProcess::findDriver(std::string filename)
@@ -494,7 +447,7 @@ PpuSOCProcess::checkPathRedirect(const std::string &filename)
 void
 PpuSOCProcess::updateBias()
 {
-    ObjectFile *interp = objFile->getInterpreter();
+    auto *interp = objFile->getInterpreter();
 
     if (!interp || !interp->relocatable())
         return;
@@ -517,7 +470,7 @@ PpuSOCProcess::updateBias()
     interp->updateBias(ld_bias);
 }
 
-ObjectFile *
+Loader::ObjectFile *
 PpuSOCProcess::getInterpreter()
 {
     return objFile->getInterpreter();
@@ -526,7 +479,7 @@ PpuSOCProcess::getInterpreter()
 Addr
 PpuSOCProcess::getBias()
 {
-    ObjectFile *interp = getInterpreter();
+    auto *interp = getInterpreter();
 
     return interp ? interp->bias() : objFile->bias();
 }
@@ -534,7 +487,7 @@ PpuSOCProcess::getBias()
 Addr
 PpuSOCProcess::getStartPC()
 {
-    ObjectFile *interp = getInterpreter();
+    auto *interp = getInterpreter();
 
     return interp ? interp->entryPoint() : objFile->entryPoint();
 }
@@ -575,7 +528,7 @@ PpuSOCProcessParams::create()
         executable = cmd[0];
     }
 
-    ObjectFile *obj_file = createObjectFile(executable);
+    auto *obj_file = Loader::createObjectFile(executable);
     fatal_if(!obj_file, "Cannot load object file %s.", executable);
 
     PpuSOCProcess *process = PpuSOCProcess::tryLoaders(this, obj_file);

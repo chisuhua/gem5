@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Javier Bueno
  */
 
 /**
@@ -47,7 +45,9 @@
 
 struct IrregularStreamBufferPrefetcherParams;
 
-class IrregularStreamBufferPrefetcher : public QueuedPrefetcher
+namespace Prefetcher {
+
+class IrregularStreamBuffer : public Queued
 {
     /** Size in bytes of a temporal stream */
     const size_t chunkSize;
@@ -127,10 +127,13 @@ class IrregularStreamBufferPrefetcher : public QueuedPrefetcher
      */
     AddressMapping& getPSMapping(Addr paddr, bool is_secure);
   public:
-    IrregularStreamBufferPrefetcher(
-        const IrregularStreamBufferPrefetcherParams *p);
-    ~IrregularStreamBufferPrefetcher() {}
+    IrregularStreamBuffer(const IrregularStreamBufferPrefetcherParams *p);
+    ~IrregularStreamBuffer() = default;
+
     void calculatePrefetch(const PrefetchInfo &pfi,
                            std::vector<AddrPriority> &addresses) override;
 };
+
+} // namespace Prefetcher
+
 #endif//__MEM_CACHE_PREFETCH_IRREGULAR_STREAM_BUFFER_HH__

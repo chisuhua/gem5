@@ -47,7 +47,7 @@ ProfileNode::ProfileNode()
 { }
 
 void
-ProfileNode::dump(const string &symbol, uint64_t id, const SymbolTable *symtab,
+ProfileNode::dump(const string &symbol, uint64_t id, const Loader::SymbolTable *symtab,
                   ostream &os) const
 {
     ccprintf(os, "%#x %s %d ", id, symbol, count);
@@ -85,7 +85,7 @@ ProfileNode::clear()
         i->second->clear();
 }
 
-FunctionProfile::FunctionProfile(const SymbolTable *_symtab)
+FunctionProfile::FunctionProfile(const Loader::SymbolTable *_symtab)
     : reset(0), symtab(_symtab)
 {
     reset = new MakeCallback<FunctionProfile, &FunctionProfile::clear>(this);

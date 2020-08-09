@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2016-2018 ARM Limited
+ * Copyright (c) 2011, 2016-2018, 2020 ARM Limited
  * Copyright (c) 2013 Advanced Micro Devices, Inc.
  * All rights reserved
  *
@@ -37,8 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
  */
 
 #ifndef __CPU_CHECKER_CPU_HH__
@@ -66,18 +64,6 @@ class BaseTLB;
 template <class>
 class BaseDynInst;
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class ThreadContext;
-
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class ThreadContext;
 
 
@@ -152,8 +138,6 @@ class CheckerCPU : public BaseCPU, public ExecContext
 
     BaseTLB *itb;
     BaseTLB *dtb;
-
-    Addr dbg_vtophys(Addr addr);
 
     // ISAs like ARM can have multiple destination registers to check,
     // keep them all in a std::queue
@@ -611,7 +595,7 @@ class CheckerCPU : public BaseCPU, public ExecContext
 
     void dumpAndExit();
 
-    ThreadContext *tcBase() override { return tc; }
+    ThreadContext *tcBase() const override { return tc; }
     SimpleThread *threadBase() { return thread; }
 
     InstResult unverifiedResult;

@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_X86_ISA_HH__
@@ -56,11 +54,12 @@ namespace X86ISA
         void updateHandyM5Reg(Efer efer, CR0 cr0,
                 SegAttr csAttr, SegAttr ssAttr, RFLAGS rflags,
                 ThreadContext *tc);
+        void clear();
 
       public:
         typedef X86ISAParams Params;
 
-        void clear();
+        void clear(ThreadContext *tc) { clear(); }
 
         ISA(Params *p);
         const Params *params() const;

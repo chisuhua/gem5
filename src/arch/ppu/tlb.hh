@@ -25,46 +25,43 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
- *          Jaidev Patwardhan
- *          Korey Sewell
  */
 
 #ifndef __ARCH_PPU_TLB_HH__
 #define __ARCH_PPU_TLB_HH__
 
-#include <map>
+#include <list>
 
 #include "arch/generic/tlb.hh"
+#include "arch/ppu/isa.hh"
 #include "arch/ppu/isa_traits.hh"
 #include "arch/ppu/pagetable.hh"
 #include "arch/ppu/utility.hh"
-#include "arch/ppu/vtophys.hh"
 #include "base/statistics.hh"
 #include "mem/request.hh"
 #include "params/PpuTLB.hh"
 #include "sim/sim_object.hh"
 
-
 class ThreadContext;
+
 /* To maintain compatibility with other architectures, we'll
    simply create an ITLB and DTLB that will point to the real TLB */
 namespace PpuISA {
 
+class Walker;
+
 class TLB : public BaseTLB
 {
+    typedef std::list<TlbEntry *> EntryList;
+
   protected:
-    typedef std::multimap<Addr, int> PageTable;
-    PageTable lookupTable;      // Quick lookup into page table
+    size_t size;
+    std::vector<TlbEntry> tlb;  // our TLB
+    TlbEntryTrie trie;          // for quick access
+    EntryList freeList;         // free entries
+    uint64_t lruSeq;
 
-    PpuISA::PTE *table;        // the Page Table
-    int size;                   // TLB Size
-    int nlu;                    // not last used entry (for replacement)
-
-    void nextnlu() { if (++nlu >= size) nlu = 0; }
-    PpuISA::PTE *lookup(Addr vpn, uint8_t asn) const;
+    Walker *walker;
 
     mutable Stats::Scalar read_hits;
     mutable Stats::Scalar read_misses;
@@ -82,28 +79,19 @@ class TLB : public BaseTLB
     typedef PpuTLBParams Params;
     TLB(const Params *p);
 
-    int probeEntry(Addr vpn,uint8_t) const;
-    PpuISA::PTE *getEntry(unsigned) const;
-    virtual ~TLB();
+    Walker *getWalker();
 
     void takeOverFrom(BaseTLB *otlb) override {}
 
-    int smallPages;
-    int getsize() const { return size; }
-
-    PpuISA::PTE &index(bool advance = true);
-    void insert(Addr vaddr, PpuISA::PTE &pte);
-    void insertAt(PpuISA::PTE &pte, unsigned Index, int _smallPages);
+    TlbEntry *insert(Addr vpn, const TlbEntry &entry);
     void flushAll() override;
-    void demapPage(Addr vaddr, uint64_t asn) override
-    {
-        panic("demapPage unimplemented.\n");
-    }
+    void demapPage(Addr vaddr, uint64_t asn) override;
 
-    // static helper functions... really
-    static bool validVirtualAddress(Addr vaddr);
+    Fault checkPermissions(STATUS status, PrivilegeMode pmode, Addr vaddr,
+                           Mode mode, PTESv39 pte);
+    Fault createPagefault(Addr vaddr, Mode mode);
 
-    static Fault checkCacheability(const RequestPtr &req);
+    PrivilegeMode getMemPriv(ThreadContext *tc, Mode mode);
 
     // Checkpointing
     void serialize(CheckpointOut &cp) const override;
@@ -111,22 +99,31 @@ class TLB : public BaseTLB
 
     void regStats() override;
 
-    Fault translateAtomic(
-            const RequestPtr &req, ThreadContext *tc, Mode mode) override;
-    void translateTiming(
-            const RequestPtr &req, ThreadContext *tc,
-            Translation *translation, Mode mode) override;
-    Fault finalizePhysical(
-            const RequestPtr &req,
-            ThreadContext *tc, Mode mode) const override;
+    Addr translateWithTLB(Addr vaddr, uint16_t asid, Mode mode);
+
+    Fault translateAtomic(const RequestPtr &req,
+                          ThreadContext *tc, Mode mode) override;
+    void translateTiming(const RequestPtr &req, ThreadContext *tc,
+                         Translation *translation, Mode mode) override;
+    Fault translateFunctional(const RequestPtr &req,
+                              ThreadContext *tc, Mode mode) override;
+    Fault finalizePhysical(const RequestPtr &req,
+                           ThreadContext *tc, Mode mode) const override;
 
   private:
-    Fault translateInst(const RequestPtr &req, ThreadContext *tc);
-    Fault translateData(const RequestPtr &req, ThreadContext *tc, bool write);
+    uint64_t nextSeq() { return ++lruSeq; }
+
+    TlbEntry *lookup(Addr vpn, uint16_t asid, Mode mode, bool hidden);
+
+    void evictLRU();
+    void remove(size_t idx);
+
+    Fault translate(const RequestPtr &req, ThreadContext *tc,
+                    Translation *translation, Mode mode, bool &delayed);
+    Fault doTranslate(const RequestPtr &req, ThreadContext *tc,
+                      Translation *translation, Mode mode, bool &delayed);
 };
 
 }
-
-
 
 #endif // __PPU_MEMORY_HH__

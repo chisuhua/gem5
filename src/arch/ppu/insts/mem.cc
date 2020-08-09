@@ -45,7 +45,7 @@ namespace PpuISA
 {
 
 string
-Load::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+Load::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
 {
     stringstream ss;
     ss << mnemonic << ' ' << registerName(_destRegIdx[0]) << ", " <<
@@ -54,7 +54,7 @@ Load::generateDisassembly(Addr pc, const SymbolTable *symtab) const
 }
 
 string
-Store::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+Store::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
 {
     stringstream ss;
     ss << mnemonic << ' ' << registerName(_srcRegIdx[1]) << ", " <<

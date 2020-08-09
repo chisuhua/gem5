@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Nathan Binkert
 
 from __future__ import print_function
 
@@ -275,6 +273,7 @@ def main(*args):
         done = True
         print('Build information:')
         print()
+        print('gem5 version %s' % defines.gem5Version)
         print('compiled %s' % defines.compileDate)
         print('build options:')
         keys = list(defines.buildEnv.keys())
@@ -338,6 +337,7 @@ def main(*args):
         print(brief_copyright)
         print()
 
+        print("gem5 version %s" % defines.gem5Version)
         print("gem5 compiled %s" % defines.compileDate)
 
         print("gem5 started %s" %

@@ -36,9 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
- *          Giacomo Gabrielli
  */
 
 #ifndef __ARCH_ARM_MISCREGS_TYPES_HH__
@@ -118,6 +115,7 @@ namespace ArmISA
     EndBitUnion(AA64ISAR1)
 
     BitUnion64(AA64MMFR0)
+        Bitfield<63, 60> ecv;
         Bitfield<47, 44> exs;
         Bitfield<43, 40> tgran4_2;
         Bitfield<39, 36> tgran64_2;

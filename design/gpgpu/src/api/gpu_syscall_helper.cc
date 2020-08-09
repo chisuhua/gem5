@@ -27,9 +27,9 @@
  */
 
 #include "gpu_syscall_helper.hh"
-#include "mem/fs_translating_port_proxy.hh"
 #include "mem/ruby/system/RubySystem.hh"
 #include "mem/se_translating_port_proxy.hh"
+#include "mem/translating_port_proxy.hh"
 #include "sim/full_system.hh"
 
 GPUSyscallHelper::GPUSyscallHelper(ThreadContext *_tc, gpusyscall_t* _call_params)

@@ -24,9 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
  */
 
 #include "base/loader/object_file.hh"
@@ -35,14 +32,14 @@
 #include <vector>
 
 #include "base/loader/raw_image.hh"
-#include "base/loader/symtab.hh"
-#include "mem/port_proxy.hh"
 
-using namespace std;
+namespace Loader
+{
 
 ObjectFile::ObjectFile(ImageFileDataPtr ifd) : ImageFile(ifd) {}
 
-namespace {
+namespace
+{
 
 typedef std::vector<ObjectFileFormat *> ObjectFileFormatList;
 
@@ -76,3 +73,5 @@ createObjectFile(const std::string &fname, bool raw)
 
     return nullptr;
 }
+
+} // namespace Loader

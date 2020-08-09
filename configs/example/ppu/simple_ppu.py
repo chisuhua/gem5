@@ -51,7 +51,7 @@ class MemBus(SystemXBar):
     snoop_filter = SnoopFilter(lookup_latency=1)
 
 
-class PPSystem(BareMetalPpuSystem):
+class PPSystem(PpuSOCSystem):
     """
     pp system containing just CPU, bus and memory
     """
@@ -69,6 +69,8 @@ class PPSystem(BareMetalPpuSystem):
                     #timer_cpu=TimerCpu(pio_addr=0x4400bff8),
                     #uart = Uart8250(pio_addr=0x70013000, pio_size=0x1000)
                     )
+        self.workload = PpuBareMetal()
+
         # appearently we need a dedicated interrupt controller
         self.intrctrl = IntrControl()
 

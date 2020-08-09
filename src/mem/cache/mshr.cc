@@ -37,10 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Erik Hallnor
- *          Dave Greene
- *          Nikos Nikoleris
  */
 
 /**
@@ -133,8 +129,7 @@ MSHR::TargetList::updateWriteFlags(PacketPtr pkt)
         // strictly ordered)
         const Request::FlagsType no_merge_flags =
             Request::UNCACHEABLE | Request::STRICT_ORDER |
-            Request::MMAPPED_IPR | Request::PRIVILEGED |
-            Request::LLSC | Request::MEM_SWAP |
+            Request::PRIVILEGED | Request::LLSC | Request::MEM_SWAP |
             Request::MEM_SWAP_COND | Request::SECURE;
         const auto &req_flags = pkt->req->getFlags();
         bool compat_write = !req_flags.isSet(no_merge_flags);

@@ -25,8 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Alec Roelke
  */
 
 #ifndef __ARCH_PPU_STANDARD_INST_HH__
@@ -51,7 +49,7 @@ class RegOp : public PpuStaticInst
     using PpuStaticInst::PpuStaticInst;
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -77,10 +75,12 @@ class SystemOp : public PpuStaticInst
     using PpuStaticInst::PpuStaticInst;
 
     std::string
-    generateDisassembly(Addr pc, const SymbolTable *symtab) const override
+    generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const override;
+    /*
     {
         return mnemonic;
     }
+    */
 };
 
 /**
@@ -99,7 +99,7 @@ class CSROp : public PpuStaticInst
     {}
 
     std::string generateDisassembly(
-        Addr pc, const SymbolTable *symtab) const override;
+        Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 }

@@ -36,11 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Nathan Binkert
- *          Lisa Hsu
- *          Kevin Lim
  */
 
 #include "cpu/simple_thread.hh"
@@ -60,8 +55,8 @@
 #include "cpu/profile.hh"
 #include "cpu/quiesce_event.hh"
 #include "cpu/thread_context.hh"
-#include "mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
+#include "mem/translating_port_proxy.hh"
 #include "params/BaseCPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
@@ -75,30 +70,36 @@ using namespace std;
 // constructor
 SimpleThread::SimpleThread(BaseCPU *_cpu, int _thread_num, System *_sys,
                            Process *_process, BaseTLB *_itb,
-                           BaseTLB *_dtb, TheISA::ISA *_isa)
-    : ThreadState(_cpu, _thread_num, _process), isa(_isa),
+                           BaseTLB *_dtb, BaseISA *_isa)
+    : ThreadState(_cpu, _thread_num, _process),
+      isa(dynamic_cast<TheISA::ISA *>(_isa)),
       predicate(true), memAccPredicate(true),
       comInstEventQueue("instruction-based event queue"),
-      system(_sys), itb(_itb), dtb(_dtb), decoder(TheISA::Decoder(_isa))
+      system(_sys), itb(_itb), dtb(_dtb), decoder(TheISA::Decoder(isa))
 {
+    assert(isa);
     clearArchRegs();
     quiesceEvent = new EndQuiesceEvent(this);
 }
 
 SimpleThread::SimpleThread(BaseCPU *_cpu, int _thread_num, System *_sys,
                            BaseTLB *_itb, BaseTLB *_dtb,
-                           TheISA::ISA *_isa, bool use_kernel_stats)
-    : ThreadState(_cpu, _thread_num, NULL), isa(_isa),
+                           BaseISA *_isa, bool use_kernel_stats)
+    : ThreadState(_cpu, _thread_num, NULL),
+      isa(dynamic_cast<TheISA::ISA *>(_isa)),
       predicate(true), memAccPredicate(true),
       comInstEventQueue("instruction-based event queue"),
-      system(_sys), itb(_itb), dtb(_dtb), decoder(TheISA::Decoder(_isa))
+      system(_sys), itb(_itb), dtb(_dtb), decoder(TheISA::Decoder(isa))
 {
+    assert(isa);
+
     quiesceEvent = new EndQuiesceEvent(this);
 
     clearArchRegs();
 
     if (baseCpu->params()->profile) {
-        profile = new FunctionProfile(system->kernelSymtab);
+        profile = new FunctionProfile(system->workload->symtab(this));
+        // profile = new FunctionProfile(system->kernelSymtab);
         Callback *cb =
             new MakeCallback<SimpleThread,
             &SimpleThread::dumpFuncProfile>(this);
@@ -120,6 +121,8 @@ SimpleThread::takeOverFrom(ThreadContext *oldContext)
 {
     ::takeOverFrom(*this, *oldContext);
     decoder.takeOverFrom(oldContext->getDecoderPtr());
+
+    // isa->takeOverFrom(this, oldContext);
 
     kernelStats = oldContext->getKernelStats();
     funcExeInst = oldContext->readFuncExeInst();
@@ -164,7 +167,8 @@ void
 SimpleThread::dumpFuncProfile()
 {
     OutputStream *os(simout.create(csprintf("profile.%s.dat", baseCpu->name())));
-    profile->dump(this, *os->stream());
+    warn("FIXME i disable the profile dump\n");
+    // profile->dump(this, *os->stream());
     simout.close(os);
 }
 

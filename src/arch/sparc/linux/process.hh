@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #ifndef __SPARC_LINUX_PROCESS_HH__
@@ -44,18 +42,11 @@ namespace SparcISA {
 class SparcLinuxProcess
 {
   public:
-     /// Array of syscall descriptors, indexed by call number.
-    static SyscallDescABI<DefaultSyscallABI> syscallDescs[];
+    /// 64 bit syscall descriptors, indexed by call number.
+    static SyscallDescTable<Sparc64Process::SyscallABI> syscallDescs;
 
-     /// Array of 32 bit compatibility syscall descriptors,
-     /// indexed by call number.
-    static SyscallDescABI<DefaultSyscallABI> syscall32Descs[];
-
-    SyscallDesc *getDesc(int callnum);
-    SyscallDesc *getDesc32(int callnum);
-
-    static const int Num_Syscall_Descs;
-    static const int Num_Syscall32_Descs;
+    /// 32 bit compatibility syscall descriptors, indexed by call number.
+    static SyscallDescTable<Sparc32Process::SyscallABI> syscall32Descs;
 };
 
 /// A process with emulated SPARC/Linux syscalls.
@@ -63,13 +54,7 @@ class Sparc32LinuxProcess : public SparcLinuxProcess, public Sparc32Process
 {
   public:
     /// Constructor.
-    Sparc32LinuxProcess(ProcessParams * params, ObjectFile *objFile);
-
-    SyscallDesc*
-    getDesc(int callnum) override
-    {
-        return SparcLinuxProcess::getDesc32(callnum);
-    }
+    Sparc32LinuxProcess(ProcessParams * params, ::Loader::ObjectFile *objFile);
 
     void syscall(ThreadContext *tc, Fault *fault) override;
 
@@ -81,20 +66,18 @@ class Sparc64LinuxProcess : public SparcLinuxProcess, public Sparc64Process
 {
   public:
     /// Constructor.
-    Sparc64LinuxProcess(ProcessParams * params, ObjectFile *objFile);
-
-    SyscallDesc*
-    getDesc(int callnum) override
-    {
-        return SparcLinuxProcess::getDesc(callnum);
-    }
+    Sparc64LinuxProcess(ProcessParams * params, ::Loader::ObjectFile *objFile);
 
     void syscall(ThreadContext *tc, Fault *fault) override;
+
+    void getContext(ThreadContext *tc);
+    void setContext(ThreadContext *tc);
 
     void handleTrap(int trapNum, ThreadContext *tc, Fault *fault) override;
 };
 
-SyscallReturn getresuidFunc(SyscallDesc *desc, int num, ThreadContext *tc);
+SyscallReturn getresuidFunc(SyscallDesc *desc, ThreadContext *tc,
+                            Addr ruid, Addr euid, Addr suid);
 
 } // namespace SparcISA
 #endif // __SPARC_LINUX_PROCESS_HH__

@@ -36,8 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Jairo Balart
  */
 
 #ifndef __DEV_ARM_GICV3_H__
@@ -131,6 +129,8 @@ class Gicv3 : public BaseGic
 
     Gicv3(const Params * p);
     void deassertInt(uint32_t cpu, ArmISA::InterruptTypes int_type);
+    void deassertAll(uint32_t cpu);
+    bool haveAsserted(uint32_t cpu) const;
 
     inline Gicv3CPUInterface *
     getCPUInterface(int cpu_id) const

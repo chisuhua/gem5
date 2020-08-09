@@ -37,14 +37,11 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #include "ppu/simple/atomic.hh"
 
 #include "arch/locked_mem.hh"
-#include "arch/mmapped_ipr.hh"
 #include "arch/utility.hh"
 #include "base/output.hh"
 #include "config/the_isa.hh"
@@ -408,8 +405,9 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t * data, unsigned size,
             Packet pkt(req, Packet::makeReadCmd(req));
             pkt.dataStatic(data);
 
-            if (req->isMmappedIpr()) {
-                dcache_latency += ThePpuISA::handleIprRead(thread->getTC(), &pkt);
+            if (req->isLocalAccess()) {
+                dcache_latency += req->localAccessor(thread->getTC(), &pkt);
+                // dcache_latency += ThePpuISA::handleIprRead(thread->getTC(), &pkt);
             } else {
                 dcache_latency += sendPacket(dcachePort, &pkt);
             }
@@ -513,9 +511,9 @@ AtomicSimpleCPU::writeMem(uint8_t *data, unsigned size, Addr addr,
                 Packet pkt(req, Packet::makeWriteCmd(req));
                 pkt.dataStatic(data);
 
-                if (req->isMmappedIpr()) {
+                if (req->isLocalAccess()) {
                     dcache_latency +=
-                        ThePpuISA::handleIprWrite(thread->getTC(), &pkt);
+                        req->localAccessor(thread->getTC(), &pkt);
                 } else {
                     dcache_latency += sendPacket(dcachePort, &pkt);
 
@@ -609,8 +607,8 @@ AtomicSimpleCPU::amoMem(Addr addr, uint8_t* data, unsigned size,
         Packet pkt(req, Packet::makeWriteCmd(req));
         pkt.dataStatic(data);
 
-        if (req->isMmappedIpr())
-            dcache_latency += ThePpuISA::handleIprRead(thread->getTC(), &pkt);
+        if (req->isLocalAccess())
+            dcache_latency += req->localAccessor(thread->getTC(), &pkt);
         else {
             dcache_latency += sendPacket(dcachePort, &pkt);
         }

@@ -36,9 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Ali Saidi
  */
 
 /* @file
@@ -149,13 +146,14 @@ OutputStream *
 Terminal::terminalDump(const TerminalParams* p)
 {
     switch (p->outfile) {
-      case Enums::TerminalDump::term_none:
+      // TODO remove after merge case Enums::TerminalDump::term_none:
+      case TerminalDump::none:
         return nullptr;
-      case Enums::TerminalDump::stdoutput:
+      case TerminalDump::stdoutput:
         return simout.findOrCreate("stdout");
-      case Enums::TerminalDump::stderror:
+      case TerminalDump::stderror:
         return simout.findOrCreate("stderr");
-      case Enums::TerminalDump::file:
+      case TerminalDump::file:
         return simout.findOrCreate(p->name);
       default:
         panic("Invalid option\n");

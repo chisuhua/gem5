@@ -23,8 +23,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_ARM_FASTMODEL_CORTEXA76_THREAD_CONTEXT_HH__
@@ -46,7 +44,7 @@ class CortexA76TC : public Iris::ThreadContext
     static IdxNameMap flattenedIntIdxNameMap;
     static IdxNameMap ccRegIdxNameMap;
     static IdxNameMap vecRegIdxNameMap;
-    static iris::MemorySpaceId bpSpaceId;
+    static std::vector<iris::MemorySpaceId> bpSpaceIds;
 
   public:
     CortexA76TC(::BaseCPU *cpu, int id, System *system,
@@ -64,7 +62,7 @@ class CortexA76TC : public Iris::ThreadContext
     RegVal readCCRegFlat(RegIndex idx) const override;
     void setCCRegFlat(RegIndex idx, RegVal val) override;
 
-    iris::MemorySpaceId getBpSpaceId(Addr pc) const override;
+    const std::vector<iris::MemorySpaceId> &getBpSpaceIds() const override;
 };
 
 } // namespace FastModel

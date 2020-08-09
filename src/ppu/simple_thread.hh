@@ -37,9 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Nathan Binkert
  */
 
 #ifndef __PPU_SIMPLE_THREAD_HH__
@@ -71,23 +68,11 @@
 #include "sim/serialize.hh"
 #include "ppu_sim/system.hh"
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class PpuThreadContext;
-
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class PpuThreadContext;
 
 
 class PpuBaseCPU;
-class PpuCheckerCPU;
+// class PpuCheckerCPU;
 
 class FunctionProfile;
 class ProfileNode;
@@ -244,8 +229,8 @@ class SimpleThread : public ThreadState, public PpuThreadContext
 
     BaseTLB *getDTBPtr() override { return dtb; }
 
-    PpuCheckerCPU *PpugetCheckerCpuPtr() override { return NULL; }
-    CheckerCPU *getCheckerCpuPtr() override { return NULL; }
+    // PpuCheckerCPU *PpugetCheckerCpuPtr() override { return NULL; }
+    // CheckerCPU *getCheckerCpuPtr() override { return NULL; }
 
     BaseISA *getIsaPtr() override { return isa; }
 
@@ -322,7 +307,7 @@ class SimpleThread : public ThreadState, public PpuThreadContext
         for (auto &pred_reg: vecPredRegs)
             pred_reg.reset();
         ccRegs.fill(0);
-        isa->clear();
+        isa->clear(this);
     }
 
     //

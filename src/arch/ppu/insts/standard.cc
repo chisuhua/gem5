@@ -44,7 +44,7 @@ namespace PpuISA
 {
 
 string
-RegOp::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+RegOp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
 {
     stringstream ss;
     ss << mnemonic << ' ' << registerName(_destRegIdx[0]) << ", " <<
@@ -54,7 +54,7 @@ RegOp::generateDisassembly(Addr pc, const SymbolTable *symtab) const
 }
 
 string
-CSROp::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+CSROp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
 {
     stringstream ss;
     ss << mnemonic << ' ' << registerName(_destRegIdx[0]) << ", ";
@@ -66,6 +66,19 @@ CSROp::generateDisassembly(Addr pc, const SymbolTable *symtab) const
     else
         ss << "?? (" << hex << "0x" << csr << ")";
     return ss.str();
+}
+
+string
+SystemOp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
+{
+    if (strcmp(mnemonic, "fence_vma") == 0) {
+        stringstream ss;
+        ss << mnemonic << ' ' << registerName(_srcRegIdx[0]) << ", " <<
+            registerName(_srcRegIdx[1]);
+        return ss.str();
+    }
+
+    return mnemonic;
 }
 
 }

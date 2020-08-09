@@ -37,14 +37,11 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
  */
 
 #include "ppu/simple/timing.hh"
 
 #include "arch/locked_mem.hh"
-#include "arch/mmapped_ipr.hh"
 #include "arch/utility.hh"
 #include "config/the_isa.hh"
 #include "ppu/exetrace.hh"
@@ -268,8 +265,9 @@ TimingSimpleCPU::handleReadPacket(PacketPtr pkt)
     if (pkt->isRead() && pkt->req->isLLSC()) {
         ThePpuISA::handleLockedRead(thread, pkt->req);
     }
-    if (req->isMmappedIpr()) {
-        Cycles delay = ThePpuISA::handleIprRead(thread->getTC(), pkt);
+    if (req->isLocalAccess()) {
+        // Cycles delay = ThePpuISA::handleIprRead(thread->getTC(), pkt);
+        Cycles delay = req->localAccessor(thread->getTC(), pkt);
         new IprEvent(pkt, this, clockEdge(delay));
         _status = DcacheWaitResponse;
         dcache_pkt = NULL;
@@ -390,7 +388,7 @@ TimingSimpleCPU::buildSplitPacket(PacketPtr &pkt1, PacketPtr &pkt2,
 {
     pkt1 = pkt2 = NULL;
 
-    assert(!req1->isMmappedIpr() && !req2->isMmappedIpr());
+    assert(!req1->isLocalAccess() && !req2->isLocalAccess());
 
     if (req->getFlags().isSet(Request::NO_ACCESS)) {
         pkt1 = buildPacket(req, read);
@@ -478,8 +476,8 @@ TimingSimpleCPU::handleWritePacket()
     SimpleThread* thread = t_info.thread;
 
     const RequestPtr &req = dcache_pkt->req;
-    if (req->isMmappedIpr()) {
-        Cycles delay = ThePpuISA::handleIprWrite(thread->getTC(), dcache_pkt);
+    if (req->isLocalAccess()) {
+        Cycles delay = req->localAccessor(thread->getTC(), dcache_pkt);
         new IprEvent(dcache_pkt, this, clockEdge(delay));
         _status = DcacheWaitResponse;
         dcache_pkt = NULL;

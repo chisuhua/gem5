@@ -36,10 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Nathanael Premillieu
- *          Rekai Gonzalez
  */
 #ifndef __PPU__REG_CLASS_HH__
 #define __PPU__REG_CLASS_HH__
@@ -50,10 +46,6 @@
 #include "arch/generic/types.hh"
 #include "arch/registers.hh"
 #include "config/the_isa.hh"
-
-// namespace PpuISA
-// {
-
 
 /** Enumerate the classes of registers. */
 enum RegClass {
@@ -143,9 +135,7 @@ class RegId {
 
     inline bool isZeroReg() const
     {
-        return ((regClass == IntRegClass && regIdx == ThePpuISA::ZeroReg) ||
-               (THE_PPU_ISA == ALPHA_ISA && regClass == FloatRegClass &&
-                regIdx == ThePpuISA::ZeroReg));
+        return regClass == IntRegClass && regIdx == ThePpuISA::ZeroReg;
     }
 
     /** @return true if it is an integer physical register. */
@@ -354,7 +344,6 @@ class PhysRegId : private RegId {
 
 using PhysRegIdPtr = PhysRegId*;
 
-// } // namespace PpuISA
 /*
 namespace std
 {

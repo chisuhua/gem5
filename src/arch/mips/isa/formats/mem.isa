@@ -25,9 +25,6 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Authors: Steve Reinhardt
-//          Korey Sewell
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -47,7 +44,6 @@ output header {{
         /// Displacement for EA calculation (signed).
         int32_t disp;
 
-        /// Constructor
         Memory(const char *mnem, MachInst _machInst, OpClass __opClass)
             : MipsStaticInst(mnem, _machInst, __opClass),
               disp(sext<16>(OFFSET))
@@ -55,7 +51,7 @@ output header {{
         }
 
         std::string generateDisassembly(
-                Addr pc, const SymbolTable *symtab) const override;
+                Addr pc, const Loader::SymbolTable *symtab) const override;
     };
 
      /**
@@ -65,28 +61,26 @@ output header {{
     class MemoryNoDisp : public Memory
     {
       protected:
-        /// Constructor
-        MemoryNoDisp(const char *mnem, ExtMachInst _machInst, OpClass __opClass)
-            : Memory(mnem, _machInst, __opClass)
-        {
-        }
+        using Memory::Memory;
 
         std::string generateDisassembly(
-                Addr pc, const SymbolTable *symtab) const override;
+                Addr pc, const Loader::SymbolTable *symtab) const override;
     };
 }};
 
 
 output decoder {{
     std::string
-    Memory::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+    Memory::generateDisassembly(
+            Addr pc, const Loader::SymbolTable *symtab) const
     {
         return csprintf("%-10s %c%d, %d(r%d)", mnemonic,
                         flags[IsFloating] ? 'f' : 'r', RT, disp, RS);
     }
 
     std::string
-    MemoryNoDisp::generateDisassembly(Addr pc, const SymbolTable *symtab) const
+    MemoryNoDisp::generateDisassembly(
+            Addr pc, const Loader::SymbolTable *symtab) const
     {
         return csprintf("%-10s %c%d, r%d(r%d)", mnemonic,
                         flags[IsFloating] ? 'f' : 'r',

@@ -66,7 +66,7 @@ namespace ThePpuISA
 
 class PpuBaseCPU;
 class BaseTLB;
-class PpuCheckerCPU;
+// class PpuCheckerCPU;
 class Checkpoint;
 class PpuEndQuiesceEvent;
 class PortProxy;
@@ -154,8 +154,8 @@ class PpuThreadContext : public ThreadContext
 
     virtual BaseTLB *getDTBPtr() = 0;
 
-    virtual PpuCheckerCPU *PpugetCheckerCpuPtr() = 0;
-    virtual CheckerCPU *getCheckerCpuPtr() = 0;
+    // virtual PpuCheckerCPU *PpugetCheckerCpuPtr() = 0;
+    // virtual CheckerCPU *getCheckerCpuPtr() = 0;
 
     virtual BaseISA *getIsaPtr() = 0;
 

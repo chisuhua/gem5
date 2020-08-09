@@ -24,8 +24,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Jason Power
 
 """ This file creates a set of Ruby caches, the Ruby network, and a simple
 point-to-point topology.
@@ -216,10 +214,11 @@ class DirController(Directory_Controller):
         self.forwardToCache = MessageBuffer(ordered = True)
         self.forwardToCache.master = ruby_system.network.slave
 
-        # This is another special message buffer. It is used to send replies
-        # from memory back to the controller. Any messages received on the
-        # memory port (see self.memory above) will be directed to this
-        # message buffer.
+        # These are other special message buffers. They are used to send
+        # requests to memory and responses from memory back to the controller.
+        # Any messages sent or received on the memory port (see self.memory
+        # above) will be directed through these message buffers.
+        self.requestToMemory = MessageBuffer()
         self.responseFromMemory = MessageBuffer()
 
 class MyNetwork(SimpleNetwork):

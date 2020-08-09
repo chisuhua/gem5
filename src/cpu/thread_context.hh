@@ -37,8 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
  */
 
 #ifndef __CPU_THREAD_CONTEXT_HH__
@@ -70,7 +68,11 @@ namespace TheISA
 }
 class BaseCPU;
 class BaseTLB;
+
+#ifndef BUILD_PPU
 class CheckerCPU;
+#endif
+
 class Checkpoint;
 class EndQuiesceEvent;
 class PortProxy;
@@ -150,7 +152,9 @@ class ThreadContext : public PCEventScope
 
     virtual BaseTLB *getDTBPtr() = 0;
 
+#ifndef BUILD_PPU
     virtual CheckerCPU *getCheckerCpuPtr() = 0;
+#endif
 
     virtual BaseISA *getIsaPtr() = 0;
 

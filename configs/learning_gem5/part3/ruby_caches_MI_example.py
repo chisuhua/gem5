@@ -24,8 +24,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Jason Power
 
 """ This file creates a set of Ruby caches, the Ruby network, and a simple
 point-to-point topology.
@@ -206,6 +204,7 @@ class DirController(Directory_Controller):
         self.dmaResponseFromDir.master = ruby_system.network.slave
         self.forwardFromDir = MessageBuffer()
         self.forwardFromDir.master = ruby_system.network.slave
+        self.requestToMemory = MessageBuffer()
         self.responseFromMemory = MessageBuffer()
 
 class MyNetwork(SimpleNetwork):

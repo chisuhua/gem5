@@ -37,9 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Nathan Binkert
  */
 
 #ifndef __CPU_SIMPLE_THREAD_HH__
@@ -149,12 +146,12 @@ class SimpleThread : public ThreadState, public ThreadContext
     // constructor: initialize SimpleThread from given process structure
     // FS
     SimpleThread(BaseCPU *_cpu, int _thread_num, System *_system,
-                 BaseTLB *_itb, BaseTLB *_dtb, TheISA::ISA *_isa,
+                 BaseTLB *_itb, BaseTLB *_dtb, BaseISA *_isa,
                  bool use_kernel_stats = true);
     // SE
     SimpleThread(BaseCPU *_cpu, int _thread_num, System *_system,
                  Process *_process, BaseTLB *_itb, BaseTLB *_dtb,
-                 TheISA::ISA *_isa);
+                 BaseISA *_isa);
 
     virtual ~SimpleThread() {}
 
@@ -304,7 +301,7 @@ class SimpleThread : public ThreadState, public ThreadContext
         for (auto &pred_reg: vecPredRegs)
             pred_reg.reset();
         ccRegs.fill(0);
-        isa->clear();
+        isa->clear(this);
     }
 
     //

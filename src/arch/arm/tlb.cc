@@ -36,10 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Ali Saidi
- *          Nathan Binkert
- *          Steve Reinhardt
  */
 
 #include "arch/arm/tlb.hh"
@@ -63,11 +59,13 @@
 #include "debug/Checkpoint.hh"
 #include "debug/TLB.hh"
 #include "debug/TLBVerbose.hh"
+#include "mem/packet_access.hh"
 #include "mem/page_table.hh"
 #include "mem/request.hh"
 #include "params/ArmTLB.hh"
 #include "sim/full_system.hh"
 #include "sim/process.hh"
+#include "sim/pseudo_inst.hh"
 
 using namespace std;
 using namespace ArmISA;
@@ -137,8 +135,20 @@ TLB::finalizePhysical(const RequestPtr &req,
 {
     const Addr paddr = req->getPaddr();
 
-    if (m5opRange.contains(paddr))
-        req->setFlags(Request::MMAPPED_IPR);
+    if (m5opRange.contains(paddr)) {
+        uint8_t func;
+        PseudoInst::decodeAddrOffset(paddr - m5opRange.start(), func);
+        req->setLocalAccessor(
+            [func, mode](ThreadContext *tc, PacketPtr pkt) -> Cycles
+            {
+                uint64_t ret;
+                PseudoInst::pseudoInst<PseudoInstABI>(tc, func, ret);
+                if (mode == Read)
+                    pkt->setLE(ret);
+                return Cycles(1);
+            }
+        );
+    }
 
     return NoFault;
 }
@@ -540,7 +550,6 @@ TLB::translateSe(const RequestPtr &req, ThreadContext *tc, Mode mode,
     bool is_write = (mode == Write);
 
     if (!is_fetch) {
-        assert(flags & MustBeOne || req->isPrefetch());
         if (sctlr.a || !(flags & AllowUnaligned)) {
             if (vaddr & mask(flags & AlignmentMask)) {
                 // LPAE is always disabled in SE mode
@@ -1140,9 +1149,8 @@ TLB::translateFs(const RequestPtr &req, ThreadContext *tc, Mode mode,
     ArmFault::TranMethod tranMethod = long_desc_format ? ArmFault::LpaeTran
                                                        : ArmFault::VmsaTran;
 
-    req->setAsid(asid);
-
-    DPRINTF(TLBVerbose, "CPSR is priv:%d UserMode:%d secure:%d S1S2NsTran:%d\n",
+    DPRINTF(TLBVerbose,
+            "CPSR is priv:%d UserMode:%d secure:%d S1S2NsTran:%d\n",
             isPriv, flags & UserMode, isSecure, tranType & S1S2NsTran);
 
     DPRINTF(TLB, "translateFs addr %#x, mode %d, st2 %d, scr %#x sctlr %#x "
@@ -1157,7 +1165,6 @@ TLB::translateFs(const RequestPtr &req, ThreadContext *tc, Mode mode,
         req->setFlags(Request::STRICT_ORDER);
     }
     if (!is_fetch) {
-        assert(flags & MustBeOne || req->isPrefetch());
         if (sctlr.a || !(flags & AllowUnaligned)) {
             if (vaddr & mask(flags & AlignmentMask)) {
                 alignFaults++;

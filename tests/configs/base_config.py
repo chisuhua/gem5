@@ -32,9 +32,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Andreas Sandberg
-#          Andreas Hansson
 
 from abc import ABCMeta, abstractmethod
 import optparse
@@ -46,9 +43,11 @@ from common import FSConfig
 from common import Options
 from common.Caches import *
 from ruby import Ruby
+from six import add_metaclass
 
 _have_kvm_support = 'BaseKvmCPU' in globals()
 
+@add_metaclass(ABCMeta)
 class BaseSystem(object):
     """Base system builder.
 
@@ -57,8 +56,6 @@ class BaseSystem(object):
     customization by defining separate methods for different parts of
     the initialization process.
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, mem_mode='timing', mem_class=SimpleMemory,
                  cpu_class=TimingSimpleCPU, num_cpus=1, num_threads=1,

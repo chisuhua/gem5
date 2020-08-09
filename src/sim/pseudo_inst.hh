@@ -36,8 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
  */
 
 #ifndef __SIM_PSEUDO_INST_HH__
@@ -67,7 +65,7 @@ class ThreadContext;
 
 struct PseudoInstABI
 {
-    using Position = int;
+    using State = int;
 };
 
 namespace GuestABI
@@ -87,11 +85,11 @@ template <>
 struct Argument<PseudoInstABI, uint64_t>
 {
     static uint64_t
-    get(ThreadContext *tc, PseudoInstABI::Position &position)
+    get(ThreadContext *tc, PseudoInstABI::State &state)
     {
-        uint64_t result = TheISA::getArgument(tc, position, sizeof(uint64_t),
-                                              false);
-        position++;
+        uint64_t result =
+            TheISA::getArgument(tc, state, sizeof(uint64_t), false);
+        state++;
         return result;
     }
 };
@@ -145,129 +143,136 @@ void togglesync(ThreadContext *tc);
  * manner using the ISA-specific getArguments functions.
  *
  * @param func M5 pseudo op major function number (see utility/m5/m5ops.h)
+ * @param result A reference to a uint64_t to store a result in.
+ * @return Whether the pseudo instruction was recognized/handled.
  */
 
 template <typename ABI>
-uint64_t
-pseudoInst(ThreadContext *tc, uint8_t func)
+bool
+pseudoInst(ThreadContext *tc, uint8_t func, uint64_t &result)
 {
     DPRINTF(PseudoInst, "PseudoInst::pseudoInst(%i)\n", func);
+
+    result = 0;
 
     switch (func) {
       case M5OP_ARM:
         invokeSimcall<ABI>(tc, arm);
-        break;
+        return true;
 
       case M5OP_QUIESCE:
         invokeSimcall<ABI>(tc, quiesce);
-        break;
+        return true;
 
       case M5OP_QUIESCE_NS:
         invokeSimcall<ABI>(tc, quiesceNs);
-        break;
+        return true;
 
       case M5OP_QUIESCE_CYCLE:
         invokeSimcall<ABI>(tc, quiesceCycles);
-        break;
+        return true;
 
       case M5OP_QUIESCE_TIME:
-        return invokeSimcall<ABI>(tc, quiesceTime);
+        result = invokeSimcall<ABI>(tc, quiesceTime);
+        return true;
 
       case M5OP_RPNS:
-        return invokeSimcall<ABI>(tc, rpns);
+        result = invokeSimcall<ABI>(tc, rpns);
+        return true;
 
       case M5OP_WAKE_CPU:
         invokeSimcall<ABI>(tc, wakeCPU);
-        break;
+        return true;
 
       case M5OP_EXIT:
         invokeSimcall<ABI>(tc, m5exit);
-        break;
+        return true;
 
       case M5OP_FAIL:
         invokeSimcall<ABI>(tc, m5fail);
-        break;
+        return true;
 
       case M5OP_INIT_PARAM:
-        return invokeSimcall<ABI>(tc, initParam);
+        result = invokeSimcall<ABI>(tc, initParam);
+        return true;
 
       case M5OP_LOAD_SYMBOL:
         invokeSimcall<ABI>(tc, loadsymbol);
-        break;
+        return true;
 
       case M5OP_RESET_STATS:
         invokeSimcall<ABI>(tc, resetstats);
-        break;
+        return true;
 
       case M5OP_DUMP_STATS:
         invokeSimcall<ABI>(tc, dumpstats);
-        break;
+        return true;
 
       case M5OP_DUMP_RESET_STATS:
         invokeSimcall<ABI>(tc, dumpresetstats);
-        break;
+        return true;
 
       case M5OP_CHECKPOINT:
         invokeSimcall<ABI>(tc, m5checkpoint);
-        break;
+        return true;
 
       case M5OP_WRITE_FILE:
-        return invokeSimcall<ABI>(tc, writefile);
+        result = invokeSimcall<ABI>(tc, writefile);
+        return true;
 
       case M5OP_READ_FILE:
-        return invokeSimcall<ABI>(tc, readfile);
+        result = invokeSimcall<ABI>(tc, readfile);
+        return true;
 
       case M5OP_DEBUG_BREAK:
         invokeSimcall<ABI>(tc, debugbreak);
-        break;
+        return true;
 
       case M5OP_SWITCH_CPU:
         invokeSimcall<ABI>(tc, switchcpu);
-        break;
+        return true;
 
       case M5OP_ADD_SYMBOL:
         invokeSimcall<ABI>(tc, addsymbol);
-        break;
+        return true;
 
       case M5OP_PANIC:
         panic("M5 panic instruction called at %s\n", tc->pcState());
 
       case M5OP_WORK_BEGIN:
         invokeSimcall<ABI>(tc, workbegin);
-        break;
+        return true;
 
       case M5OP_WORK_END:
         invokeSimcall<ABI>(tc, workend);
-        break;
+        return true;
 
-      case M5OP_ANNOTATE:
+      case M5OP_RESERVED1:
       case M5OP_RESERVED2:
       case M5OP_RESERVED3:
       case M5OP_RESERVED4:
       case M5OP_RESERVED5:
         warn("Unimplemented m5 op (%#x)\n", func);
-        break;
+        return false;
 
       /* SE mode functions */
       case M5OP_SE_SYSCALL:
         invokeSimcall<ABI>(tc, m5Syscall);
-        break;
+        return true;
 
       case M5OP_SE_PAGE_FAULT:
         invokeSimcall<ABI>(tc, TheISA::m5PageFault);
-        break;
+        return true;
 
       /* dist-gem5 functions */
       case M5OP_DIST_TOGGLE_SYNC:
         invokeSimcall<ABI>(tc, togglesync);
-        break;
+        return true;
 
       default:
         warn("Unhandled m5 op: %#x\n", func);
-        break;
+        return false;
     }
-
-    return 0;
 }
 
 } // namespace PseudoInst

@@ -36,9 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Ron Dreslinski
- *          Andreas Hansson
  */
 
 /**
@@ -212,10 +209,7 @@ class AbstractMemory : public ClockedObject
     AbstractMemory(const Params* p);
     virtual ~AbstractMemory() {}
 
-    /**
-     * Initialise this memory.
-     */
-    void init() override;
+    void initState() override;
 
     /**
      * See if this is a null memory that should never store data and

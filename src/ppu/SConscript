@@ -91,7 +91,7 @@ if env['HAVE_PROTOBUF'] and env['TARGET_ISA'] != 'x86':
     Source('inst_pb_trace.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
 SimObject('PpuBaseCPU.py')
-SimObject('PpuCheckerCPU.py')
+#SimObject('PpuCheckerCPU.py')
 #
 #SimObject('CPUTracers.py')
 #SimObject('FuncUnit.py')
@@ -118,7 +118,7 @@ Source('thread_state.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 
 #SimObject('DummyChecker.py')
 #SimObject('StaticInstFlags.py')
-Source('checker/cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+#Source('checker/cpu.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 #Source('dummy_checker.cc')
-DebugFlag('PpuChecker')
+#DebugFlag('PpuChecker')
 Return()

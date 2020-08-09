@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2013, 2017-2018 ARM Limited
+* Copyright (c) 2012-2013, 2017-2018, 2020 ARM Limited
 * Copyright (c) 2020 Metempsy Technology Consulting
 * All rights reserved
 *
@@ -34,10 +34,8 @@
 * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-* Authors: Edmund Grimley Evans
-*          Thomas Grocutt
 */
+
 #include <stdint.h>
 
 #include <cassert>
@@ -395,14 +393,18 @@ fp16_unpack(int *sgn, int *exp, uint16_t *mnt, uint16_t x, int mode,
     *exp = FP16_EXP(x);
     *mnt = FP16_MANT(x);
 
-    // Handle subnormals:
     if (*exp) {
         *mnt |= 1ULL << FP16_MANT_BITS;
     } else {
-        ++*exp;
+        // Handle subnormals:
         // IDC (Input Denormal) is not set in this case.
-        if (mode & FPLIB_FZ16)
-            *mnt = 0;
+        if (*mnt) {
+            if (mode & FPLIB_FZ16) {
+                *mnt = 0;
+            } else {
+                ++*exp;
+            }
+        }
     }
 }
 
@@ -414,14 +416,17 @@ fp32_unpack(int *sgn, int *exp, uint32_t *mnt, uint32_t x, int mode,
     *exp = FP32_EXP(x);
     *mnt = FP32_MANT(x);
 
-    // Handle subnormals:
     if (*exp) {
         *mnt |= 1ULL << FP32_MANT_BITS;
     } else {
-        ++*exp;
-        if ((mode & FPLIB_FZ) && *mnt) {
-            *flags |= FPLIB_IDC;
-            *mnt = 0;
+        // Handle subnormals:
+        if (*mnt) {
+            if (mode & FPLIB_FZ) {
+                *flags |= FPLIB_IDC;
+                *mnt = 0;
+            } else {
+                ++*exp;
+            }
         }
     }
 }
@@ -436,14 +441,17 @@ fp64_unpack(int *sgn, int *exp, uint64_t *mnt, uint64_t x, int mode,
     *exp = FP64_EXP(x);
     *mnt = FP64_MANT(x);
 
-    // Handle subnormals:
     if (*exp) {
         *mnt |= 1ULL << FP64_MANT_BITS;
     } else {
-        ++*exp;
-        if ((mode & FPLIB_FZ) && *mnt) {
-            *flags |= FPLIB_IDC;
-            *mnt = 0;
+        // Handle subnormals:
+        if (*mnt) {
+            if (mode & FPLIB_FZ) {
+                *flags |= FPLIB_IDC;
+                *mnt = 0;
+            } else {
+                ++*exp;
+            }
         }
     }
 }

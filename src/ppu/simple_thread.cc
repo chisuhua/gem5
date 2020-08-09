@@ -60,8 +60,9 @@
 #include "ppu/profile.hh"
 #include "ppu/quiesce_event.hh"
 #include "ppu/thread_context.hh"
-#include "ppu_mem/fs_translating_port_proxy.hh"
+// #include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
+#include "mem/translating_port_proxy.hh"
 #include "params/PpuBaseCPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
@@ -76,7 +77,8 @@ using namespace std;
 SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys,
                            PpuSOCProcess *_process, BaseTLB *_itb,
                            BaseTLB *_dtb, ThePpuISA::ISA *_isa)
-    : ThreadState(_cpu, _thread_num, _process), isa(_isa),
+    : ThreadState(_cpu, _thread_num, _process), // isa(_isa),
+      isa(dynamic_cast<ThePpuISA::ISA *>(_isa)),
       predicate(true), memAccPredicate(true),
       comInstEventQueue("instruction-based event queue"),
       system(_sys), itb(_itb), dtb(_dtb), decoder(ThePpuISA::Decoder(_isa))
@@ -88,7 +90,8 @@ SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys
 SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys,
                            BaseTLB *_itb, BaseTLB *_dtb,
                            ThePpuISA::ISA *_isa, bool use_kernel_stats)
-    : ThreadState(_cpu, _thread_num, NULL), isa(_isa),
+    : ThreadState(_cpu, _thread_num, NULL), // isa(_isa),
+      isa(dynamic_cast<TheISA::ISA *>(_isa)),
       predicate(true), memAccPredicate(true),
       comInstEventQueue("instruction-based event queue"),
       system(_sys), itb(_itb), dtb(_dtb), decoder(ThePpuISA::Decoder(_isa))
@@ -98,7 +101,8 @@ SimpleThread::SimpleThread(PpuBaseCPU *_cpu, int _thread_num, PpuSOCSystem *_sys
     clearArchRegs();
 
     if (baseCpu->params()->profile) {
-        profile = new FunctionProfile(system->kernelSymtab);
+        profile = new FunctionProfile(system->workload->symtab(this));
+        // profile = new FunctionProfile(system->kernelSymtab);
         Callback *cb =
             new MakeCallback<SimpleThread,
             &SimpleThread::dumpFuncProfile>(this);
@@ -121,6 +125,7 @@ SimpleThread::takeOverFrom(PpuThreadContext *oldContext)
     ::takeOverFrom(*this, *oldContext);
     decoder.takeOverFrom(oldContext->getDecoderPtr());
 
+    isa->takeOverFrom(this, oldContext);
     kernelStats = oldContext->getKernelStats();
     funcExeInst = oldContext->readFuncExeInst();
     storeCondFailures = 0;

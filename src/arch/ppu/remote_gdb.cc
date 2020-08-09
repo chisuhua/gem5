@@ -39,12 +39,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          William Wang
- *          Deyuan Guo
- *          Boris Shingarov
- *          Alec Roelke
  */
 
 /*
@@ -139,16 +133,19 @@
 
 #include <string>
 
+#include "arch/ppu/pagetable_walker.hh"
 #include "arch/ppu/registers.hh"
-#include "arch/ppu/system.hh"
-#include "arch/ppu/utility.hh"
-#include "ppu/thread_state.hh"
+
+// #include "arch/ppu/registers.hh"
+// #include "arch/ppu/system.hh"
+// #include "arch/ppu/utility.hh"
+#include "arch/ppu/tlb.hh"
 #include "debug/PpuGDBAcc.hh"
 #include "mem/page_table.hh"
+#include "ppu/thread_state.hh"
 #include "sim/full_system.hh"
 
 using namespace std;
-
 namespace PpuISA
 {
 
@@ -160,23 +157,26 @@ RemoteGDB::RemoteGDB(PpuSOCSystem *_system, ThreadContext *tc, int _port)
 bool
 RemoteGDB::acc(Addr va, size_t len)
 {
-    // panic_if(FullSystem, "acc not implemented for PPU FS!");
-    if (PpuFullSystem) {
-        /**
-         * currently no mapping from virt to phys
-         * va = phys
-         */
-        if (va) {
-            return true;
-        } else {
-            return false;
+    if (PpuFullSystem)
+    {
+        TLB *tlb = dynamic_cast<TLB *>(context()->getDTBPtr());
+        unsigned logBytes;
+        Addr paddr = va;
+
+        PrivilegeMode pmode = tlb->getMemPriv(context(), BaseTLB::Read);
+        SATP satp = context()->readMiscReg(MISCREG_SATP);
+        if (pmode != PrivilegeMode::PRV_M &&
+            satp.mode != AddrXlateMode::BARE) {
+            Walker *walker = tlb->getWalker();
+            Fault fault = walker->startFunctional(
+                    context(), paddr, logBytes, BaseTLB::Read);
+            if (fault != NoFault)
+                return false;
         }
-    } else {
-        panic("Ppu RemoteGDB::acc only support FullSystem");
-        /*
-        return (dynamic_cast<PpuThreadContext*>(context()))->PpugetProcessPtr()->pTable->lookup(va) != nullptr;
-        */
+        return true;
     }
+    // return context()->PpugetProcessPtr()->pTable->lookup(va) != nullptr;
+    return (dynamic_cast<PpuThreadContext*>(context()))->PpugetProcessPtr()->pTable->lookup(va) != nullptr;
 }
 
 void
@@ -265,8 +265,8 @@ RemoteGDB::Ppu32GdbRegCache::setRegs(ThreadContext *context_) const
 PpuBaseGdbRegCache*
 RemoteGDB::gdbRegs()
 {
-    // if (isRv32(context())) {
-    if (dynamic_cast<PpuSystem*>(system())->rv32()) {
+    if (isRv32(context())) {
+    // if (dynamic_cast<PpuFsWorkload*>(system())->rv32()) {
         return &regCache32;
     } else {
         return &regCache;
@@ -275,3 +275,4 @@ RemoteGDB::gdbRegs()
 }
 
 } // PpuISA
+

@@ -35,8 +35,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Steve Reinhardt
 
 # Simple test script
 #
@@ -52,6 +50,7 @@ import os
 import m5
 from m5.defines import buildEnv
 from m5.objects import *
+from m5.params import NULL
 from m5.util import addToPath, fatal, warn
 
 addToPath('../')
@@ -143,10 +142,7 @@ if options.bench:
 
     for app in apps:
         try:
-            if buildEnv['TARGET_ISA'] == 'alpha':
-                exec("workload = %s('alpha', 'tru64', '%s')" % (
-                        app, options.spec_input))
-            elif buildEnv['TARGET_ISA'] == 'arm':
+            if buildEnv['TARGET_ISA'] == 'arm':
                 exec("workload = %s('arm_%s', 'linux', '%s')" % (
                         app, options.arm_iset, options.spec_input))
             else:
@@ -176,7 +172,8 @@ np = options.num_cpus
 system = System(cpu = [CPUClass(cpu_id=i) for i in range(np)],
                 mem_mode = test_mem_mode,
                 mem_ranges = [AddrRange(options.mem_size)],
-                cache_line_size = options.cacheline_size)
+                cache_line_size = options.cacheline_size,
+                workload = NULL)
 
 if numThreads > 1:
     system.multi_thread = True
@@ -280,6 +277,10 @@ else:
     CacheConfig.config_cache(options, system)
     MemConfig.config_mem(options, system)
     config_filesystem(system, options)
+
+if options.wait_gdb:
+    for cpu in system.cpu:
+        cpu.wait_for_remote_gdb = True
 
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)

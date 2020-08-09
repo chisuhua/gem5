@@ -34,10 +34,10 @@ if not env['BUILD_PPU']:
     Return()
 
 SimObject('PpuSOCSystem.py')
-#SimObject('PpuSOCProcess.py')
+SimObject('PpuSOCProcess.py')
 #Source('arguments.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 Source('system.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
-#Source('process.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
+Source('process.cc', append={'CXXFLAGS': '-DBUILD_PPU'})
 #
 DebugFlag('PpuLoader')
 DebugFlag('PpuWorkItems')

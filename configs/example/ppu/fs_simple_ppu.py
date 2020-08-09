@@ -61,8 +61,14 @@ def create(options, args):
 
     ppsystem = PPSystem(cpu_class=cpu_class,
                           wfgdb=options.wait_for_gdb,
-                          mem_mode=mem_mode,
-                          bootloader=options.binary)
+                          mem_mode=mem_mode)
+
+    #ppsystem.workload = PpuBareMetal()
+    ppsystem.workload.bootloader = options.binary
+    #ppsystem.workload = workload
+    #ppsystem.workload.bootloader = options.binary
+
+    #workload.system = ppsystem
 
     # some required stuff
     mem_type = 'SimpleMemory'

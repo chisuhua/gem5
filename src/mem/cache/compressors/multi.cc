@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Daniel Carvalho
  */
 
 /** @file
@@ -105,7 +103,7 @@ MultiCompressor::compress(const uint64_t* cache_line, Cycles& comp_lat,
             if (lhs_cf == rhs_cf) {
                 // When they have similar compressed sizes, give the one
                 // with fastest decompression privilege
-                return lhs->decompLat < rhs->decompLat;
+                return lhs->decompLat > rhs->decompLat;
             }
             return lhs_cf < rhs_cf;
         }

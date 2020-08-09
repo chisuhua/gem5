@@ -37,10 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Dave Greene
- *          Nathan Binkert
  */
 
 #ifndef __CPU_SIMPLE_BASE_HH__
@@ -125,9 +121,6 @@ class BaseSimpleCPU : public BaseCPU
     Status _status;
 
   public:
-    Addr dbg_vtophys(Addr addr);
-
-
     void checkForInterrupts();
     void setupFetchRequest(const RequestPtr &req);
     void preExecute();

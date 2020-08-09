@@ -37,9 +37,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Boris Shingarov
  */
 
 /*
@@ -141,20 +138,22 @@
 #include <sstream>
 #include <string>
 
-#include "arch/vtophys.hh"
+// #include "arch/vtophys.hh"
 #include "base/intmath.hh"
 #include "base/socket.hh"
 #include "base/trace.hh"
 #include "config/the_isa.hh"
+#include "debug/PpuGDBAll.hh"
 #include "ppu/base.hh"
 #include "ppu/static_inst.hh"
 #include "ppu/thread_context.hh"
-#include "debug/PpuGDBAll.hh"
-#include "ppu_mem/fs_translating_port_proxy.hh"
+
+// #include "ppu_mem/fs_translating_port_proxy.hh"
 #include "mem/port.hh"
-#include "mem/se_translating_port_proxy.hh"
-#include "sim/full_system.hh"
+
+// #include "mem/se_translating_port_proxy.hh"
 #include "ppu_sim/system.hh"
+#include "sim/full_system.hh"
 
 using namespace std;
 using namespace TheISA;

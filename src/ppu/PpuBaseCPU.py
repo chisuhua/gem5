@@ -36,11 +36,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Nathan Binkert
-#          Rick Strong
-#          Andreas Hansson
-#          Glenn Bergmans
 
 from __future__ import print_function
 
@@ -63,12 +58,7 @@ from m5.objects.Platform import Platform
 
 default_tracer = ExeTracer()
 
-if buildEnv['TARGET_PPU_ISA'] == 'alpha':
-    from m5.objects.AlphaTLB import AlphaDTB as ArchDTB, AlphaITB as ArchITB
-    from m5.objects.AlphaInterrupts import AlphaInterrupts as ArchInterrupts
-    from m5.objects.AlphaISA import AlphaISA as ArchISA
-    ArchISAsParam = VectorParam.AlphaISA
-elif buildEnv['TARGET_PPU_ISA'] == 'sparc':
+if buildEnv['TARGET_PPU_ISA'] == 'sparc':
     from m5.objects.SparcTLB import SparcTLB as ArchDTB, SparcTLB as ArchITB
     from m5.objects.SparcInterrupts import SparcInterrupts as ArchInterrupts
     from m5.objects.SparcISA import SparcISA as ArchISA
@@ -204,7 +194,7 @@ class PpuBaseCPU(ClockedObject):
     dcache_port = MasterPort("Data Port")
     _cached_ports = ['icache_port', 'dcache_port']
 
-    if buildEnv['TARGET_PPU_ISA'] in ['x86', 'arm']:
+    if buildEnv['TARGET_PPU_ISA'] in ['x86', 'arm', 'riscv', 'ppu']:
         _cached_ports += ["itb.walker.port", "dtb.walker.port"]
 
     _uncached_slave_ports = []
@@ -239,7 +229,7 @@ class PpuBaseCPU(ClockedObject):
         self.icache_port = ic.cpu_side
         self.dcache_port = dc.cpu_side
         self._cached_ports = ['icache.mem_side', 'dcache.mem_side']
-        if buildEnv['TARGET_PPU_ISA'] in ['x86', 'arm']:
+        if buildEnv['TARGET_PPU_ISA'] in ['x86', 'arm', 'riscv', 'ppu']:
             if iwc and dwc:
                 self.itb_walker_cache = iwc
                 self.dtb_walker_cache = dwc
@@ -325,3 +315,7 @@ class PpuBaseCPU(ClockedObject):
             cpus_node.append(node)
 
         yield cpus_node
+
+    def __init__(self, **kwargs):
+        super(PpuBaseCPU, self).__init__(**kwargs)
+        self.power_state.possible_states=['ON', 'CLK_GATED', 'OFF']

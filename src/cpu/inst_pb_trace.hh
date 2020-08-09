@@ -33,8 +33,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Ali Saidi
  */
 
 #ifndef __CPU_INST_PB_TRACE_HH__
@@ -48,17 +46,6 @@
 #include "proto/protoio.hh"
 #include "sim/insttracer.hh"
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class ThreadContext;
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class ThreadContext;
 
 namespace ProtoMessage {

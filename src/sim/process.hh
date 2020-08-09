@@ -25,10 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Nathan Binkert
- *          Steve Reinhardt
- *          Brandon Potter
  */
 
 #ifndef __PROCESS_HH__
@@ -37,6 +33,7 @@
 #include <inttypes.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -53,35 +50,27 @@
 #include "sim/mem_state.hh"
 #include "sim/sim_object.hh"
 
+namespace Loader
+{
+class ObjectFile;
+} // namespace Loader
+
 struct ProcessParams;
 
 class EmulatedDriver;
-class ObjectFile;
+// TODO remote after merge class ObjectFile;
+class EmulationPageTable;
 class SyscallDesc;
 class SyscallReturn;
 class System;
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class ThreadContext;
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class ThreadContext;
 
 class Process : public SimObject
 {
-  protected:
-    void doSyscall(int64_t callnum, ThreadContext *tc, Fault *fault);
-
   public:
     Process(ProcessParams *params, EmulationPageTable *pTable,
-            ObjectFile *obj_file);
+            ::Loader::ObjectFile *obj_file);
 
     void serialize(CheckpointOut &cp) const override;
     void unserialize(CheckpointIn &cp) override;
@@ -90,6 +79,7 @@ class Process : public SimObject
     void initState() override;
     DrainState drain() override;
 
+    /* TODO remove after merge
     virtual void syscall(ThreadContext *tc, Fault *fault) = 0;
 
     virtual RegVal getSyscallArg(ThreadContext *tc, int &i) = 0;
@@ -102,6 +92,8 @@ class Process : public SimObject
     virtual void setSyscallReturn(ThreadContext *tc,
                                   SyscallReturn return_value) = 0;
     virtual SyscallDesc *getDesc(int callnum) = 0;
+    */
+    virtual void syscall(ThreadContext *tc, Fault *fault) { numSyscalls++; }
 
     inline uint64_t uid() { return _uid; }
     inline uint64_t euid() { return _euid; }
@@ -129,7 +121,7 @@ class Process : public SimObject
     void updateBias();
     Addr getBias();
     Addr getStartPC();
-    ObjectFile *getInterpreter();
+    ::Loader::ObjectFile *getInterpreter();
 
     // override of virtual SimObject method: register statistics
     void regStats() override;
@@ -138,7 +130,7 @@ class Process : public SimObject
 
     /// Attempt to fix up a fault at vaddr by allocating a page on the stack.
     /// @return Whether the fault has been fixed.
-    bool fixupStackFault(Addr vaddr);
+    bool fixupFault(Addr vaddr);
 
     // After getting registered with system object, tell process which
     // system-wide context id it is assigned.
@@ -202,7 +194,8 @@ class Process : public SimObject
 
     EmulationPageTable *pTable;
 
-    SETranslatingPortProxy initVirtMem; // memory proxy for initial image load
+    // Memory proxy for initial image load.
+    std::unique_ptr<SETranslatingPortProxy> initVirtMem;
 
     /**
      * Each instance of a Loader subclass will have a chance to try to load
@@ -229,16 +222,18 @@ class Process : public SimObject
          * error like file IO errors, etc., those should fail non-silently
          * with a panic or fail as normal.
          */
-        virtual Process *load(ProcessParams *params, ObjectFile *obj_file) = 0;
+        virtual Process *load(ProcessParams *params,
+                              ::Loader::ObjectFile *obj_file) = 0;
     };
 
     // Try all the Loader instance's "load" methods one by one until one is
     // successful. If none are, complain and fail.
-    static Process *tryLoaders(ProcessParams *params, ObjectFile *obj_file);
+    static Process *tryLoaders(ProcessParams *params,
+                               ::Loader::ObjectFile *obj_file);
 
-    ObjectFile *objFile;
-    MemoryImage image;
-    MemoryImage interpImage;
+    ::Loader::ObjectFile *objFile;
+    ::Loader::MemoryImage image;
+    ::Loader::MemoryImage interpImage;
     std::vector<std::string> argv;
     std::vector<std::string> envp;
     std::string executable;

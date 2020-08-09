@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Kevin Lim
  */
 
 #ifndef __PPU_THREAD_STATE_HH__
@@ -47,8 +45,8 @@ namespace Kernel {
 
 class Checkpoint;
 
-class PpuFSTranslatingPortProxy;
-class SETranslatingPortProxy;
+// class PpuFSTranslatingPortProxy;
+// class SETranslatingPortProxy;
 
 namespace PpuISA {
 /**

@@ -33,8 +33,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __ARCH_ARM_INSTS_MISC_HH__
@@ -53,7 +51,7 @@ class MrsOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MsrBase : public PredOp
@@ -80,7 +78,7 @@ class MsrImmOp : public MsrBase
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MsrRegOp : public MsrBase
@@ -94,7 +92,7 @@ class MsrRegOp : public MsrBase
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MrrcOp : public PredOp
@@ -113,7 +111,7 @@ class MrrcOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class McrrOp : public PredOp
@@ -132,7 +130,7 @@ class McrrOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class ImmOp : public PredOp
@@ -146,7 +144,7 @@ class ImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegImmOp : public PredOp
@@ -161,7 +159,7 @@ class RegImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegOp : public PredOp
@@ -176,7 +174,7 @@ class RegRegOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegOp : public PredOp
@@ -190,7 +188,7 @@ class RegOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegImmRegOp : public PredOp
@@ -207,7 +205,7 @@ class RegImmRegOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegRegImmOp : public PredOp
@@ -226,7 +224,7 @@ class RegRegRegImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegRegRegOp : public PredOp
@@ -245,7 +243,7 @@ class RegRegRegRegOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegRegOp : public PredOp
@@ -262,7 +260,7 @@ class RegRegRegOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegImmOp : public PredOp
@@ -280,7 +278,7 @@ class RegRegImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class MiscRegRegImmOp : public PredOp
@@ -298,7 +296,7 @@ class MiscRegRegImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegMiscRegImmOp : public PredOp
@@ -316,7 +314,7 @@ class RegMiscRegImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegImmImmOp : public PredOp
@@ -333,7 +331,7 @@ class RegImmImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegRegImmImmOp : public PredOp
@@ -352,7 +350,7 @@ class RegRegImmImmOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class RegImmRegShiftOp : public PredOp
@@ -373,7 +371,7 @@ class RegImmRegShiftOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 class UnknownOp : public PredOp
@@ -385,7 +383,7 @@ class UnknownOp : public PredOp
     {}
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -408,7 +406,7 @@ class McrMrcMiscInst : public ArmStaticInst
                   Trace::InstRecord *traceData) const override;
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 
 };
 
@@ -426,7 +424,7 @@ class McrMrcImplDefined : public McrMrcMiscInst
                   Trace::InstRecord *traceData) const override;
 
     std::string generateDisassembly(
-            Addr pc, const SymbolTable *symtab) const override;
+            Addr pc, const Loader::SymbolTable *symtab) const override;
 
 };
 

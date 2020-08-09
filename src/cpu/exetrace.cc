@@ -36,11 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Steve Reinhardt
- *          Lisa Hsu
- *          Nathan Binkert
- *          Steve Raasch
  */
 
 #include "cpu/exetrace.hh"
@@ -84,9 +79,10 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
     std::string sym_str;
     Addr sym_addr;
     Addr cur_pc = pc.instAddr();
-    if (debugSymbolTable && Debug::ExecSymbol &&
+    if (Loader::debugSymbolTable && Debug::ExecSymbol &&
             (!FullSystem || !inUserMode(thread)) &&
-            debugSymbolTable->findNearestSymbol(cur_pc, sym_str, sym_addr)) {
+            Loader::debugSymbolTable->findNearestSymbol(
+                cur_pc, sym_str, sym_addr)) {
         if (cur_pc != sym_addr)
             sym_str += csprintf("+%d",cur_pc - sym_addr);
         outs << "@" << sym_str;
@@ -107,7 +103,7 @@ Trace::ExeTracerRecord::traceInst(const StaticInstPtr &inst, bool ran)
     //
 
     outs << setw(26) << left;
-    outs << inst->disassemble(cur_pc, debugSymbolTable);
+    outs << inst->disassemble(cur_pc, Loader::debugSymbolTable);
 
     if (ran) {
         outs << " : ";

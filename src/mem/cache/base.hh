@@ -36,12 +36,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Erik Hallnor
- *          Steve Reinhardt
- *          Ron Dreslinski
- *          Andreas Hansson
- *          Nikos Nikoleris
  */
 
 /**
@@ -81,7 +75,9 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
-class BasePrefetcher;
+namespace Prefetcher {
+    class Base;
+}
 class MSHR;
 class MasterPort;
 class QueueEntry;
@@ -327,7 +323,7 @@ class BaseCache : public ClockedObject
     BaseCacheCompressor* compressor;
 
     /** Prefetcher */
-    BasePrefetcher *prefetcher;
+    Prefetcher::Base *prefetcher;
 
     /** To probe when a cache hit occurs */
     ProbePointArg<PacketPtr> *ppHit;
