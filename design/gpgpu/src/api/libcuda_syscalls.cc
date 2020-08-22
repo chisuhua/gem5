@@ -173,7 +173,7 @@ static int load_static_globals(GPUSyscallHelper *helper, symbol_table *symtab, u
 static int load_constants(GPUSyscallHelper *helper, symbol_table *symtab, addr_t min_gaddr);
 
 unsigned g_active_device = 0; // Active CUDA-enabled GPU that runs the code
-long long g_program_memory_start = 0xF0000000;
+long long g_program_memory_start = 0xC0000000;
 
 cudaError_t g_last_cudaError = cudaSuccess;
 
@@ -1437,6 +1437,9 @@ libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
 
         assert(!registering_allocation_ptr);
         registering_allocation_ptr = cudaGPU->allocateGPUMemory(registering_allocation_size);
+
+        // FIXME
+        g_program_memory_start = registering_allocation_ptr;
         int zero_allocation = 0;
         helper.setReturn((uint8_t*)&zero_allocation, sizeof(int));
     }

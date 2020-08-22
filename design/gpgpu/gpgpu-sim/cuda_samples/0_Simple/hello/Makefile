@@ -53,9 +53,10 @@ TARGET_SIZE := 64
 
 # internal flags
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcudart.so.10.0 -Xcompiler "-Wl\,-rpath=."
+NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
+#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
-NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
-#NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
 LDFLAGS     :=
@@ -142,6 +143,5 @@ run: build
 
 clean:
 	rm -f hello hello.o
-	#rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/hello
 
 clobber: clean

@@ -382,6 +382,7 @@ blockThread()
     // return to blocking (suspended) if the mutex has not yet been cleared.
     bool free_to_pass = *is_free;
     while(!free_to_pass) {
+        // cudaBlockThread,    /* 83 */
         m5_gpu(83, (uint64_t)&call_params);
         free_to_pass = *is_free;
 #ifdef __MEM_DEBUG__

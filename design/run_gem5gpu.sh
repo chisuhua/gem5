@@ -83,6 +83,7 @@ CMD="tests/test-progs/hello/bin/x86/linux/hello"
 CMD="tests/test-progs/threads/bin/X86/linux/threads"
 CMD="benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd"
 CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
+#CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/hello/hello"
 #CMD="/mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/backprop/gem5_fusion_backprop -o 16"
 #RUN=./build/X86_VI_hammer_GPU/gem5.debug
 #CMD="tests/test-progs/hello/bin/x86/linux/hello"
@@ -91,8 +92,14 @@ CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
 GDB=""
 ENV="-e design/gpgpu/gpgpu-sim/gem5.env"
 CMD="$CMD $ENV"
-echo $RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
-#$RUN $OPTION design/gpgpu/configs/se_fusion.py $GDB -c $CMD
+#CMD="$CMD --split"
+CMD="$CMD --ppu"
+
+CONF="design/cosim/configs/se_fusion.py"
+#CONF="design/gpgpu/configs/se_fusion.py"
+
+echo $RUN $OPTION $CONF $GDB -c $CMD
+$RUN $OPTION $CONF $GDB -c $CMD
 
 #$RUN $OPTION design/gpgpu/configs/my_fusion.py -c /mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd
 #$RUN $OPTION design/gpgpu/configs/ruby_random_test_fusion.py

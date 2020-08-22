@@ -10,9 +10,12 @@
 #scons build/RISCV/gem5.debug --verbose -j6
 #scons build/RISCV/gem5.debug
 
-#scons build/X86/gem5.opt --verbose BUILD_GPU=yes  PROTOCOL=GPU_VIPER_Baseline -j6
+
+#scons build/X86/gem5.debug --verbose BUILD_GPU=yes  PROTOCOL=GPU_VIPER_Baseline -j6
 #scons build/X86/gem5.debug --verbose -j6
 #scons build/X86_GPU/gem5.debug --verbose BUILD_GPU=yes PROTOCOL=GPU_VIPER_Baseline -j6
+
+#scons build/GPU_X86/gem5.debug --verbose -j6
 
 #scons build/HSAIL_X86/gem5.opt --verbose BUILD_GPU=yes  PROTOCOL=GPU_VIPER_Baseline -j6
 #scons build/HSAIL_X86/gem5.opt --verbose -j6

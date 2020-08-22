@@ -6,5 +6,9 @@ libcudart.so.9.2{
 };
 libcuda.so.1{
 };
+libcuda.so{
+};
 libcudart.so.10.0{
+};
+libcudart.so.10.1{
 };

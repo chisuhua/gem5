@@ -53,7 +53,9 @@ system.cpu.interrupts[0].int_master = system.membus.slave
 system.cpu.interrupts[0].int_slave = system.membus.master
 
 # Create a DDR3 memory controller and connect it to the membus
-system.mem_ctrl = DDR3_1600_8x8()
+#system.mem_ctrl = DDR3_1600_8x8()
+#system.mem_ctrl = SimpleMemory(latency="50ns", bandwidth="0GB/s")
+system.mem_ctrl = SimpleMemory(latency="0ns", bandwidth="0GB/s")
 system.mem_ctrl.range = system.mem_ranges[0]
 system.mem_ctrl.port = system.membus.master
 

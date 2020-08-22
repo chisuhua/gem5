@@ -59,7 +59,7 @@ system.membus = IOXBar(width = 16)
 system.physmem = SimpleMemory() # This must be instanciated, even if not needed
 
 #system.cpu = TrafficGen(config_file = "conf/tgen.cfg")
-system.cpu = Zephyr(max_loads = 1e5, progress_interval = 16,
+system.cpux = Zephyr(max_loads = 1e5, progress_interval = 16,
                     progress_check = 1e4,
                     size = 16,
                     block_addrmask = 1,
@@ -76,7 +76,7 @@ system.clk_domain = SrcClockDomain(clock = '1.5GHz',
     voltage_domain = VoltageDomain(voltage = '1V'))
 
 # Route the connections:
-system.cpu.port = system.membus.slave
+system.cpux.port = system.membus.slave
 system.system_port = system.membus.slave
 system.membus.master = system.physmem.port
 

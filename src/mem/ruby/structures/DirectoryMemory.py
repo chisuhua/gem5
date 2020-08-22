@@ -46,3 +46,12 @@ class RubyDirectoryMemory(SimObject):
     cxx_header = "mem/ruby/structures/DirectoryMemory.hh"
     addr_ranges = VectorParam.AddrRange(
         Parent.addr_ranges, "Address range this directory responds to")
+
+    ## below is added for gpgpu
+    version = Param.Int(0, "")
+    size = Param.MemorySize("0", "capacity in bytes")
+    # the default value of the numa high bit is specified in the command line
+    # option and must be passed into the directory memory sim object
+    numa_high_bit = Param.Int(0, "numa high bit")
+    device_directory = Param.Bool(False, "this directory is for a device")
+    device_segment_base = Param.UInt64(0, "device address base")

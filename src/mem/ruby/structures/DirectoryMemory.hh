@@ -72,6 +72,7 @@ class DirectoryMemory : public SimObject
      *
      */
     uint64_t mapAddressToLocalIdx(Addr address);
+    static uint64_t mapAddressToDirectoryVersion(Addr address);
 
     uint64_t getSize() { return m_size_bytes; }
 
@@ -101,6 +102,20 @@ class DirectoryMemory : public SimObject
      * this is all possible memory addresses.
      */
     const AddrRangeList addrRanges;
+    uint64_t m_size;  // it is used for parame->size for gpgpu compality
+
+    // copied from gpgpu
+    int m_version;
+
+    static int m_num_directories;
+    static int m_num_directories_bits;
+    static uint64_t m_total_size_bytes;
+    static int m_numa_high_bit;
+
+    bool m_device_directory;
+    static int m_num_dev_directories;
+    static int m_num_dev_directories_bits;
+    static uint64_t m_device_segment_base;
 };
 
 inline std::ostream&

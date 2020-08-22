@@ -196,18 +196,19 @@ def create_system(options, full_system, system, piobus = None, dma_ports = [],
     # Create a port proxy for connecting the system port. This is
     # independent of the protocol and kept in the protocol-agnostic
     # part (i.e. here).
-    sys_port_proxy = RubyPortProxy(ruby_system = ruby)
-    if piobus is not None:
-        sys_port_proxy.pio_master_port = piobus.slave
+    if options.ppu != None and (not options.ppu):
+        sys_port_proxy = RubyPortProxy(ruby_system = ruby)
+        if piobus is not None:
+            sys_port_proxy.pio_master_port = piobus.slave
 
-    # Give the system port proxy a SimObject parent without creating a
-    # full-fledged controller
-    system.sys_port_proxy = sys_port_proxy
+        # Give the system port proxy a SimObject parent without creating a
+        # full-fledged controller
+        system.sys_port_proxy = sys_port_proxy
 
-    # Connect the system port for loading of binaries etc
-    system.system_port = system.sys_port_proxy.slave
+        # Connect the system port for loading of binaries etc
+        system.system_port = system.sys_port_proxy.slave
 
-    setup_memory_controllers(system, ruby, dir_cntrls, options)
+        setup_memory_controllers(system, ruby, dir_cntrls, options)
 
     # Connect the cpu sequencers and the piobus
     if piobus != None:

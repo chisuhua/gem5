@@ -38,11 +38,14 @@ int main(int argc, char* argv[])
     size_t size = numElements * sizeof(float);
 
     int *h_A = (int *)malloc(size);
+    int *h_A_from_d = (int *)malloc(size);
 
     for (int i = 0; i < numElements; ++i)
     {
-        h_A[0] = i;
+        h_A[i] = i;
+        h_A_from_d[i] = 0;
     }
+
 
     int *d_A = NULL;
     err = cudaMalloc((void **)&d_A, size);
@@ -61,19 +64,28 @@ int main(int argc, char* argv[])
     }
 
 
-    for (int i = 0; i < numElements; ++i)
-    {
-        h_A[0] = i;
-    }
-
-    err = cudaMemcpy(h_A, d_A, size, cudaMemcpyDeviceToHost);
+    err = cudaMemcpy(h_A_from_d, d_A, size, cudaMemcpyDeviceToHost);
     if (err != cudaSuccess)
     {
         fprintf(stderr, "Failed to allocate device vector B (error code %s)!\n", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 
-    printf("Hello world!\n");
+    bool compare_ret = true;
+    for (int i = 0; i < numElements; ++i)
+    {
+        if (h_A[i] != h_A_from_d[i])
+        {
+            fprintf(stderr, "result compare failed on %d, expect %d, but get %d\n", i, h_A[i], h_A_from_d[i]);
+            compare_ret = false;
+        }
+    }
+
+    if (compare_ret != true) {
+        printf("compare failed!\n");
+    } else {
+        printf("compare pass!\n");
+    }
     return 0;
 }
 

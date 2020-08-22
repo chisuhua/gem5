@@ -1532,8 +1532,7 @@ static unsigned get_tex_datasize( const ptx_instruction *pI, ptx_thread_info *th
    kernel_info_t& k = thread->get_kernel();
 
    // FIXME
-   const struct textureInfo* texInfo = k.get_texinfo(texname);
-   // const struct textureInfo* texInfo = NULL; // k.get_texinfo(texname);
+   const struct textureInfo* texInfo = NULL; // k.get_texinfo(texname);
 
    unsigned data_size = texInfo->texel_size;
    return data_size;
@@ -2261,7 +2260,7 @@ bool g_cuda_launch_blocking = false;
 void read_sim_environment_variables()
 {
    ptx_debug = 0;
-   g_debug_execution = 0;
+   g_debug_execution = 3;
    g_interactive_debugger_enabled = false;
 
    char *mode = getenv("PTX_SIM_MODE_FUNC");
