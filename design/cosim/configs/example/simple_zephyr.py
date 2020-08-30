@@ -92,6 +92,8 @@ root.system.mem_mode = 'timing'
 
 m5.instantiate()
 #m5.simulate() #Simulation time specified later on commandline
-exit_event = m5.simulate(1000000000)
+exit_event = m5.simulate(1000000000000)
+#exit_event = m5.simulate()
+print(exit_event.getCause())
 if exit_event.getCause() != "simulate() limit reached":
     exit(1)

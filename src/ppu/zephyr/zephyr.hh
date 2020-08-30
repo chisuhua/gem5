@@ -90,8 +90,12 @@ class Zephyr : public ClockedObject
 
 
   protected:
+    // method call into zephyr os
     void zephyrOs();
-    EventFunctionWrapper zephyrOsEvent;
+
+    // method to tick interval
+    void zephyrOsTick();
+    EventFunctionWrapper zephyrOsTickEvent;
 
     void noRequest();
 
@@ -166,6 +170,7 @@ class Zephyr : public ClockedObject
     Addr uncacheAddr;
 
     Tick startTick;
+    Tick OSEventTick;
 
     const unsigned progressInterval;  // frequency of progress reports
     const Cycles progressCheck;

@@ -78,7 +78,8 @@ class DSOLibrary  {
   // load the library
   void Load(const std::string& name) {
     // lib_handle_ = dlopen(name.c_str(), RTLD_LAZY | RTLD_LOCAL);
-    lib_handle_ = dlopen(name.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    // lib_handle_ = dlopen(name.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    lib_handle_ = dlopen(name.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (lib_handle_ == nullptr) {
            printf("Failed to load dynamic shared library, error - %sn\n", dlerror());
        exit(-1);

@@ -44,6 +44,8 @@
 
 #include "ppu/zephyr/zephyr.hh"
 
+#include <atomic>
+
 #include "base/random.hh"
 #include "base/statistics.hh"
 #include "base/trace.hh"
@@ -92,7 +94,14 @@ std::function<T> GetFunction(void * func)
 
 static Zephyr *zephyr_instance;
 static EventQueue *event_queue;
+// static atomic<Tick> os_tick;
+static Tick os_tick;
 // __thread std::condition_variable data_read_done;
+//
+static std::mutex os_tick_mutex;
+atomic<bool> write_done_flag;
+atomic<bool> read_done_flag;
+
 
 
 // TODO add  api to exit sim
@@ -100,52 +109,78 @@ static void zephyr_api_exit_sim() {
     exitSimLoop("maximum number of loads reached");
 }
 
-static uint32_t zephyr_api_mem_access(Addr paddr, uint32_t data, bool cmd_read, bool uncacheable, bool functional) {
-    curEventQueue(event_queue);
+static Tick zephyr_api_mem_access(Addr paddr, uint32_t data, bool cmd_read, bool uncacheable, bool functional) {
+
     Tick duration_per_access = 2000;
-    Tick duration_progress = 100000;
+    Tick duration_progress = 10000;
     // Tick now = curTick() + duration_per_access;
     // Tick now = event_queue->nextTick() + duration_per_access;
-    Tick now = event_queue->getCurTick() + duration_per_access;
+    printf("Zephyr API MEM ACCESS %p, read=%d\n", (void*)paddr, cmd_read);
+    std::lock_guard<std::mutex> os_tick_lock(os_tick_mutex);
+    std::lock_guard<EventQueue> lock(*event_queue);
+    // event_queue->lock();
+    Tick now = event_queue->getCurTick();
+    now = (now > os_tick?  now  : os_tick) + duration_per_access;
 
     event_queue->schedule(new EventFunctionWrapper(
                 [cmd_read, data, uncacheable, paddr, functional]{
                     zephyr_instance->memAccess(cmd_read, data, uncacheable, paddr, functional);
                 }, zephyr_instance->name() + ".memAcess", true
                 ),
-            now, true);
+            now, false);
     now += duration_progress;
+    // event_queue->unlock();
+    return now;
+}
+/*
+static void wait_to_process(Tick now) {
     while (true) {
-        if (event_queue->empty()){
-            break;
-        }
-        Tick next = event_queue->nextTick();
+        // if (event_queue->empty()){
+        //    break;
+        // }
 
-        if (next <= now) {
-            event_queue->serviceEvents(now);
+        Tick queue_tick = event_queue->getCurTick();
+        printf("Waiting event_quene's Curtick %ld, till to tick %ld\n", (long)queue_tick, (long)now);
+        // waiting until tick large than now
+        if (queue_tick <= now) {
+            // event_queue->serviceEvents(now);
             //event_queue->serviceOne();
+            std::this_thread::yield();
             continue;
         }
+        printf("Waiting Done event_quene's Curtick %ld, till to tick %ld\n", (long)queue_tick, (long)now);
         break;
     }
-
-    if (cmd_read)
-        return zephyr_instance->referenceData[paddr];
-    return 0;
 }
+*/
+
+// void osSimulate() {
+// }
 
 static void zephyr_api_mem_write(Addr paddr, uint32_t data, bool uncacheable = false) {
-    zephyr_api_mem_access(paddr, data, false, uncacheable, false);
+    write_done_flag=false;
+    /*Tick now = */zephyr_api_mem_access(paddr, data, false, uncacheable, false);
+
+    // wait_to_process(now);
+    while (!write_done_flag) {
+        std::this_thread::yield();
+    }
 }
 
 static uint32_t zephyr_api_mem_read(Addr paddr, bool uncacheable = false) {
-    return zephyr_api_mem_access(paddr, 0, true, uncacheable, false);
+    read_done_flag=false;
+    /*Tick now = */zephyr_api_mem_access(paddr, 0, true, uncacheable, false);
+    // wait_to_process(now);
+    while (!read_done_flag) {
+        std::this_thread::yield();
+    }
+    return zephyr_instance->referenceData[paddr];
 }
 
 
 Zephyr::Zephyr(const Params *p)
     : ClockedObject(p),
-      zephyrOsEvent([this]{ zephyrOs(); }, name()),
+      zephyrOsTickEvent([this]{ zephyrOsTick(); }, name()),
       noRequestEvent([this]{ noRequest(); }, name()),
       noResponseEvent([this]{ noResponse(); }, name()),
       port("port", *this),
@@ -162,6 +197,7 @@ Zephyr::Zephyr(const Params *p)
       baseAddr2(p->base_addr2),
       uncacheAddr(p->uncache_addr),
       startTick(p->start_tick),
+      OSEventTick(p->os_event_tick),
       progressInterval(p->progress_interval),
       progressCheck(p->progress_check),
       nextProgressMessage(p->progress_interval),
@@ -183,20 +219,31 @@ Zephyr::Zephyr(const Params *p)
 
 
     zephyr_instance = this;
-    event_queue = _curEventQueue;
+    event_queue = new EventQueue("ZephyrOsEventQueue");
+    event_queue->setCurTick(0);
 
     fileName = p->file_name;
 
 
     // kick things into action
     // zephyrOs();
-    // schedule(zephyrOsEvent, curTick() + startTick);
+    schedule(zephyrOsTickEvent, curTick() + startTick);
     // schedule(noRequestEvent, clockEdge(progressCheck));
     zephyr_thread = new std::thread([this](){ this->zephyrOs();});
     zephyr_thread->detach();
 }
 
 static void* gem5api_vector[] = {(void*)zephyr_api_mem_read, (void*)zephyr_api_mem_write, (void*)zephyr_api_exit_sim};
+
+void Zephyr::zephyrOsTick()
+{
+    std::lock_guard<std::mutex> lock(os_tick_mutex);
+    os_tick = curTick();
+    DPRINTF(Zephyr, "ZephyrOS Tick %ld\n", os_tick);
+    event_queue->serviceEvents(os_tick);
+    schedule(zephyrOsTickEvent, os_tick + OSEventTick);
+
+}
 
 void Zephyr::zephyrOs()
 {
@@ -246,7 +293,7 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
 
     if (pkt->isError()) {
         if (!functional || !suppressFuncWarnings) {
-            warn("%s access failed at %#x\n",
+            panic("%s access failed at %#x\n",
                  pkt->isWrite() ? "Write" : "Read", req->getPaddr());
         }
     } else {
@@ -262,6 +309,7 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
 
             numReads++;
             numReadsStat++;
+            read_done_flag = true;
 
             if (numReads == (uint64_t)nextProgressMessage) {
                 ccprintf(cerr, "%s: completed %d read, %d write accesses @%d\n",
@@ -276,6 +324,7 @@ Zephyr::completeRequest(PacketPtr pkt, bool functional)
             referenceData[req->getPaddr()] = pkt_data[0];
             numWrites++;
             numWritesStat++;
+            write_done_flag = true;
         }
     }
 
@@ -316,13 +365,12 @@ Zephyr::memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, b
 
     // create a new request
     Request::Flags flags;
-    Tick t = curTick();
 
-    DPRINTF(Zephyr, "curTick in memAccess is %d", t);
-    // generate a unique address
+    // Tick t = curTick();
+    // DPRINTF(Zephyr, "Call in memAccess is curTick %ld\n", t);
 
-        // use the tester id as offset within the block for false sharing
-        // paddr = blockAlign(paddr);
+    // use the tester id as offset within the block for false sharing
+    // paddr = blockAlign(paddr);
 
     if (uncacheable) {
         flags.set(Request::UNCACHEABLE);
@@ -396,7 +444,7 @@ Zephyr::memAccess( bool cmd_read, uint32_t data, bool uncacheable, Addr paddr, b
     // Schedule noResponseEvent now if we are expecting a response
     if (!noResponseEvent.scheduled() && (outstandingAddrs.size() != 0))
     {
-        event_queue->schedule(&noResponseEvent, clockEdge(progressCheck));
+        schedule(&noResponseEvent, clockEdge(progressCheck));
         /*
         event_queue->schedule(new EventFunctionWrapper(
                 [](){

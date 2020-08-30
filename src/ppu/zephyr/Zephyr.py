@@ -65,6 +65,7 @@ class Zephyr(ClockedObject):
     base_addr2 = Param.Unsigned(0x400000, "base addr2 of memory region to test)")
     uncache_addr = Param.Unsigned(0x800000, "base addr of uncacheAddr memory region to test)")
     start_tick = Param.Counter(0x10000, "the tick to start test)")
+    os_event_tick = Param.Counter(0x10000, "the OS event tick)")
 
     # Determine how often to print progress messages and what timeout
     # to use for checking progress of both requests and responses

@@ -94,7 +94,10 @@ OPTION=""
 #
 
 
-CONF="configs/example/simple_zephyr.py"
+#CONF="configs/example/simple_zephyr.py"
+
+CONF="design/cosim/configs/example/simple_zephyr.py"
+
 #CMD="-b tests/test-progs/bare_metal/bin/riscv/bare_metal"
 
 echo $RUN $OPTION $CONF $CMD

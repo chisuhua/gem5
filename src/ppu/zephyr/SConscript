@@ -26,7 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Nathan Binkert
 
 Import('*')
 
@@ -34,5 +33,13 @@ Import('*')
 SimObject('Zephyr.py')
 
 Source('zephyr.cc')
+
+
+#Source('task_queue.cc')
+#runtime_include = Dir('./include').srcnode().abspath
+#runtime_src = Dir('./src').srcnode().abspath
+#env.Append(CPPPATH=[runtime_include, runtime_src])
+
+#Source('src/runtime/thread_pool.cc')
 
 DebugFlag('Zephyr')
