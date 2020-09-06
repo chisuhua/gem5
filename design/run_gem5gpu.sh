@@ -94,6 +94,7 @@ ENV="-e design/gpgpu/gpgpu-sim/gem5.env"
 CMD="$CMD $ENV"
 #CMD="$CMD --split"
 CMD="$CMD --ppu"
+CMD="$CMD --cp_firmware=/work_source/github/sim/zephyrproject/zephyr/build_posix_gem5/zephyr/zephyr.exe"
 
 CONF="design/cosim/configs/se_fusion.py"
 #CONF="design/gpgpu/configs/se_fusion.py"

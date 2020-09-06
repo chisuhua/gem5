@@ -99,9 +99,14 @@ CudaGPU::CudaGPU(const Params *p) :
     instBaseVaddr = 0;
     instBaseVaddrSet = false;
     localBaseVaddr = 0;
+
     // Reserve the 0 virtual page for NULL pointers
     virtualGPUBrkAddr = TheISA::PageBytes;
     physicalGPUBrkAddr = gpuMemoryRange.start();
+
+    // CP memory scratch
+    cpMemoryBaseVaddr = virtualGPUBrkAddr;
+    cpMemoryBaseSize = TheISA::PageBytes * 10;  // reserve 10 page for cp scratch
 
     // Initialize GPGPU-Sim
     theGPU = gem5_ptx_sim_init_perf(&streamManager, this, getConfigPath());
@@ -320,6 +325,11 @@ void CudaGPU::registerCudaCore(CudaCore *sc)
 void CudaGPU::registerCopyEngine(GPUCopyEngine *ce)
 {
     copyEngine = ce;
+}
+
+void CudaGPU::registerCommandProcessor(CommandProcessor *cp)
+{
+    commandProcessor = cp;
 }
 
 void CudaGPU::streamTick() {
@@ -751,6 +761,12 @@ Addr CudaGPU::allocateGPUMemory(size_t size)
 
     // TODO: When we need to reclaim memory, this will need to be modified
     // heavily to actually track allocated and free physical and virtual memory
+    bool alloc_cp_memory = false;
+
+    if (virtualGPUBrkAddr == cpMemoryBaseVaddr) {
+        alloc_cp_memory = true;
+        size += cpMemoryBaseSize;
+    }
 
     // Cache block align the allocation size
     size_t block_part = size % ruby->getBlockSizeBytes();
@@ -780,6 +796,10 @@ Addr CudaGPU::allocateGPUMemory(size_t size)
 
     DPRINTF(CudaGPUAccess, "Allocating %d bytes for GPU at address 0x%x\n", size, base_vaddr);
 
+    if (alloc_cp_memory) {
+        base_vaddr += cpMemoryBaseSize;
+        commandProcessor->active = true;
+    }
     return base_vaddr;
 }
 

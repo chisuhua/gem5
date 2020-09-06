@@ -99,8 +99,8 @@ static Tick os_tick;
 // __thread std::condition_variable data_read_done;
 //
 static std::mutex os_tick_mutex;
-atomic<bool> write_done_flag;
-atomic<bool> read_done_flag;
+static atomic<bool> write_done_flag;
+static atomic<bool> read_done_flag;
 
 
 

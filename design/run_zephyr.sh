@@ -59,6 +59,8 @@ RUN=./build/X86_VI_hammer/gem5.debug
 
 
 OPTION=""
+OPTION="--debug-flags=AddrRanges"
+
 #OPTION="${OPTION} --debug-file=run_debug.log"
 
 #OPTION=" --debug-file=run_debug.log"

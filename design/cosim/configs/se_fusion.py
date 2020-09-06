@@ -124,7 +124,7 @@ if options.cacheline_size != 128:
     print("Warning: Only block size currently supported is 128B. Defaulting to 128.")
     options.cacheline_size = 128
 
-#
+############################
 # Instantiate system
 #
 # add multip-thread to support clone syscall
@@ -158,8 +158,7 @@ system.cpu_clk_domain = SrcClockDomain(clock = options.cpu_clock,
 
 Simulation.setWorkCountOptions(system, options)
 
-#ipdb.set_trace()
-#
+############################
 # Create the GPU
 #
 system.gpu = GPUConfig.createGPU(options, gpu_mem_range)
@@ -185,11 +184,15 @@ if options.split or options.ppu:
         system.ruby.phys_mem = SimpleMemory(range=total_mem_range,
                                             in_addr_map=False)
 
+
+
 ###############################################
 # Connect CPU ports
 #
 # Create a memory bus, a system crossbar, in this case
-system.membus = SystemXBar()
+# IOXbar is non-coherent , it run little faster in gem5
+#system.membus = SystemXBar()
+system.membus = IOXBar()
 
 
 for (i, cpu) in enumerate(system.cpu):
@@ -218,7 +221,7 @@ system.mem_ctrl.port = system.membus.master
 # Connect the system up to the membus
 system.system_port = system.membus.slave
 
-#
+##########################
 # Connect GPU ports
 #
 GPUConfig.connectGPUPorts(system.gpu, system.ruby, system.membus, options)

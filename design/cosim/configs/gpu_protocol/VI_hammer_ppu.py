@@ -100,6 +100,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     #
     # Caches for GPU cores
     #
+    # the last one is for cp
     for i in xrange(options.num_sc):
         #
         # First create the Ruby objects associated with the GPU cores
@@ -149,6 +150,61 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
 
         l1_cntrl.mandatoryQueue = MessageBuffer()
 
+    #########################################################
+    #  CommandProcessor
+    #
+    #gpu_cp_cache = L1Cache(size = options.sc_l1_size,
+    #                        assoc = options.sc_l1_assoc,
+    #                        replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
+    #                        start_index_bit = block_size_bits,
+    #                        dataArrayBanks = 4,
+    #                        tagArrayBanks = 4,
+    #                        dataAccessLatency = 4,
+    #                        tagAccessLatency = 4,
+    #                        resourceStalls = False)
+
+    #gpu_cp_seq = RubySequencer(version = num_cpus + options.num_sc + 2,
+    #                        icache = gpu_cp_cache,
+    #                        dcache = gpu_cp_cache,
+    #                        max_outstanding_requests = options.gpu_l1_buf_depth,
+    #                        ruby_system = ruby_system,
+    #                        deadlock_threshold = 2000000)
+    #                        # connect_to_io = False)
+
+
+    #gpu_cp_l1_cntrl = GPUL1Cache_Controller(version = options.num_sc + 1,
+    #                              cache = gpu_cp_cache,
+    #                              l2_select_num_bits = l2_bits,
+    #                              num_l2 = options.num_l2caches,
+    #                              transitions_per_cycle = options.ports,
+    #                              issue_latency = l1_to_l2_noc_latency,
+    #                              number_of_TBEs = options.gpu_l1_buf_depth,
+    #                              ruby_system = ruby_system)
+
+    #gpu_cp_l1_cntrl.sequencer = gpu_cp_seq
+
+    #ruby_system.dev_cp_l1_cntrl = gpu_cp_l1_cntrl
+    ##exec("ruby_system.l1_cntrl_sp%02d = l1_cntrl" % i)
+    ##exec("ruby_system.dev_cp_l1_cntrl_sp%02d = gpu_cp_l1_cntrl" % i)
+
+    ## Connect the controller to the network
+    #gpu_cp_l1_cntrl.requestFromL1Cache = MessageBuffer(ordered = True)
+    #gpu_cp_l1_cntrl.requestFromL1Cache.master = ruby_system.network.slave
+    #gpu_cp_l1_cntrl.responseToL1Cache = MessageBuffer(ordered = True)
+    #gpu_cp_l1_cntrl.responseToL1Cache.slave = ruby_system.network.master
+
+    #gpu_cp_l1_cntrl.mandatoryQueue = MessageBuffer()
+
+    ##
+    ## Add controllers and sequencers to the appropriate lists
+    ##
+    #all_sequencers.append(gpu_cp_seq)
+    #gpu_cluster.add(gpu_cp_l1_cntrl)
+    ##gpu_cp_cluster.add(gpu_cp_l1_cntrl)
+
+
+    #######################################################
+    # l2
     l2_index_start = block_size_bits + l2_bits
     # Use L2 cache and interconnect latencies to calculate protocol latencies
     # NOTES! 1) These latencies are in Ruby (cache) cycles, not SM cycles
@@ -413,6 +469,80 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     #l1_pw_cntrl.mandatoryQueue = MessageBuffer()
     #l1_pw_cntrl.triggerQueue = MessageBuffer()
 
+    ############################################################################
+    # CommandProcessor
+    #       TODO:  the it is coherent with coherent memory region of host memory
+    # NOTE: We use a CPU L1 cache controller here. This is to facilatate MMU
+    #       cache coherence (as the GPU L1 caches are incoherent without flushes
+    #       The L2 cache is small, and should have minimal affect on the
+    #       performance (see Section 6.2 of Power et al. HPCA 2014).
+    cp_d_cache = L1Cache(size = options.pwc_size,
+                            assoc = 16, # 64 is fully associative @ 8kB
+                            replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
+                            start_index_bit = block_size_bits,
+                            resourceStalls = False)
+    # Small cache since CPU L1 requires I and D
+    cp_i_cache = L1Cache(size = "512B",
+                            assoc = 2,
+                            replacement_policy = TreePLRURP(), # LRUReplacementPolicy(),
+                            start_index_bit = block_size_bits,
+                            resourceStalls = False)
+
+    # Small cache since CPU L1 controller requires L2
+    l2_cache = L2Cache(size = "512B",
+                           assoc = 2,
+                           start_index_bit = block_size_bits,
+                           resourceStalls = False)
+
+    cp_l1_cntrl = L1Cache_Controller(version = num_cpus,
+                                  L1Icache = cp_i_cache,
+                                  L1Dcache = cp_d_cache,
+                                  L2cache = l2_cache,
+                                  send_evictions = False,
+                                  transitions_per_cycle = options.ports,
+                                  issue_latency = l1_to_l2_noc_latency,
+                                  cache_response_latency = 1,
+                                  l2_cache_hit_latency = 1,
+                                  number_of_TBEs = options.gpu_l1_buf_depth,
+                                  ruby_system = ruby_system)
+
+    cp_seq = RubySequencer(version = num_cpus + options.num_sc,
+                            icache = cp_d_cache, # Never get data from pwi_cache
+                            dcache = cp_d_cache,
+                            # TODO the latency value is setting in controller
+                            # dcache_hit_latency = 8,
+                            # icache_hit_latency = 8,
+                            max_outstanding_requests = options.gpu_l1_buf_depth,
+                            ruby_system = ruby_system,
+                            deadlock_threshold = 2000000)
+                            #connect_to_io = False)
+
+    cp_l1_cntrl.sequencer = cp_seq
+
+
+    ruby_system.cp_l1_cntrl = cp_l1_cntrl
+    all_sequencers.append(cp_seq)
+
+    gpu_cluster.add(cp_l1_cntrl)
+
+    # Connect the L1 controller and the network
+    # Connect the buffers from the controller to network
+    cp_l1_cntrl.requestFromCache = MessageBuffer()
+    cp_l1_cntrl.requestFromCache.master = ruby_system.network.slave
+    cp_l1_cntrl.responseFromCache = MessageBuffer()
+    cp_l1_cntrl.responseFromCache.master = ruby_system.network.slave
+    cp_l1_cntrl.unblockFromCache = MessageBuffer()
+    cp_l1_cntrl.unblockFromCache.master = ruby_system.network.slave
+
+    # Connect the buffers from the network to the controller
+    cp_l1_cntrl.forwardToCache = MessageBuffer()
+    cp_l1_cntrl.forwardToCache.slave = ruby_system.network.master
+    cp_l1_cntrl.responseToCache = MessageBuffer()
+    cp_l1_cntrl.responseToCache.slave = ruby_system.network.master
+
+    cp_l1_cntrl.mandatoryQueue = MessageBuffer()
+    cp_l1_cntrl.triggerQueue = MessageBuffer()
+
 
     ############################################################################
     # copy engine
@@ -468,8 +598,58 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     gpu_ce_cluster = Cluster(intBW = 10, extBW = 10)
     gpu_ce_cluster.add(gpu_ce_cntrl)
 
+    ############################################################################
+    # cp command processor
+    #
+    # Create controller for the copy engine to connect to in GPU cluster
+    # Cache is unused by controller
+    #
+    #gpu_cp_cluster = Cluster(intBW = 10, extBW = 10)
+
+
+    #gpu_cp_cache = L1Cache(size = "4096B", assoc = 2)
+    ## Setting options.cp_buffering = 0 indicates that the CE can use infinite
+    ## buffering, but we need to specify a finite number of outstandng accesses
+    ## that the CE is allowed to issue. Just set it to some large number greater
+    ## than normal memory access latencies to ensure that the sequencer could
+    ## service one access per cycle.
+    #max_out_reqs = options.cp_buffering
+    #if max_out_reqs == 0:
+    #    max_out_reqs = 1024
+
+    #gpu_cp_seq = RubySequencer(version = num_cpus + options.num_sc+2,
+    #                           icache = gpu_cp_cache,
+    #                           dcache = gpu_cp_cache,
+    #                           max_outstanding_requests = max_out_reqs,
+    #                           support_inst_reqs = False,
+    #                           ruby_system = ruby_system)
+    #                           #connect_to_io = False)
+
+    #gpu_cp_cntrl = GPUCopyDMA_Controller(version = 1,
+    #                              sequencer = gpu_cp_seq,
+    #                              transitions_per_cycle = options.ports,
+    #                              number_of_TBEs = max_out_reqs,
+    #                              ruby_system = ruby_system)
+
+    #gpu_cp_cntrl.responseFromDir = MessageBuffer(ordered = True)
+    #gpu_cp_cntrl.responseFromDir.slave = ruby_system.network.master
+    #gpu_cp_cntrl.reqToDirectory = MessageBuffer(ordered = True)
+    #gpu_cp_cntrl.reqToDirectory.master = ruby_system.network.slave
+
+    #gpu_cp_cntrl.mandatoryQueue = MessageBuffer()
+
+    #ruby_system.dev_cp_cntrl = gpu_cp_cntrl
+
+    #all_sequencers.append(gpu_cp_seq)
+
+    #gpu_cp_cluster.add(gpu_cp_cntrl)
+
+    ############################################################################
+    # complete cluster
+    #
     complete_cluster = Cluster(intBW = 32, extBW = 32)
     complete_cluster.add(gpu_ce_cluster)
+    #complete_cluster.add(gpu_cp_cluster)
     complete_cluster.add(cpu_cluster)
     complete_cluster.add(gpu_cluster)
 

@@ -32,7 +32,7 @@ import re
 from m5.objects import *
 from m5.util.convert import *
 from m5.util import fatal
-import pdb
+import ipdb
 
 gpu_core_configs = ['Fermi', 'Maxwell', 'Volta', 'Ppu']
 
@@ -53,6 +53,7 @@ def addGPUOptions(parser):
     parser.add_option("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
     parser.add_option("--access-host-pagetable", action="store_true", default=False)
     parser.add_option("--split", default=False, action="store_true", help="Use split CPU and GPU cache hierarchies instead of fusion")
+    parser.add_option("--ppu", default=False, action="store_true", help="Use PPU system cache hierarchies instead of fusion")
     parser.add_option("--dev-numa-high-bit", type="int", default=0, help="High order address bit to use for device NUMA mapping.")
     parser.add_option("--num-dev-dirs", default=1, help="In split hierarchies, number of device directories", type="int")
     parser.add_option("--gpu-mem-size", default='1GB', help="In split hierarchies, amount of GPU memory")
@@ -75,6 +76,8 @@ def configureMemorySpaces(options):
     cpu_mem_range = total_mem_range
     gpu_mem_range = total_mem_range
 
+    #ipdb.set_trace()
+
     if options.split:
         buildEnv['PROTOCOL'] +=  '_split'
         total_mem_size = total_mem_range.size()
@@ -85,12 +88,22 @@ def configureMemorySpaces(options):
         gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
         options.total_mem_size = long(gpu_segment_base_addr)
         cpu_mem_range = AddrRange(options.total_mem_size)
+    elif options.ppu:
+        buildEnv['PROTOCOL'] +=  '_ppu'
+        total_mem_size = total_mem_range.size()
+        gpu_mem_range = AddrRange(options.gpu_mem_size)
+        if gpu_mem_range.size() >= total_mem_size:
+            fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
+        gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
+        gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
+        options.total_mem_size = long(gpu_segment_base_addr)
+        cpu_mem_range = AddrRange(options.total_mem_size)
+        options.num_dev_dirs = 1
     else:
         buildEnv['PROTOCOL'] +=  '_fusion'
     return (cpu_mem_range, gpu_mem_range, total_mem_range)
 
 def parseGpgpusimConfig(options):
-    #pdb.set_trace()
     # parse gpgpu config file
     # First check the cwd, and if there is not a gpgpusim.config file there
     # Use the template found in gem5-fusion/configs/gpu_config and fill in
@@ -107,6 +120,8 @@ def parseGpgpusimConfig(options):
             gpgpusimconfig = os.path.join(os.path.dirname(__file__), 'gpu_config/gpgpusim.volta.config.template')
         elif options.gpu_core_config == 'Ppu':
             gpgpusimconfig = os.path.join(os.path.dirname(__file__), 'gpu_config/gpgpusim.ppu.config.template')
+            # TODO I set Ppu cluster to 1 for easy debug
+            options.clusters = 1
         usingTemplate = True
     if not os.path.isfile(gpgpusimconfig):
         fatal("Unable to find gpgpusim config (%s)" % gpgpusimconfig)
@@ -215,7 +230,7 @@ def createGPU(options, gpu_mem_range):
     # GPU. By making it a SrcClkDomain, it can be directly referenced to change
     # the GPU clock frequency dynamically.
     gpu = CudaGPU(warp_size = options.gpu_warp_size,
-                  manage_gpu_memory = options.split,
+                  manage_gpu_memory = options.split or options.ppu,
                   clk_domain = SrcClockDomain(clock = options.gpu_core_clock,
                                               voltage_domain = VoltageDomain()),
                   gpu_memory_range = gpu_mem_range)
@@ -339,6 +354,13 @@ def connectGPUPorts(gpu, ruby, options):
                   'engine\'s GPU-side port\n in split address space. Use ' \
                   'only one of --split or --access-host-pagetable')
 
+        # Tie copy engine ports to appropriate sequencers
+        gpu.ce.host_port = \
+            ruby._cpu_ports[options.num_cpus+options.num_sc].slave
+        gpu.ce.device_port = \
+            ruby._cpu_ports[options.num_cpus+options.num_sc+1].slave
+        gpu.ce.device_dtb.access_host_pagetable = False
+    elif options.ppu:
         # Tie copy engine ports to appropriate sequencers
         gpu.ce.host_port = \
             ruby._cpu_ports[options.num_cpus+options.num_sc].slave

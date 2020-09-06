@@ -29,18 +29,6 @@
 #ifndef __ARCH_GENERIC_PSEUDO_INST_HH__
 #define __ARCH_GENERIC_PSEUDO_INST_HH__
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
-
-class ThreadContext;
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
-
 class ThreadContext;
 
 namespace GenericISA {

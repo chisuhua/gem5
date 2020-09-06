@@ -70,6 +70,8 @@ def addGPUOptions(parser):
     parser.add_option("--gpu_tlb_assoc", type="int", default=0, help="Associativity of the L1 TLB. 0 implies infinite")
     parser.add_option("--pwc_size", default="8kB", help="Capacity of the page walk cache")
     parser.add_option("--ce_buffering", type="int", default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
+    parser.add_option("--cp_buffering", type="int", default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
+    parser.add_option("--cp_firmware", type="string", default=None, help="the zephyr firmware")
 
 def configureMemorySpaces(options):
     total_mem_range = AddrRange(options.total_mem_size)
@@ -252,7 +254,16 @@ def createGPU(options, gpu_mem_range):
                             for i in xrange(options.num_sc)]
 
     gpu.ce = GPUCopyEngine(driver_delay = 5000000,
-                           buffering = options.ce_buffering)
+                           buffering = options.ce_buffering
+                          )
+
+    # Create the zephyr os act as cp
+    gpu.cp = CommandProcessor(driver_delay = 5000,
+                           buffering = options.cp_buffering,
+                           start_tick = 20000,
+                           file_name=options.cp_firmware
+                          )
+    assert(options.cp_firmware != None)
 
     # The default setting for atoms_per_cache_subline is 3, consistent with
     # the Fermi microarchitecture. If the user wishes to set it differently,
@@ -312,6 +323,8 @@ def createGPU(options, gpu_mem_range):
             sc.lsq.data_tlb.access_host_pagetable = True
         gpu.ce.device_dtb.access_host_pagetable = True
         gpu.ce.host_dtb.access_host_pagetable = True
+        gpu.cp.device_dtb.access_host_pagetable = True
+        gpu.cp.host_dtb.access_host_pagetable = True
 
     gpu.shared_mem_delay = options.shMemDelay
     gpu.config_path = gpgpusimOptions
@@ -336,14 +349,17 @@ def connectGPUPorts(gpu, ruby, membus, options):
     # pagewalk cache and one copy engine cache (2 total), and the pagewalk cache
     # is indexed first. For split address space architectures, there are 2 copy
     # engine caches, and the host-side cache is indexed before the device-side.
-    #assert(len(ruby._cpu_ports) == num_cpus + options.num_sc + 2)
-    assert(len(ruby._cpu_ports) == num_cpus + options.num_sc + 1)
+
+    # for ppu two seq is for copy engine and cp
+    assert(len(ruby._cpu_ports) == num_cpus + options.num_sc + 2)
 
     # Initialize the MMU, connecting it to either the pagewalk cache port for
     # unified address space, or the copy engine's host-side sequencer port for
     # split address space architectures.
+    # FIXME for PPU how setup ce.host-side sequencer
+    # below I just set to ce.device-side sequencer, it is not correct_
     gpu.shader_mmu.setUpPagewalkers(32,
-                    ruby._cpu_ports[num_cpus+options.num_sc].slave,
+                    ruby._cpu_ports[num_cpus+options.num_sc+1].slave,
                     options.gpu_tlb_bypass_l1)
 
     if options.split:
@@ -369,8 +385,23 @@ def connectGPUPorts(gpu, ruby, membus, options):
         # the host-side is connect to Membus , and device-side is connect to caches
         #gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
         gpu.ce.host_port = membus.slave
-        gpu.ce.device_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
+        gpu.ce.device_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
         gpu.ce.device_dtb.access_host_pagetable = False
+
+        # Tie cp command processor ports to appropriate sequencers
+        gpu.cp.host_port = membus.slave
+        gpu.cp.device_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
+        gpu.cp.device_dtb.access_host_pagetable = False
+
+        #gpu.cp.pio_port = ruby._cpu_ports[num_cpus+options.num_sc].master
+        gpu.cp.pio_port = membus.master
+
+        #gpu.cp_membus = IOXBar()
+        #gpu.cp.port = gpu.cp_membus.slave
+
+        #gpu.cp_membus.master = membus.slave
+        #gpu.cp_membus.master = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+        #gpu.cp.device_dtb.access_host_pagetable = False
     else:
         # With a unified address space, tie both copy engine ports to the same
         # copy engine controller. NOTE: The copy engine is often unused in the

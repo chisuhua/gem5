@@ -42,6 +42,7 @@
 #include "gpgpu-sim/gpu-sim.h"
 #include "gpu/gpgpu-sim/cuda_core.hh"
 #include "gpu/copy_engine.hh"
+#include "gpu/command_processor.hh"
 #include "gpu/shader_mmu.hh"
 #include "params/CudaGPU.hh"
 #include "params/GPGPUSimComponentWrapper.hh"
@@ -277,6 +278,9 @@ class CudaGPU : public ClockedObject
     /// Pointer to the copy engine for this device
     GPUCopyEngine *copyEngine;
 
+    /// Pointer to the copy engine for this device
+    CommandProcessor *commandProcessor;
+
     /// Used to register this SPA with the system
     System *system;
 
@@ -429,6 +433,8 @@ class CudaGPU : public ClockedObject
     AddrRange gpuMemoryRange;
     Addr physicalGPUBrkAddr;
     Addr virtualGPUBrkAddr;
+    Addr cpMemoryBaseVaddr;
+    Addr cpMemoryBaseSize;
     std::map<Addr,size_t> allocatedGPUMemory;
 
     ShaderMMU *shaderMMU;
@@ -449,6 +455,7 @@ class CudaGPU : public ClockedObject
     /// Register devices callbacks
     void registerCudaCore(CudaCore *sc);
     void registerCopyEngine(GPUCopyEngine *ce);
+    void registerCommandProcessor(CommandProcessor *cp);
 
     /// Getter for whether we are using Ruby or GPGPU-Sim memory modeling
     CudaDeviceProperties *getDeviceProperties() { return &deviceProperties; }
