@@ -47,6 +47,7 @@
 #include "debug/CommandProcessor.hh"
 #include "gpu/command_processor.hh"
 #include "gpu/dso_library.hh"
+#include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "sim/sim_exit.hh"
 #include "sim/stats.hh"
 #include "sim/system.hh"

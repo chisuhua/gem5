@@ -51,7 +51,7 @@
 #include "base/statistics.hh"
 #include "cpu/translation.hh"
 #include "dev/io_device.hh"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
+// #include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "gpu/shader_tlb.hh"
 #include "mem/port.hh"
 #include "params/CommandProcessor.hh"
@@ -59,6 +59,7 @@
 #include "sim/eventq.hh"
 #include "sim/stats.hh"
 
+class CudaGPU;
 /**
  * The CommandProcessor class tests a cache coherent memory system by
  * generating false sharing and verifying the read data against a
