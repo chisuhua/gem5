@@ -1,6 +1,7 @@
 
 # cd gem5; and run this script
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 #OPTION="--debug-flags=ProtocolTrace,RubyTest"
 
 # used by gpgpu_sim/cuda-sim/ptx_parser.cc
@@ -55,7 +56,7 @@ OPTION="${OPTION} $2"
 
 
 #OPTION="${OPTION} --list-sim-objects"
-RUN=./build/X86_VI_hammer/gem5.debug
+RUN=$DIR/../build/X86_VI_hammer/gem5.debug
 
 
 
@@ -79,24 +80,31 @@ OPTION="${OPTION},AddrRanges"
 #OPTION="${OPTION},ShaderLSQ"
 OPTION="${OPTION} --debug-file=run_debug.log"
 
-CMD="tests/test-progs/hello/bin/x86/linux/hello"
-CMD="tests/test-progs/threads/bin/X86/linux/threads"
-CMD="benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd"
-CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
-#CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/hello/hello"
-#CMD="/mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/backprop/gem5_fusion_backprop -o 16"
-#RUN=./build/X86_VI_hammer_GPU/gem5.debug
-#CMD="tests/test-progs/hello/bin/x86/linux/hello"
+if [ ! "$1" = "" ]; then
+    CMD=$1
+    if [ ! "$2" = "" ]; then
+        CMD="$CMD $2"
+    fi
+else
+    CMD="$DIR/../tests/test-progs/hello/bin/x86/linux/hello"
+    CMD="$DIR/../tests/test-progs/threads/bin/X86/linux/threads"
+    CMD="$DIR/../benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd"
+    CMD="$DIR/../design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/vectorAdd/vectorAdd"
+    #CMD="design/gpgpu/gpgpu-sim/cuda_samples/0_Simple/hello/hello"
+    #CMD="/mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/backprop/gem5_fusion_backprop -o 16"
+    #RUN=./build/X86_VI_hammer_GPU/gem5.debug
+    #CMD="tests/test-progs/hello/bin/x86/linux/hello"
+fi
 
 #GDB="-w"
 GDB=""
-ENV="-e design/gpgpu/gpgpu-sim/gem5.env"
+ENV="-e $DIR/../design/gpgpu/gpgpu-sim/gem5.env"
 CMD="$CMD $ENV"
 #CMD="$CMD --split"
 CMD="$CMD --ppu"
 CMD="$CMD --cp_firmware=/work_source/github/sim/zephyrproject/zephyr/build_posix_gem5/zephyr/zephyr.exe"
 
-CONF="design/cosim/configs/se_fusion.py"
+CONF="$DIR/../design/cosim/configs/se_fusion.py"
 #CONF="design/gpgpu/configs/se_fusion.py"
 
 echo $RUN $OPTION $CONF $GDB -c $CMD

@@ -78,8 +78,14 @@ struct gpusyscall;
 typedef struct gpusyscall gpusyscall_t;
 typedef uint64_t (*cudaFunc_t)(ThreadContext *, gpusyscall_t *);
 
+// add for ppu_cmdio
+// struct ppusyscall;
+// typedef struct ppusyscall ppusyscall_t;
+typedef uint64_t (*ppu_cmdio_func_t)(ThreadContext *, gpusyscall_t *);
+
 #ifdef BUILD_PPU_SYSTEM
 extern cudaFunc_t gpgpu_funcs[];
+extern ppu_cmdio_func_t ppu_cmdio_funcs[];
 #endif
 
 using namespace std;
@@ -199,18 +205,6 @@ m5exit(ThreadContext *tc, Tick delay)
         exitSimLoop("m5_exit instruction encountered", 0, when, 0, true);
     }
 }
-
-#if 0
-void
-m5exit(PpuISA::ThreadContext *tc, Tick delay)
-{
-    DPRINTF(PseudoInst, "PseudoInst::m5exit(%i)\n", delay);
-    if (DistIface::readyToExit(delay)) {
-        Tick when = curTick() + delay * SimClock::Int::ns;
-        exitSimLoop("m5_exit instruction encountered", 0, when, 0, true);
-    }
-}
-#endif
 
 
 void
@@ -630,6 +624,22 @@ gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 
 #ifdef BUILD_PPU_SYSTEM
     gpgpu_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
+#else
+    warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", gpusysno);
+    return;
+#endif
+}
+
+void
+ppu_cmdio(ThreadContext *tc, uint64_t ppu_cmdio_sysno, uint64_t call_params)
+{
+    if (ppu_cmdio_sysno > 100) {
+        warn("Ignoring gpu syscall %d\n", ppu_cmdio_sysno);
+        return;
+    }
+
+#ifdef BUILD_PPU_SYSTEM
+    ppu_cmdio_funcs[ppu_cmdio_sysno](tc, (gpusyscall_t*)call_params);
 #else
     warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", gpusysno);
     return;

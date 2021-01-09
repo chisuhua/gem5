@@ -2514,6 +2514,9 @@ DRAMCtrl::Rank::updatePowerStats()
     // flush cmdList to DRAMPower
     flushCmdList();
 
+    // FIXME schi add it below calcWindowEnergy crash
+    return; 
+
     // Call the function that calculates window energy at intermediate update
     // events like at refresh, stats dump as well as at simulation exit.
     // Window starts at the last time the calcWindowEnergy function was called

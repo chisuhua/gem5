@@ -26,4 +26,21 @@ the app run in gem5 is debugged by remote gdb
 > file ....
 > target remote localhost:7000
 
+note: you can use design/.gdbini, which run gdb at design directory
+
+## m5 cpu/gpu api syscall
+
+the m5 op is define in util/m5/m5op_x85.S, which define the  x86 macro instruction.
+
+代码中插入, m5op::m5_gpu(__gpusysno, call_params)
+来执行
+
+插入后的代码，会被src/arch/x86/isa/decoder/two_byte_opcodes.isa
+解析后会调用相应的PseudoInst
+
+src/sim/PseudoInst.cc 定义了通过PseduoInst调用的系统调用，
+比如m5_gpu的系统调用
+PseudoInst::gpu
+
+其中调用的函数gpgpu_funcs
 

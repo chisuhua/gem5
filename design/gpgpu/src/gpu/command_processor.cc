@@ -365,10 +365,11 @@ CommandProcessor::CommandProcessor(const Params *p)
 
     fileName = p->file_name;
 
-
+    /*
     schedule(zephyrOsTickEvent, curTick() + startTick);
     zephyr_thread = new std::thread([this](){ this->zephyrOs();});
     zephyr_thread->detach();
+    */
 }
 
 static void* gem5api_vector[] = {(void*)zephyr_api_read_blob, (void*)zephyr_api_write_blob, (void*)zephyr_api_exit_sim};

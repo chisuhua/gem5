@@ -4,7 +4,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #TEST=$DIR/configs/tlm_master.py
-TEST=$DIR/configs/example/ppu/se_fusion.py
+#TEST=$DIR/configs/example/ppu/se_fusion.py
+TEST=$DIR/configs/example/ppu/simple_ppu.py
 #TEST=$DIR/configs/tlm_slave.py
 
 OPTION=""

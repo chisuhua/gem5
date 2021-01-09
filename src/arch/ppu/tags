@@ -1,0 +1,1485 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AMOTempReg	registers.hh	/^const int AMOTempReg = 32;$/;"	m	namespace:PpuISA
+AQ	insts/bitfields.hh	13;"	d
+AddrXlateMode	pagetable.hh	/^enum AddrXlateMode$/;"	g	namespace:PpuISA
+AddressFault	faults.hh	/^    AddressFault(const Addr addr, ExceptionCode code)$/;"	f	class:PpuISA::AddressFault
+AddressFault	faults.hh	/^class AddressFault : public PpuFault$/;"	c	namespace:PpuISA
+ArgumentRegs	process.cc	/^const std::vector<int> RiscvProcess::SyscallABI::ArgumentRegs = {$/;"	m	class:RiscvProcess::SyscallABI	file:
+ArgumentRegs	process.hh	/^        static const std::vector<int> ArgumentRegs;$/;"	m	struct:PpuProcess::SyscallABI
+ArgumentRegs	registers.hh	/^const std::vector<int> ArgumentRegs = {10, 11, 12, 13, 14, 15, 16, 17};$/;"	m	namespace:PpuISA
+AtomicGenericOp	insts/amo.hh	/^    AtomicGenericOp(T _a, std::function<void(T*,T)> _op)$/;"	f	class:PpuISA::AtomicGenericOp
+AtomicGenericOp	insts/amo.hh	/^class AtomicGenericOp : public TypedAtomicOpFunctor<T>$/;"	c	namespace:PpuISA
+AtomicMemOp	insts/amo.hh	/^class AtomicMemOp : public PpuMacroInst$/;"	c	namespace:PpuISA
+AtomicMemOpMicro	insts/amo.hh	/^class AtomicMemOpMicro : public PpuMicroInst$/;"	c	namespace:PpuISA
+BARE	pagetable.hh	/^    BARE = 0,$/;"	e	enum:PpuISA::AddrXlateMode
+BareMetal	bare_metal/fs_workload.cc	/^BareMetal::BareMetal(Params *p) : PpuISA::FsWorkload(p),$/;"	f	class:PpuISA::BareMetal
+BareMetal	bare_metal/fs_workload.hh	/^class BareMetal : public PpuISA::FsWorkload$/;"	c	namespace:PpuISA
+BreakpointFault	faults.hh	/^    BreakpointFault(const PCState &pc)$/;"	f	class:PpuISA::BreakpointFault
+BreakpointFault	faults.hh	/^class BreakpointFault : public PpuFault$/;"	c	namespace:PpuISA
+CLEAN	isa.hh	/^    CLEAN = 2,$/;"	e	enum:PpuISA::FPUStatus
+CSRData	registers.hh	/^const std::map<int, CSRMetadata> CSRData = {$/;"	m	namespace:PpuISA
+CSRIMM	insts/bitfields.hh	6;"	d
+CSRIndex	registers.hh	/^enum CSRIndex {$/;"	g	namespace:PpuISA
+CSRMasks	registers.hh	/^const std::map<int, RegVal> CSRMasks = {$/;"	m	namespace:PpuISA
+CSRMetadata	registers.hh	/^struct CSRMetadata$/;"	s	namespace:PpuISA
+CSROp	insts/standard.hh	/^    CSROp(const char *mnem, MachInst _machInst, OpClass __opClass)$/;"	f	class:PpuISA::CSROp
+CSROp	insts/standard.hh	/^class CSROp : public PpuStaticInst$/;"	c	namespace:PpuISA
+CSR_CYCLE	registers.hh	/^    CSR_CYCLE = 0xC00,$/;"	e	enum:PpuISA::CSRIndex
+CSR_DCSR	registers.hh	/^    CSR_DCSR = 0x7B0,$/;"	e	enum:PpuISA::CSRIndex
+CSR_DPC	registers.hh	/^    CSR_DPC = 0x7B1,$/;"	e	enum:PpuISA::CSRIndex
+CSR_DSCRATCH	registers.hh	/^    CSR_DSCRATCH = 0x7B2$/;"	e	enum:PpuISA::CSRIndex
+CSR_FCSR	registers.hh	/^    CSR_FCSR = 0x003,$/;"	e	enum:PpuISA::CSRIndex
+CSR_FFLAGS	registers.hh	/^    CSR_FFLAGS = 0x001,$/;"	e	enum:PpuISA::CSRIndex
+CSR_FRM	registers.hh	/^    CSR_FRM = 0x002,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER03	registers.hh	/^    CSR_HPMCOUNTER03 = 0xC03,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER04	registers.hh	/^    CSR_HPMCOUNTER04 = 0xC04,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER05	registers.hh	/^    CSR_HPMCOUNTER05 = 0xC05,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER06	registers.hh	/^    CSR_HPMCOUNTER06 = 0xC06,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER07	registers.hh	/^    CSR_HPMCOUNTER07 = 0xC07,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER08	registers.hh	/^    CSR_HPMCOUNTER08 = 0xC08,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER09	registers.hh	/^    CSR_HPMCOUNTER09 = 0xC09,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER10	registers.hh	/^    CSR_HPMCOUNTER10 = 0xC0A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER11	registers.hh	/^    CSR_HPMCOUNTER11 = 0xC0B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER12	registers.hh	/^    CSR_HPMCOUNTER12 = 0xC0C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER13	registers.hh	/^    CSR_HPMCOUNTER13 = 0xC0D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER14	registers.hh	/^    CSR_HPMCOUNTER14 = 0xC0E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER15	registers.hh	/^    CSR_HPMCOUNTER15 = 0xC0F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER16	registers.hh	/^    CSR_HPMCOUNTER16 = 0xC10,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER17	registers.hh	/^    CSR_HPMCOUNTER17 = 0xC11,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER18	registers.hh	/^    CSR_HPMCOUNTER18 = 0xC12,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER19	registers.hh	/^    CSR_HPMCOUNTER19 = 0xC13,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER20	registers.hh	/^    CSR_HPMCOUNTER20 = 0xC14,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER21	registers.hh	/^    CSR_HPMCOUNTER21 = 0xC15,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER22	registers.hh	/^    CSR_HPMCOUNTER22 = 0xC16,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER23	registers.hh	/^    CSR_HPMCOUNTER23 = 0xC17,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER24	registers.hh	/^    CSR_HPMCOUNTER24 = 0xC18,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER25	registers.hh	/^    CSR_HPMCOUNTER25 = 0xC19,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER26	registers.hh	/^    CSR_HPMCOUNTER26 = 0xC1A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER27	registers.hh	/^    CSR_HPMCOUNTER27 = 0xC1B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER28	registers.hh	/^    CSR_HPMCOUNTER28 = 0xC1C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER29	registers.hh	/^    CSR_HPMCOUNTER29 = 0xC1D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER30	registers.hh	/^    CSR_HPMCOUNTER30 = 0xC1E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_HPMCOUNTER31	registers.hh	/^    CSR_HPMCOUNTER31 = 0xC1F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_INSTRET	registers.hh	/^    CSR_INSTRET = 0xC02,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MARCHID	registers.hh	/^    CSR_MARCHID = 0xF12,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MCAUSE	registers.hh	/^    CSR_MCAUSE = 0x342,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MCOUNTEREN	registers.hh	/^    CSR_MCOUNTEREN = 0x306,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MCYCLE	registers.hh	/^    CSR_MCYCLE = 0xB00,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MEDELEG	registers.hh	/^    CSR_MEDELEG = 0x302,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MEPC	registers.hh	/^    CSR_MEPC = 0x341,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHARTID	registers.hh	/^    CSR_MHARTID = 0xF14,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER03	registers.hh	/^    CSR_MHPMCOUNTER03 = 0xC03,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER04	registers.hh	/^    CSR_MHPMCOUNTER04 = 0xC04,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER05	registers.hh	/^    CSR_MHPMCOUNTER05 = 0xC05,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER06	registers.hh	/^    CSR_MHPMCOUNTER06 = 0xC06,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER07	registers.hh	/^    CSR_MHPMCOUNTER07 = 0xC07,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER08	registers.hh	/^    CSR_MHPMCOUNTER08 = 0xC08,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER09	registers.hh	/^    CSR_MHPMCOUNTER09 = 0xC09,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER10	registers.hh	/^    CSR_MHPMCOUNTER10 = 0xC0A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER11	registers.hh	/^    CSR_MHPMCOUNTER11 = 0xC0B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER12	registers.hh	/^    CSR_MHPMCOUNTER12 = 0xC0C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER13	registers.hh	/^    CSR_MHPMCOUNTER13 = 0xC0D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER14	registers.hh	/^    CSR_MHPMCOUNTER14 = 0xC0E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER15	registers.hh	/^    CSR_MHPMCOUNTER15 = 0xC0F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER16	registers.hh	/^    CSR_MHPMCOUNTER16 = 0xC10,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER17	registers.hh	/^    CSR_MHPMCOUNTER17 = 0xC11,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER18	registers.hh	/^    CSR_MHPMCOUNTER18 = 0xC12,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER19	registers.hh	/^    CSR_MHPMCOUNTER19 = 0xC13,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER20	registers.hh	/^    CSR_MHPMCOUNTER20 = 0xC14,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER21	registers.hh	/^    CSR_MHPMCOUNTER21 = 0xC15,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER22	registers.hh	/^    CSR_MHPMCOUNTER22 = 0xC16,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER23	registers.hh	/^    CSR_MHPMCOUNTER23 = 0xC17,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER24	registers.hh	/^    CSR_MHPMCOUNTER24 = 0xC18,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER25	registers.hh	/^    CSR_MHPMCOUNTER25 = 0xC19,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER26	registers.hh	/^    CSR_MHPMCOUNTER26 = 0xC1A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER27	registers.hh	/^    CSR_MHPMCOUNTER27 = 0xC1B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER28	registers.hh	/^    CSR_MHPMCOUNTER28 = 0xC1C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER29	registers.hh	/^    CSR_MHPMCOUNTER29 = 0xC1D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER30	registers.hh	/^    CSR_MHPMCOUNTER30 = 0xC1E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMCOUNTER31	registers.hh	/^    CSR_MHPMCOUNTER31 = 0xC1F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT03	registers.hh	/^    CSR_MHPMEVENT03 = 0x323,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT04	registers.hh	/^    CSR_MHPMEVENT04 = 0x324,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT05	registers.hh	/^    CSR_MHPMEVENT05 = 0x325,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT06	registers.hh	/^    CSR_MHPMEVENT06 = 0x326,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT07	registers.hh	/^    CSR_MHPMEVENT07 = 0x327,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT08	registers.hh	/^    CSR_MHPMEVENT08 = 0x328,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT09	registers.hh	/^    CSR_MHPMEVENT09 = 0x329,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT10	registers.hh	/^    CSR_MHPMEVENT10 = 0x32A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT11	registers.hh	/^    CSR_MHPMEVENT11 = 0x32B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT12	registers.hh	/^    CSR_MHPMEVENT12 = 0x32C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT13	registers.hh	/^    CSR_MHPMEVENT13 = 0x32D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT14	registers.hh	/^    CSR_MHPMEVENT14 = 0x32E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT15	registers.hh	/^    CSR_MHPMEVENT15 = 0x32F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT16	registers.hh	/^    CSR_MHPMEVENT16 = 0x330,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT17	registers.hh	/^    CSR_MHPMEVENT17 = 0x331,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT18	registers.hh	/^    CSR_MHPMEVENT18 = 0x332,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT19	registers.hh	/^    CSR_MHPMEVENT19 = 0x333,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT20	registers.hh	/^    CSR_MHPMEVENT20 = 0x334,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT21	registers.hh	/^    CSR_MHPMEVENT21 = 0x335,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT22	registers.hh	/^    CSR_MHPMEVENT22 = 0x336,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT23	registers.hh	/^    CSR_MHPMEVENT23 = 0x337,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT24	registers.hh	/^    CSR_MHPMEVENT24 = 0x338,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT25	registers.hh	/^    CSR_MHPMEVENT25 = 0x339,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT26	registers.hh	/^    CSR_MHPMEVENT26 = 0x33A,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT27	registers.hh	/^    CSR_MHPMEVENT27 = 0x33B,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT28	registers.hh	/^    CSR_MHPMEVENT28 = 0x33C,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT29	registers.hh	/^    CSR_MHPMEVENT29 = 0x33D,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT30	registers.hh	/^    CSR_MHPMEVENT30 = 0x33E,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MHPMEVENT31	registers.hh	/^    CSR_MHPMEVENT31 = 0x33F,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MIDELEG	registers.hh	/^    CSR_MIDELEG = 0x303,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MIE	registers.hh	/^    CSR_MIE = 0x304,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MIMPID	registers.hh	/^    CSR_MIMPID = 0xF13,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MINSTRET	registers.hh	/^    CSR_MINSTRET = 0xB02,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MIP	registers.hh	/^    CSR_MIP = 0x344,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MISA	registers.hh	/^    CSR_MISA = 0x301,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MSCRATCH	registers.hh	/^    CSR_MSCRATCH = 0x340,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MSTATUS	registers.hh	/^    CSR_MSTATUS = 0x300,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MTVAL	registers.hh	/^    CSR_MTVAL = 0x343,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MTVEC	registers.hh	/^    CSR_MTVEC = 0x305,$/;"	e	enum:PpuISA::CSRIndex
+CSR_MVENDORID	registers.hh	/^    CSR_MVENDORID = 0xF11,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR00	registers.hh	/^    CSR_PMPADDR00 = 0x3B0,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR01	registers.hh	/^    CSR_PMPADDR01 = 0x3B1,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR02	registers.hh	/^    CSR_PMPADDR02 = 0x3B2,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR03	registers.hh	/^    CSR_PMPADDR03 = 0x3B3,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR04	registers.hh	/^    CSR_PMPADDR04 = 0x3B4,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR05	registers.hh	/^    CSR_PMPADDR05 = 0x3B5,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR06	registers.hh	/^    CSR_PMPADDR06 = 0x3B6,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR07	registers.hh	/^    CSR_PMPADDR07 = 0x3B7,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR08	registers.hh	/^    CSR_PMPADDR08 = 0x3B8,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR09	registers.hh	/^    CSR_PMPADDR09 = 0x3B9,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR10	registers.hh	/^    CSR_PMPADDR10 = 0x3BA,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR11	registers.hh	/^    CSR_PMPADDR11 = 0x3BB,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR12	registers.hh	/^    CSR_PMPADDR12 = 0x3BC,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR13	registers.hh	/^    CSR_PMPADDR13 = 0x3BD,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR14	registers.hh	/^    CSR_PMPADDR14 = 0x3BE,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPADDR15	registers.hh	/^    CSR_PMPADDR15 = 0x3BF,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPCFG0	registers.hh	/^    CSR_PMPCFG0 = 0x3A0,$/;"	e	enum:PpuISA::CSRIndex
+CSR_PMPCFG2	registers.hh	/^    CSR_PMPCFG2 = 0x3A2,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SATP	registers.hh	/^    CSR_SATP = 0x180,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SCAUSE	registers.hh	/^    CSR_SCAUSE = 0x142,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SCOUNTEREN	registers.hh	/^    CSR_SCOUNTEREN = 0x106,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SEDELEG	registers.hh	/^    CSR_SEDELEG = 0x102,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SEPC	registers.hh	/^    CSR_SEPC = 0x141,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SIDELEG	registers.hh	/^    CSR_SIDELEG = 0x103,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SIE	registers.hh	/^    CSR_SIE = 0x104,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SIP	registers.hh	/^    CSR_SIP = 0x144,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SSCRATCH	registers.hh	/^    CSR_SSCRATCH = 0x140,$/;"	e	enum:PpuISA::CSRIndex
+CSR_SSTATUS	registers.hh	/^    CSR_SSTATUS = 0x100,$/;"	e	enum:PpuISA::CSRIndex
+CSR_STVAL	registers.hh	/^    CSR_STVAL = 0x143,$/;"	e	enum:PpuISA::CSRIndex
+CSR_STVEC	registers.hh	/^    CSR_STVEC = 0x105,$/;"	e	enum:PpuISA::CSRIndex
+CSR_TDATA1	registers.hh	/^    CSR_TDATA1 = 0x7A1,$/;"	e	enum:PpuISA::CSRIndex
+CSR_TDATA2	registers.hh	/^    CSR_TDATA2 = 0x7A2,$/;"	e	enum:PpuISA::CSRIndex
+CSR_TDATA3	registers.hh	/^    CSR_TDATA3 = 0x7A3,$/;"	e	enum:PpuISA::CSRIndex
+CSR_TIME	registers.hh	/^    CSR_TIME = 0xC01,$/;"	e	enum:PpuISA::CSRIndex
+CSR_TSELECT	registers.hh	/^    CSR_TSELECT = 0x7A0,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UCAUSE	registers.hh	/^    CSR_UCAUSE = 0x042,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UEPC	registers.hh	/^    CSR_UEPC = 0x041,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UIE	registers.hh	/^    CSR_UIE = 0x004,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UIP	registers.hh	/^    CSR_UIP = 0x044,$/;"	e	enum:PpuISA::CSRIndex
+CSR_USCRATCH	registers.hh	/^    CSR_USCRATCH = 0x040,$/;"	e	enum:PpuISA::CSRIndex
+CSR_USTATUS	registers.hh	/^    CSR_USTATUS = 0x000,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UTVAL	registers.hh	/^    CSR_UTVAL = 0x043,$/;"	e	enum:PpuISA::CSRIndex
+CSR_UTVEC	registers.hh	/^    CSR_UTVEC = 0x005,$/;"	e	enum:PpuISA::CSRIndex
+CompRegOp	insts/compressed.hh	/^class CompRegOp : public PpuStaticInst$/;"	c	namespace:PpuISA
+CurThreadInfoImplemented	isa_traits.hh	/^const bool CurThreadInfoImplemented = false;$/;"	m	namespace:PpuISA
+CurThreadInfoReg	isa_traits.hh	/^const int CurThreadInfoReg = -1;$/;"	m	namespace:PpuISA
+DIRTY	isa.hh	/^    DIRTY = 3,$/;"	e	enum:PpuISA::FPUStatus
+Decoder	decoder.hh	/^    Decoder(ISA* isa=nullptr) { reset(); }$/;"	f	class:PpuISA::Decoder
+Decoder	decoder.hh	/^class Decoder$/;"	c	namespace:PpuISA
+EXTERNAL	faults.hh	/^    EXTERNAL$/;"	e	enum:PpuISA::InterruptCode
+EntryList	tlb.hh	/^    typedef std::list<TlbEntry *> EntryList;$/;"	t	class:PpuISA::TLB
+ExplicitCSRs	remote_gdb.hh	/^    static const int ExplicitCSRs = 4;$/;"	m	class:PpuISA::RemoteGDB
+ExtMachInst	types.hh	/^typedef uint64_t ExtMachInst;$/;"	t	namespace:PpuISA
+FFLAGS_MASK	registers.hh	/^const RegVal FFLAGS_MASK = (1 << FRM_OFFSET) - 1;$/;"	m	namespace:PpuISA
+FPUStatus	isa.hh	/^enum FPUStatus$/;"	g	namespace:PpuISA
+FRM_MASK	registers.hh	/^const RegVal FRM_MASK = 0x7;$/;"	m	namespace:PpuISA
+FRM_OFFSET	registers.hh	/^const off_t FRM_OFFSET = 5;$/;"	m	namespace:PpuISA
+FS_OFFSET	registers.hh	/^const off_t FS_OFFSET = 13;$/;"	m	namespace:PpuISA
+FUNCT12	insts/bitfields.hh	7;"	d
+FloatReg	registers.hh	/^typedef uint64_t FloatReg;$/;"	t	namespace:PpuISA
+FloatRegNames	registers.hh	/^const std::vector<std::string> FloatRegNames = {$/;"	m	namespace:PpuISA
+FramePointerReg	registers.hh	/^const int FramePointerReg = 8;$/;"	m	namespace:PpuISA
+FsWorkload	fs_workload.hh	/^    FsWorkload(PpuFsWorkloadParams *p) : Workload(p),$/;"	f	class:PpuISA::FsWorkload
+FsWorkload	fs_workload.hh	/^class FsWorkload : public Workload$/;"	c	namespace:PpuISA
+GlobalPointerReg	registers.hh	/^const int GlobalPointerReg = 3;$/;"	m	namespace:PpuISA
+GuestABI	process.hh	/^namespace GuestABI$/;"	n
+GuestByteOrder	isa_traits.hh	/^const ByteOrder GuestByteOrder = LittleEndianByteOrder;$/;"	m	namespace:PpuISA
+HasUnalignedMemAcc	isa_traits.hh	/^const bool HasUnalignedMemAcc = true;$/;"	m	namespace:PpuISA
+IMM5	insts/bitfields.hh	8;"	d
+IMM7	insts/bitfields.hh	9;"	d
+IMMSIGN	insts/bitfields.hh	10;"	d
+INITIAL	isa.hh	/^    INITIAL = 1,$/;"	e	enum:PpuISA::FPUStatus
+ISA	isa.cc	/^ISA::ISA(Params *p) : BaseISA(p)$/;"	f	class:PpuISA::ISA
+ISA	isa.hh	/^class ISA : public BaseISA$/;"	c	namespace:PpuISA
+ISA_EXT_C_MASK	registers.hh	/^const RegVal ISA_EXT_C_MASK = 1UL << ('c' - 'a');$/;"	m	namespace:PpuISA
+ISA_EXT_MASK	registers.hh	/^const RegVal ISA_EXT_MASK = mask(26);$/;"	m	namespace:PpuISA
+ISA_MXL_MASK	registers.hh	/^const RegVal ISA_MXL_MASK = 3ULL << MXL_OFFSET;$/;"	m	namespace:PpuISA
+IdleStartEvent	idle_event.hh	/^    IdleStartEvent(PpuPCEventScope *s, const std::string &desc, Addr addr)$/;"	f	class:IdleStartEvent
+IdleStartEvent	idle_event.hh	/^class IdleStartEvent : public PpuPCEvent$/;"	c
+IllegalFrmFault	faults.hh	/^    IllegalFrmFault(uint8_t r, const ExtMachInst inst)$/;"	f	class:PpuISA::IllegalFrmFault
+IllegalFrmFault	faults.hh	/^class IllegalFrmFault: public InstFault$/;"	c	namespace:PpuISA
+IllegalInstFault	faults.hh	/^    IllegalInstFault(std::string r, const ExtMachInst inst)$/;"	f	class:PpuISA::IllegalInstFault
+IllegalInstFault	faults.hh	/^class IllegalInstFault : public InstFault$/;"	c	namespace:PpuISA
+ImmOp	insts/standard.hh	/^    ImmOp(const char *mnem, MachInst _machInst, OpClass __opClass)$/;"	f	class:PpuISA::ImmOp
+ImmOp	insts/standard.hh	/^class ImmOp : public PpuStaticInst$/;"	c	namespace:PpuISA
+InstFault	faults.hh	/^    InstFault(FaultName n, const ExtMachInst inst)$/;"	f	class:PpuISA::InstFault
+InstFault	faults.hh	/^class InstFault : public PpuFault$/;"	c	namespace:PpuISA
+IntRegNames	registers.hh	/^const std::vector<std::string> IntRegNames = {$/;"	m	namespace:PpuISA
+InterruptCode	faults.hh	/^enum InterruptCode {$/;"	g	namespace:PpuISA
+InterruptFault	faults.hh	/^    InterruptFault(ExceptionCode c) : PpuFault("interrupt", true, c) {}$/;"	f	class:PpuISA::InterruptFault
+InterruptFault	faults.hh	/^    InterruptFault(int c) : InterruptFault(static_cast<ExceptionCode>(c)) {}$/;"	f	class:PpuISA::InterruptFault
+InterruptFault	faults.hh	/^class InterruptFault : public PpuFault$/;"	c	namespace:PpuISA
+Interrupts	interrupts.hh	/^    Interrupts(Params * p) : BaseInterrupts(p), cpu(nullptr), ip(0), ie(0) {}$/;"	f	class:PpuISA::Interrupts
+Interrupts	interrupts.hh	/^class Interrupts : public BaseInterrupts$/;"	c	namespace:PpuISA
+Kernel	kernel_stats.hh	/^namespace Kernel {$/;"	n	namespace:PpuISA
+LEVEL_BITS	pagetable.hh	/^const Addr LEVEL_BITS  = 9;$/;"	m	namespace:PpuISA
+LEVEL_MASK	pagetable.hh	/^const Addr LEVEL_MASK  = (1 << LEVEL_BITS) - 1;$/;"	m	namespace:PpuISA
+LittleEndianGuest	isa_traits.hh	/^namespace LittleEndianGuest {}$/;"	n
+Load	insts/mem.hh	/^class Load : public MemInst$/;"	c	namespace:PpuISA
+LoadReserved	insts/amo.hh	/^class LoadReserved : public PpuMacroInst$/;"	c	namespace:PpuISA
+LoadReservedMicro	insts/amo.hh	/^class LoadReservedMicro : public PpuMicroInst$/;"	c	namespace:PpuISA
+Loader	process.hh	/^namespace Loader$/;"	n
+LowerBitMask	decoder.cc	/^static const MachInst LowerBitMask = (1 << sizeof(MachInst) * 4) - 1;$/;"	m	namespace:PpuISA	file:
+MEI_MASK	registers.hh	/^const RegVal MEI_MASK = 1ULL << 11;$/;"	m	namespace:PpuISA
+MISA_MASK	registers.hh	/^const RegVal MISA_MASK = ISA_MXL_MASK | ISA_EXT_MASK;$/;"	m	namespace:PpuISA
+MISCREG_ARCHID	registers.hh	/^    MISCREG_ARCHID,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_CYCLE	registers.hh	/^    MISCREG_CYCLE,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_DCSR	registers.hh	/^    MISCREG_DCSR,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_DPC	registers.hh	/^    MISCREG_DPC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_DSCRATCH	registers.hh	/^    MISCREG_DSCRATCH,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_FCSR	registers.hh	/^    MISCREG_FCSR,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_FFLAGS	registers.hh	/^    MISCREG_FFLAGS,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_FRM	registers.hh	/^    MISCREG_FRM,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HARTID	registers.hh	/^    MISCREG_HARTID,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER03	registers.hh	/^    MISCREG_HPMCOUNTER03,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER04	registers.hh	/^    MISCREG_HPMCOUNTER04,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER05	registers.hh	/^    MISCREG_HPMCOUNTER05,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER06	registers.hh	/^    MISCREG_HPMCOUNTER06,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER07	registers.hh	/^    MISCREG_HPMCOUNTER07,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER08	registers.hh	/^    MISCREG_HPMCOUNTER08,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER09	registers.hh	/^    MISCREG_HPMCOUNTER09,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER10	registers.hh	/^    MISCREG_HPMCOUNTER10,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER11	registers.hh	/^    MISCREG_HPMCOUNTER11,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER12	registers.hh	/^    MISCREG_HPMCOUNTER12,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER13	registers.hh	/^    MISCREG_HPMCOUNTER13,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER14	registers.hh	/^    MISCREG_HPMCOUNTER14,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER15	registers.hh	/^    MISCREG_HPMCOUNTER15,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER16	registers.hh	/^    MISCREG_HPMCOUNTER16,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER17	registers.hh	/^    MISCREG_HPMCOUNTER17,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER18	registers.hh	/^    MISCREG_HPMCOUNTER18,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER19	registers.hh	/^    MISCREG_HPMCOUNTER19,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER20	registers.hh	/^    MISCREG_HPMCOUNTER20,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER21	registers.hh	/^    MISCREG_HPMCOUNTER21,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER22	registers.hh	/^    MISCREG_HPMCOUNTER22,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER23	registers.hh	/^    MISCREG_HPMCOUNTER23,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER24	registers.hh	/^    MISCREG_HPMCOUNTER24,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER25	registers.hh	/^    MISCREG_HPMCOUNTER25,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER26	registers.hh	/^    MISCREG_HPMCOUNTER26,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER27	registers.hh	/^    MISCREG_HPMCOUNTER27,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER28	registers.hh	/^    MISCREG_HPMCOUNTER28,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER29	registers.hh	/^    MISCREG_HPMCOUNTER29,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER30	registers.hh	/^    MISCREG_HPMCOUNTER30,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMCOUNTER31	registers.hh	/^    MISCREG_HPMCOUNTER31,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT03	registers.hh	/^    MISCREG_HPMEVENT03,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT04	registers.hh	/^    MISCREG_HPMEVENT04,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT05	registers.hh	/^    MISCREG_HPMEVENT05,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT06	registers.hh	/^    MISCREG_HPMEVENT06,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT07	registers.hh	/^    MISCREG_HPMEVENT07,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT08	registers.hh	/^    MISCREG_HPMEVENT08,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT09	registers.hh	/^    MISCREG_HPMEVENT09,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT10	registers.hh	/^    MISCREG_HPMEVENT10,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT11	registers.hh	/^    MISCREG_HPMEVENT11,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT12	registers.hh	/^    MISCREG_HPMEVENT12,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT13	registers.hh	/^    MISCREG_HPMEVENT13,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT14	registers.hh	/^    MISCREG_HPMEVENT14,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT15	registers.hh	/^    MISCREG_HPMEVENT15,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT16	registers.hh	/^    MISCREG_HPMEVENT16,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT17	registers.hh	/^    MISCREG_HPMEVENT17,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT18	registers.hh	/^    MISCREG_HPMEVENT18,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT19	registers.hh	/^    MISCREG_HPMEVENT19,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT20	registers.hh	/^    MISCREG_HPMEVENT20,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT21	registers.hh	/^    MISCREG_HPMEVENT21,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT22	registers.hh	/^    MISCREG_HPMEVENT22,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT23	registers.hh	/^    MISCREG_HPMEVENT23,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT24	registers.hh	/^    MISCREG_HPMEVENT24,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT25	registers.hh	/^    MISCREG_HPMEVENT25,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT26	registers.hh	/^    MISCREG_HPMEVENT26,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT27	registers.hh	/^    MISCREG_HPMEVENT27,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT28	registers.hh	/^    MISCREG_HPMEVENT28,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT29	registers.hh	/^    MISCREG_HPMEVENT29,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT30	registers.hh	/^    MISCREG_HPMEVENT30,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_HPMEVENT31	registers.hh	/^    MISCREG_HPMEVENT31,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_IE	registers.hh	/^    MISCREG_IE,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_IMPID	registers.hh	/^    MISCREG_IMPID,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_INSTRET	registers.hh	/^    MISCREG_INSTRET,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_IP	registers.hh	/^    MISCREG_IP,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_ISA	registers.hh	/^    MISCREG_ISA,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MCAUSE	registers.hh	/^    MISCREG_MCAUSE,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MCOUNTEREN	registers.hh	/^    MISCREG_MCOUNTEREN,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MEDELEG	registers.hh	/^    MISCREG_MEDELEG,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MEPC	registers.hh	/^    MISCREG_MEPC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MIDELEG	registers.hh	/^    MISCREG_MIDELEG,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MSCRATCH	registers.hh	/^    MISCREG_MSCRATCH,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MTVAL	registers.hh	/^    MISCREG_MTVAL,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_MTVEC	registers.hh	/^    MISCREG_MTVEC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR00	registers.hh	/^    MISCREG_PMPADDR00,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR01	registers.hh	/^    MISCREG_PMPADDR01,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR02	registers.hh	/^    MISCREG_PMPADDR02,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR03	registers.hh	/^    MISCREG_PMPADDR03,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR04	registers.hh	/^    MISCREG_PMPADDR04,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR05	registers.hh	/^    MISCREG_PMPADDR05,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR06	registers.hh	/^    MISCREG_PMPADDR06,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR07	registers.hh	/^    MISCREG_PMPADDR07,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR08	registers.hh	/^    MISCREG_PMPADDR08,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR09	registers.hh	/^    MISCREG_PMPADDR09,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR10	registers.hh	/^    MISCREG_PMPADDR10,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR11	registers.hh	/^    MISCREG_PMPADDR11,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR12	registers.hh	/^    MISCREG_PMPADDR12,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR13	registers.hh	/^    MISCREG_PMPADDR13,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR14	registers.hh	/^    MISCREG_PMPADDR14,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPADDR15	registers.hh	/^    MISCREG_PMPADDR15,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPCFG0	registers.hh	/^    MISCREG_PMPCFG0,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PMPCFG2	registers.hh	/^    MISCREG_PMPCFG2,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_PRV	registers.hh	/^    MISCREG_PRV = 0,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SATP	registers.hh	/^    MISCREG_SATP,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SCAUSE	registers.hh	/^    MISCREG_SCAUSE,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SCOUNTEREN	registers.hh	/^    MISCREG_SCOUNTEREN,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SEDELEG	registers.hh	/^    MISCREG_SEDELEG,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SEPC	registers.hh	/^    MISCREG_SEPC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SIDELEG	registers.hh	/^    MISCREG_SIDELEG,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_SSCRATCH	registers.hh	/^    MISCREG_SSCRATCH,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_STATUS	registers.hh	/^    MISCREG_STATUS,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_STVAL	registers.hh	/^    MISCREG_STVAL,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_STVEC	registers.hh	/^    MISCREG_STVEC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_TDATA1	registers.hh	/^    MISCREG_TDATA1,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_TDATA2	registers.hh	/^    MISCREG_TDATA2,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_TDATA3	registers.hh	/^    MISCREG_TDATA3,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_TIME	registers.hh	/^    MISCREG_TIME,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_TSELECT	registers.hh	/^    MISCREG_TSELECT,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_UCAUSE	registers.hh	/^    MISCREG_UCAUSE,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_UEPC	registers.hh	/^    MISCREG_UEPC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_USCRATCH	registers.hh	/^    MISCREG_USCRATCH,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_UTVAL	registers.hh	/^    MISCREG_UTVAL,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_UTVEC	registers.hh	/^    MISCREG_UTVEC,$/;"	e	enum:PpuISA::MiscRegIndex
+MISCREG_VENDORID	registers.hh	/^    MISCREG_VENDORID,$/;"	e	enum:PpuISA::MiscRegIndex
+MI_MASK	registers.hh	/^const RegVal MI_MASK = MEI_MASK | SEI_MASK | UEI_MASK |$/;"	m	namespace:PpuISA
+MSI_MASK	registers.hh	/^const RegVal MSI_MASK = 1ULL << 3;$/;"	m	namespace:PpuISA
+MSTATUS_MASK	registers.hh	/^const RegVal MSTATUS_MASK = STATUS_SD_MASK | STATUS_SXL_MASK |$/;"	m	namespace:PpuISA
+MTI_MASK	registers.hh	/^const RegVal MTI_MASK = 1ULL << 7;$/;"	m	namespace:PpuISA
+MXL_OFFSET	registers.hh	/^const off_t MXL_OFFSET = (sizeof(uint64_t) * 8 - 2);$/;"	m	namespace:PpuISA
+MachInst	types.hh	/^typedef uint32_t MachInst;$/;"	t	namespace:PpuISA
+MaxMiscDestRegs	registers.hh	/^const int MaxMiscDestRegs = 2;$/;"	m	namespace:PpuISA
+MemFenceMicro	insts/amo.hh	/^    MemFenceMicro(ExtMachInst _machInst, OpClass __opClass)$/;"	f	class:PpuISA::MemFenceMicro
+MemFenceMicro	insts/amo.hh	/^class MemFenceMicro : public PpuMicroInst$/;"	c	namespace:PpuISA
+MemInst	insts/mem.hh	/^    MemInst(const char *mnem, ExtMachInst _machInst, OpClass __opClass)$/;"	f	class:PpuISA::MemInst
+MemInst	insts/mem.hh	/^class MemInst : public PpuStaticInst$/;"	c	namespace:PpuISA
+MiscReg	registers.hh	/^typedef uint64_t MiscReg;$/;"	t	namespace:PpuISA
+MiscRegIndex	registers.hh	/^enum MiscRegIndex {$/;"	g	namespace:PpuISA
+MiscRegNames	isa.cc	/^const std::array<const char *, NumMiscRegs> M5_VAR_USED MiscRegNames = {{$/;"	m	namespace:PpuISA	file:
+NUM_MISCREGS	registers.hh	/^    NUM_MISCREGS$/;"	e	enum:PpuISA::MiscRegIndex
+NUM_MMAP_FLAGS	linux/linux.hh	/^    static const unsigned NUM_MMAP_FLAGS;$/;"	m	class:PpuLinux32
+NUM_MMAP_FLAGS	linux/linux.hh	/^    static const unsigned NUM_MMAP_FLAGS;$/;"	m	class:PpuLinux64
+NUM_OPEN_FLAGS	linux/linux.hh	/^    static const int NUM_OPEN_FLAGS;$/;"	m	class:PpuLinux32
+NUM_OPEN_FLAGS	linux/linux.hh	/^    static const int NUM_OPEN_FLAGS;$/;"	m	class:PpuLinux64
+NumCCRegs	registers.hh	/^const int NumCCRegs = 0;$/;"	m	namespace:PpuISA
+NumCSRs	remote_gdb.hh	/^    static const int NumCSRs = 4096;$/;"	m	class:PpuISA::RemoteGDB
+NumFloatRegs	registers.hh	/^const int NumFloatRegs = 32;$/;"	m	namespace:PpuISA
+NumGDBRegs	remote_gdb.hh	/^    static const int NumGDBRegs = 4162;$/;"	m	class:PpuISA::RemoteGDB
+NumIntArchRegs	registers.hh	/^const int NumIntArchRegs = 32;$/;"	m	namespace:PpuISA
+NumIntRegs	registers.hh	/^const int NumIntRegs = NumIntArchRegs + NumMicroIntRegs;$/;"	m	namespace:PpuISA
+NumMicroIntRegs	registers.hh	/^const int NumMicroIntRegs = 1;$/;"	m	namespace:PpuISA
+NumMiscRegs	registers.hh	/^const int NumMiscRegs = NUM_MISCREGS;$/;"	m	namespace:PpuISA
+NumVecElemPerVecReg	registers.hh	/^constexpr unsigned NumVecElemPerVecReg = ::DummyNumVecElemPerVecReg;$/;"	m	namespace:PpuISA
+NumVecPredRegs	registers.hh	/^const int NumVecPredRegs = 1;  \/\/ Not applicable to RISC-V$/;"	m	namespace:PpuISA
+NumVecRegs	registers.hh	/^const unsigned NumVecRegs = 1;  \/\/ Not applicable to RISC-V$/;"	m	namespace:PpuISA
+OFF	isa.hh	/^    OFF = 0,$/;"	e	enum:PpuISA::FPUStatus
+OPCODE	insts/bitfields.hh	11;"	d
+PCState	types.hh	/^    PCState() : UPCState() { _compressed = false; _rv32 = false; }$/;"	f	class:PpuISA::PCState
+PCState	types.hh	/^    PCState(Addr val) : UPCState(val) { _compressed = false; _rv32 = false; }$/;"	f	class:PpuISA::PCState
+PCState	types.hh	/^class PCState : public GenericISA::UPCState<MachInst>$/;"	c	namespace:PpuISA
+PRV_M	isa.hh	/^    PRV_M = 3$/;"	e	enum:PpuISA::PrivilegeMode
+PRV_S	isa.hh	/^    PRV_S = 1,$/;"	e	enum:PpuISA::PrivilegeMode
+PRV_U	isa.hh	/^    PRV_U = 0,$/;"	e	enum:PpuISA::PrivilegeMode
+PageBytes	isa_traits.hh	/^const Addr PageBytes = ULL(1) << PageShift;$/;"	m	namespace:PpuISA
+PageShift	isa_traits.hh	/^const Addr PageShift = 12;$/;"	m	namespace:PpuISA
+Params	bare_metal/fs_workload.hh	/^    typedef PpuBareMetalParams Params;$/;"	t	class:PpuISA::BareMetal
+Params	interrupts.hh	/^    typedef PpuInterruptsParams Params;$/;"	t	class:PpuISA::Interrupts
+Params	isa.hh	/^    typedef PpuISAParams Params;$/;"	t	class:PpuISA::ISA
+Params	pagetable_walker.hh	/^        typedef PpuPagetableWalkerParams Params;$/;"	t	class:PpuISA::Walker
+Params	tlb.hh	/^    typedef PpuTLBParams Params;$/;"	t	class:PpuISA::TLB
+Ppu32GdbRegCache	remote_gdb.hh	/^    class Ppu32GdbRegCache : public PpuBaseGdbRegCache$/;"	c	class:PpuISA::RemoteGDB
+PpuBareMetal	PpuFsWorkload.py	/^class PpuBareMetal(PpuFsWorkload):$/;"	c
+PpuFault	faults.hh	/^    PpuFault(FaultName n, bool i, ExceptionCode c)$/;"	f	class:PpuISA::PpuFault
+PpuFault	faults.hh	/^class PpuFault : public FaultBase$/;"	c	namespace:PpuISA
+PpuFsWorkload	PpuFsWorkload.py	/^class PpuFsWorkload(Workload):$/;"	c
+PpuGdbRegCache	remote_gdb.hh	/^    class PpuGdbRegCache : public PpuBaseGdbRegCache$/;"	c	class:PpuISA::RemoteGDB
+PpuISA	PpuISA.py	/^class PpuISA(BaseISA):$/;"	c
+PpuISA	bare_metal/fs_workload.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	bare_metal/fs_workload.hh	/^namespace PpuISA$/;"	n
+PpuISA	decoder.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	decoder.hh	/^namespace PpuISA$/;"	n
+PpuISA	faults.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	faults.hh	/^namespace PpuISA$/;"	n
+PpuISA	fs_workload.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/amo.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	insts/amo.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/compressed.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	insts/compressed.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/mem.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	insts/mem.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/pseudo.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/standard.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	insts/standard.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/static_inst.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	insts/static_inst.hh	/^namespace PpuISA$/;"	n
+PpuISA	insts/unknown.hh	/^namespace PpuISA$/;"	n
+PpuISA	interrupts.hh	/^namespace PpuISA {$/;"	n
+PpuISA	isa.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	isa.hh	/^namespace PpuISA$/;"	n
+PpuISA	isa_traits.hh	/^namespace PpuISA$/;"	n
+PpuISA	kernel_stats.hh	/^namespace PpuISA {$/;"	n
+PpuISA	locked_mem.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	locked_mem.hh	/^namespace PpuISA$/;"	n
+PpuISA	microcode_rom.hh	/^namespace PpuISA$/;"	n
+PpuISA	pagetable.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	pagetable.hh	/^namespace PpuISA {$/;"	n
+PpuISA	pagetable_walker.cc	/^namespace PpuISA {$/;"	n	file:
+PpuISA	pagetable_walker.hh	/^namespace PpuISA$/;"	n
+PpuISA	pra_constants.hh	/^namespace PpuISA$/;"	n
+PpuISA	pseudo_inst.hh	/^namespace PpuISA$/;"	n
+PpuISA	registers.hh	/^namespace PpuISA {$/;"	n
+PpuISA	remote_gdb.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	remote_gdb.hh	/^namespace PpuISA$/;"	n
+PpuISA	stacktrace.cc	/^namespace PpuISA {$/;"	n	file:
+PpuISA	stacktrace.hh	/^namespace PpuISA$/;"	n
+PpuISA	tlb.hh	/^namespace PpuISA {$/;"	n
+PpuISA	types.hh	/^namespace PpuISA$/;"	n
+PpuISA	utility.cc	/^namespace PpuISA$/;"	n	file:
+PpuISA	utility.hh	/^namespace PpuISA$/;"	n
+PpuISA	vtophys.hh	/^namespace PpuISA {$/;"	n
+PpuInterrupts	PpuInterrupts.py	/^class PpuInterrupts(BaseInterrupts):$/;"	c
+PpuLinux	linux/linux.hh	/^class PpuLinux : public Linux$/;"	c
+PpuLinux32	linux/linux.hh	/^class PpuLinux32 : public PpuLinux$/;"	c
+PpuLinux64	linux/linux.hh	/^class PpuLinux64 : public PpuLinux$/;"	c
+PpuLinuxObjectFileLoader	linux/process.cc	/^class PpuLinuxObjectFileLoader : public PpuSOCProcess::Loader$/;"	c	namespace:__anon9	file:
+PpuLinuxProcess32	linux/process.cc	/^PpuLinuxProcess32::PpuLinuxProcess32(PpuSOCProcessParams * params,$/;"	f	class:PpuLinuxProcess32
+PpuLinuxProcess32	linux/process.hh	/^class PpuLinuxProcess32 : public PpuProcess32$/;"	c
+PpuLinuxProcess64	linux/process.cc	/^PpuLinuxProcess64::PpuLinuxProcess64(PpuSOCProcessParams * params,$/;"	f	class:PpuLinuxProcess64
+PpuLinuxProcess64	linux/process.hh	/^class PpuLinuxProcess64 : public PpuProcess64$/;"	c
+PpuMacroInst	insts/static_inst.hh	/^    PpuMacroInst(const char *mnem, ExtMachInst _machInst,$/;"	f	class:PpuISA::PpuMacroInst
+PpuMacroInst	insts/static_inst.hh	/^class PpuMacroInst : public PpuStaticInst$/;"	c	namespace:PpuISA
+PpuMicroInst	insts/static_inst.hh	/^    PpuMicroInst(const char *mnem, ExtMachInst _machInst,$/;"	f	class:PpuISA::PpuMicroInst
+PpuMicroInst	insts/static_inst.hh	/^class PpuMicroInst : public PpuStaticInst$/;"	c	namespace:PpuISA
+PpuPagetableWalker	PpuTLB.py	/^class PpuPagetableWalker(ClockedObject):$/;"	c
+PpuProcess	process.cc	/^PpuProcess::PpuProcess(PpuSOCProcessParams *params, ::Loader::ObjectFile *objFile) :$/;"	f	class:PpuProcess
+PpuProcess	process.hh	/^class PpuProcess : public PpuSOCProcess$/;"	c
+PpuProcess32	process.cc	/^PpuProcess32::PpuProcess32(PpuSOCProcessParams *params, ::Loader::ObjectFile *objFile) :$/;"	f	class:PpuProcess32
+PpuProcess32	process.hh	/^class PpuProcess32 : public PpuProcess$/;"	c
+PpuProcess64	process.cc	/^PpuProcess64::PpuProcess64(PpuSOCProcessParams *params, ::Loader::ObjectFile *objFile) :$/;"	f	class:PpuProcess64
+PpuProcess64	process.hh	/^class PpuProcess64 : public PpuProcess$/;"	c
+PpuStaticInst	insts/static_inst.hh	/^class PpuStaticInst : public StaticInst$/;"	c	namespace:PpuISA
+PpuTLB	PpuTLB.py	/^class PpuTLB(BaseTLB):$/;"	c
+PrivilegeMode	isa.hh	/^enum PrivilegeMode$/;"	g	namespace:PpuISA
+ProcessInfo	stacktrace.cc	/^ProcessInfo::ProcessInfo(ThreadContext *_tc)$/;"	f	class:PpuISA::ProcessInfo
+ProcessInfo	stacktrace.hh	/^class ProcessInfo$/;"	c	namespace:PpuISA
+PseudoOp	insts/pseudo.hh	/^class PseudoOp : public PpuStaticInst$/;"	c	namespace:PpuISA
+RD	insts/bitfields.hh	14;"	d
+RL	insts/bitfields.hh	15;"	d
+RS1	insts/bitfields.hh	16;"	d
+RS2	insts/bitfields.hh	17;"	d
+Ready	pagetable_walker.hh	/^                Ready,$/;"	e	enum:PpuISA::Walker::WalkerState::State
+RegOp	insts/standard.hh	/^class RegOp : public PpuStaticInst$/;"	c	namespace:PpuISA
+RemoteGDB	remote_gdb.cc	/^RemoteGDB::RemoteGDB(PpuSOCSystem *_system, ThreadContext *tc, int _port)$/;"	f	class:PpuISA::RemoteGDB
+RemoteGDB	remote_gdb.hh	/^class RemoteGDB : public PpuBaseRemoteGDB$/;"	c	namespace:PpuISA
+Reset	faults.hh	/^    Reset() : _name("reset") {}$/;"	f	class:PpuISA::Reset
+Reset	faults.hh	/^class Reset : public FaultBase$/;"	c	namespace:PpuISA
+Result	process.hh	/^struct Result<PpuProcess::SyscallABI, SyscallReturn>$/;"	s	namespace:GuestABI
+ReturnAddrReg	registers.hh	/^const int ReturnAddrReg = 1;$/;"	m	namespace:PpuISA
+ReturnValueReg	registers.hh	/^const int ReturnValueReg = 10;$/;"	m	namespace:PpuISA
+ReturnValueRegs	registers.hh	/^const std::vector<int> ReturnValueRegs = {10, 11};$/;"	m	namespace:PpuISA
+SEI_MASK	registers.hh	/^const RegVal SEI_MASK = 1ULL << 9;$/;"	m	namespace:PpuISA
+SI_MASK	registers.hh	/^const RegVal SI_MASK = SEI_MASK | UEI_MASK |$/;"	m	namespace:PpuISA
+SOFTWARE	faults.hh	/^    SOFTWARE,$/;"	e	enum:PpuISA::InterruptCode
+SSI_MASK	registers.hh	/^const RegVal SSI_MASK = 1ULL << 1;$/;"	m	namespace:PpuISA
+SSTATUS_MASK	registers.hh	/^const RegVal SSTATUS_MASK = STATUS_SD_MASK | STATUS_UXL_MASK |$/;"	m	namespace:PpuISA
+STATUS_FS_MASK	registers.hh	/^const RegVal STATUS_FS_MASK = 3ULL << FS_OFFSET;$/;"	m	namespace:PpuISA
+STATUS_MIE_MASK	registers.hh	/^const RegVal STATUS_MIE_MASK = 1ULL << 3;$/;"	m	namespace:PpuISA
+STATUS_MPIE_MASK	registers.hh	/^const RegVal STATUS_MPIE_MASK = 1ULL << 7;$/;"	m	namespace:PpuISA
+STATUS_MPP_MASK	registers.hh	/^const RegVal STATUS_MPP_MASK = 3ULL << 11;$/;"	m	namespace:PpuISA
+STATUS_MPRV_MASK	registers.hh	/^const RegVal STATUS_MPRV_MASK = 1ULL << 17;$/;"	m	namespace:PpuISA
+STATUS_MXR_MASK	registers.hh	/^const RegVal STATUS_MXR_MASK = 1ULL << 19;$/;"	m	namespace:PpuISA
+STATUS_SD_MASK	registers.hh	/^const RegVal STATUS_SD_MASK = 1ULL << ((sizeof(uint64_t) * 8) - 1);$/;"	m	namespace:PpuISA
+STATUS_SIE_MASK	registers.hh	/^const RegVal STATUS_SIE_MASK = 1ULL << 1;$/;"	m	namespace:PpuISA
+STATUS_SPIE_MASK	registers.hh	/^const RegVal STATUS_SPIE_MASK = 1ULL << 5;$/;"	m	namespace:PpuISA
+STATUS_SPP_MASK	registers.hh	/^const RegVal STATUS_SPP_MASK = 1ULL << 8;$/;"	m	namespace:PpuISA
+STATUS_SUM_MASK	registers.hh	/^const RegVal STATUS_SUM_MASK = 1ULL << 18;$/;"	m	namespace:PpuISA
+STATUS_SXL_MASK	registers.hh	/^const RegVal STATUS_SXL_MASK = 3ULL << SXL_OFFSET;$/;"	m	namespace:PpuISA
+STATUS_TSR_MASK	registers.hh	/^const RegVal STATUS_TSR_MASK = 1ULL << 22;$/;"	m	namespace:PpuISA
+STATUS_TVM_MASK	registers.hh	/^const RegVal STATUS_TVM_MASK = 1ULL << 20;$/;"	m	namespace:PpuISA
+STATUS_TW_MASK	registers.hh	/^const RegVal STATUS_TW_MASK = 1ULL << 21;$/;"	m	namespace:PpuISA
+STATUS_UIE_MASK	registers.hh	/^const RegVal STATUS_UIE_MASK = 1ULL << 0;$/;"	m	namespace:PpuISA
+STATUS_UPIE_MASK	registers.hh	/^const RegVal STATUS_UPIE_MASK = 1ULL << 4;$/;"	m	namespace:PpuISA
+STATUS_UXL_MASK	registers.hh	/^const RegVal STATUS_UXL_MASK = 3ULL << UXL_OFFSET;$/;"	m	namespace:PpuISA
+STATUS_XS_MASK	registers.hh	/^const RegVal STATUS_XS_MASK = 3ULL << 15;$/;"	m	namespace:PpuISA
+STI_MASK	registers.hh	/^const RegVal STI_MASK = 1ULL << 5;$/;"	m	namespace:PpuISA
+SV39	pagetable.hh	/^    SV39 = 8,$/;"	e	enum:PpuISA::AddrXlateMode
+SV48	pagetable.hh	/^    SV48 = 9,$/;"	e	enum:PpuISA::AddrXlateMode
+SXL_OFFSET	registers.hh	/^const off_t SXL_OFFSET = 34;$/;"	m	namespace:PpuISA
+StackPointerReg	registers.hh	/^const int StackPointerReg = 2;$/;"	m	namespace:PpuISA
+StackTrace	stacktrace.cc	/^StackTrace::StackTrace()$/;"	f	class:PpuISA::StackTrace
+StackTrace	stacktrace.cc	/^StackTrace::StackTrace(ThreadContext *_tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::StackTrace
+StackTrace	stacktrace.hh	/^class StackTrace$/;"	c	namespace:PpuISA
+State	pagetable_walker.hh	/^            enum State {$/;"	g	class:PpuISA::Walker::WalkerState
+Statistics	kernel_stats.hh	/^    Statistics() : ::Kernel::Statistics()$/;"	f	class:PpuISA::Kernel::Statistics
+Statistics	kernel_stats.hh	/^class Statistics : public ::Kernel::Statistics$/;"	c	namespace:PpuISA::Kernel
+Store	insts/mem.hh	/^class Store : public MemInst$/;"	c	namespace:PpuISA
+StoreCond	insts/amo.hh	/^class StoreCond : public PpuMacroInst$/;"	c	namespace:PpuISA
+StoreCondMicro	insts/amo.hh	/^class StoreCondMicro : public PpuMicroInst$/;"	c	namespace:PpuISA
+SyscallABI	process.hh	/^    struct SyscallABI : public GenericSyscallABI64$/;"	s	class:PpuProcess
+SyscallArgumentRegs	registers.hh	/^const std::vector<int> SyscallArgumentRegs = {10, 11, 12, 13, 14, 15, 16};$/;"	m	namespace:PpuISA
+SyscallFault	faults.hh	/^    SyscallFault(PrivilegeMode prv)$/;"	f	class:PpuISA::SyscallFault
+SyscallFault	faults.hh	/^class SyscallFault : public PpuFault$/;"	c	namespace:PpuISA
+SyscallNumReg	registers.hh	/^const int SyscallNumReg = 17;$/;"	m	namespace:PpuISA
+SyscallPseudoReturnReg	registers.hh	/^const int SyscallPseudoReturnReg = 10;$/;"	m	namespace:PpuISA
+SystemOp	insts/standard.hh	/^class SystemOp : public PpuStaticInst$/;"	c	namespace:PpuISA
+TARGET	linux/linux.cc	36;"	d	file:
+TARGET	linux/linux.cc	39;"	d	file:
+TARGET	linux/linux.cc	40;"	d	file:
+TGT_FASYNC	linux/linux.hh	/^    static const int TGT_FASYNC         = 0x000040; \/\/!< FASYNC$/;"	m	class:PpuLinux32
+TGT_FASYNC	linux/linux.hh	/^    static const int TGT_FASYNC         = 0x008000; \/\/!< FASYNC$/;"	m	class:PpuLinux64
+TGT_FSYNC	linux/linux.hh	/^    static const int TGT_FSYNC          = 0x001000; \/\/!< FSYNC$/;"	m	class:PpuLinux64
+TGT_FSYNC	linux/linux.hh	/^    static const int TGT_FSYNC          = 0x002000; \/\/!< FSYNC$/;"	m	class:PpuLinux32
+TGT_MAP_ANONYMOUS	linux/linux.hh	/^    static const unsigned TGT_MAP_ANONYMOUS     = 0x0020;$/;"	m	class:PpuLinux32
+TGT_MAP_ANONYMOUS	linux/linux.hh	/^    static const unsigned TGT_MAP_ANONYMOUS     = 0x0020;$/;"	m	class:PpuLinux64
+TGT_MAP_FIXED	linux/linux.hh	/^    static const unsigned TGT_MAP_FIXED         = 0x0010;$/;"	m	class:PpuLinux32
+TGT_MAP_FIXED	linux/linux.hh	/^    static const unsigned TGT_MAP_FIXED         = 0x0010;$/;"	m	class:PpuLinux64
+TGT_MAP_POPULATE	linux/linux.hh	/^    static const unsigned TGT_MAP_POPULATE      = 0x1000;$/;"	m	class:PpuLinux32
+TGT_MAP_POPULATE	linux/linux.hh	/^    static const unsigned TGT_MAP_POPULATE      = 0x1000;$/;"	m	class:PpuLinux64
+TGT_MAP_PRIVATE	linux/linux.hh	/^    static const unsigned TGT_MAP_PRIVATE       = 0x0002;$/;"	m	class:PpuLinux32
+TGT_MAP_PRIVATE	linux/linux.hh	/^    static const unsigned TGT_MAP_PRIVATE       = 0x0002;$/;"	m	class:PpuLinux64
+TGT_MAP_SHARED	linux/linux.hh	/^    static const unsigned TGT_MAP_SHARED        = 0x0001;$/;"	m	class:PpuLinux32
+TGT_MAP_SHARED	linux/linux.hh	/^    static const unsigned TGT_MAP_SHARED        = 0x0001;$/;"	m	class:PpuLinux64
+TGT_MREMAP_FIXED	linux/linux.hh	/^    static const unsigned TGT_MREMAP_FIXED      = 0x0020;$/;"	m	class:PpuLinux32
+TGT_MREMAP_FIXED	linux/linux.hh	/^    static const unsigned TGT_MREMAP_FIXED      = 0x0020;$/;"	m	class:PpuLinux64
+TGT_O_APPEND	linux/linux.hh	/^    static const int TGT_O_APPEND       = 0x000008; \/\/!< O_APPEND$/;"	m	class:PpuLinux32
+TGT_O_APPEND	linux/linux.hh	/^    static const int TGT_O_APPEND       = 0x000400; \/\/!< O_APPEND$/;"	m	class:PpuLinux64
+TGT_O_CLOEXEC	linux/linux.hh	/^    static const int TGT_O_CLOEXEC      = 0x040000; \/\/!< O_CLOEXEC$/;"	m	class:PpuLinux32
+TGT_O_CLOEXEC	linux/linux.hh	/^    static const int TGT_O_CLOEXEC      = 0x040000; \/\/!< O_CLOEXEC$/;"	m	class:PpuLinux64
+TGT_O_CREAT	linux/linux.hh	/^    static const int TGT_O_CREAT        = 0x000040; \/\/!< O_CREAT$/;"	m	class:PpuLinux64
+TGT_O_CREAT	linux/linux.hh	/^    static const int TGT_O_CREAT        = 0x000200; \/\/!< O_CREAT$/;"	m	class:PpuLinux32
+TGT_O_DIRECT	linux/linux.hh	/^    static const int TGT_O_DIRECT       = 0x080000; \/\/!< O_DIRECT$/;"	m	class:PpuLinux32
+TGT_O_DIRECT	linux/linux.hh	/^    static const int TGT_O_DIRECT       = 0x080000; \/\/!< O_DIRECT$/;"	m	class:PpuLinux64
+TGT_O_DIRECTORY	linux/linux.hh	/^    static const int TGT_O_DIRECTORY    = 0x200000; \/\/!< O_DIRECTORY$/;"	m	class:PpuLinux32
+TGT_O_DIRECTORY	linux/linux.hh	/^    static const int TGT_O_DIRECTORY    = 0x200000; \/\/!< O_DIRECTORY$/;"	m	class:PpuLinux64
+TGT_O_DSYNC	linux/linux.hh	/^    static const int TGT_O_DSYNC        = 0x010000; \/\/!< O_DSYNC$/;"	m	class:PpuLinux32
+TGT_O_DSYNC	linux/linux.hh	/^    static const int TGT_O_DSYNC        = 0x010000; \/\/!< O_DSYNC$/;"	m	class:PpuLinux64
+TGT_O_EXCL	linux/linux.hh	/^    static const int TGT_O_EXCL         = 0x000080; \/\/!< O_EXCL$/;"	m	class:PpuLinux64
+TGT_O_EXCL	linux/linux.hh	/^    static const int TGT_O_EXCL         = 0x000800; \/\/!< O_EXCL$/;"	m	class:PpuLinux32
+TGT_O_LARGEFILE	linux/linux.hh	/^    static const int TGT_O_LARGEFILE    = 0x020000; \/\/!< O_LARGEFILE$/;"	m	class:PpuLinux32
+TGT_O_LARGEFILE	linux/linux.hh	/^    static const int TGT_O_LARGEFILE    = 0x020000; \/\/!< O_LARGEFILE$/;"	m	class:PpuLinux64
+TGT_O_NOATIME	linux/linux.hh	/^    static const int TGT_O_NOATIME      = 0x800000; \/\/!< O_NOATIME$/;"	m	class:PpuLinux32
+TGT_O_NOATIME	linux/linux.hh	/^    static const int TGT_O_NOATIME      = 0x800000; \/\/!< O_NOATIME$/;"	m	class:PpuLinux64
+TGT_O_NOCTTY	linux/linux.hh	/^    static const int TGT_O_NOCTTY       = 0x000100; \/\/!< O_NOCTTY$/;"	m	class:PpuLinux64
+TGT_O_NOCTTY	linux/linux.hh	/^    static const int TGT_O_NOCTTY       = 0x008000; \/\/!< O_NOCTTY$/;"	m	class:PpuLinux32
+TGT_O_NOFOLLOW	linux/linux.hh	/^    static const int TGT_O_NOFOLLOW     = 0x100000; \/\/!< O_NOFOLLOW$/;"	m	class:PpuLinux32
+TGT_O_NOFOLLOW	linux/linux.hh	/^    static const int TGT_O_NOFOLLOW     = 0x100000; \/\/!< O_NOFOLLOW$/;"	m	class:PpuLinux64
+TGT_O_NOINHERIT	linux/linux.hh	/^    static const int TGT_O_NOINHERIT    = 0x040000; \/\/!< O_NOINHERIT$/;"	m	class:PpuLinux32
+TGT_O_NOINHERIT	linux/linux.hh	/^    static const int TGT_O_NOINHERIT    = 0x040000; \/\/!< O_NOINHERIT$/;"	m	class:PpuLinux64
+TGT_O_NONBLOCK	linux/linux.hh	/^    static const int TGT_O_NONBLOCK     = 0x000800; \/\/!< O_NONBLOCK$/;"	m	class:PpuLinux64
+TGT_O_NONBLOCK	linux/linux.hh	/^    static const int TGT_O_NONBLOCK     = 0x004000; \/\/!< O_NONBLOCK$/;"	m	class:PpuLinux32
+TGT_O_PATH	linux/linux.hh	/^    static const int TGT_O_PATH         = 0x400000; \/\/!< O_PATH$/;"	m	class:PpuLinux32
+TGT_O_PATH	linux/linux.hh	/^    static const int TGT_O_PATH         = 0x400000; \/\/!< O_PATH$/;"	m	class:PpuLinux64
+TGT_O_RDONLY	linux/linux.hh	/^    static const int TGT_O_RDONLY       = 0x000000; \/\/!< O_RDONLY$/;"	m	class:PpuLinux32
+TGT_O_RDONLY	linux/linux.hh	/^    static const int TGT_O_RDONLY       = 0x000000; \/\/!< O_RDONLY$/;"	m	class:PpuLinux64
+TGT_O_RDWR	linux/linux.hh	/^    static const int TGT_O_RDWR         = 0x000002; \/\/!< O_RDWR$/;"	m	class:PpuLinux32
+TGT_O_RDWR	linux/linux.hh	/^    static const int TGT_O_RDWR         = 0x000002; \/\/!< O_RDWR$/;"	m	class:PpuLinux64
+TGT_O_SYNC	linux/linux.hh	/^    static const int TGT_O_SYNC         = 0x001000; \/\/!< O_SYNC$/;"	m	class:PpuLinux64
+TGT_O_SYNC	linux/linux.hh	/^    static const int TGT_O_SYNC         = 0x002000; \/\/!< O_SYNC$/;"	m	class:PpuLinux32
+TGT_O_TRUNC	linux/linux.hh	/^    static const int TGT_O_TRUNC        = 0x000200; \/\/!< O_TRUNC$/;"	m	class:PpuLinux64
+TGT_O_TRUNC	linux/linux.hh	/^    static const int TGT_O_TRUNC        = 0x000400; \/\/!< O_TRUNC$/;"	m	class:PpuLinux32
+TGT_O_WRONLY	linux/linux.hh	/^    static const int TGT_O_WRONLY       = 0x000001; \/\/!< O_WRONLY$/;"	m	class:PpuLinux32
+TGT_O_WRONLY	linux/linux.hh	/^    static const int TGT_O_WRONLY       = 0x000001; \/\/!< O_WRONLY$/;"	m	class:PpuLinux64
+TGT_SIGABRT	linux/linux.hh	/^    static const int TGT_SIGABRT        =  6;$/;"	m	class:PpuLinux32
+TGT_SIGABRT	linux/linux.hh	/^    static const int TGT_SIGABRT        =  6;$/;"	m	class:PpuLinux64
+TGT_SIGALRM	linux/linux.hh	/^    static const int TGT_SIGALRM        = 14;$/;"	m	class:PpuLinux32
+TGT_SIGALRM	linux/linux.hh	/^    static const int TGT_SIGALRM        = 14;$/;"	m	class:PpuLinux64
+TGT_SIGBUS	linux/linux.hh	/^    static const int TGT_SIGBUS         = 10;$/;"	m	class:PpuLinux32
+TGT_SIGBUS	linux/linux.hh	/^    static const int TGT_SIGBUS         = 10;$/;"	m	class:PpuLinux64
+TGT_SIGCHLD	linux/linux.hh	/^    static const int TGT_SIGCHLD        = 20;$/;"	m	class:PpuLinux32
+TGT_SIGCHLD	linux/linux.hh	/^    static const int TGT_SIGCHLD        = 20;$/;"	m	class:PpuLinux64
+TGT_SIGCLD	linux/linux.hh	/^    static const int TGT_SIGCLD         = 20;$/;"	m	class:PpuLinux32
+TGT_SIGCLD	linux/linux.hh	/^    static const int TGT_SIGCLD         = 20;$/;"	m	class:PpuLinux64
+TGT_SIGCONT	linux/linux.hh	/^    static const int TGT_SIGCONT        = 19;$/;"	m	class:PpuLinux32
+TGT_SIGCONT	linux/linux.hh	/^    static const int TGT_SIGCONT        = 19;$/;"	m	class:PpuLinux64
+TGT_SIGEMT	linux/linux.hh	/^    static const int TGT_SIGEMT         =  7;$/;"	m	class:PpuLinux32
+TGT_SIGEMT	linux/linux.hh	/^    static const int TGT_SIGEMT         =  7;$/;"	m	class:PpuLinux64
+TGT_SIGFPE	linux/linux.hh	/^    static const int TGT_SIGFPE         =  8;$/;"	m	class:PpuLinux32
+TGT_SIGFPE	linux/linux.hh	/^    static const int TGT_SIGFPE         =  8;$/;"	m	class:PpuLinux64
+TGT_SIGHUP	linux/linux.hh	/^    static const int TGT_SIGHUP         =  1;$/;"	m	class:PpuLinux32
+TGT_SIGHUP	linux/linux.hh	/^    static const int TGT_SIGHUP         =  1;$/;"	m	class:PpuLinux64
+TGT_SIGILL	linux/linux.hh	/^    static const int TGT_SIGILL         =  4;$/;"	m	class:PpuLinux32
+TGT_SIGILL	linux/linux.hh	/^    static const int TGT_SIGILL         =  4;$/;"	m	class:PpuLinux64
+TGT_SIGINT	linux/linux.hh	/^    static const int TGT_SIGINT         =  2;$/;"	m	class:PpuLinux32
+TGT_SIGINT	linux/linux.hh	/^    static const int TGT_SIGINT         =  2;$/;"	m	class:PpuLinux64
+TGT_SIGIO	linux/linux.hh	/^    static const int TGT_SIGIO          = 23;$/;"	m	class:PpuLinux32
+TGT_SIGIO	linux/linux.hh	/^    static const int TGT_SIGIO          = 23;$/;"	m	class:PpuLinux64
+TGT_SIGIOT	linux/linux.hh	/^    static const int TGT_SIGIOT         =  6;$/;"	m	class:PpuLinux32
+TGT_SIGIOT	linux/linux.hh	/^    static const int TGT_SIGIOT         =  6;$/;"	m	class:PpuLinux64
+TGT_SIGKILL	linux/linux.hh	/^    static const int TGT_SIGKILL        =  9;$/;"	m	class:PpuLinux32
+TGT_SIGKILL	linux/linux.hh	/^    static const int TGT_SIGKILL        =  9;$/;"	m	class:PpuLinux64
+TGT_SIGLOST	linux/linux.hh	/^    static const int TGT_SIGLOST        = 29;$/;"	m	class:PpuLinux32
+TGT_SIGLOST	linux/linux.hh	/^    static const int TGT_SIGLOST        = 29;$/;"	m	class:PpuLinux64
+TGT_SIGPIPE	linux/linux.hh	/^    static const int TGT_SIGPIPE        = 13;$/;"	m	class:PpuLinux32
+TGT_SIGPIPE	linux/linux.hh	/^    static const int TGT_SIGPIPE        = 13;$/;"	m	class:PpuLinux64
+TGT_SIGPOLL	linux/linux.hh	/^    static const int TGT_SIGPOLL        = 23;$/;"	m	class:PpuLinux32
+TGT_SIGPOLL	linux/linux.hh	/^    static const int TGT_SIGPOLL        = 23;$/;"	m	class:PpuLinux64
+TGT_SIGPROF	linux/linux.hh	/^    static const int TGT_SIGPROF        = 27;$/;"	m	class:PpuLinux32
+TGT_SIGPROF	linux/linux.hh	/^    static const int TGT_SIGPROF        = 27;$/;"	m	class:PpuLinux64
+TGT_SIGPWR	linux/linux.hh	/^    static const int TGT_SIGPWR         = 29;$/;"	m	class:PpuLinux32
+TGT_SIGPWR	linux/linux.hh	/^    static const int TGT_SIGPWR         = 29;$/;"	m	class:PpuLinux64
+TGT_SIGQUIT	linux/linux.hh	/^    static const int TGT_SIGQUIT        =  3;$/;"	m	class:PpuLinux32
+TGT_SIGQUIT	linux/linux.hh	/^    static const int TGT_SIGQUIT        =  3;$/;"	m	class:PpuLinux64
+TGT_SIGSEGV	linux/linux.hh	/^    static const int TGT_SIGSEGV        = 11;$/;"	m	class:PpuLinux32
+TGT_SIGSEGV	linux/linux.hh	/^    static const int TGT_SIGSEGV        = 11;$/;"	m	class:PpuLinux64
+TGT_SIGSTOP	linux/linux.hh	/^    static const int TGT_SIGSTOP        = 17;$/;"	m	class:PpuLinux32
+TGT_SIGSTOP	linux/linux.hh	/^    static const int TGT_SIGSTOP        = 17;$/;"	m	class:PpuLinux64
+TGT_SIGSYS	linux/linux.hh	/^    static const int TGT_SIGSYS         = 12;$/;"	m	class:PpuLinux32
+TGT_SIGSYS	linux/linux.hh	/^    static const int TGT_SIGSYS         = 12;$/;"	m	class:PpuLinux64
+TGT_SIGTERM	linux/linux.hh	/^    static const int TGT_SIGTERM        = 15;$/;"	m	class:PpuLinux32
+TGT_SIGTERM	linux/linux.hh	/^    static const int TGT_SIGTERM        = 15;$/;"	m	class:PpuLinux64
+TGT_SIGTRAP	linux/linux.hh	/^    static const int TGT_SIGTRAP        =  5;$/;"	m	class:PpuLinux32
+TGT_SIGTRAP	linux/linux.hh	/^    static const int TGT_SIGTRAP        =  5;$/;"	m	class:PpuLinux64
+TGT_SIGTSTP	linux/linux.hh	/^    static const int TGT_SIGTSTP        = 18;$/;"	m	class:PpuLinux32
+TGT_SIGTSTP	linux/linux.hh	/^    static const int TGT_SIGTSTP        = 18;$/;"	m	class:PpuLinux64
+TGT_SIGTTIN	linux/linux.hh	/^    static const int TGT_SIGTTIN        = 21;$/;"	m	class:PpuLinux32
+TGT_SIGTTIN	linux/linux.hh	/^    static const int TGT_SIGTTIN        = 21;$/;"	m	class:PpuLinux64
+TGT_SIGTTOU	linux/linux.hh	/^    static const int TGT_SIGTTOU        = 22;$/;"	m	class:PpuLinux32
+TGT_SIGTTOU	linux/linux.hh	/^    static const int TGT_SIGTTOU        = 22;$/;"	m	class:PpuLinux64
+TGT_SIGURG	linux/linux.hh	/^    static const int TGT_SIGURG         = 16;$/;"	m	class:PpuLinux32
+TGT_SIGURG	linux/linux.hh	/^    static const int TGT_SIGURG         = 16;$/;"	m	class:PpuLinux64
+TGT_SIGUSR1	linux/linux.hh	/^    static const int TGT_SIGUSR1        = 30;$/;"	m	class:PpuLinux32
+TGT_SIGUSR1	linux/linux.hh	/^    static const int TGT_SIGUSR1        = 30;$/;"	m	class:PpuLinux64
+TGT_SIGUSR2	linux/linux.hh	/^    static const int TGT_SIGUSR2        = 31;$/;"	m	class:PpuLinux32
+TGT_SIGUSR2	linux/linux.hh	/^    static const int TGT_SIGUSR2        = 31;$/;"	m	class:PpuLinux64
+TGT_SIGVTALRM	linux/linux.hh	/^    static const int TGT_SIGVTALRM      = 26;$/;"	m	class:PpuLinux32
+TGT_SIGVTALRM	linux/linux.hh	/^    static const int TGT_SIGVTALRM      = 26;$/;"	m	class:PpuLinux64
+TGT_SIGWINCH	linux/linux.hh	/^    static const int TGT_SIGWINCH       = 28;$/;"	m	class:PpuLinux32
+TGT_SIGWINCH	linux/linux.hh	/^    static const int TGT_SIGWINCH       = 28;$/;"	m	class:PpuLinux64
+TGT_SIGXCPU	linux/linux.hh	/^    static const int TGT_SIGXCPU        = 24;$/;"	m	class:PpuLinux32
+TGT_SIGXCPU	linux/linux.hh	/^    static const int TGT_SIGXCPU        = 24;$/;"	m	class:PpuLinux64
+TGT_SIGXFSZ	linux/linux.hh	/^    static const int TGT_SIGXFSZ        = 25;$/;"	m	class:PpuLinux32
+TGT_SIGXFSZ	linux/linux.hh	/^    static const int TGT_SIGXFSZ        = 25;$/;"	m	class:PpuLinux64
+TIMER	faults.hh	/^    TIMER,$/;"	e	enum:PpuISA::InterruptCode
+TLB	tlb.cc	/^TLB::TLB(const Params *p)$/;"	f	class:TLB
+TLB	tlb.hh	/^class TLB : public BaseTLB$/;"	c	namespace:PpuISA
+ThreadPointerReg	registers.hh	/^const int ThreadPointerReg = 4;$/;"	m	namespace:PpuISA
+TlbEntry	pagetable.hh	/^    TlbEntry()$/;"	f	struct:PpuISA::TlbEntry
+TlbEntry	pagetable.hh	/^struct TlbEntry : public Serializable$/;"	s	namespace:PpuISA
+TlbEntryTrie	pagetable.hh	/^typedef Trie<Addr, TlbEntry> TlbEntryTrie;$/;"	t	namespace:PpuISA
+Translate	pagetable_walker.hh	/^                Translate,$/;"	e	enum:PpuISA::Walker::WalkerState::State
+UEI_MASK	registers.hh	/^const RegVal UEI_MASK = 1ULL << 8;$/;"	m	namespace:PpuISA
+UI_MASK	registers.hh	/^const RegVal UI_MASK = UEI_MASK | UTI_MASK | USI_MASK;$/;"	m	namespace:PpuISA
+USI_MASK	registers.hh	/^const RegVal USI_MASK = 1ULL << 0;$/;"	m	namespace:PpuISA
+USTATUS_MASK	registers.hh	/^const RegVal USTATUS_MASK = STATUS_SD_MASK | STATUS_MXR_MASK |$/;"	m	namespace:PpuISA
+UTI_MASK	registers.hh	/^const RegVal UTI_MASK = 1ULL << 4;$/;"	m	namespace:PpuISA
+UXL_OFFSET	registers.hh	/^const off_t UXL_OFFSET = 32;$/;"	m	namespace:PpuISA
+UnimplementedFault	faults.hh	/^    UnimplementedFault(std::string name, const ExtMachInst inst)$/;"	f	class:PpuISA::UnimplementedFault
+UnimplementedFault	faults.hh	/^class UnimplementedFault : public InstFault$/;"	c	namespace:PpuISA
+Unknown	insts/unknown.hh	/^    Unknown(MachInst _machInst)$/;"	f	class:PpuISA::Unknown
+Unknown	insts/unknown.hh	/^class Unknown : public PpuStaticInst$/;"	c	namespace:PpuISA
+UnknownInstFault	faults.hh	/^    UnknownInstFault(const ExtMachInst inst)$/;"	f	class:PpuISA::UnknownInstFault
+UnknownInstFault	faults.hh	/^class UnknownInstFault : public InstFault$/;"	c	namespace:PpuISA
+UpperBitMask	decoder.cc	/^static const MachInst UpperBitMask = LowerBitMask << sizeof(MachInst) * 4;$/;"	m	namespace:PpuISA	file:
+VADDR_BITS	pagetable.hh	/^const Addr VADDR_BITS  = 39;$/;"	m	namespace:PpuISA
+VecPredRegHasPackedRepr	registers.hh	/^constexpr bool VecPredRegHasPackedRepr = ::DummyVecPredRegHasPackedRepr;$/;"	m	namespace:PpuISA
+VecRegSizeBytes	registers.hh	/^constexpr size_t VecRegSizeBytes = ::DummyVecRegSizeBytes;$/;"	m	namespace:PpuISA
+WARN_FAILURE	locked_mem.hh	/^const int WARN_FAILURE = 10000;$/;"	m	namespace:PpuISA
+Waiting	pagetable_walker.hh	/^                Waiting,$/;"	e	enum:PpuISA::Walker::WalkerState::State
+Walker	pagetable_walker.hh	/^        Walker(const Params *params) :$/;"	f	class:PpuISA::Walker
+Walker	pagetable_walker.hh	/^    class Walker : public ClockedObject$/;"	c	namespace:PpuISA
+WalkerPort	pagetable_walker.hh	/^            WalkerPort(const std::string &_name, Walker * _walker) :$/;"	f	class:PpuISA::Walker::WalkerPort
+WalkerPort	pagetable_walker.hh	/^        class WalkerPort : public MasterPort$/;"	c	class:PpuISA::Walker
+WalkerSenderState	pagetable_walker.hh	/^            WalkerSenderState(WalkerState * _senderWalk) :$/;"	f	struct:PpuISA::Walker::WalkerSenderState
+WalkerSenderState	pagetable_walker.hh	/^        struct WalkerSenderState : public Packet::SenderState$/;"	s	class:PpuISA::Walker
+WalkerState	pagetable_walker.hh	/^            WalkerState(Walker * _walker, BaseTLB::Translation *_translation,$/;"	f	class:PpuISA::Walker::WalkerState
+WalkerState	pagetable_walker.hh	/^        class WalkerState$/;"	c	class:PpuISA::Walker
+ZeroReg	registers.hh	/^const int ZeroReg = 0;$/;"	m	namespace:PpuISA
+__ARCH_PPU_BARE_METAL_SYSTEM_HH__	bare_metal/fs_workload.hh	30;"	d
+__ARCH_PPU_BITFIELDS_HH__	insts/bitfields.hh	2;"	d
+__ARCH_PPU_DECODER_HH__	decoder.hh	32;"	d
+__ARCH_PPU_FAULTS_HH__	faults.hh	33;"	d
+__ARCH_PPU_FS_WORKLOAD_HH__	fs_workload.hh	31;"	d
+__ARCH_PPU_INSTS_AMO_HH__	insts/amo.hh	31;"	d
+__ARCH_PPU_INSTS_COMPRESSED_HH__	insts/compressed.hh	33;"	d
+__ARCH_PPU_INSTS_PSEUDO_HH__	insts/pseudo.hh	30;"	d
+__ARCH_PPU_INST_MEM_HH__	insts/mem.hh	31;"	d
+__ARCH_PPU_INTERRUPT_HH__	interrupts.hh	32;"	d
+__ARCH_PPU_ISA_HH__	isa.hh	35;"	d
+__ARCH_PPU_ISA_TRAITS_HH__	isa_traits.hh	47;"	d
+__ARCH_PPU_KERNEL_STATS_HH__	kernel_stats.hh	33;"	d
+__ARCH_PPU_LINUX_LINUX_HH__	linux/linux.hh	32;"	d
+__ARCH_PPU_LOCKED_MEM_HH__	locked_mem.hh	49;"	d
+__ARCH_PPU_MICROCODE_ROM_HH__	microcode_rom.hh	32;"	d
+__ARCH_PPU_PAGETABLE_H__	pagetable.hh	31;"	d
+__ARCH_PPU_PRA_CONSTANTS_HH__	pra_constants.hh	32;"	d
+__ARCH_PPU_PSEUDO_INST_HH__	pseudo_inst.hh	32;"	d
+__ARCH_PPU_REGISTERS_HH__	registers.hh	45;"	d
+__ARCH_PPU_REMOTE_GDB_HH__	remote_gdb.hh	37;"	d
+__ARCH_PPU_STACKTRACE_HH__	stacktrace.hh	36;"	d
+__ARCH_PPU_STANDARD_INST_HH__	insts/standard.hh	31;"	d
+__ARCH_PPU_STATIC_INST_HH__	insts/static_inst.hh	31;"	d
+__ARCH_PPU_TABLE_WALKER_HH__	pagetable_walker.hh	40;"	d
+__ARCH_PPU_TLB_HH__	tlb.hh	31;"	d
+__ARCH_PPU_TYPES_HH__	types.hh	47;"	d
+__ARCH_PPU_UNKNOWN_INST_HH__	insts/unknown.hh	31;"	d
+__ARCH_PPU_UTILITY_HH__	utility.hh	44;"	d
+__ARCH_PPU_VTOPHYS_HH__	vtophys.hh	39;"	d
+__KERN_PPU_IDLE_EVENT_HH__	idle_event.hh	31;"	d
+__PPU_LINUX_PROCESS_HH__	linux/process.hh	31;"	d
+__PPU_PROCESS_HH__	process.hh	31;"	d
+___glibc_reserved	linux/linux.hh	/^        int32_t ___glibc_reserved[2];$/;"	m	struct:PpuLinux64::__anon1
+__pad1	linux/linux.hh	/^        dev_t __pad1;$/;"	m	struct:PpuLinux64::__anon1
+__pad1	linux/linux.hh	/^        uint64_t __pad1;$/;"	m	struct:PpuLinux32::__anon6
+__pad2	linux/linux.hh	/^        int32_t __pad2;$/;"	m	struct:PpuLinux32::__anon6
+__tgid	linux/process.hh	/^    uint64_t __tgid;$/;"	m	class:PpuLinuxProcess32
+__tgid	linux/process.hh	/^    uint64_t __tgid;$/;"	m	class:PpuLinuxProcess64
+__unused4	linux/linux.hh	/^        int32_t __unused4;$/;"	m	struct:PpuLinux32::__anon6
+__unused5	linux/linux.hh	/^        int32_t __unused5;$/;"	m	struct:PpuLinux32::__anon6
+_addr	faults.hh	/^    const Addr _addr;$/;"	m	class:PpuISA::AddressFault
+_code	faults.hh	/^    ExceptionCode _code;$/;"	m	class:PpuISA::PpuFault
+_compressed	types.hh	/^    bool _compressed;$/;"	m	class:PpuISA::PCState
+_inst	faults.hh	/^    const ExtMachInst _inst;$/;"	m	class:PpuISA::InstFault
+_int	faults.hh	/^    InterruptCode _int;$/;"	m	class:PpuISA::PpuFault
+_interrupt	faults.hh	/^    const bool _interrupt;$/;"	m	class:PpuISA::PpuFault
+_isBareMetal	fs_workload.hh	/^    bool _isBareMetal;$/;"	m	class:PpuISA::FsWorkload
+_name	faults.hh	/^    const FaultName _name;$/;"	m	class:PpuISA::PpuFault
+_name	faults.hh	/^    const FaultName _name;$/;"	m	class:PpuISA::Reset
+_resetVect	fs_workload.hh	/^    Addr _resetVect;$/;"	m	class:PpuISA::FsWorkload
+_rv32	fs_workload.hh	/^    bool _rv32;$/;"	m	class:PpuISA::FsWorkload
+_rv32	types.hh	/^    bool _rv32;$/;"	m	class:PpuISA::PCState
+a	insts/amo.hh	/^    T a;$/;"	m	class:PpuISA::AtomicGenericOp
+a	pagetable.hh	/^    Bitfield<6> a;$/;"	m	namespace:PpuISA
+abstract	PpuFsWorkload.py	/^    abstract = True$/;"	v	class:PpuFsWorkload
+acc	remote_gdb.cc	/^RemoteGDB::acc(Addr va, size_t len)$/;"	f	class:PpuISA::RemoteGDB
+accesses	tlb.hh	/^    Stats::Formula accesses;$/;"	m	class:PpuISA::TLB
+advancePC	insts/static_inst.cc	/^PpuMicroInst::advancePC(PCState &pcState) const$/;"	f	class:PpuISA::PpuMicroInst
+advancePC	utility.hh	/^advancePC(PCState &pc, const StaticInstPtr &inst)$/;"	f	namespace:PpuISA
+aligned	decoder.hh	/^    bool aligned;$/;"	m	class:PpuISA::Decoder
+ar	pra_constants.hh	/^    Bitfield<12, 10> ar;$/;"	m	namespace:PpuISA
+archClone	linux/linux.hh	/^    archClone(uint64_t flags,$/;"	f	class:PpuLinux32
+archClone	linux/linux.hh	/^    archClone(uint64_t flags,$/;"	f	class:PpuLinux64
+argsInit	process.cc	/^PpuProcess::argsInit(int pageSize)$/;"	f	class:PpuProcess
+aseDn	pra_constants.hh	/^    Bitfield<12, 8>  aseDn;$/;"	m	namespace:PpuISA
+aseUp	pra_constants.hh	/^    Bitfield<31, 30> aseUp;$/;"	m	namespace:PpuISA
+asid	pagetable.hh	/^    Bitfield<59, 44> asid;$/;"	m	namespace:PpuISA
+asid	pagetable.hh	/^    uint16_t asid;$/;"	m	struct:PpuISA::TlbEntry
+asid	pra_constants.hh	/^    Bitfield<23, 16> asid;$/;"	m	namespace:PpuISA
+asid	pra_constants.hh	/^    Bitfield<7,  0>  asid;$/;"	m	namespace:PpuISA
+at	pra_constants.hh	/^    Bitfield<14, 13> at;$/;"	m	namespace:PpuISA
+badVPN2	pra_constants.hh	/^    Bitfield<22, 4>  badVPN2;$/;"	m	namespace:PpuISA
+bare_metal	PpuFsWorkload.py	/^    bare_metal = Param.Bool(False, "Using Bare Metal Application?")$/;"	v	class:PpuFsWorkload
+bare_metal	PpuFsWorkload.py	/^    bare_metal = True$/;"	v	class:PpuBareMetal
+bd	pra_constants.hh	/^    Bitfield<31>     bd;$/;"	m	namespace:PpuISA
+be	pra_constants.hh	/^    Bitfield<15>     be;$/;"	m	namespace:PpuISA
+bev	pra_constants.hh	/^    Bitfield<22>     bev;$/;"	m	namespace:PpuISA
+blkcnt_t	linux/linux.hh	/^    typedef uint64_t blkcnt_t;$/;"	t	class:PpuLinux64
+blksize_t	linux/linux.hh	/^    typedef uint64_t blksize_t;$/;"	t	class:PpuLinux64
+bootloader	PpuFsWorkload.py	/^    bootloader = Param.String("File, that contains the bootloader code")$/;"	v	class:PpuBareMetal
+bootloader	bare_metal/fs_workload.hh	/^    Loader::ObjectFile *bootloader;$/;"	m	class:PpuISA::BareMetal
+bootloaderSymtab	bare_metal/fs_workload.hh	/^    Loader::SymbolTable *bootloaderSymtab;$/;"	m	class:PpuISA::BareMetal
+branching	types.hh	/^    branching() const$/;"	f	class:PpuISA::PCState
+bufferram	linux/linux.hh	/^        uint32_t bufferram;$/;"	m	struct:PpuLinux32::__anon8
+bufferram	linux/linux.hh	/^        uint64_t bufferram;$/;"	m	struct:PpuLinux64::__anon4
+buildKey	tlb.cc	/^buildKey(Addr vpn, uint16_t asid)$/;"	f	file:
+buildRetPC	utility.hh	/^buildRetPC(const PCState &curPC, const PCState &callPC)$/;"	f	namespace:PpuISA
+byteOrder	linux/linux.hh	/^    static const ByteOrder byteOrder = LittleEndianByteOrder;$/;"	m	class:PpuLinux
+c	pra_constants.hh	/^    Bitfield<5,  3>  c;     \/\/ Coherency attribute$/;"	m	namespace:PpuISA
+c2	pra_constants.hh	/^    Bitfield<6>      c2;$/;"	m	namespace:PpuISA
+ca	pra_constants.hh	/^    Bitfield<2>      ca;$/;"	m	namespace:PpuISA
+ce	pra_constants.hh	/^    Bitfield<29, 28> ce;$/;"	m	namespace:PpuISA
+checkInterrupt	interrupts.hh	/^    bool checkInterrupt(int num) const { return ip[num] && ie[num]; }$/;"	f	class:PpuISA::Interrupts
+checkInterrupts	interrupts.hh	/^    bool checkInterrupts(ThreadContext *tc) const$/;"	f	class:PpuISA::Interrupts
+checkPermissions	tlb.cc	/^TLB::checkPermissions(STATUS status, PrivilegeMode pmode, Addr vaddr,$/;"	f	class:TLB
+clear	interrupts.hh	/^    clear(int int_num, int index)$/;"	f	class:PpuISA::Interrupts
+clear	isa.cc	/^void ISA::clear()$/;"	f	class:PpuISA::ISA
+clear	isa.hh	/^    void clear(ThreadContext *tc) { clear(); }$/;"	f	class:PpuISA::ISA
+clear	stacktrace.hh	/^    clear()$/;"	f	class:PpuISA::StackTrace
+clearAll	interrupts.hh	/^    clearAll()$/;"	f	class:PpuISA::Interrupts
+clone	insts/amo.hh	/^    AtomicOpFunctor* clone() { return new AtomicGenericOp<T>(*this); }$/;"	f	class:PpuISA::AtomicGenericOp
+coId	pra_constants.hh	/^    Bitfield<23, 16> coId;$/;"	m	namespace:PpuISA
+coOp	pra_constants.hh	/^    Bitfield<31, 24> coOp;$/;"	m	namespace:PpuISA
+compressed	decoder.hh	/^    inline bool compressed(ExtMachInst inst) { return (inst & 0x3) < 0x3; }$/;"	f	class:PpuISA::Decoder
+compressed	types.hh	/^    bool compressed() { return _compressed; }$/;"	f	class:PpuISA::PCState
+compressed	types.hh	/^    void compressed(bool c) { _compressed = c; }$/;"	f	class:PpuISA::PCState
+console	stacktrace.hh	/^    static const int console = 2;$/;"	m	class:PpuISA::StackTrace
+copyRegs	utility.hh	/^copyRegs(ThreadContext *src, ThreadContext *dest)$/;"	f	namespace:PpuISA
+cpu	interrupts.hh	/^    PpuBaseCPU * cpu;$/;"	m	class:PpuISA::Interrupts
+cpuNum	pra_constants.hh	/^    Bitfield<9,  9>  cpuNum;$/;"	m	namespace:PpuISA
+create	bare_metal/fs_workload.cc	/^PpuBareMetalParams::create()$/;"	f	class:PpuBareMetalParams
+create	interrupts.cc	/^PpuInterruptsParams::create()$/;"	f	class:PpuInterruptsParams
+create	isa.cc	/^PpuISAParams::create()$/;"	f	class:PpuISAParams
+create	pagetable_walker.cc	/^PpuPagetableWalkerParams::create()$/;"	f	class:PpuPagetableWalkerParams
+create	tlb.cc	/^PpuTLBParams::create()$/;"	f	class:PpuTLBParams
+createPagefault	tlb.cc	/^TLB::createPagefault(Addr vaddr, Mode mode)$/;"	f	class:TLB
+csr	insts/standard.hh	/^    uint64_t csr;$/;"	m	class:PpuISA::CSROp
+css	pra_constants.hh	/^    Bitfield<3,  0>  css;$/;"	m	namespace:PpuISA
+cu0	pra_constants.hh	/^        Bitfield<28> cu0;$/;"	m	namespace:PpuISA
+cu1	pra_constants.hh	/^        Bitfield<29> cu1;$/;"	m	namespace:PpuISA
+cu2	pra_constants.hh	/^        Bitfield<30> cu2;$/;"	m	namespace:PpuISA
+cu3	pra_constants.hh	/^        Bitfield<31> cu3;$/;"	m	namespace:PpuISA
+currStates	pagetable_walker.hh	/^        std::list<WalkerState *> currStates;$/;"	m	class:PpuISA::Walker
+cxx_class	PpuFsWorkload.py	/^    cxx_class = 'PpuISA::BareMetal'$/;"	v	class:PpuBareMetal
+cxx_class	PpuFsWorkload.py	/^    cxx_class = 'PpuISA::FsWorkload'$/;"	v	class:PpuFsWorkload
+cxx_class	PpuISA.py	/^    cxx_class = 'PpuISA::ISA'$/;"	v	class:PpuISA
+cxx_class	PpuInterrupts.py	/^    cxx_class = 'PpuISA::Interrupts'$/;"	v	class:PpuInterrupts
+cxx_class	PpuTLB.py	/^    cxx_class = 'PpuISA::TLB'$/;"	v	class:PpuTLB
+cxx_class	PpuTLB.py	/^    cxx_class = 'PpuISA::Walker'$/;"	v	class:PpuPagetableWalker
+cxx_header	PpuFsWorkload.py	/^    cxx_header = 'arch\/ppu\/bare_metal\/fs_workload.hh'$/;"	v	class:PpuBareMetal
+cxx_header	PpuFsWorkload.py	/^    cxx_header = 'arch\/ppu\/fs_workload.hh'$/;"	v	class:PpuFsWorkload
+cxx_header	PpuISA.py	/^    cxx_header = "arch\/ppu\/isa.hh"$/;"	v	class:PpuISA
+cxx_header	PpuInterrupts.py	/^    cxx_header = 'arch\/ppu\/interrupts.hh'$/;"	v	class:PpuInterrupts
+cxx_header	PpuTLB.py	/^    cxx_header = 'arch\/ppu\/pagetable_walker.hh'$/;"	v	class:PpuPagetableWalker
+cxx_header	PpuTLB.py	/^    cxx_header = 'arch\/ppu\/tlb.hh'$/;"	v	class:PpuTLB
+d	pagetable.hh	/^    Bitfield<7> d;$/;"	m	namespace:PpuISA
+d	pra_constants.hh	/^    Bitfield<2>      d;     \/\/ Dirty Bit$/;"	m	namespace:PpuISA
+da	pra_constants.hh	/^    Bitfield<9,  7>  da;$/;"	m	namespace:PpuISA
+data	remote_gdb.hh	/^        char *data() const { return (char *)&r; }$/;"	f	class:PpuISA::RemoteGDB::Ppu32GdbRegCache
+data	remote_gdb.hh	/^        char *data() const { return (char *)&r; }$/;"	f	class:PpuISA::RemoteGDB::PpuGdbRegCache
+dc	pra_constants.hh	/^    Bitfield<27>     dc;$/;"	m	namespace:PpuISA
+decode	decoder.cc	/^Decoder::decode(ExtMachInst mach_inst, Addr addr)$/;"	f	class:PpuISA::Decoder
+decode	decoder.cc	/^Decoder::decode(PpuISA::PCState &nextPC)$/;"	f	class:PpuISA::Decoder
+decodePrologue	stacktrace.cc	/^StackTrace::decodePrologue(Addr sp, Addr callpc, Addr func, int &size,$/;"	f	class:PpuISA::StackTrace
+decodeSave	stacktrace.cc	/^StackTrace::decodeSave(MachInst inst, int &reg, int &disp)$/;"	f	class:PpuISA::StackTrace
+decodeStack	stacktrace.cc	/^StackTrace::decodeStack(MachInst inst, int &disp)$/;"	f	class:PpuISA::StackTrace
+demapPage	tlb.cc	/^TLB::demapPage(Addr vpn, uint64_t asid)$/;"	f	class:TLB
+dev_t	linux/linux.hh	/^    typedef uint64_t dev_t;$/;"	t	class:PpuLinux64
+dl	pra_constants.hh	/^    Bitfield<12, 10> dl;$/;"	m	namespace:PpuISA
+doTranslate	tlb.cc	/^TLB::doTranslate(const RequestPtr &req, ThreadContext *tc_,$/;"	f	class:TLB
+dprintf	stacktrace.hh	/^    dprintf()$/;"	f	class:PpuISA::StackTrace
+ds	pra_constants.hh	/^    Bitfield<15, 13> ds;$/;"	m	namespace:PpuISA
+dspp	pra_constants.hh	/^    Bitfield<10> dspp;$/;"	m	namespace:PpuISA
+dump	stacktrace.cc	/^StackTrace::dump()$/;"	f	class:PpuISA::StackTrace
+eb	pra_constants.hh	/^    Bitfield<25>     eb;$/;"	m	namespace:PpuISA
+ec	pra_constants.hh	/^    Bitfield<30>     ec;$/;"	m	namespace:PpuISA
+ed	pra_constants.hh	/^    Bitfield<29>     ed;$/;"	m	namespace:PpuISA
+ee	pra_constants.hh	/^    Bitfield<26>     ee;$/;"	m	namespace:PpuISA
+eicss	pra_constants.hh	/^    Bitfield<21, 18> eicss;$/;"	m	namespace:PpuISA
+elpa	pra_constants.hh	/^    Bitfield<29>     elpa;$/;"	m	namespace:PpuISA
+emi	decoder.hh	/^    ExtMachInst emi;$/;"	m	class:PpuISA::Decoder
+endWalk	pagetable_walker.cc	/^Walker::WalkerState::endWalk()$/;"	f	class:PpuISA::Walker::WalkerState
+entry	pagetable_walker.hh	/^            TlbEntry entry;$/;"	m	class:PpuISA::Walker::WalkerState
+ep	pra_constants.hh	/^    Bitfield<1>      ep;$/;"	m	namespace:PpuISA
+er	pra_constants.hh	/^    Bitfield<31>     er;$/;"	m	namespace:PpuISA
+erl	pra_constants.hh	/^    Bitfield<2>      erl;$/;"	m	namespace:PpuISA
+es	pra_constants.hh	/^    Bitfield<27>     es;$/;"	m	namespace:PpuISA
+esp	pra_constants.hh	/^    Bitfield<28>     esp;$/;"	m	namespace:PpuISA
+ess	pra_constants.hh	/^    Bitfield<15, 12> ess;$/;"	m	namespace:PpuISA
+et	pra_constants.hh	/^    Bitfield<28>     et;$/;"	m	namespace:PpuISA
+event	pra_constants.hh	/^    Bitfield<10, 5> event;$/;"	m	namespace:PpuISA
+evictLRU	tlb.cc	/^TLB::evictLRU()$/;"	f	class:TLB
+excCode	pra_constants.hh	/^    Bitfield<6,  2>  excCode;$/;"	m	namespace:PpuISA
+exception	faults.hh	/^    ExceptionCode exception() const { return _code; }$/;"	f	class:PpuISA::PpuFault
+exceptionBase	pra_constants.hh	/^    Bitfield<29, 12> exceptionBase;$/;"	m	namespace:PpuISA
+execute	insts/amo.cc	/^Fault MemFenceMicro::execute(ExecContext *xc,$/;"	f	class:PpuISA::MemFenceMicro
+execute	insts/amo.hh	/^    void execute(T *b) { op(b, a); }$/;"	f	class:PpuISA::AtomicGenericOp
+exl	pra_constants.hh	/^    Bitfield<0>     exl;$/;"	m	namespace:PpuISA
+exl	pra_constants.hh	/^    Bitfield<1>      exl;$/;"	m	namespace:PpuISA
+extensions	registers.hh	/^    Bitfield<25, 0>     extensions;$/;"	m	namespace:PpuISA
+f_bavail	linux/linux.hh	/^        uint32_t f_bavail;$/;"	m	struct:PpuLinux32::__anon7
+f_bavail	linux/linux.hh	/^        uint64_t f_bavail;$/;"	m	struct:PpuLinux64::__anon3
+f_bfree	linux/linux.hh	/^        uint32_t f_bfree;$/;"	m	struct:PpuLinux32::__anon7
+f_bfree	linux/linux.hh	/^        uint64_t f_bfree;$/;"	m	struct:PpuLinux64::__anon3
+f_blocks	linux/linux.hh	/^        uint32_t f_blocks;$/;"	m	struct:PpuLinux32::__anon7
+f_blocks	linux/linux.hh	/^        uint64_t f_blocks;$/;"	m	struct:PpuLinux64::__anon3
+f_bsize	linux/linux.hh	/^        uint32_t f_bsize;$/;"	m	struct:PpuLinux32::__anon7
+f_bsize	linux/linux.hh	/^        uint64_t f_bsize;$/;"	m	struct:PpuLinux64::__anon3
+f_ffree	linux/linux.hh	/^        uint32_t f_ffree;$/;"	m	struct:PpuLinux32::__anon7
+f_ffree	linux/linux.hh	/^        uint64_t f_ffree;$/;"	m	struct:PpuLinux64::__anon3
+f_files	linux/linux.hh	/^        uint32_t f_files;$/;"	m	struct:PpuLinux32::__anon7
+f_files	linux/linux.hh	/^        uint64_t f_files;$/;"	m	struct:PpuLinux64::__anon3
+f_flags	linux/linux.hh	/^        uint32_t f_flags;$/;"	m	struct:PpuLinux32::__anon7
+f_flags	linux/linux.hh	/^        uint64_t f_flags;$/;"	m	struct:PpuLinux64::__anon3
+f_frsize	linux/linux.hh	/^        uint32_t f_frsize;$/;"	m	struct:PpuLinux32::__anon7
+f_frsize	linux/linux.hh	/^        uint64_t f_frsize;$/;"	m	struct:PpuLinux64::__anon3
+f_fsid	linux/linux.hh	/^        tgt_fsid_t f_fsid;$/;"	m	struct:PpuLinux32::__anon7
+f_fsid	linux/linux.hh	/^        tgt_fsid_t f_fsid;$/;"	m	struct:PpuLinux64::__anon3
+f_namelen	linux/linux.hh	/^        uint32_t f_namelen;$/;"	m	struct:PpuLinux32::__anon7
+f_namelen	linux/linux.hh	/^        uint64_t f_namelen;$/;"	m	struct:PpuLinux64::__anon3
+f_spare	linux/linux.hh	/^        uint32_t f_spare[4];$/;"	m	struct:PpuLinux32::__anon7
+f_spare	linux/linux.hh	/^        uint64_t f_spare[4];$/;"	m	struct:PpuLinux64::__anon3
+f_type	linux/linux.hh	/^        uint32_t f_type;$/;"	m	struct:PpuLinux32::__anon7
+f_type	linux/linux.hh	/^        uint64_t f_type;$/;"	m	struct:PpuLinux64::__anon3
+fcsr	remote_gdb.hh	/^            uint32_t fcsr;$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+fflags	remote_gdb.hh	/^            uint32_t fflags;$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+fill	pra_constants.hh	/^    Bitfield<61, 40> fill;$/;"	m	namespace:PpuISA
+fill	pra_constants.hh	/^    Bitfield<63, 30> fill;$/;"	m	namespace:PpuISA
+finalizePhysical	tlb.cc	/^TLB::finalizePhysical(const RequestPtr &req,$/;"	f	class:TLB
+flattenCCIndex	isa.hh	/^    int flattenCCIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenFloatIndex	isa.hh	/^    int flattenFloatIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenIntIndex	isa.hh	/^    int flattenIntIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenMiscIndex	isa.hh	/^    int flattenMiscIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenRegId	isa.hh	/^    RegId flattenRegId(const RegId &regId) const { return regId; }$/;"	f	class:PpuISA::ISA
+flattenVecElemIndex	isa.hh	/^    int flattenVecElemIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenVecIndex	isa.hh	/^    int flattenVecIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flattenVecPredIndex	isa.hh	/^    int flattenVecPredIndex(int reg) const { return reg; }$/;"	f	class:PpuISA::ISA
+flushAll	tlb.cc	/^TLB::flushAll()$/;"	f	class:TLB
+fp	pra_constants.hh	/^    Bitfield<0>      fp;$/;"	m	namespace:PpuISA
+fpr	remote_gdb.hh	/^            FloatReg fpr[NumFloatRegs];$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+fr	pra_constants.hh	/^    Bitfield<26>     fr;$/;"	m	namespace:PpuISA
+freeList	tlb.hh	/^    EntryList freeList;         \/\/ free entries$/;"	m	class:PpuISA::TLB
+freehigh	linux/linux.hh	/^        uint32_t freehigh;$/;"	m	struct:PpuLinux32::__anon8
+freehigh	linux/linux.hh	/^        uint64_t freehigh;$/;"	m	struct:PpuLinux64::__anon4
+freeram	linux/linux.hh	/^        uint32_t freeram;$/;"	m	struct:PpuLinux32::__anon8
+freeram	linux/linux.hh	/^        uint64_t freeram;$/;"	m	struct:PpuLinux64::__anon4
+freeswap	linux/linux.hh	/^        uint32_t freeswap;$/;"	m	struct:PpuLinux32::__anon8
+freeswap	linux/linux.hh	/^        uint64_t freeswap;$/;"	m	struct:PpuLinux64::__anon4
+frm	faults.hh	/^    const uint8_t frm;$/;"	m	class:PpuISA::IllegalFrmFault
+frm	remote_gdb.hh	/^            uint32_t frm;$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+fs	registers.hh	/^    Bitfield<14, 13> fs;$/;"	m	namespace:PpuISA
+funcState	pagetable_walker.hh	/^        WalkerState funcState;$/;"	m	class:PpuISA::Walker
+functional	pagetable_walker.hh	/^            bool functional;$/;"	m	class:PpuISA::Walker::WalkerState
+g	pagetable.hh	/^    Bitfield<5> g;$/;"	m	namespace:PpuISA
+g	pra_constants.hh	/^    Bitfield<0>      g;     \/\/ Global Bit$/;"	m	namespace:PpuISA
+g	pra_constants.hh	/^    Bitfield<30>     g;$/;"	m	namespace:PpuISA
+gdbRegs	remote_gdb.cc	/^RemoteGDB::gdbRegs()$/;"	f	class:PpuISA::RemoteGDB
+generateDisassembly	insts/amo.cc	/^MemFenceMicro::generateDisassembly($/;"	f	class:PpuISA::MemFenceMicro
+generateDisassembly	insts/amo.cc	/^string AtomicMemOp::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::AtomicMemOp
+generateDisassembly	insts/amo.cc	/^string AtomicMemOpMicro::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::AtomicMemOpMicro
+generateDisassembly	insts/amo.cc	/^string LoadReserved::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::LoadReserved
+generateDisassembly	insts/amo.cc	/^string LoadReservedMicro::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::LoadReservedMicro
+generateDisassembly	insts/amo.cc	/^string StoreCond::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::StoreCond
+generateDisassembly	insts/amo.cc	/^string StoreCondMicro::generateDisassembly(Addr pc,$/;"	f	class:PpuISA::StoreCondMicro
+generateDisassembly	insts/compressed.cc	/^CompRegOp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::CompRegOp
+generateDisassembly	insts/mem.cc	/^Load::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::Load
+generateDisassembly	insts/mem.cc	/^Store::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::Store
+generateDisassembly	insts/standard.cc	/^CSROp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::CSROp
+generateDisassembly	insts/standard.cc	/^RegOp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::RegOp
+generateDisassembly	insts/standard.cc	/^SystemOp::generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const$/;"	f	class:PpuISA::SystemOp
+getArgument	utility.hh	/^getArgument(ThreadContext *tc, int &number, uint16_t size, bool fp)$/;"	f	namespace:PpuISA
+getExecutingAsid	utility.hh	/^getExecutingAsid(ThreadContext *tc)$/;"	f	namespace:PpuISA
+getInterrupt	interrupts.hh	/^    getInterrupt(ThreadContext *tc)$/;"	f	class:PpuISA::Interrupts
+getMemPriv	tlb.cc	/^TLB::getMemPriv(ThreadContext *tc_, Mode mode)$/;"	f	class:TLB
+getPort	pagetable_walker.cc	/^Walker::getPort(const std::string &if_name, PortID idx)$/;"	f	class:PpuISA::Walker
+getRegs	remote_gdb.cc	/^RemoteGDB::Ppu32GdbRegCache::getRegs(ThreadContext *context_)$/;"	f	class:PpuISA::RemoteGDB::Ppu32GdbRegCache
+getRegs	remote_gdb.cc	/^RemoteGDB::PpuGdbRegCache::getRegs(ThreadContext *context_)$/;"	f	class:PpuISA::RemoteGDB::PpuGdbRegCache
+getWalker	tlb.cc	/^TLB::getWalker()$/;"	f	class:TLB
+getstack	stacktrace.hh	/^    getstack() const$/;"	f	class:PpuISA::StackTrace
+gid_t	linux/linux.hh	/^    typedef uint32_t gid_t;$/;"	t	class:PpuLinux64
+globalClearExclusive	locked_mem.hh	/^globalClearExclusive(XC *xc)$/;"	f	namespace:PpuISA
+globalMask	interrupts.hh	/^    globalMask(ThreadContext *tc) const$/;"	f	class:PpuISA::Interrupts
+gpr	remote_gdb.hh	/^            uint32_t gpr[NumIntArchRegs];$/;"	m	struct:PpuISA::RemoteGDB::Ppu32GdbRegCache::__anon11
+gpr	remote_gdb.hh	/^            uint64_t gpr[NumIntArchRegs];$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+handleLockedRead	locked_mem.hh	/^handleLockedRead(XC *xc, const RequestPtr &req)$/;"	f	namespace:PpuISA
+handleLockedSnoop	locked_mem.hh	/^handleLockedSnoop(XC *xc, PacketPtr pkt, Addr cacheBlockMask)$/;"	f	namespace:PpuISA
+handleLockedSnoopHit	locked_mem.hh	/^handleLockedSnoopHit(XC *xc)$/;"	f	namespace:PpuISA
+handleLockedWrite	locked_mem.hh	/^handleLockedWrite(XC *xc, const RequestPtr &req, Addr cacheBlockMask)$/;"	f	namespace:PpuISA
+hits	tlb.hh	/^    Stats::Formula hits;$/;"	m	class:PpuISA::TLB
+hostname	linux/process.hh	/^    static const char *hostname;$/;"	m	class:PpuLinuxProcess32
+hostname	linux/process.hh	/^    static const char *hostname;$/;"	m	class:PpuLinuxProcess64
+hpmCounterEnabled	isa.cc	/^ISA::hpmCounterEnabled(int misc_reg) const$/;"	f	class:PpuISA::ISA
+hss	pra_constants.hh	/^    Bitfield<29, 26> hss;$/;"	m	namespace:PpuISA
+i	pra_constants.hh	/^    Bitfield<2>      i;$/;"	m	namespace:PpuISA
+i	pra_constants.hh	/^    Bitfield<2>     i;$/;"	m	namespace:PpuISA
+ia	pra_constants.hh	/^    Bitfield<18, 16> ia;$/;"	m	namespace:PpuISA
+ie	interrupts.hh	/^    std::bitset<NumInterruptTypes> ie;$/;"	m	class:PpuISA::Interrupts
+ie	pra_constants.hh	/^    Bitfield<0>      ie;$/;"	m	namespace:PpuISA
+ie	pra_constants.hh	/^    Bitfield<4>     ie;$/;"	m	namespace:PpuISA
+il	pra_constants.hh	/^    Bitfield<21, 19> il;$/;"	m	namespace:PpuISA
+im0	pra_constants.hh	/^        Bitfield<8>  im0;$/;"	m	namespace:PpuISA
+im1	pra_constants.hh	/^        Bitfield<9>  im1;$/;"	m	namespace:PpuISA
+im2	pra_constants.hh	/^        Bitfield<10> im2;$/;"	m	namespace:PpuISA
+im3	pra_constants.hh	/^        Bitfield<11> im3;$/;"	m	namespace:PpuISA
+im4	pra_constants.hh	/^        Bitfield<12> im4;$/;"	m	namespace:PpuISA
+im5	pra_constants.hh	/^        Bitfield<13> im5;$/;"	m	namespace:PpuISA
+im6	pra_constants.hh	/^        Bitfield<14> im6;$/;"	m	namespace:PpuISA
+im7	pra_constants.hh	/^        Bitfield<15> im7;$/;"	m	namespace:PpuISA
+imm	insts/standard.hh	/^    I imm;$/;"	m	class:PpuISA::ImmOp
+impl	pra_constants.hh	/^    Bitfield<17, 16> impl;$/;"	m	namespace:PpuISA
+impl	pra_constants.hh	/^    Bitfield<24, 16> impl;$/;"	m	namespace:PpuISA
+impl	pra_constants.hh	/^    Bitfield<24, 22> impl;$/;"	m	namespace:PpuISA
+impl	pra_constants.hh	/^    Bitfield<31, 30> impl;$/;"	m	namespace:PpuISA
+impl	pra_constants.hh	/^    Bitfield<4,  3> impl;$/;"	m	namespace:PpuISA
+inUserMode	utility.hh	/^inUserMode(ThreadContext *tc)$/;"	f	namespace:PpuISA
+index	pra_constants.hh	/^    Bitfield<22, 0>  index;$/;"	m	namespace:PpuISA
+index	pra_constants.hh	/^    Bitfield<30, 0> index;$/;"	m	namespace:PpuISA
+inflight	pagetable_walker.hh	/^            unsigned inflight;$/;"	m	class:PpuISA::Walker::WalkerState
+initCPU	utility.cc	/^initCPU(ThreadContext *tc, int cpuId)$/;"	f	namespace:PpuISA
+initState	bare_metal/fs_workload.cc	/^BareMetal::initState()$/;"	f	class:PpuISA::BareMetal
+initState	pagetable_walker.cc	/^Walker::WalkerState::initState(ThreadContext * _tc,$/;"	f	class:PpuISA::Walker::WalkerState
+initState	process.cc	/^PpuProcess32::initState()$/;"	f	class:PpuProcess32
+initState	process.cc	/^PpuProcess64::initState()$/;"	f	class:PpuProcess64
+ino_t	linux/linux.hh	/^    typedef uint64_t ino_t;$/;"	t	class:PpuLinux64
+insert	tlb.cc	/^TLB::insert(Addr vpn, const TlbEntry &entry)$/;"	f	class:TLB
+instDone	decoder.hh	/^    bool instDone;$/;"	m	class:PpuISA::Decoder
+instMap	decoder.hh	/^    DecodeCache::InstMap<ExtMachInst> instMap;$/;"	m	class:PpuISA::Decoder
+instName	faults.hh	/^    const std::string instName;$/;"	m	class:PpuISA::UnimplementedFault
+instReady	decoder.hh	/^    bool instReady() { return instDone; }$/;"	f	class:PpuISA::Decoder
+interrupt	faults.hh	/^    interrupt() const { return _int; }$/;"	f	class:PpuISA::PpuFault
+invoke	faults.cc	/^IllegalInstFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::IllegalInstFault
+invoke	faults.cc	/^InterruptFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::InterruptFault
+invoke	faults.cc	/^PpuFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::PpuFault
+invoke	faults.cc	/^SyscallFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::SyscallFault
+invoke	faults.cc	/^UnknownInstFault::invoke(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::UnknownInstFault
+invoke	faults.cc	/^void Reset::invoke(ThreadContext *tc_, const StaticInstPtr &inst)$/;"	f	class:PpuISA::Reset
+invokeSE	faults.cc	/^BreakpointFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::BreakpointFault
+invokeSE	faults.cc	/^IllegalFrmFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::IllegalFrmFault
+invokeSE	faults.cc	/^IllegalInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::IllegalInstFault
+invokeSE	faults.cc	/^PpuFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::PpuFault
+invokeSE	faults.cc	/^SyscallFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::SyscallFault
+invokeSE	faults.cc	/^UnimplementedFault::invokeSE(ThreadContext *tc,$/;"	f	class:PpuISA::UnimplementedFault
+invokeSE	faults.cc	/^UnknownInstFault::invokeSE(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::UnknownInstFault
+ip	interrupts.hh	/^    std::bitset<NumInterruptTypes> ip;$/;"	m	class:PpuISA::Interrupts
+ip0	pra_constants.hh	/^        Bitfield<8>  ip0;$/;"	m	namespace:PpuISA
+ip1	pra_constants.hh	/^        Bitfield<9>  ip1;$/;"	m	namespace:PpuISA
+ip2	pra_constants.hh	/^        Bitfield<10> ip2;$/;"	m	namespace:PpuISA
+ip3	pra_constants.hh	/^        Bitfield<11> ip3;$/;"	m	namespace:PpuISA
+ip4	pra_constants.hh	/^        Bitfield<12> ip4;$/;"	m	namespace:PpuISA
+ip5	pra_constants.hh	/^        Bitfield<13> ip5;$/;"	m	namespace:PpuISA
+ip6	pra_constants.hh	/^        Bitfield<14> ip6;$/;"	m	namespace:PpuISA
+ip7	pra_constants.hh	/^        Bitfield<15> ip7;$/;"	m	namespace:PpuISA
+ipl	pra_constants.hh	/^    Bitfield<15, 10> ipl;$/;"	m	namespace:PpuISA
+ippci	pra_constants.hh	/^    Bitfield<28, 26> ippci;$/;"	m	namespace:PpuISA
+ipti	pra_constants.hh	/^    Bitfield<31, 29> ipti;$/;"	m	namespace:PpuISA
+is	pra_constants.hh	/^    Bitfield<24, 22> is;$/;"	m	namespace:PpuISA
+isBareMetal	fs_workload.hh	/^    bool isBareMetal() const { return _isBareMetal; }$/;"	f	class:PpuISA::FsWorkload
+isEntry	stacktrace.cc	/^StackTrace::isEntry(Addr addr)$/;"	f	class:PpuISA::StackTrace
+isInterrupt	faults.hh	/^    bool isInterrupt() const { return _interrupt; }$/;"	f	class:PpuISA::PpuFault
+isRetrying	pagetable_walker.cc	/^Walker::WalkerState::isRetrying()$/;"	f	class:PpuISA::Walker::WalkerState
+isRv32	utility.cc	/^isRv32(ThreadContext *tc)$/;"	f	namespace:PpuISA
+isTiming	pagetable_walker.cc	/^Walker::WalkerState::isTiming()$/;"	f	class:PpuISA::Walker::WalkerState
+isquietnan	utility.hh	/^isquietnan(T val)$/;"	f	namespace:PpuISA
+isquietnan	utility.hh	/^isquietnan<double>(double val)$/;"	f	namespace:PpuISA
+isquietnan	utility.hh	/^isquietnan<float>(float val)$/;"	f	namespace:PpuISA
+issignalingnan	utility.hh	/^issignalingnan(T val)$/;"	f	namespace:PpuISA
+issignalingnan	utility.hh	/^issignalingnan<double>(double val)$/;"	f	namespace:PpuISA
+issignalingnan	utility.hh	/^issignalingnan<float>(float val)$/;"	f	namespace:PpuISA
+iv	pra_constants.hh	/^    Bitfield<23>     iv;$/;"	m	namespace:PpuISA
+k	pra_constants.hh	/^    Bitfield<1>     k;$/;"	m	namespace:PpuISA
+k0	pra_constants.hh	/^    Bitfield<2,  0>  k0;$/;"	m	namespace:PpuISA
+k23	pra_constants.hh	/^    Bitfield<30, 28> k23;$/;"	m	namespace:PpuISA
+ksu	pra_constants.hh	/^    Bitfield<4,  3>  ksu;$/;"	m	namespace:PpuISA
+ku	pra_constants.hh	/^    Bitfield<27, 25> ku;$/;"	m	namespace:PpuISA
+kx	pra_constants.hh	/^    Bitfield<7>      kx;$/;"	m	namespace:PpuISA
+l	pra_constants.hh	/^    Bitfield<5>     l;$/;"	m	namespace:PpuISA
+level	pagetable_walker.hh	/^            int level;$/;"	m	class:PpuISA::Walker::WalkerState
+loader	linux/process.cc	/^PpuLinuxObjectFileLoader loader;$/;"	m	namespace:__anon9	file:
+loads	linux/linux.hh	/^        uint32_t loads[3];$/;"	m	struct:PpuLinux32::__anon8
+loads	linux/linux.hh	/^        uint64_t loads[3];$/;"	m	struct:PpuLinux64::__anon4
+locked_addrs	locked_mem.cc	/^    std::unordered_map<int, std::stack<Addr>> locked_addrs;$/;"	m	namespace:PpuISA	file:
+logBytes	pagetable.hh	/^    unsigned logBytes;$/;"	m	struct:PpuISA::TlbEntry
+lookup	tlb.cc	/^TLB::lookup(Addr vpn, uint16_t asid, Mode mode, bool hidden)$/;"	f	class:TLB
+lpa	pra_constants.hh	/^    Bitfield<7>  lpa;$/;"	m	namespace:PpuISA
+lruSeq	pagetable.hh	/^    uint64_t lruSeq;$/;"	m	struct:PpuISA::TlbEntry
+lruSeq	tlb.hh	/^    uint64_t lruSeq;$/;"	m	class:PpuISA::TLB
+m	pra_constants.hh	/^    Bitfield<31>     m;$/;"	m	namespace:PpuISA
+m	pra_constants.hh	/^    Bitfield<31>    m;$/;"	m	namespace:PpuISA
+m	pra_constants.hh	/^    Bitfield<31> m;$/;"	m	namespace:PpuISA
+mask	pra_constants.hh	/^    Bitfield<11, 3>  mask;$/;"	m	namespace:PpuISA
+mask	pra_constants.hh	/^    Bitfield<28, 13> mask;$/;"	m	namespace:PpuISA
+mask	pra_constants.hh	/^    Bitfield<3,  0>  mask;$/;"	m	namespace:PpuISA
+maskx	pra_constants.hh	/^    Bitfield<12, 11> maskx;$/;"	m	namespace:PpuISA
+masterId	pagetable_walker.hh	/^        MasterID masterId;$/;"	m	class:PpuISA::Walker
+md	pra_constants.hh	/^    Bitfield<5>      md;$/;"	m	namespace:PpuISA
+mei	registers.hh	/^    Bitfield<11> mei;$/;"	m	namespace:PpuISA
+memAccessFlags	insts/amo.hh	/^    Request::Flags memAccessFlags;$/;"	m	class:PpuISA::AtomicMemOpMicro
+memAccessFlags	insts/amo.hh	/^    Request::Flags memAccessFlags;$/;"	m	class:PpuISA::LoadReservedMicro
+memAccessFlags	insts/amo.hh	/^    Request::Flags memAccessFlags;$/;"	m	class:PpuISA::StoreCondMicro
+memAccessFlags	insts/mem.hh	/^    Request::Flags memAccessFlags;$/;"	m	class:PpuISA::MemInst
+mem_unit	linux/linux.hh	/^        uint32_t mem_unit;$/;"	m	struct:PpuLinux32::__anon8
+mem_unit	linux/linux.hh	/^        uint32_t mem_unit;$/;"	m	struct:PpuLinux64::__anon4
+microops	insts/static_inst.hh	/^    std::vector<StaticInstPtr> microops;$/;"	m	class:PpuISA::PpuMacroInst
+mid	decoder.hh	/^    bool mid;$/;"	m	class:PpuISA::Decoder
+mie	registers.hh	/^    Bitfield<3> mie;$/;"	m	namespace:PpuISA
+miscRegFile	isa.hh	/^    std::vector<RegVal> miscRegFile;$/;"	m	class:PpuISA::ISA
+misses	tlb.hh	/^    Stats::Formula misses;$/;"	m	class:PpuISA::TLB
+mmuSize	pra_constants.hh	/^    Bitfield<30, 25> mmuSize;$/;"	m	namespace:PpuISA
+mode	pagetable.hh	/^    Bitfield<63, 60> mode;$/;"	m	namespace:PpuISA
+mode	pagetable_walker.hh	/^            BaseTLB::Mode mode;$/;"	m	class:PpuISA::Walker::WalkerState
+mode_t	linux/linux.hh	/^    typedef uint32_t mode_t;$/;"	t	class:PpuLinux64
+more	decoder.hh	/^    bool more;$/;"	m	class:PpuISA::Decoder
+moreBytes	decoder.cc	/^Decoder::moreBytes(const PCState &pc, Addr fetchPC, MachInst inst)$/;"	f	class:PpuISA::Decoder
+mpie	registers.hh	/^    Bitfield<7> mpie;$/;"	m	namespace:PpuISA
+mpp	registers.hh	/^    Bitfield<12, 11> mpp;$/;"	m	namespace:PpuISA
+mprv	registers.hh	/^    Bitfield<17> mprv;$/;"	m	namespace:PpuISA
+msi	registers.hh	/^    Bitfield<3> msi;$/;"	m	namespace:PpuISA
+mt	pra_constants.hh	/^    Bitfield<2>  mt;$/;"	m	namespace:PpuISA
+mt	pra_constants.hh	/^    Bitfield<9,  7>  mt;$/;"	m	namespace:PpuISA
+mti	registers.hh	/^    Bitfield<7> mti;$/;"	m	namespace:PpuISA
+mx	pra_constants.hh	/^    Bitfield<24>     mx;$/;"	m	namespace:PpuISA
+mxl	registers.hh	/^    Bitfield<63, 62>    mxl;$/;"	m	namespace:PpuISA
+mxl32	registers.hh	/^    Bitfield<31, 30>    mxl32;$/;"	m	namespace:PpuISA
+mxr	registers.hh	/^    Bitfield<19> mxr;$/;"	m	namespace:PpuISA
+name	pagetable_walker.hh	/^            std::string name() const {return walker->name();}$/;"	f	class:PpuISA::Walker::WalkerState
+name	registers.hh	/^    const std::string name;$/;"	m	struct:PpuISA::CSRMetadata
+name	remote_gdb.hh	/^        name() const$/;"	f	class:PpuISA::RemoteGDB::Ppu32GdbRegCache
+name	remote_gdb.hh	/^        name() const$/;"	f	class:PpuISA::RemoteGDB::PpuGdbRegCache
+name	stacktrace.cc	/^ProcessInfo::name(Addr ksp) const$/;"	f	class:PpuISA::ProcessInfo
+needMoreBytes	decoder.hh	/^    bool needMoreBytes() { return more; }$/;"	f	class:PpuISA::Decoder
+nextSeq	tlb.hh	/^    uint64_t nextSeq() { return ++lruSeq; }$/;"	f	class:PpuISA::TLB
+nextState	pagetable_walker.hh	/^            State nextState;$/;"	m	class:PpuISA::Walker::WalkerState
+nlink_t	linux/linux.hh	/^    typedef uint32_t nlink_t;$/;"	t	class:PpuLinux64
+nmi	pra_constants.hh	/^    Bitfield<19>     nmi;$/;"	m	namespace:PpuISA
+numInflight	pagetable_walker.cc	/^Walker::WalkerState::numInflight() const$/;"	f	class:PpuISA::Walker::WalkerState
+numSquashable	pagetable_walker.hh	/^        unsigned numSquashable;$/;"	m	class:PpuISA::Walker
+num_squash_per_cycle	PpuTLB.py	/^    num_squash_per_cycle = Param.Unsigned(4,$/;"	v	class:PpuPagetableWalker
+off_t	linux/linux.hh	/^    typedef int64_t off_t;$/;"	t	class:PpuLinux64
+offset	insts/mem.hh	/^    int64_t offset;$/;"	m	class:PpuISA::MemInst
+op	insts/amo.hh	/^    std::function<void(T*,T)> op;$/;"	m	class:PpuISA::AtomicGenericOp
+openFlagTable	linux/linux.hh	/^    static SyscallFlagTransTable openFlagTable[];$/;"	m	class:PpuLinux32
+openFlagTable	linux/linux.hh	/^    static SyscallFlagTransTable openFlagTable[];$/;"	m	class:PpuLinux64
+override	bare_metal/fs_workload.hh	/^    void initState() override;$/;"	m	class:PpuISA::BareMetal
+override	faults.hh	/^        StaticInst::nullStaticInstPtr) override;$/;"	m	class:PpuISA::Reset
+override	faults.hh	/^    void invoke(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::PpuFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::BreakpointFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::IllegalFrmFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::IllegalInstFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::SyscallFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::UnimplementedFault
+override	faults.hh	/^    void invokeSE(ThreadContext *tc, const StaticInstPtr &inst) override;$/;"	m	class:PpuISA::UnknownInstFault
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::AtomicMemOp
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::AtomicMemOpMicro
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::LoadReserved
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::LoadReservedMicro
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::MemFenceMicro
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::StoreCond
+override	insts/amo.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::StoreCondMicro
+override	insts/amo.hh	/^    Fault execute(ExecContext *, Trace::InstRecord *) const override;$/;"	m	class:PpuISA::MemFenceMicro
+override	insts/compressed.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::CompRegOp
+override	insts/mem.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::Load
+override	insts/mem.hh	/^       Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::Store
+override	insts/standard.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::CSROp
+override	insts/standard.hh	/^        Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::RegOp
+override	insts/standard.hh	/^    generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const override;$/;"	m	class:PpuISA::SystemOp
+override	insts/static_inst.hh	/^    void advancePC(PCState &pcState) const override;$/;"	m	class:PpuISA::PpuMicroInst
+override	linux/process.hh	/^    void syscall(ThreadContext *tc, Fault *fault) override;$/;"	m	class:PpuLinuxProcess32
+override	linux/process.hh	/^    void syscall(ThreadContext *tc, Fault *fault) override;$/;"	m	class:PpuLinuxProcess64
+override	pagetable.hh	/^    void serialize(CheckpointOut &cp) const override;$/;"	m	struct:PpuISA::TlbEntry
+override	pagetable.hh	/^    void unserialize(CheckpointIn &cp) override;$/;"	m	struct:PpuISA::TlbEntry
+override	pagetable_walker.hh	/^                      PortID idx=InvalidPortID) override;$/;"	m	class:PpuISA::Walker
+override	process.hh	/^    void initState() override;$/;"	m	class:PpuProcess32
+override	process.hh	/^    void initState() override;$/;"	m	class:PpuProcess64
+override	remote_gdb.hh	/^    PpuBaseGdbRegCache *gdbRegs() override;$/;"	m	class:PpuISA::RemoteGDB
+override	remote_gdb.hh	/^    bool acc(Addr addr, size_t len) override;$/;"	m	class:PpuISA::RemoteGDB
+override	tlb.hh	/^                              ThreadContext *tc, Mode mode) override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^                           ThreadContext *tc, Mode mode) const override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^                          ThreadContext *tc, Mode mode) override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^                         Translation *translation, Mode mode) override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^    void demapPage(Addr vaddr, uint64_t asn) override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^    void flushAll() override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^    void regStats() override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^    void serialize(CheckpointOut &cp) const override;$/;"	m	class:PpuISA::TLB
+override	tlb.hh	/^    void unserialize(CheckpointIn &cp) override;$/;"	m	class:PpuISA::TLB
+p	pra_constants.hh	/^    Bitfield<0>     p;$/;"	m	namespace:PpuISA
+p	pra_constants.hh	/^    Bitfield<31> p;$/;"	m	namespace:PpuISA
+pState	pra_constants.hh	/^    Bitfield<7,  6> pState;$/;"	m	namespace:PpuISA
+pTagLo	pra_constants.hh	/^    Bitfield<31, 8> pTagLo;$/;"	m	namespace:PpuISA
+pad	linux/linux.hh	/^        uint16_t pad;$/;"	m	struct:PpuLinux32::__anon8
+pad	linux/linux.hh	/^        uint16_t pad;$/;"	m	struct:PpuLinux64::__anon4
+paddr	pagetable.hh	/^    Addr paddr;$/;"	m	struct:PpuISA::TlbEntry
+pageFault	pagetable_walker.cc	/^Walker::WalkerState::pageFault(bool present)$/;"	f	class:PpuISA::Walker::WalkerState
+params	interrupts.hh	/^    params() const$/;"	f	class:PpuISA::Interrupts
+params	isa.cc	/^ISA::params() const$/;"	f	class:PpuISA::ISA
+params	pagetable_walker.hh	/^        params() const$/;"	f	class:PpuISA::Walker
+pc	pra_constants.hh	/^    Bitfield<4>      pc;$/;"	m	namespace:PpuISA
+pc	remote_gdb.hh	/^            uint32_t pc;$/;"	m	struct:PpuISA::RemoteGDB::Ppu32GdbRegCache::__anon11
+pc	remote_gdb.hh	/^            uint64_t pc;$/;"	m	struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+pcState	faults.hh	/^    const PCState pcState;$/;"	m	class:PpuISA::BreakpointFault
+pci	pra_constants.hh	/^    Bitfield<26>     pci;$/;"	m	namespace:PpuISA
+perm	pagetable.hh	/^    Bitfield<3, 1> perm;$/;"	m	namespace:PpuISA
+pfn	pra_constants.hh	/^    Bitfield<29, 6>  pfn;   \/\/ Page frame number$/;"	m	namespace:PpuISA
+physIndex	registers.hh	/^    const int physIndex;$/;"	m	struct:PpuISA::CSRMetadata
+pid	stacktrace.cc	/^ProcessInfo::pid(Addr ksp) const$/;"	f	class:PpuISA::ProcessInfo
+pmode	pagetable_walker.hh	/^            PrivilegeMode pmode;$/;"	m	class:PpuISA::Walker::WalkerState
+port	PpuTLB.py	/^    port = MasterPort("Port for the hardware table walker")$/;"	v	class:PpuPagetableWalker
+port	pagetable_walker.hh	/^        WalkerPort port;$/;"	m	class:PpuISA::Walker
+post	interrupts.hh	/^    post(int int_num, int index)$/;"	f	class:PpuISA::Interrupts
+ppn	pagetable.hh	/^    Bitfield<43, 0> ppn;$/;"	m	namespace:PpuISA
+ppn	pagetable.hh	/^    Bitfield<53, 10> ppn;$/;"	m	namespace:PpuISA
+ppn0	pagetable.hh	/^    Bitfield<18, 10> ppn0;$/;"	m	namespace:PpuISA
+ppn1	pagetable.hh	/^    Bitfield<27, 19> ppn1;$/;"	m	namespace:PpuISA
+ppn2	pagetable.hh	/^    Bitfield<53, 28> ppn2;$/;"	m	namespace:PpuISA
+ppsystem	PpuFsWorkload.py	/^    ppsystem = Param.PpuSOCSystem(Parent.any, "System this BareMetal object belongs to")$/;"	v	class:PpuBareMetal
+ppsystem	bare_metal/fs_workload.hh	/^    PpuSOCSystem *ppsystem;$/;"	m	class:PpuISA::BareMetal
+procId	pra_constants.hh	/^    Bitfield<15, 8>  procId;$/;"	m	namespace:PpuISA
+process	decoder.hh	/^    void process() {}$/;"	f	class:PpuISA::Decoder
+process	idle_event.cc	/^IdleStartEvent::process(ThreadContext *tc)$/;"	f	class:IdleStartEvent
+procs	linux/linux.hh	/^        uint16_t procs;$/;"	m	struct:PpuLinux32::__anon8
+procs	linux/linux.hh	/^        uint16_t procs;$/;"	m	struct:PpuLinux64::__anon4
+pss	pra_constants.hh	/^    Bitfield<9,  6>  pss;$/;"	m	namespace:PpuISA
+pte	pagetable.hh	/^    PTESv39 pte;$/;"	m	struct:PpuISA::TlbEntry
+pteBase	pra_constants.hh	/^    Bitfield<63, 23> pteBase;$/;"	m	namespace:PpuISA
+px	pra_constants.hh	/^    Bitfield<23>     px;$/;"	m	namespace:PpuISA
+r	pagetable.hh	/^    Bitfield<1> r;$/;"	m	namespace:PpuISA
+r	pra_constants.hh	/^    Bitfield<1>      r;$/;"	m	namespace:PpuISA
+r	pra_constants.hh	/^    Bitfield<1>     r;$/;"	m	namespace:PpuISA
+r	pra_constants.hh	/^    Bitfield<63, 62> r;$/;"	m	namespace:PpuISA
+r	remote_gdb.hh	/^        } __attribute__((__packed__)) r;$/;"	m	class:PpuISA::RemoteGDB::Ppu32GdbRegCache	typeref:struct:PpuISA::RemoteGDB::Ppu32GdbRegCache::__anon11
+r	remote_gdb.hh	/^        } __attribute__((__packed__)) r;$/;"	m	class:PpuISA::RemoteGDB::PpuGdbRegCache	typeref:struct:PpuISA::RemoteGDB::PpuGdbRegCache::__anon10
+r0	pra_constants.hh	/^    Bitfield<3>      r0;$/;"	m	namespace:PpuISA
+random	pra_constants.hh	/^    Bitfield<30, 0> random;$/;"	m	namespace:PpuISA
+re	pra_constants.hh	/^    Bitfield<25>     re;$/;"	m	namespace:PpuISA
+read	pagetable_walker.hh	/^            PacketPtr read;$/;"	m	class:PpuISA::Walker::WalkerState
+readIE	interrupts.hh	/^    uint64_t readIE() const { return (uint64_t)ie.to_ulong(); }$/;"	f	class:PpuISA::Interrupts
+readIP	interrupts.hh	/^    uint64_t readIP() const { return (uint64_t)ip.to_ulong(); }$/;"	f	class:PpuISA::Interrupts
+readMiscReg	isa.cc	/^ISA::readMiscReg(int misc_reg, ThreadContext *tc_)$/;"	f	class:PpuISA::ISA
+readMiscRegNoEffect	isa.cc	/^ISA::readMiscRegNoEffect(int misc_reg) const$/;"	f	class:PpuISA::ISA
+read_accesses	tlb.hh	/^    mutable Stats::Scalar read_accesses;$/;"	m	class:PpuISA::TLB
+read_acv	tlb.hh	/^    mutable Stats::Scalar read_acv;$/;"	m	class:PpuISA::TLB
+read_hits	tlb.hh	/^    mutable Stats::Scalar read_hits;$/;"	m	class:PpuISA::TLB
+read_misses	tlb.hh	/^    mutable Stats::Scalar read_misses;$/;"	m	class:PpuISA::TLB
+reason	faults.hh	/^    const std::string reason;$/;"	m	class:PpuISA::IllegalInstFault
+recvPacket	pagetable_walker.cc	/^Walker::WalkerState::recvPacket(PacketPtr pkt)$/;"	f	class:PpuISA::Walker::WalkerState
+recvReqRetry	pagetable_walker.cc	/^Walker::WalkerPort::recvReqRetry()$/;"	f	class:PpuISA::Walker::WalkerPort
+recvReqRetry	pagetable_walker.cc	/^Walker::recvReqRetry()$/;"	f	class:PpuISA::Walker
+recvTimingResp	pagetable_walker.cc	/^Walker::WalkerPort::recvTimingResp(PacketPtr pkt)$/;"	f	class:PpuISA::Walker::WalkerPort
+recvTimingResp	pagetable_walker.cc	/^Walker::recvTimingResp(PacketPtr pkt)$/;"	f	class:PpuISA::Walker
+regCache	remote_gdb.hh	/^    PpuGdbRegCache regCache;$/;"	m	class:PpuISA::RemoteGDB
+regCache32	remote_gdb.hh	/^    Ppu32GdbRegCache regCache32;$/;"	m	class:PpuISA::RemoteGDB
+regStats	tlb.cc	/^TLB::regStats()$/;"	f	class:TLB
+registerName	utility.hh	/^registerName(RegId reg)$/;"	f	namespace:PpuISA
+remove	tlb.cc	/^TLB::remove(size_t idx)$/;"	f	class:TLB
+req	pagetable_walker.hh	/^            RequestPtr req;$/;"	m	class:PpuISA::Walker::WalkerState
+reset	decoder.cc	/^void Decoder::reset()$/;"	f	class:PpuISA::Decoder
+resetVect	fs_workload.hh	/^    Addr resetVect() const { return _resetVect; }$/;"	f	class:PpuISA::FsWorkload
+reset_vect	PpuFsWorkload.py	/^    reset_vect = Param.Addr(0x0, 'Reset vector')$/;"	v	class:PpuFsWorkload
+retry	pagetable_walker.cc	/^Walker::WalkerState::retry()$/;"	f	class:PpuISA::Walker::WalkerState
+retrying	pagetable_walker.hh	/^            bool retrying;$/;"	m	class:PpuISA::Walker::WalkerState
+rev	pra_constants.hh	/^    Bitfield<7,  0>  rev;$/;"	m	namespace:PpuISA
+ripl	pra_constants.hh	/^    Bitfield<15, 10> ripl;$/;"	m	namespace:PpuISA
+rlim_cur	linux/linux.hh	/^        uint32_t  rlim_cur;     \/\/!< soft limit$/;"	m	struct:PpuLinux32::rlimit
+rlim_max	linux/linux.hh	/^        uint32_t  rlim_max;     \/\/!< hard limit$/;"	m	struct:PpuLinux32::rlimit
+rlimit	linux/linux.hh	/^    struct rlimit {$/;"	s	class:PpuLinux32
+rp	pra_constants.hh	/^    Bitfield<27>     rp;$/;"	m	namespace:PpuISA
+rv32	fs_workload.hh	/^    bool rv32() const { return _rv32; }$/;"	f	class:PpuISA::FsWorkload
+rv32	types.hh	/^    bool rv32() const { return _rv32; }$/;"	f	class:PpuISA::PCState
+rv32	types.hh	/^    void rv32(bool val) { _rv32 = val; }$/;"	f	class:PpuISA::PCState
+s	pra_constants.hh	/^    Bitfield<2>     s;$/;"	m	namespace:PpuISA
+sa	pra_constants.hh	/^    Bitfield<3,  0>  sa;$/;"	m	namespace:PpuISA
+satp	pagetable_walker.hh	/^            SATP satp;$/;"	m	class:PpuISA::Walker::WalkerState
+sd	registers.hh	/^    Bitfield<63> sd;$/;"	m	namespace:PpuISA
+sei	registers.hh	/^    Bitfield<9> sei;$/;"	m	namespace:PpuISA
+sendPackets	pagetable_walker.cc	/^Walker::WalkerState::sendPackets()$/;"	f	class:PpuISA::Walker::WalkerState
+sendTiming	pagetable_walker.cc	/^bool Walker::sendTiming(WalkerState* sendingState, PacketPtr pkt)$/;"	f	class:PpuISA::Walker
+senderWalk	pagetable_walker.hh	/^            WalkerState * senderWalk;$/;"	m	struct:PpuISA::Walker::WalkerSenderState
+serialize	interrupts.hh	/^    serialize(CheckpointOut &cp) const$/;"	f	class:PpuISA::Interrupts
+serialize	isa.cc	/^ISA::serialize(CheckpointOut &cp) const$/;"	f	class:PpuISA::ISA
+serialize	pagetable.cc	/^TlbEntry::serialize(CheckpointOut &cp) const$/;"	f	class:PpuISA::TlbEntry
+serialize	tlb.cc	/^TLB::serialize(CheckpointOut &cp) const$/;"	f	class:TLB
+setCPU	interrupts.hh	/^    void setCPU(BaseCPU * _cpu) { panic("can't set BaseCPU in ppu interrupts"); }$/;"	f	class:PpuISA::Interrupts
+setCPU	interrupts.hh	/^    void setCPU(PpuBaseCPU * _cpu) { cpu = _cpu; }$/;"	f	class:PpuISA::Interrupts
+setIE	interrupts.hh	/^    void setIE(const uint64_t& val) { ie = val; }$/;"	f	class:PpuISA::Interrupts
+setIP	interrupts.hh	/^    void setIP(const uint64_t& val) { ip = val; }$/;"	f	class:PpuISA::Interrupts
+setMiscReg	isa.cc	/^ISA::setMiscReg(int misc_reg, RegVal val, ThreadContext *tc_)$/;"	f	class:PpuISA::ISA
+setMiscRegNoEffect	isa.cc	/^ISA::setMiscRegNoEffect(int misc_reg, RegVal val)$/;"	f	class:PpuISA::ISA
+setRegs	remote_gdb.cc	/^RemoteGDB::Ppu32GdbRegCache::setRegs(ThreadContext *context_) const$/;"	f	class:PpuISA::RemoteGDB::Ppu32GdbRegCache
+setRegs	remote_gdb.cc	/^RemoteGDB::PpuGdbRegCache::setRegs(ThreadContext *context_) const$/;"	f	class:PpuISA::RemoteGDB::PpuGdbRegCache
+setTLB	pagetable_walker.hh	/^        void setTLB(TLB * _tlb)$/;"	f	class:PpuISA::Walker
+setupWalk	pagetable_walker.cc	/^Walker::WalkerState::setupWalk(Addr vaddr)$/;"	f	class:PpuISA::Walker::WalkerState
+sharedram	linux/linux.hh	/^        uint32_t sharedram;$/;"	m	struct:PpuLinux32::__anon8
+sharedram	linux/linux.hh	/^        uint64_t sharedram;$/;"	m	struct:PpuLinux64::__anon4
+sie	registers.hh	/^    Bitfield<1> sie;$/;"	m	namespace:PpuISA
+size	PpuTLB.py	/^    size = Param.Int(64, "TLB size")$/;"	v	class:PpuTLB
+size	pagetable.hh	/^    Addr size() const$/;"	f	struct:PpuISA::TlbEntry
+size	remote_gdb.hh	/^        size_t size() const { return sizeof(r); }$/;"	f	class:PpuISA::RemoteGDB::Ppu32GdbRegCache
+size	remote_gdb.hh	/^        size_t size() const { return sizeof(r); }$/;"	f	class:PpuISA::RemoteGDB::PpuGdbRegCache
+size	tlb.hh	/^    size_t size;$/;"	m	class:PpuISA::TLB
+sl	pra_constants.hh	/^    Bitfield<7,  4>  sl;$/;"	m	namespace:PpuISA
+sm	pra_constants.hh	/^    Bitfield<1>  sm;$/;"	m	namespace:PpuISA
+sp	pra_constants.hh	/^    Bitfield<4>  sp;$/;"	m	namespace:PpuISA
+spie	registers.hh	/^    Bitfield<5> spie;$/;"	m	namespace:PpuISA
+spp	registers.hh	/^    Bitfield<8> spp;$/;"	m	namespace:PpuISA
+squash	pagetable_walker.cc	/^Walker::WalkerState::squash()$/;"	f	class:PpuISA::Walker::WalkerState
+squashed	pagetable_walker.hh	/^            bool squashed;$/;"	m	class:PpuISA::Walker::WalkerState
+sr	pra_constants.hh	/^    Bitfield<20>     sr;$/;"	m	namespace:PpuISA
+ss	pra_constants.hh	/^    Bitfield<11, 8>  ss;$/;"	m	namespace:PpuISA
+ssi	registers.hh	/^    Bitfield<1> ssi;$/;"	m	namespace:PpuISA
+ssv0	pra_constants.hh	/^    Bitfield<3,  0>  ssv0;$/;"	m	namespace:PpuISA
+ssv1	pra_constants.hh	/^    Bitfield<7,  4>  ssv1;$/;"	m	namespace:PpuISA
+ssv2	pra_constants.hh	/^    Bitfield<11, 8>  ssv2;$/;"	m	namespace:PpuISA
+ssv3	pra_constants.hh	/^    Bitfield<15, 12> ssv3;$/;"	m	namespace:PpuISA
+ssv4	pra_constants.hh	/^    Bitfield<19, 16> ssv4;$/;"	m	namespace:PpuISA
+ssv5	pra_constants.hh	/^    Bitfield<23, 20> ssv5;$/;"	m	namespace:PpuISA
+ssv6	pra_constants.hh	/^    Bitfield<27, 24> ssv6;$/;"	m	namespace:PpuISA
+ssv7	pra_constants.hh	/^    Bitfield<31, 28> ssv7;$/;"	m	namespace:PpuISA
+st_atimeX	linux/linux.hh	/^        time_t st_atimeX;$/;"	m	struct:PpuLinux32::__anon6
+st_atimeX	linux/linux.hh	/^        uint64_t st_atimeX;$/;"	m	struct:PpuLinux64::__anon1
+st_atime_nsec	linux/linux.hh	/^        int32_t st_atime_nsec;$/;"	m	struct:PpuLinux32::__anon6
+st_atime_nsec	linux/linux.hh	/^        uint64_t st_atime_nsec;$/;"	m	struct:PpuLinux64::__anon1
+st_blksize	linux/linux.hh	/^        blksize_t st_blksize;$/;"	m	struct:PpuLinux64::__anon1
+st_blksize	linux/linux.hh	/^        int32_t st_blksize;$/;"	m	struct:PpuLinux32::__anon6
+st_blocks	linux/linux.hh	/^        blkcnt_t st_blocks;$/;"	m	struct:PpuLinux64::__anon1
+st_blocks	linux/linux.hh	/^        int64_t st_blocks;$/;"	m	struct:PpuLinux32::__anon6
+st_ctimeX	linux/linux.hh	/^        time_t st_ctimeX;$/;"	m	struct:PpuLinux32::__anon6
+st_ctimeX	linux/linux.hh	/^        uint64_t st_ctimeX;$/;"	m	struct:PpuLinux64::__anon1
+st_ctime_nsec	linux/linux.hh	/^        int32_t st_ctime_nsec;$/;"	m	struct:PpuLinux32::__anon6
+st_ctime_nsec	linux/linux.hh	/^        uint64_t st_ctime_nsec;$/;"	m	struct:PpuLinux64::__anon1
+st_dev	linux/linux.hh	/^        dev_t st_dev;$/;"	m	struct:PpuLinux64::__anon1
+st_dev	linux/linux.hh	/^        uint64_t st_dev;$/;"	m	struct:PpuLinux32::__anon6
+st_gid	linux/linux.hh	/^        gid_t st_gid;$/;"	m	struct:PpuLinux64::__anon1
+st_gid	linux/linux.hh	/^        uint32_t st_gid;$/;"	m	struct:PpuLinux32::__anon6
+st_ino	linux/linux.hh	/^        ino_t st_ino;$/;"	m	struct:PpuLinux64::__anon1
+st_ino	linux/linux.hh	/^        uint64_t st_ino;$/;"	m	struct:PpuLinux32::__anon6
+st_mode	linux/linux.hh	/^        mode_t st_mode;$/;"	m	struct:PpuLinux64::__anon1
+st_mode	linux/linux.hh	/^        uint32_t st_mode;$/;"	m	struct:PpuLinux32::__anon6
+st_mtimeX	linux/linux.hh	/^        time_t st_mtimeX;$/;"	m	struct:PpuLinux32::__anon6
+st_mtimeX	linux/linux.hh	/^        uint64_t st_mtimeX;$/;"	m	struct:PpuLinux64::__anon1
+st_mtime_nsec	linux/linux.hh	/^        int32_t st_mtime_nsec;$/;"	m	struct:PpuLinux32::__anon6
+st_mtime_nsec	linux/linux.hh	/^        uint64_t st_mtime_nsec;$/;"	m	struct:PpuLinux64::__anon1
+st_nlink	linux/linux.hh	/^        nlink_t st_nlink;$/;"	m	struct:PpuLinux64::__anon1
+st_nlink	linux/linux.hh	/^        uint32_t st_nlink;$/;"	m	struct:PpuLinux32::__anon6
+st_rdev	linux/linux.hh	/^        dev_t st_rdev;$/;"	m	struct:PpuLinux64::__anon1
+st_rdev	linux/linux.hh	/^        uint64_t st_rdev;$/;"	m	struct:PpuLinux32::__anon6
+st_size	linux/linux.hh	/^        int64_t st_size;$/;"	m	struct:PpuLinux32::__anon6
+st_size	linux/linux.hh	/^        off_t st_size;$/;"	m	struct:PpuLinux64::__anon1
+st_uid	linux/linux.hh	/^        uid_t st_uid;$/;"	m	struct:PpuLinux64::__anon1
+st_uid	linux/linux.hh	/^        uint32_t st_uid;$/;"	m	struct:PpuLinux32::__anon6
+stack	stacktrace.hh	/^    std::vector<Addr> stack;$/;"	m	class:PpuISA::StackTrace
+start	pagetable_walker.cc	/^Walker::start(ThreadContext * _tc, BaseTLB::Translation *_translation,$/;"	f	class:PpuISA::Walker
+startFunctional	pagetable_walker.cc	/^Walker::WalkerState::startFunctional(Addr &addr, unsigned &logBytes)$/;"	f	class:PpuISA::Walker::WalkerState
+startFunctional	pagetable_walker.cc	/^Walker::startFunctional(ThreadContext * _tc, Addr &addr, unsigned &logBytes,$/;"	f	class:PpuISA::Walker
+startWalk	pagetable_walker.cc	/^Walker::WalkerState::startWalk()$/;"	f	class:PpuISA::Walker::WalkerState
+startWalkWrapper	pagetable_walker.cc	/^Walker::startWalkWrapper()$/;"	f	class:PpuISA::Walker
+startWalkWrapperEvent	pagetable_walker.hh	/^        EventFunctionWrapper startWalkWrapperEvent;$/;"	m	class:PpuISA::Walker
+started	pagetable_walker.hh	/^            bool started;$/;"	m	class:PpuISA::Walker::WalkerState
+startup	isa.hh	/^    void startup(ThreadContext *tc) {}$/;"	f	class:PpuISA::ISA
+startupCPU	utility.hh	/^startupCPU(ThreadContext *tc, int cpuId)$/;"	f	namespace:PpuISA
+state	pagetable_walker.hh	/^            State state;$/;"	m	class:PpuISA::Walker::WalkerState
+status	pagetable_walker.hh	/^            STATUS status;$/;"	m	class:PpuISA::Walker::WalkerState
+stepWalk	pagetable_walker.cc	/^Walker::WalkerState::stepWalk(PacketPtr &write)$/;"	f	class:PpuISA::Walker::WalkerState
+sti	registers.hh	/^    Bitfield<5> sti;$/;"	m	namespace:PpuISA
+store	process.hh	/^    store(ThreadContext *tc, const SyscallReturn &ret)$/;"	f	struct:GuestABI::Result
+su	pra_constants.hh	/^    Bitfield<15, 12> su;$/;"	m	namespace:PpuISA
+sum	registers.hh	/^    Bitfield<18> sum;$/;"	m	namespace:PpuISA
+sx	pra_constants.hh	/^    Bitfield<6>      sx;$/;"	m	namespace:PpuISA
+sxl	registers.hh	/^    Bitfield<35, 34> sxl;$/;"	m	namespace:PpuISA
+sys	pagetable_walker.hh	/^        PpuSOCSystem * sys;$/;"	m	class:PpuISA::Walker
+syscall	linux/process.cc	/^PpuLinuxProcess32::syscall(ThreadContext *tc, Fault *fault)$/;"	f	class:PpuLinuxProcess32
+syscall	linux/process.cc	/^PpuLinuxProcess64::syscall(ThreadContext *tc, Fault *fault)$/;"	f	class:PpuLinuxProcess64
+syscallDescs	linux/process.cc	/^        PpuLinuxProcess32::syscallDescs = {$/;"	m	class:PpuLinuxProcess32	file:
+syscallDescs	linux/process.cc	/^    PpuLinuxProcess64::syscallDescs = {$/;"	m	class:PpuLinuxProcess64	file:
+syscallDescs	linux/process.hh	/^    static SyscallDescTable<SyscallABI> syscallDescs;$/;"	m	class:PpuLinuxProcess32
+syscallDescs	linux/process.hh	/^    static SyscallDescTable<SyscallABI> syscallDescs;$/;"	m	class:PpuLinuxProcess64
+system	PpuISA.py	/^    system = Param.PpuSOCSystem(Parent.any, "System this ISA object belongs to")$/;"	v	class:PpuISA
+system	PpuTLB.py	/^    system = Param.PpuSOCSystem(Parent.any, "System this object belongs to")$/;"	v	class:PpuPagetableWalker
+ta	pra_constants.hh	/^    Bitfield<19, 16> ta;$/;"	m	namespace:PpuISA
+takeOverFrom	decoder.hh	/^    void takeOverFrom(Decoder *old) {}$/;"	f	class:PpuISA::Decoder
+task	stacktrace.cc	/^ProcessInfo::task(Addr ksp) const$/;"	f	class:PpuISA::ProcessInfo
+tc	pagetable_walker.hh	/^            ThreadContext *tc;$/;"	m	class:PpuISA::Walker::WalkerState
+tc	stacktrace.hh	/^    ThreadContext *tc;$/;"	m	class:PpuISA::StackTrace
+tgt_fsid_t	linux/linux.hh	/^    } tgt_fsid_t;$/;"	t	class:PpuLinux32	typeref:struct:PpuLinux32::__anon5
+tgt_fsid_t	linux/linux.hh	/^    } tgt_fsid_t;$/;"	t	class:PpuLinux64	typeref:struct:PpuLinux64::__anon2
+tgt_stat	linux/linux.hh	/^    } tgt_stat;$/;"	t	class:PpuLinux32	typeref:struct:PpuLinux32::__anon6
+tgt_stat64	linux/linux.hh	/^    } tgt_stat64;$/;"	t	class:PpuLinux64	typeref:struct:PpuLinux64::__anon1
+tgt_statfs	linux/linux.hh	/^    } tgt_statfs;$/;"	t	class:PpuLinux32	typeref:struct:PpuLinux32::__anon7
+tgt_statfs	linux/linux.hh	/^    } tgt_statfs;$/;"	t	class:PpuLinux64	typeref:struct:PpuLinux64::__anon3
+tgt_sysinfo	linux/linux.hh	/^    } tgt_sysinfo;$/;"	t	class:PpuLinux32	typeref:struct:PpuLinux32::__anon8
+tgt_sysinfo	linux/linux.hh	/^    } tgt_sysinfo;$/;"	t	class:PpuLinux64	typeref:struct:PpuLinux64::__anon4
+ti	pra_constants.hh	/^    Bitfield<30>     ti;$/;"	m	namespace:PpuISA
+time_t	linux/linux.hh	/^    typedef int64_t time_t;$/;"	t	class:PpuLinux32
+time_t	linux/linux.hh	/^    typedef int64_t time_t;$/;"	t	class:PpuLinux64
+timespec	linux/linux.hh	/^    struct timespec {$/;"	s	class:PpuLinux32
+timespec	linux/linux.hh	/^    struct timespec {$/;"	s	class:PpuLinux64
+timing	pagetable_walker.hh	/^            bool timing;$/;"	m	class:PpuISA::Walker::WalkerState
+timingFault	pagetable_walker.hh	/^            Fault timingFault;$/;"	m	class:PpuISA::Walker::WalkerState
+tl	pra_constants.hh	/^    Bitfield<0>  tl;$/;"	m	namespace:PpuISA
+tl	pra_constants.hh	/^    Bitfield<23, 20> tl;$/;"	m	namespace:PpuISA
+tlb	pagetable_walker.hh	/^        TLB * tlb;$/;"	m	class:PpuISA::Walker
+tlb	tlb.hh	/^    std::vector<TlbEntry> tlb;  \/\/ our TLB$/;"	m	class:PpuISA::TLB
+totalhigh	linux/linux.hh	/^        uint32_t totalhigh;$/;"	m	struct:PpuLinux32::__anon8
+totalhigh	linux/linux.hh	/^        uint64_t totalhigh;$/;"	m	struct:PpuLinux64::__anon4
+totalram	linux/linux.hh	/^        uint32_t totalram;$/;"	m	struct:PpuLinux32::__anon8
+totalram	linux/linux.hh	/^        uint64_t totalram;$/;"	m	struct:PpuLinux64::__anon4
+totalswap	linux/linux.hh	/^        uint32_t totalswap;$/;"	m	struct:PpuLinux32::__anon8
+totalswap	linux/linux.hh	/^        uint64_t totalswap;$/;"	m	struct:PpuLinux64::__anon4
+trace	stacktrace.cc	/^StackTrace::trace(ThreadContext *_tc, bool is_call)$/;"	f	class:PpuISA::StackTrace
+trace	stacktrace.hh	/^StackTrace::trace(ThreadContext *tc, const StaticInstPtr &inst)$/;"	f	class:PpuISA::StackTrace
+translate	tlb.cc	/^TLB::translate(const RequestPtr &req, ThreadContext *tc_,$/;"	f	class:TLB
+translateAtomic	tlb.cc	/^TLB::translateAtomic(const RequestPtr &req, ThreadContext *tc, Mode mode)$/;"	f	class:TLB
+translateFunctional	tlb.cc	/^TLB::translateFunctional(const RequestPtr &req, ThreadContext *tc_, Mode mode)$/;"	f	class:TLB
+translateTiming	tlb.cc	/^TLB::translateTiming(const RequestPtr &req, ThreadContext *tc_,$/;"	f	class:TLB
+translateWithTLB	tlb.cc	/^TLB::translateWithTLB(Addr vaddr, uint16_t asid, Mode mode)$/;"	f	class:TLB
+translation	pagetable_walker.hh	/^            TLB::Translation * translation;$/;"	m	class:PpuISA::Walker::WalkerState
+trap_value	faults.hh	/^    virtual RegVal trap_value() const { return 0; }$/;"	f	class:PpuISA::PpuFault
+trie	tlb.hh	/^    TlbEntryTrie trie;          \/\/ for quick access$/;"	m	class:PpuISA::TLB
+trieHandle	pagetable.hh	/^    TlbEntryTrie::Handle trieHandle;$/;"	m	struct:PpuISA::TlbEntry
+ts	pra_constants.hh	/^    Bitfield<21>     ts;$/;"	m	namespace:PpuISA
+ts	pra_constants.hh	/^    Bitfield<27, 24> ts;$/;"	m	namespace:PpuISA
+tsr	registers.hh	/^    Bitfield<22> tsr;$/;"	m	namespace:PpuISA
+tu	pra_constants.hh	/^    Bitfield<30, 28> tu;$/;"	m	namespace:PpuISA
+tv_nsec	linux/linux.hh	/^        int32_t tv_nsec;$/;"	m	struct:PpuLinux32::timespec
+tv_nsec	linux/linux.hh	/^        int64_t tv_nsec;$/;"	m	struct:PpuLinux64::timespec
+tv_sec	linux/linux.hh	/^        time_t tv_sec;$/;"	m	struct:PpuLinux32::timespec
+tv_sec	linux/linux.hh	/^        time_t tv_sec;$/;"	m	struct:PpuLinux64::timespec
+tvm	registers.hh	/^    Bitfield<20> tvm;$/;"	m	namespace:PpuISA
+tw	registers.hh	/^    Bitfield<21> tw;$/;"	m	namespace:PpuISA
+type	PpuFsWorkload.py	/^    type = 'PpuBareMetal'$/;"	v	class:PpuBareMetal
+type	PpuFsWorkload.py	/^    type = 'PpuFsWorkload'$/;"	v	class:PpuFsWorkload
+type	PpuISA.py	/^    type = 'PpuISA'$/;"	v	class:PpuISA
+type	PpuInterrupts.py	/^    type = 'PpuInterrupts'$/;"	v	class:PpuInterrupts
+type	PpuTLB.py	/^    type = 'PpuPagetableWalker'$/;"	v	class:PpuPagetableWalker
+type	PpuTLB.py	/^    type = 'PpuTLB'$/;"	v	class:PpuTLB
+u	pagetable.hh	/^    Bitfield<4> u;$/;"	m	namespace:PpuISA
+u	pra_constants.hh	/^    Bitfield<3>     u;$/;"	m	namespace:PpuISA
+uei	registers.hh	/^    Bitfield<8> uei;$/;"	m	namespace:PpuISA
+uid_t	linux/linux.hh	/^    typedef uint32_t uid_t;$/;"	t	class:PpuLinux64
+uie	registers.hh	/^    Bitfield<0> uie;$/;"	m	namespace:PpuISA
+uimm	insts/standard.hh	/^    uint64_t uimm;$/;"	m	class:PpuISA::CSROp
+um	pra_constants.hh	/^    Bitfield<4>      um;$/;"	m	namespace:PpuISA
+unameFunc32	linux/process.cc	/^unameFunc32(SyscallDesc *desc, ThreadContext *tc, Addr utsname)$/;"	f	file:
+unameFunc64	linux/process.cc	/^unameFunc64(SyscallDesc *desc, ThreadContext *tc_, Addr utsname)$/;"	f	file:
+unknown	stacktrace.hh	/^    static const int unknown = 3;$/;"	m	class:PpuISA::StackTrace
+unserialize	interrupts.hh	/^    unserialize(CheckpointIn &cp)$/;"	f	class:PpuISA::Interrupts
+unserialize	isa.cc	/^ISA::unserialize(CheckpointIn &cp)$/;"	f	class:PpuISA::ISA
+unserialize	pagetable.cc	/^TlbEntry::unserialize(CheckpointIn &cp)$/;"	f	class:PpuISA::TlbEntry
+unserialize	tlb.cc	/^TLB::unserialize(CheckpointIn &cp)$/;"	f	class:TLB
+updateIntrInfo	interrupts.hh	/^    void updateIntrInfo(ThreadContext *tc) {}$/;"	f	class:PpuISA::Interrupts
+upie	registers.hh	/^    Bitfield<4> upie;$/;"	m	namespace:PpuISA
+uptime	linux/linux.hh	/^        int32_t uptime;$/;"	m	struct:PpuLinux32::__anon8
+uptime	linux/linux.hh	/^        int64_t uptime;$/;"	m	struct:PpuLinux64::__anon4
+user	stacktrace.hh	/^    static const int user = 1;$/;"	m	class:PpuISA::StackTrace
+usi	registers.hh	/^    Bitfield<0> usi;$/;"	m	namespace:PpuISA
+uti	registers.hh	/^    Bitfield<4> uti;$/;"	m	namespace:PpuISA
+ux	pra_constants.hh	/^    Bitfield<5>      ux;$/;"	m	namespace:PpuISA
+uxl	registers.hh	/^    Bitfield<33, 32> uxl;$/;"	m	namespace:PpuISA
+v	pagetable.hh	/^    Bitfield<0> v;$/;"	m	namespace:PpuISA
+v	pra_constants.hh	/^    Bitfield<1>      v;     \/\/ Valid Bit$/;"	m	namespace:PpuISA
+vaddr	pagetable.hh	/^    Addr vaddr;$/;"	m	struct:PpuISA::TlbEntry
+vaddr	pra_constants.hh	/^    Bitfield<63, 3> vaddr;$/;"	m	namespace:PpuISA
+val	linux/linux.hh	/^        int32_t val[2];$/;"	m	struct:PpuLinux32::__anon5
+val	linux/linux.hh	/^        int32_t val[2];$/;"	m	struct:PpuLinux64::__anon2
+valid	stacktrace.hh	/^    valid() const$/;"	f	class:PpuISA::StackTrace
+veic	pra_constants.hh	/^    Bitfield<6>  veic;$/;"	m	namespace:PpuISA
+vi	pra_constants.hh	/^    Bitfield<3>      vi;$/;"	m	namespace:PpuISA
+vint	pra_constants.hh	/^    Bitfield<5>  vint;$/;"	m	namespace:PpuISA
+vpn2	pra_constants.hh	/^    Bitfield<39, 13> vpn2;$/;"	m	namespace:PpuISA
+vpn2x	pra_constants.hh	/^    Bitfield<12, 11> vpn2x;$/;"	m	namespace:PpuISA
+vs	pra_constants.hh	/^    Bitfield<9,  5>  vs;$/;"	m	namespace:PpuISA
+vtophys	vtophys.hh	/^vtophys(Addr vaddr)$/;"	f	namespace:PpuISA
+vtophys	vtophys.hh	/^vtophys(ThreadContext *tc, Addr vaddr)$/;"	f	namespace:PpuISA
+w	pagetable.hh	/^    Bitfield<2> w;$/;"	m	namespace:PpuISA
+w	pra_constants.hh	/^    Bitfield<0>      w;$/;"	m	namespace:PpuISA
+w	pra_constants.hh	/^    Bitfield<0>     w;$/;"	m	namespace:PpuISA
+w	pra_constants.hh	/^    Bitfield<30>    w;$/;"	m	namespace:PpuISA
+walker	PpuTLB.py	/^            PpuPagetableWalker(), "page table walker")$/;"	v	class:PpuTLB
+walker	pagetable_walker.hh	/^            Walker *walker;$/;"	m	class:PpuISA::Walker::WalkerPort
+walker	pagetable_walker.hh	/^            Walker *walker;$/;"	m	class:PpuISA::Walker::WalkerState
+walker	tlb.hh	/^    Walker *walker;$/;"	m	class:PpuISA::TLB
+wasStarted	pagetable_walker.cc	/^Walker::WalkerState::wasStarted()$/;"	f	class:PpuISA::Walker::WalkerState
+wired	pra_constants.hh	/^    Bitfield<30, 0> wired;$/;"	m	namespace:PpuISA
+wp	pra_constants.hh	/^    Bitfield<22>     wp;$/;"	m	namespace:PpuISA
+wr	pra_constants.hh	/^    Bitfield<3>      wr;$/;"	m	namespace:PpuISA
+write_accesses	tlb.hh	/^    mutable Stats::Scalar write_accesses;$/;"	m	class:PpuISA::TLB
+write_acv	tlb.hh	/^    mutable Stats::Scalar write_acv;$/;"	m	class:PpuISA::TLB
+write_hits	tlb.hh	/^    mutable Stats::Scalar write_hits;$/;"	m	class:PpuISA::TLB
+write_misses	tlb.hh	/^    mutable Stats::Scalar write_misses;$/;"	m	class:PpuISA::TLB
+writes	pagetable_walker.hh	/^            std::vector<PacketPtr> writes;$/;"	m	class:PpuISA::Walker::WalkerState
+x	pagetable.hh	/^    Bitfield<3> x;$/;"	m	namespace:PpuISA
+xs	registers.hh	/^    Bitfield<16, 15> xs;$/;"	m	namespace:PpuISA
+~BareMetal	bare_metal/fs_workload.cc	/^BareMetal::~BareMetal()$/;"	f	class:PpuISA::BareMetal
+~PpuMacroInst	insts/static_inst.hh	/^    ~PpuMacroInst() { microops.clear(); }$/;"	f	class:PpuISA::PpuMacroInst
+~StackTrace	stacktrace.cc	/^StackTrace::~StackTrace()$/;"	f	class:PpuISA::StackTrace

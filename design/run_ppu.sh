@@ -93,7 +93,7 @@ OPTION="${OPTION},Timer"
 #
 
 
-CMD="tests/test-progs/hello/bin/x86/linux/hello"
+CMD="$DIR/../tests/test-progs/hello/bin/x86/linux/hello"
 CMD="tests/test-progs/threads/bin/X86/linux/threads"
 
 CONF="configs/example/ppu/fs_simple_ppu.py"

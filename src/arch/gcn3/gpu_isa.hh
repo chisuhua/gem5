@@ -40,7 +40,7 @@
 
 #include "arch/gcn3/registers.hh"
 #include "gpu-compute/dispatcher.hh"
-#include "gpu-compute/hsa_queue_entry.hh"
+// #include "gpu-compute/hsa_queue_entry.hh"
 #include "gpu-compute/misc.hh"
 
 class Wavefront;

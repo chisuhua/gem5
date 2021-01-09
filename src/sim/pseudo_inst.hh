@@ -131,6 +131,7 @@ void switchcpu(ThreadContext *tc);
 void workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid);
 void workend(ThreadContext *tc, uint64_t workid, uint64_t threadid);
 void gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params);
+void ppu_cmdio(ThreadContext *tc, uint64_t ppu_cmdo_sysno, uint64_t call_params);
 void m5Syscall(ThreadContext *tc);
 void togglesync(ThreadContext *tc);
 

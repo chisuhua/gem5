@@ -229,6 +229,9 @@
                     0x5c: m5_gpu({{
                             PseudoInst::gpu(xc->tcBase(), Rdi, Rsi);
                         }}, IsNonSpeculative, IsSerializeAfter);
+                    0x5d: m5_ppu({{
+                            PseudoInst::ppu_cmdio(xc->tcBase(), Rdi, Rsi);
+                        }}, IsNonSpeculative, IsSerializeAfter);
                     0x62: m5togglesync({{
                         PseudoInst::togglesync(xc->tcBase());
                     }}, IsNonSpeculative, IsQuiesce);

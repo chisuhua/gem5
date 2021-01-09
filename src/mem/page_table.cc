@@ -48,7 +48,7 @@ EmulationPageTable::map(Addr vaddr, Addr paddr, int64_t size, uint64_t flags)
     // starting address must be page aligned
     assert(pageOffset(vaddr) == 0);
 
-    DPRINTF(MMU, "Allocating Page: %#x-%#x\n", vaddr, vaddr + size);
+    DPRINTF(MMU, "Allocating Page: %#x-%#x paddr: %#x\n", vaddr, vaddr + size, paddr);
 
     while (size > 0) {
         auto it = pTable.find(vaddr);
