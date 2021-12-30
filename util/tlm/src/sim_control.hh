@@ -58,13 +58,11 @@ namespace Gem5SystemC
  */
 class Gem5SimControl : public Module, public Gem5SimControlInterface
 {
-  public:
-    CxxConfigManager* config_manager;
   protected:
-    // CxxConfigManager* config_manager;
+    gem5::CxxConfigManager* config_manager;
     Gem5SystemC::Logger logger;
 
-    Tick simulationEnd;
+    gem5::Tick simulationEnd;
 
     /*
      * Keep track of the slave and master ports that are created by gem5

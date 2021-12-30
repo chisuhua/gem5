@@ -34,7 +34,7 @@
 #include "base/bitunion.hh"
 #include "base/cprintf.hh"
 
-using namespace std;
+using namespace gem5;
 
 namespace {
 
@@ -133,7 +133,8 @@ EmptyThirtyTwo emptyThirtyTwo;
 EmptySixteen emptySixteen;
 EmptyEight emptyEight(0);
 
-class BitUnionData : public testing::Test {
+class BitUnionData : public testing::Test
+{
   protected:
     SixtyFour sixtyFour;
     Split split;

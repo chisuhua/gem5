@@ -34,10 +34,15 @@
 #include <iostream>
 #include <sstream>
 
+#include "base/compiler.hh"
 #include "cpu/thread_context.hh"
 #include "mem/port_proxy.hh"
 
-namespace Linux
+namespace gem5
+{
+
+GEM5_DEPRECATED_NAMESPACE(Linux, linux);
+namespace linux
 {
 
 int
@@ -104,7 +109,7 @@ printk(std::string &str, ThreadContext *tc, Addr format_ptr,
                 break;
               case 'P':
                 format = true;
-                M5_FALLTHROUGH;
+                GEM5_FALLTHROUGH;
               case 'p':
                 hexnum = true;
                 break;
@@ -247,4 +252,5 @@ printk(std::string &str, ThreadContext *tc, Addr format_ptr,
     return str.length();
 }
 
-} // namespace Linux
+} // namespace linux
+} // namespace gem5

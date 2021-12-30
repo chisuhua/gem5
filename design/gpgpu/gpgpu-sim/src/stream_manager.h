@@ -34,6 +34,8 @@
 #include <pthread.h>
 #include <time.h>
 
+using namespace gem5;
+
 //class stream_barrier {
 //public:
 //    stream_barrier() { m_pending_streams=0; }

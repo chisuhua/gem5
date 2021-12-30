@@ -43,21 +43,24 @@
 #include "arch/generic/types.hh"
 #include "arch/generic/vec_reg.hh"
 
-class InstResult {
-    using VecRegContainer = TheISA::VecRegContainer;
-    using VecElem = TheISA::VecElem;
-    using VecPredRegContainer = TheISA::VecPredRegContainer;
+namespace gem5
+{
+
+class InstResult
+{
   public:
-    union MultiResult {
+    union MultiResult
+    {
         uint64_t integer;
         double dbl;
-        VecRegContainer vector;
-        VecElem vecElem;
-        VecPredRegContainer pred;
+        TheISA::VecRegContainer vector;
+        TheISA::VecElem vecElem;
+        TheISA::VecPredRegContainer pred;
         MultiResult() {}
     };
 
-    enum class ResultType {
+    enum class ResultType
+    {
         Scalar,
         VecElem,
         VecReg,
@@ -87,10 +90,11 @@ class InstResult {
         }
     }
     /** Vector result. */
-    explicit InstResult(const VecRegContainer& v, const ResultType& t)
+    explicit InstResult(const TheISA::VecRegContainer& v, const ResultType& t)
         : type(t) { result.vector = v; }
     /** Predicate result. */
-    explicit InstResult(const VecPredRegContainer& v, const ResultType& t)
+    explicit InstResult(const TheISA::VecPredRegContainer& v,
+            const ResultType& t)
         : type(t) { result.pred = v; }
 
     InstResult& operator=(const InstResult& that) {
@@ -178,20 +182,20 @@ class InstResult {
     {
         return result.integer;
     }
-    const VecRegContainer&
+    const TheISA::VecRegContainer&
     asVector() const
     {
         panic_if(!isVector(), "Converting scalar (or invalid) to vector!!");
         return result.vector;
     }
-    const VecElem&
+    const TheISA::VecElem&
     asVectorElem() const
     {
         panic_if(!isVecElem(), "Converting scalar (or invalid) to vector!!");
         return result.vecElem;
     }
 
-    const VecPredRegContainer&
+    const TheISA::VecPredRegContainer&
     asPred() const
     {
         panic_if(!isPred(), "Converting scalar (or invalid) to predicate!!");
@@ -200,5 +204,7 @@ class InstResult {
 
     /** @} */
 };
+
+} // namespace gem5
 
 #endif // __CPU_INST_RES_HH__

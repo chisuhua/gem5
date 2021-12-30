@@ -31,16 +31,21 @@
 
 #include <deque>
 
-#include "arch/isa_traits.hh"
 #include "config/the_isa.hh"
 #include "cpu/inst_seq.hh"
 #include "cpu/pred/indirect.hh"
 #include "params/SimpleIndirectPredictor.hh"
 
+namespace gem5
+{
+
+namespace branch_prediction
+{
+
 class SimpleIndirectPredictor : public IndirectPredictor
 {
   public:
-    SimpleIndirectPredictor(const SimpleIndirectPredictorParams * params);
+    SimpleIndirectPredictor(const SimpleIndirectPredictorParams &params);
 
     bool lookup(Addr br_addr, TheISA::PCState& br_target, ThreadID tid);
     void recordIndirect(Addr br_addr, Addr tgt_addr, InstSeqNum seq_num,
@@ -88,7 +93,8 @@ class SimpleIndirectPredictor : public IndirectPredictor
     };
 
 
-    struct ThreadInfo {
+    struct ThreadInfo
+    {
         ThreadInfo() : headHistEntry(0), ghr(0) { }
 
         std::deque<HistoryEntry> pathHist;
@@ -98,5 +104,8 @@ class SimpleIndirectPredictor : public IndirectPredictor
 
     std::vector<ThreadInfo> threadInfo;
 };
+
+} // namespace branch_prediction
+} // namespace gem5
 
 #endif // __CPU_PRED_INDIRECT_HH__

@@ -35,15 +35,15 @@
 #include <list>
 #include <queue>
 #include <vector>
-
 #include "base/statistics.hh"
 #include "cpu/translation.hh"
 #include "gpu/lsq_warp_inst_buffer.hh"
 #include "gpu/shader_tlb.hh"
-#include "mem/mem_object.hh"
+#include "sim/clocked_object.hh"
 #include "mem/port.hh"
 #include "params/ShaderLSQ.hh"
 
+namespace gem5 {
 /**
  * The ShaderLSQ models the load-store queue for GPU shader cores. The LSQ
  * contains a pool of warp instruction buffers, and manages the progress of
@@ -73,7 +73,7 @@
  * This LSQ has been validated to perform comparably to NVidia Fermi (GTX4XX,
  * GTX5XX) hardware
  */
-class ShaderLSQ : public MemObject
+class ShaderLSQ : public ClockedObject
 {
   protected:
     typedef ShaderLSQParams Params;
@@ -247,7 +247,7 @@ class ShaderLSQ : public MemObject
 
   public:
 
-    ShaderLSQ(Params *params);
+    ShaderLSQ(const ShaderLSQParams &params);
     ~ShaderLSQ();
 
     // Required for implementing MemObject
@@ -324,5 +324,6 @@ class ShaderLSQ : public MemObject
     void regStats();
 
 };
+}
 
 #endif

@@ -54,6 +54,12 @@
 #include "sim/probe/pmu.hh"
 #include "sim/sim_object.hh"
 
+namespace gem5
+{
+
+namespace branch_prediction
+{
+
 /**
  * Basically a wrapper class to hold both the branch predictor
  * and the BTB.
@@ -65,12 +71,7 @@ class BPredUnit : public SimObject
     /**
      * @param params The params object, that has the size of the BP and BTB.
      */
-    BPredUnit(const Params *p);
-
-    /**
-     * Registers statistics.
-     */
-    void regStats() override;
+    BPredUnit(const Params &p);
 
     void regProbePoints() override;
 
@@ -176,8 +177,7 @@ class BPredUnit : public SimObject
      */
     virtual void update(ThreadID tid, Addr instPC, bool taken,
                    void *bp_history, bool squashed,
-                   const StaticInstPtr & inst = StaticInst::nullStaticInstPtr,
-                   Addr corrTarget = MaxAddr) = 0;
+                   const StaticInstPtr &inst, Addr corrTarget) = 0;
     /**
      * Updates the BTB with the target of a branch.
      * @param inst_PC The branch's PC that will be updated.
@@ -190,7 +190,8 @@ class BPredUnit : public SimObject
     void dump();
 
   private:
-    struct PredictorHistory {
+    struct PredictorHistory
+    {
         /**
          * Makes a predictor history struct that contains any
          * information needed to update the predictor, BTB, and RAS.
@@ -282,33 +283,36 @@ class BPredUnit : public SimObject
     /** The indirect target predictor. */
     IndirectPredictor * iPred;
 
-    /** Stat for number of BP lookups. */
-    Stats::Scalar lookups;
-    /** Stat for number of conditional branches predicted. */
-    Stats::Scalar condPredicted;
-    /** Stat for number of conditional branches predicted incorrectly. */
-    Stats::Scalar condIncorrect;
-    /** Stat for number of BTB lookups. */
-    Stats::Scalar BTBLookups;
-    /** Stat for number of BTB hits. */
-    Stats::Scalar BTBHits;
-    /** Stat for number of times the BTB is correct. */
-    Stats::Scalar BTBCorrect;
-    /** Stat for percent times an entry in BTB found. */
-    Stats::Formula BTBHitPct;
-    /** Stat for number of times the RAS is used to get a target. */
-    Stats::Scalar usedRAS;
-    /** Stat for number of times the RAS is incorrect. */
-    Stats::Scalar RASIncorrect;
+    struct BPredUnitStats : public statistics::Group
+    {
+        BPredUnitStats(statistics::Group *parent);
 
-    /** Stat for the number of indirect target lookups.*/
-    Stats::Scalar indirectLookups;
-    /** Stat for the number of indirect target hits.*/
-    Stats::Scalar indirectHits;
-    /** Stat for the number of indirect target misses.*/
-    Stats::Scalar indirectMisses;
-    /** Stat for the number of indirect target mispredictions.*/
-    Stats::Scalar indirectMispredicted;
+        /** Stat for number of BP lookups. */
+        statistics::Scalar lookups;
+        /** Stat for number of conditional branches predicted. */
+        statistics::Scalar condPredicted;
+        /** Stat for number of conditional branches predicted incorrectly. */
+        statistics::Scalar condIncorrect;
+        /** Stat for number of BTB lookups. */
+        statistics::Scalar BTBLookups;
+        /** Stat for number of BTB hits. */
+        statistics::Scalar BTBHits;
+        /** Stat for the ratio between BTB hits and BTB lookups. */
+        statistics::Formula BTBHitRatio;
+        /** Stat for number of times the RAS is used to get a target. */
+        statistics::Scalar RASUsed;
+        /** Stat for number of times the RAS is incorrect. */
+        statistics::Scalar RASIncorrect;
+
+        /** Stat for the number of indirect target lookups.*/
+        statistics::Scalar indirectLookups;
+        /** Stat for the number of indirect target hits.*/
+        statistics::Scalar indirectHits;
+        /** Stat for the number of indirect target misses.*/
+        statistics::Scalar indirectMisses;
+        /** Stat for the number of indirect target mispredictions.*/
+        statistics::Scalar indirectMispredicted;
+    } stats;
 
   protected:
     /** Number of bits to shift instructions by for predictor addresses. */
@@ -326,7 +330,7 @@ class BPredUnit : public SimObject
      * @param name Name of the probe point.
      * @return A unique_ptr to the new probe point.
      */
-    ProbePoints::PMUUPtr pmuProbePoint(const char *name);
+    probing::PMUUPtr pmuProbePoint(const char *name);
 
 
     /**
@@ -334,12 +338,15 @@ class BPredUnit : public SimObject
      *
      * @note This counter includes speculative branches.
      */
-    ProbePoints::PMUUPtr ppBranches;
+    probing::PMUUPtr ppBranches;
 
     /** Miss-predicted branches */
-    ProbePoints::PMUUPtr ppMisses;
+    probing::PMUUPtr ppMisses;
 
     /** @} */
 };
+
+} // namespace branch_prediction
+} // namespace gem5
 
 #endif // __CPU_PRED_BPRED_UNIT_HH__

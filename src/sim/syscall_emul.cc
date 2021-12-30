@@ -38,22 +38,21 @@
 #include <string>
 #include <unordered_map>
 
-#include "arch/utility.hh"
 #include "base/chunk_generator.hh"
 #include "base/trace.hh"
-#include "config/the_isa.hh"
 #include "cpu/thread_context.hh"
 #include "dev/net/dist_iface.hh"
 #include "mem/page_table.hh"
 #include "sim/byteswap.hh"
 #include "sim/process.hh"
+#include "sim/proxy_ptr.hh"
 #include "sim/sim_exit.hh"
 #include "sim/syscall_debug_macros.hh"
 #include "sim/syscall_desc.hh"
 #include "sim/system.hh"
 
-using namespace std;
-using namespace TheISA;
+namespace gem5
+{
 
 void
 warnUnsupportedOS(std::string syscall_name)
@@ -91,7 +90,7 @@ ignoreWarnOnceFunc(SyscallDesc *desc, ThreadContext *tc)
 }
 
 static void
-exitFutexWake(ThreadContext *tc, Addr addr, uint64_t tgid)
+exitFutexWake(ThreadContext *tc, VPtr<> addr, uint64_t tgid)
 {
     // Clear value at address pointed to by thread's childClearTID field.
     BufferArg ctidBuf(addr, sizeof(long));
@@ -119,9 +118,9 @@ exitImpl(SyscallDesc *desc, ThreadContext *tc, bool group, int status)
 
     bool last_thread = true;
     Process *parent = nullptr, *tg_lead = nullptr;
-    for (int i = 0; last_thread && i < sys->numContexts(); i++) {
+    for (int i = 0; last_thread && i < sys->threads.size(); i++) {
         Process *walk;
-        if (!(walk = sys->threadContexts[i]->getProcessPtr()))
+        if (!(walk = sys->threads[i]->getProcessPtr()))
             continue;
 
         /**
@@ -133,8 +132,9 @@ exitImpl(SyscallDesc *desc, ThreadContext *tc, bool group, int status)
         if (walk->pid() == p->tgid())
             tg_lead = walk;
 
-        if ((sys->threadContexts[i]->status() != ThreadContext::Halted) &&
-            (sys->threadContexts[i]->status() != ThreadContext::Halting) &&
+        auto *tc = sys->threads[i];
+        if ((tc->status() != ThreadContext::Halted) &&
+            (tc->status() != ThreadContext::Halting) &&
             (walk != p)) {
             /**
              * Check if we share thread group with the pointer; this denotes
@@ -156,7 +156,7 @@ exitImpl(SyscallDesc *desc, ThreadContext *tc, bool group, int status)
                  * all threads in the group.
                  */
                 if (*(p->exitGroup)) {
-                    sys->threadContexts[i]->halt();
+                    tc->halt();
                 } else {
                     last_thread = false;
                 }
@@ -193,6 +193,16 @@ exitImpl(SyscallDesc *desc, ThreadContext *tc, bool group, int status)
         }
     }
 
+    /**
+     * If we were a thread created by a clone with vfork set, wake up
+     * the thread that created us
+     */
+    if (!p->vforkContexts.empty()) {
+        ThreadContext *vtc = sys->threads[p->vforkContexts.front()];
+        assert(vtc->status() == ThreadContext::Suspended);
+        vtc->activate();
+    }
+
     tc->halt();
 
     /**
@@ -201,7 +211,7 @@ exitImpl(SyscallDesc *desc, ThreadContext *tc, bool group, int status)
      */
     int activeContexts = 0;
     for (auto &system: sys->systemList)
-        activeContexts += system->numRunningContexts();
+        activeContexts += system->threads.numRunning();
 
     if (activeContexts == 0) {
         /**
@@ -239,12 +249,12 @@ exitGroupFunc(SyscallDesc *desc, ThreadContext *tc, int status)
 SyscallReturn
 getpagesizeFunc(SyscallDesc *desc, ThreadContext *tc)
 {
-    return (int)PageBytes;
+    return (int)tc->getProcessPtr()->pTable->pageSize();
 }
 
 
 SyscallReturn
-brkFunc(SyscallDesc *desc, ThreadContext *tc, Addr new_brk)
+brkFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> new_brk)
 {
     // change brk addr to first arg
     auto p = tc->getProcessPtr();
@@ -301,7 +311,7 @@ lseekFunc(SyscallDesc *desc, ThreadContext *tc,
 SyscallReturn
 _llseekFunc(SyscallDesc *desc, ThreadContext *tc,
             int tgt_fd, uint64_t offset_high, uint32_t offset_low,
-            Addr result_ptr, int whence)
+            VPtr<> result_ptr, int whence)
 {
     auto p = tc->getProcessPtr();
 
@@ -319,14 +329,14 @@ _llseekFunc(SyscallDesc *desc, ThreadContext *tc,
         return -errno;
     // Assuming that the size of loff_t is 64 bits on the target platform
     BufferArg result_buf(result_ptr, sizeof(result));
-    memcpy(result_buf.bufferPtr(), &result, sizeof(result));
+    std::memcpy(result_buf.bufferPtr(), &result, sizeof(result));
     result_buf.copyOut(tc->getVirtProxy());
     return 0;
 }
 
 
 SyscallReturn
-munmapFunc(SyscallDesc *desc, ThreadContext *tc, Addr start, size_t length)
+munmapFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> start, size_t length)
 {
     // Even if the system is currently not capable of recycling physical
     // pages, there is no reason we can't unmap them so that we trigger
@@ -334,11 +344,10 @@ munmapFunc(SyscallDesc *desc, ThreadContext *tc, Addr start, size_t length)
     // access them again.
     auto p = tc->getProcessPtr();
 
-    if (start & (tc->getSystemPtr()->getPageBytes() - 1) || !length) {
+    if (p->pTable->pageOffset(start))
         return -EINVAL;
-    }
 
-    length = roundUp(length, tc->getSystemPtr()->getPageBytes());
+    length = roundUp(length, p->pTable->pageSize());
 
     p->memState->unmapRegion(start, length);
 
@@ -350,7 +359,7 @@ const char *hostname = "m5.eecs.umich.edu";
 
 SyscallReturn
 gethostnameFunc(SyscallDesc *desc, ThreadContext *tc,
-                Addr buf_ptr, int name_len)
+                VPtr<> buf_ptr, int name_len)
 {
     BufferArg name(buf_ptr, name_len);
     strncpy((char *)name.bufferPtr(), hostname, name_len);
@@ -360,14 +369,14 @@ gethostnameFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 getcwdFunc(SyscallDesc *desc, ThreadContext *tc,
-           Addr buf_ptr, unsigned long size)
+           VPtr<> buf_ptr, unsigned long size)
 {
     int result = 0;
     auto p = tc->getProcessPtr();
     BufferArg buf(buf_ptr, size);
 
     // Is current working directory defined?
-    string cwd = p->tgtCwd;
+    std::string cwd = p->tgtCwd;
     if (!cwd.empty()) {
         if (cwd.length() >= size) {
             // Buffer too small
@@ -390,9 +399,9 @@ getcwdFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 readlinkFunc(SyscallDesc *desc, ThreadContext *tc,
-             Addr pathname, Addr buf_ptr, size_t bufsiz)
+             VPtr<> pathname, VPtr<> buf_ptr, size_t bufsiz)
 {
-    string path;
+    std::string path;
     auto p = tc->getProcessPtr();
 
     if (!tc->getVirtProxy().tryReadString(path, pathname))
@@ -450,9 +459,9 @@ readlinkFunc(SyscallDesc *desc, ThreadContext *tc,
 }
 
 SyscallReturn
-unlinkFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
+unlinkFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> pathname)
 {
-    string path;
+    std::string path;
     auto p = tc->getProcessPtr();
 
     if (!tc->getVirtProxy().tryReadString(path, pathname))
@@ -466,10 +475,10 @@ unlinkFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
 
 SyscallReturn
 linkFunc(SyscallDesc *desc, ThreadContext *tc,
-         Addr pathname, Addr new_pathname)
+         VPtr<> pathname, VPtr<> new_pathname)
 {
-    string path;
-    string new_path;
+    std::string path;
+    std::string new_path;
     auto p = tc->getProcessPtr();
 
     auto &virt_mem = tc->getVirtProxy();
@@ -487,10 +496,10 @@ linkFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 symlinkFunc(SyscallDesc *desc, ThreadContext *tc,
-            Addr pathname, Addr new_pathname)
+            VPtr<> pathname, VPtr<> new_pathname)
 {
-    string path;
-    string new_path;
+    std::string path;
+    std::string new_path;
     auto p = tc->getProcessPtr();
 
     auto &virt_mem = tc->getVirtProxy();
@@ -507,7 +516,7 @@ symlinkFunc(SyscallDesc *desc, ThreadContext *tc,
 }
 
 SyscallReturn
-mkdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname, mode_t mode)
+mkdirFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> pathname, mode_t mode)
 {
     auto p = tc->getProcessPtr();
     std::string path;
@@ -521,15 +530,16 @@ mkdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname, mode_t mode)
 }
 
 SyscallReturn
-renameFunc(SyscallDesc *desc, ThreadContext *tc, Addr oldpath, Addr newpath)
+renameFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> oldpath,
+           VPtr<> newpath)
 {
     auto p = tc->getProcessPtr();
 
-    string old_name;
+    std::string old_name;
     if (!tc->getVirtProxy().tryReadString(old_name, oldpath))
         return -EFAULT;
 
-    string new_name;
+    std::string new_name;
     if (!tc->getVirtProxy().tryReadString(new_name, newpath))
         return -EFAULT;
 
@@ -542,9 +552,10 @@ renameFunc(SyscallDesc *desc, ThreadContext *tc, Addr oldpath, Addr newpath)
 }
 
 SyscallReturn
-truncateFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname, off_t length)
+truncateFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> pathname,
+        off_t length)
 {
-    string path;
+    std::string path;
     auto p = tc->getProcessPtr();
 
     if (!tc->getVirtProxy().tryReadString(path, pathname))
@@ -573,10 +584,10 @@ ftruncateFunc(SyscallDesc *desc, ThreadContext *tc, int tgt_fd, off_t length)
 
 SyscallReturn
 truncate64Func(SyscallDesc *desc, ThreadContext *tc,
-               Addr pathname, int64_t length)
+               VPtr<> pathname, int64_t length)
 {
     auto process = tc->getProcessPtr();
-    string path;
+    std::string path;
 
     if (!tc->getVirtProxy().tryReadString(path, pathname))
         return -EFAULT;
@@ -624,9 +635,9 @@ umaskFunc(SyscallDesc *desc, ThreadContext *tc)
 
 SyscallReturn
 chownFunc(SyscallDesc *desc, ThreadContext *tc,
-          Addr pathname, uint32_t owner, uint32_t group)
+          VPtr<> pathname, uint32_t owner, uint32_t group)
 {
-    string path;
+    std::string path;
     auto p = tc->getProcessPtr();
 
     if (!tc->getVirtProxy().tryReadString(path, pathname))
@@ -718,7 +729,7 @@ dup2Func(SyscallDesc *desc, ThreadContext *tc, int old_tgt_fd, int new_tgt_fd)
 
 SyscallReturn
 fcntlFunc(SyscallDesc *desc, ThreadContext *tc,
-          int tgt_fd, int cmd, GuestABI::VarArgs<int> varargs)
+          int tgt_fd, int cmd, guest_abi::VarArgs<int> varargs)
 {
     auto p = tc->getProcessPtr();
 
@@ -794,13 +805,13 @@ pipePseudoFunc(SyscallDesc *desc, ThreadContext *tc)
 }
 
 SyscallReturn
-pipeFunc(SyscallDesc *desc, ThreadContext *tc, Addr tgt_addr)
+pipeFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> tgt_addr)
 {
     return pipe2Func(desc, tc, tgt_addr, 0);
 }
 
 SyscallReturn
-pipe2Func(SyscallDesc *desc, ThreadContext *tc, Addr tgt_addr, int flags)
+pipe2Func(SyscallDesc *desc, ThreadContext *tc, VPtr<> tgt_addr, int flags)
 {
     auto p = tc->getProcessPtr();
 
@@ -908,9 +919,9 @@ setpgidFunc(SyscallDesc *desc, ThreadContext *tc, int pid, int pgid)
     System *sysh = tc->getSystemPtr();
 
     // Retrieves process pointer from active/suspended thread contexts.
-    for (int i = 0; i < sysh->numContexts(); i++) {
-        if (sysh->threadContexts[i]->status() != ThreadContext::Halted) {
-            Process *temp_h = sysh->threadContexts[i]->getProcessPtr();
+    for (auto *tc: sysh->threads) {
+        if (tc->status() != ThreadContext::Halted) {
+            Process *temp_h = tc->getProcessPtr();
             Process *walk_ph = (Process*)temp_h;
 
             if (walk_ph && walk_ph->pid() == process->pid())
@@ -998,9 +1009,9 @@ fallocateFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 accessFunc(SyscallDesc *desc, ThreadContext *tc,
-           Addr pathname, mode_t mode)
+           VPtr<> pathname, mode_t mode)
 {
-    string path;
+    std::string path;
     auto p = tc->getProcessPtr();
     if (!tc->getVirtProxy().tryReadString(path, pathname))
         return -EFAULT;
@@ -1014,7 +1025,7 @@ accessFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 mknodFunc(SyscallDesc *desc, ThreadContext *tc,
-          Addr pathname, mode_t mode, dev_t dev)
+          VPtr<> pathname, mode_t mode, dev_t dev)
 {
     auto p = tc->getProcessPtr();
     std::string path;
@@ -1028,7 +1039,7 @@ mknodFunc(SyscallDesc *desc, ThreadContext *tc,
 }
 
 SyscallReturn
-chdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
+chdirFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> pathname)
 {
     auto p = tc->getProcessPtr();
     std::string path;
@@ -1055,7 +1066,7 @@ chdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
 }
 
 SyscallReturn
-rmdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
+rmdirFunc(SyscallDesc *desc, ThreadContext *tc, VPtr<> pathname)
 {
     auto p = tc->getProcessPtr();
     std::string path;
@@ -1072,7 +1083,7 @@ rmdirFunc(SyscallDesc *desc, ThreadContext *tc, Addr pathname)
 template<typename DE, int SYS_NUM>
 static SyscallReturn
 getdentsImpl(SyscallDesc *desc, ThreadContext *tc,
-             int tgt_fd, Addr buf_ptr, unsigned count)
+             int tgt_fd, VPtr<> buf_ptr, unsigned count)
 {
     auto p = tc->getProcessPtr();
 
@@ -1114,9 +1125,10 @@ getdentsImpl(SyscallDesc *desc, ThreadContext *tc,
 #if defined(SYS_getdents)
 SyscallReturn
 getdentsFunc(SyscallDesc *desc, ThreadContext *tc,
-             int tgt_fd, Addr buf_ptr, unsigned count)
+             int tgt_fd, VPtr<> buf_ptr, unsigned count)
 {
-    typedef struct linux_dirent {
+    typedef struct linux_dirent
+    {
         unsigned long d_ino;
         unsigned long d_off;
         unsigned short d_reclen;
@@ -1131,9 +1143,10 @@ getdentsFunc(SyscallDesc *desc, ThreadContext *tc,
 #if defined(SYS_getdents64)
 SyscallReturn
 getdents64Func(SyscallDesc *desc, ThreadContext *tc,
-               int tgt_fd, Addr buf_ptr, unsigned count)
+               int tgt_fd, VPtr<> buf_ptr, unsigned count)
 {
-    typedef struct linux_dirent64 {
+    typedef struct linux_dirent64
+    {
         ino64_t d_ino;
         off64_t d_off;
         unsigned short d_reclen;
@@ -1162,7 +1175,7 @@ shutdownFunc(SyscallDesc *desc, ThreadContext *tc, int tgt_fd, int how)
 
 SyscallReturn
 bindFunc(SyscallDesc *desc, ThreadContext *tc,
-         int tgt_fd, Addr buf_ptr, int addrlen)
+         int tgt_fd, VPtr<> buf_ptr, int addrlen)
 {
     auto p = tc->getProcessPtr();
 
@@ -1198,7 +1211,7 @@ listenFunc(SyscallDesc *desc, ThreadContext *tc, int tgt_fd, int backlog)
 
 SyscallReturn
 connectFunc(SyscallDesc *desc, ThreadContext *tc,
-            int tgt_fd, Addr buf_ptr, int addrlen)
+            int tgt_fd, VPtr<> buf_ptr, int addrlen)
 {
     auto p = tc->getProcessPtr();
 
@@ -1219,8 +1232,8 @@ connectFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 recvfromFunc(SyscallDesc *desc, ThreadContext *tc,
-             int tgt_fd, Addr bufrPtr, size_t bufrLen, int flags,
-             Addr addrPtr, Addr addrlenPtr)
+             int tgt_fd, VPtr<> bufrPtr, size_t bufrLen, int flags,
+             VPtr<> addrPtr, VPtr<> addrlenPtr)
 {
     auto p = tc->getProcessPtr();
 
@@ -1279,8 +1292,8 @@ recvfromFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 sendtoFunc(SyscallDesc *desc, ThreadContext *tc,
-           int tgt_fd, Addr bufrPtr, size_t bufrLen, int flags,
-           Addr addrPtr, socklen_t addrLen)
+           int tgt_fd, VPtr<> bufrPtr, size_t bufrLen, int flags,
+           VPtr<> addrPtr, socklen_t addrLen)
 {
     auto p = tc->getProcessPtr();
 
@@ -1311,7 +1324,7 @@ sendtoFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 recvmsgFunc(SyscallDesc *desc, ThreadContext *tc,
-            int tgt_fd, Addr msgPtr, int flags)
+            int tgt_fd, VPtr<> msgPtr, int flags)
 {
     auto p = tc->getProcessPtr();
 
@@ -1449,7 +1462,7 @@ recvmsgFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 sendmsgFunc(SyscallDesc *desc, ThreadContext *tc,
-            int tgt_fd, Addr msgPtr, int flags)
+            int tgt_fd, VPtr<> msgPtr, int flags)
 {
     auto p = tc->getProcessPtr();
 
@@ -1516,10 +1529,12 @@ sendmsgFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 getsockoptFunc(SyscallDesc *desc, ThreadContext *tc,
-               int tgt_fd, int level, int optname, Addr valPtr, Addr lenPtr)
+               int tgt_fd, int level, int optname, VPtr<> valPtr,
+               VPtr<> lenPtr)
 {
     // union of all possible return value types from getsockopt
-    union val {
+    union val
+    {
         int i_val;
         long l_val;
         struct linger linger_val;
@@ -1554,7 +1569,7 @@ getsockoptFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 getsocknameFunc(SyscallDesc *desc, ThreadContext *tc,
-                int tgt_fd, Addr addrPtr, Addr lenPtr)
+                int tgt_fd, VPtr<> addrPtr, VPtr<> lenPtr)
 {
     auto p = tc->getProcessPtr();
 
@@ -1591,7 +1606,7 @@ getsocknameFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 getpeernameFunc(SyscallDesc *desc, ThreadContext *tc,
-                int tgt_fd, Addr sockAddrPtr, Addr addrlenPtr)
+                int tgt_fd, VPtr<> sockAddrPtr, VPtr<> addrlenPtr)
 {
     auto p = tc->getProcessPtr();
 
@@ -1618,7 +1633,8 @@ getpeernameFunc(SyscallDesc *desc, ThreadContext *tc,
 
 SyscallReturn
 setsockoptFunc(SyscallDesc *desc, ThreadContext *tc,
-               int tgt_fd, int level, int optname, Addr valPtr, socklen_t len)
+               int tgt_fd, int level, int optname, VPtr<> valPtr,
+               socklen_t len)
 {
     auto p = tc->getProcessPtr();
 
@@ -1636,3 +1652,19 @@ setsockoptFunc(SyscallDesc *desc, ThreadContext *tc,
     return (status == -1) ? -errno : status;
 }
 
+SyscallReturn
+getcpuFunc(SyscallDesc *desc, ThreadContext *tc,
+           VPtr<uint32_t> cpu, VPtr<uint32_t> node, VPtr<uint32_t> tcache)
+{
+    // unsigned is the same size (4) on all Linux supported ISAs.
+    if (cpu)
+        *cpu = htog(tc->contextId(), tc->getSystemPtr()->getGuestByteOrder());
+
+    // Set a fixed NUMA node 0.
+    if (node)
+        *node = 0;
+
+    return 0;
+}
+
+} // namespace gem5

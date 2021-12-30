@@ -46,6 +46,9 @@ class SkipFuncEvent : public PpuPCEvent
 #else
 #include "cpu/pc_event.hh"
 
+namespace gem5
+{
+
 class SkipFuncBase : public PCEvent
 {
   protected:
@@ -59,5 +62,7 @@ class SkipFuncBase : public PCEvent
     void process(ThreadContext *tc) override;
 };
 #endif
+
+} // namespace gem5
 
 #endif // __KERN_SYSTEM_EVENTS_HH__

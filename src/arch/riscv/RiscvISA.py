@@ -44,6 +44,6 @@ from m5.objects.BaseISA import BaseISA
 
 class RiscvISA(BaseISA):
     type = 'RiscvISA'
-    cxx_class = 'RiscvISA::ISA'
+    cxx_class = 'gem5::RiscvISA::ISA'
     cxx_header = "arch/riscv/isa.hh"
     system = Param.System(Parent.any, "System this ISA object belongs to")

@@ -59,7 +59,10 @@
 #include "sim/eventq.hh"
 #include "sim/stats.hh"
 
+namespace gem5 {
+
 class CudaGPU;
+
 /**
  * The CommandProcessor class tests a cache coherent memory system by
  * generating false sharing and verifying the read data against a
@@ -119,7 +122,7 @@ class CommandProcessor : public ClockedObject
     };
 
     typedef CommandProcessorParams Params;
-    CommandProcessor(const Params *p);
+    CommandProcessor(const Params &p);
 
     CPPort hostPort;
     CPPort devicePort;
@@ -210,7 +213,7 @@ private:
 
 
     /** Request id for all generated traffic */
-    MasterID masterId;
+    RequestorID masterId;
 
     unsigned int id;
 
@@ -271,5 +274,6 @@ private:
     void regStats();
 
 };
+}
 
 #endif // __CPU_ZEPHYR_ZEPHYR_HH__

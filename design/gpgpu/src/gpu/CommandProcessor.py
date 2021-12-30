@@ -38,15 +38,19 @@
 #
 # Authors: Nathan Binkert
 #          Andreas Hansson
-from ShaderTLB import ShaderTLB
+from m5.SimObject import *
+from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
+from m5.util.fdthelper import *
 
+#from ShaderTLB import ShaderTLB
 from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ShaderTLB import ShaderTLB
 
 class CommandProcessor(ClockedObject):
     type = 'CommandProcessor'
-    cxx_class = 'CommandProcessor'
+    cxx_class = 'gem5::CommandProcessor'
     cxx_header = "gpu/command_processor.hh"
 
     host_port = MasterPort("The CP port to host coherence domain")

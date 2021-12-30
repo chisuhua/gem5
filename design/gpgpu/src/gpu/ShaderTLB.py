@@ -27,11 +27,11 @@
 
 from m5.params import *
 from m5.proxy import *
-from BaseTLB import BaseTLB
+from m5.objects.BaseTLB import BaseTLB
 
 class ShaderTLB(BaseTLB):
     type = 'ShaderTLB'
-    cxx_class = 'ShaderTLB'
+    cxx_class = 'gem5::ShaderTLB'
     cxx_header = "gpu/shader_tlb.hh"
 
     access_host_pagetable = Param.Bool(False, \

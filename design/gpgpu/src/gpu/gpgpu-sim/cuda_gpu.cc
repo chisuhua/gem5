@@ -33,7 +33,7 @@
 #include <string>
 
 #include "api/gpu_syscall_helper.hh"
-#include "arch/utility.hh"
+//#include "arch/utility.hh"
 // #include "arch/vtophys.hh"
 #include "arch/x86/regs/misc.hh"
 #include "base/chunk_generator.hh"
@@ -54,28 +54,30 @@
 
 using namespace std;
 
-vector<CudaGPU*> CudaGPU::gpuArray;
-
 // FIXME
 int no_of_ptx = 0;
+extern char *ptx_line_stats_filename;
+namespace gem5 {
+
+vector<CudaGPU*> CudaGPU::gpuArray;
 
 // From GPU syscalls
 void registerFatBinaryTop(GPUSyscallHelper *helper, Addr sim_fatCubin, size_t sim_binSize);
 unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_ptr);
 void register_var(Addr sim_deviceAddress, const char* deviceName, int sim_size, int sim_constant, int sim_global, int sim_ext, Addr sim_hostVar);
 
-CudaGPU::CudaGPU(const Params *p) :
-    ClockedObject(p), _params(p), streamTickEvent(this),
-    clkDomain((SrcClockDomain*)p->clk_domain),
-    coresWrapper(*p->cores_wrapper), icntWrapper(*p->icnt_wrapper),
-    l2Wrapper(*p->l2_wrapper), dramWrapper(*p->dram_wrapper),
-    system(p->sys), warpSize(p->warp_size), sharedMemDelay(p->shared_mem_delay),
-    gpgpusimConfigPath(p->config_path), unblockNeeded(false), ruby(p->ruby),
+CudaGPU::CudaGPU(const CudaGPUParams &p) :
+    ClockedObject(p), _params(&p), streamTickEvent(this),
+    clkDomain((SrcClockDomain*)p.clk_domain),
+    coresWrapper(*p.cores_wrapper), icntWrapper(*p.icnt_wrapper),
+    l2Wrapper(*p.l2_wrapper), dramWrapper(*p.dram_wrapper),
+    system(p.sys), warpSize(p.warp_size), sharedMemDelay(p.shared_mem_delay),
+    gpgpusimConfigPath(p.config_path), unblockNeeded(false), ruby(p.ruby),
     runningTC(NULL), runningStream(NULL), runningTID(-1), runningPTBase(0),
-    clearTick(0), dumpKernelStats(p->dump_kernel_stats), pageTable(),
-    manageGPUMemory(p->manage_gpu_memory),
-    accessHostPageTable(p->access_host_pagetable),
-    gpuMemoryRange(p->gpu_memory_range), shaderMMU(p->shader_mmu)
+    clearTick(0), dumpKernelStats(p.dump_kernel_stats), pageTable(),
+    manageGPUMemory(p.manage_gpu_memory),
+    accessHostPageTable(p.access_host_pagetable),
+    gpuMemoryRange(p.gpu_memory_range), shaderMMU(p.shader_mmu)
 {
     // Register this device as a CUDA-enabled GPU
     cudaDeviceID = registerCudaDevice(this);
@@ -92,8 +94,8 @@ CudaGPU::CudaGPU(const Params *p) :
 
     restoring = false;
 
-    launchDelay = p->kernel_launch_delay * SimClock::Frequency;
-    returnDelay = p->kernel_return_delay * SimClock::Frequency;
+    launchDelay = p.kernel_launch_delay * SimClock::Frequency;
+    returnDelay = p.kernel_return_delay * SimClock::Frequency;
 
     // GPU memory handling
     instBaseVaddr = 0;
@@ -151,10 +153,18 @@ CudaGPU::CudaGPU(const Params *p) :
 #if (CUDART_VERSION >= 2010)
     deviceProperties.multiProcessorCount = theGPU->get_config().num_shader();
 #endif
+    OutputStream *os = simout.find(p.stats_filename);
+    if (!os) {
+        statsFile = simout.create(p.stats_filename);
+    }
+
+    assert(statsFile);
+
 
     // Print gpu configuration and stats at exit
-    GPUExitCallback* gpuExitCB = new GPUExitCallback(this, p->stats_filename);
-    registerExitCallback(gpuExitCB);
+    // GPUExitCallback* gpuExitCB = new GPUExitCallback(this, p.stats_filename);
+    // registerExitCallback(gpuExitCB);
+    registerExitCallback([this] () { callback(); });
 
 }
 
@@ -278,7 +288,7 @@ void CudaGPU::startup()
     }
 
     if (runningTID >= 0) {
-        runningTC = system->getThreadContext(runningTID);
+        runningTC = system->threads[runningTID];
         assert(runningTC);
     }
     // FIXME don't support checkpoint
@@ -422,9 +432,11 @@ CudaCore *CudaGPU::getCudaCore(int coreId)
     return cudaCores[coreId];
 }
 
-CudaGPU *CudaGPUParams::create() {
-    return new CudaGPU(this);
+/*
+CudaGPU *CudaGPUParams::create() const {
+    return new CudaGPU(*this);
 }
+*/
 
 void CudaGPU::gpuPrintStats(std::ostream& out) {
     // Print kernel statistics
@@ -468,7 +480,6 @@ void CudaGPU::gpuPrintStats(std::ostream& out) {
     printPTXFileLineStats();
 }
 
-extern char *ptx_line_stats_filename;
 
 void CudaGPU::printPTXFileLineStats() {
     char *temp_ptx_line_stats_filename = ptx_line_stats_filename;
@@ -823,15 +834,17 @@ void CudaGPU::regStats()
     }
     // shaderMMU->regStats();
 }
-
-GPGPUSimComponentWrapper *GPGPUSimComponentWrapperParams::create() {
-    return new GPGPUSimComponentWrapper(this);
+/*
+GPGPUSimComponentWrapper *GPGPUSimComponentWrapperParams::create() const {
+    return new GPGPUSimComponentWrapper(*this);
 }
+*/
 
 /**
 * virtual process function that is invoked when the callback
 * queue is executed.
 */
+/*
 void GPUExitCallback::process()
 {
     // TODO std::ostream *os = simout.find(stats_filename);
@@ -842,4 +855,11 @@ void GPUExitCallback::process()
     gpu->gpuPrintStats(*os->stream());
     *os->stream() << std::endl;
 }
+*/
+void CudaGPU::callback()
+{
+    this->gpuPrintStats(*statsFile->stream());
+    *statsFile->stream() << std::endl;
+}
 
+}

@@ -215,13 +215,13 @@ skipSegmentSquashing:
 
     # TODO schi copied from gem5-gpu
     # Check if this was a GPU fault and if so, notify the GPU.
-    rdval t5, "InstRegIndex(MISCREG_GPU_FAULT)"
+    rdval t5, ctrlRegIdx("MISCREG_GPU_FAULT")
     andi t0, t5, 2, flags=(EZF,)
     br label("notGPUFaultFallThrough"), flags=(CEZF,)
     # At this point, t6 *should* contain the old stack pointer from where the
     # fault was raised, no matter how the microcode reached this GPU check. If
     # t6 is equal to the GPU faulting RSP, notify the GPU of finished fault!
-    rdval t5, "InstRegIndex(MISCREG_GPU_FAULT_RSP)"
+    rdval t5, ctrlRegIdx("MISCREG_GPU_FAULT_RSP")
     xor t5, t5, t6, flags=(EZF,)
     br label("notGPUFaultFallThrough"), flags=(nCEZF,)
     gpufaultfinish

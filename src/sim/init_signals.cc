@@ -58,10 +58,10 @@
 #include "base/logging.hh"
 #include "sim/async.hh"
 #include "sim/backtrace.hh"
-#include "sim/core.hh"
 #include "sim/eventq.hh"
 
-using namespace std;
+namespace gem5
+{
 
 // Use an separate stack for fatal signal handlers
 static uint8_t fatalSigStack[2 * SIGSTKSZ];
@@ -146,7 +146,8 @@ abortHandler(int sigtype)
 {
     const EventQueue *const eq(curEventQueue());
     if (eq) {
-        ccprintf(cerr, "Program aborted at tick %llu\n", eq->getCurTick());
+        ccprintf(std::cerr, "Program aborted at tick %llu\n",
+                eq->getCurTick());
     } else {
         STATIC_ERR("Program aborted\n\n");
     }
@@ -214,3 +215,4 @@ initSignals()
     installSignalHandler(SIGIO, ioHandler);
 }
 
+} // namespace gem5

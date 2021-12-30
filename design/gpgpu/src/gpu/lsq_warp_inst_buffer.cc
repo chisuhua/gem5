@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace gem5 {
+
 const string WarpInstBuffer::instructionTypeStrings[] =
         { "invalid", "load", "store", "fence", "atomic" };
 
@@ -437,4 +439,5 @@ WarpInstBuffer::finishAccess(CoalescedAccess *mem_access)
         return true;
     }
     return false;
+}
 }

@@ -31,3 +31,8 @@ Import('*')
 
 all_isa_list.append('ppu')
 all_ppu_isa_list.append('ppu')
+
+sticky_vars.Add(BoolVariable('BUILD_PPU', 'Build OPU model',
+                             False))
+
+export_vars.append('BUILD_PPU')

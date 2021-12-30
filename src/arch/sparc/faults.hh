@@ -29,10 +29,14 @@
 #ifndef __SPARC_FAULTS_HH__
 #define __SPARC_FAULTS_HH__
 
+#include "cpu/null_static_inst.hh"
 #include "cpu/static_inst.hh"
 #include "sim/faults.hh"
 
 // The design of the "name" and "vect" functions is in sim/faults.hh
+
+namespace gem5
+{
 
 namespace SparcISA
 {
@@ -69,7 +73,7 @@ class SparcFaultBase : public FaultBase
         {}
     };
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
     virtual TrapType trapType() = 0;
     virtual FaultPriority priority() = 0;
     virtual FaultStat & countStat() = 0;
@@ -98,7 +102,7 @@ class PowerOnReset : public SparcFault<PowerOnReset>
 {
   public:
     void invoke(ThreadContext *tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 class WatchDogReset : public SparcFault<WatchDogReset> {};
@@ -212,7 +216,7 @@ class FastInstructionAccessMMUMiss :
     FastInstructionAccessMMUMiss() : vaddr(0)
     {}
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 class FastDataAccessMMUMiss : public SparcFault<FastDataAccessMMUMiss>
@@ -225,7 +229,7 @@ class FastDataAccessMMUMiss : public SparcFault<FastDataAccessMMUMiss>
     FastDataAccessMMUMiss() : vaddr(0)
     {}
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 class FastDataAccessProtection : public SparcFault<FastDataAccessProtection> {};
@@ -244,7 +248,7 @@ class SpillNNormal : public EnumeratedFault<SpillNNormal>
     SpillNNormal(uint32_t n) : EnumeratedFault<SpillNNormal>(n) {;}
     // These need to be handled specially to enable spill traps in SE
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 class SpillNOther : public EnumeratedFault<SpillNOther>
@@ -261,7 +265,7 @@ class FillNNormal : public EnumeratedFault<FillNNormal>
     {}
     // These need to be handled specially to enable fill traps in SE
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 class FillNOther : public EnumeratedFault<FillNOther>
@@ -278,7 +282,7 @@ class TrapInstruction : public EnumeratedFault<TrapInstruction>
     {}
     // In SE, trap instructions are requesting services from the OS.
     void invoke(ThreadContext * tc, const StaticInstPtr &inst =
-                StaticInst::nullStaticInstPtr);
+                nullStaticInstPtr);
 };
 
 /*
@@ -360,5 +364,6 @@ void getPrivVector(ThreadContext *tc, Addr &PC, Addr &NPC, RegVal TT,
                    RegVal TL);
 
 } // namespace SparcISA
+} // namespace gem5
 
 #endif // __SPARC_FAULTS_HH__

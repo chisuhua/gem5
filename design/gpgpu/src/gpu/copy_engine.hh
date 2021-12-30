@@ -31,39 +31,23 @@
 
 #include "base/callback.hh"
 #include "cpu/translation.hh"
-#include "mem/mem_object.hh"
+#include "sim/clocked_object.hh"
 #include "params/GPUCopyEngine.hh"
 #include "stream_manager.h"
-
 // @TODO: Fix the dependencies between sp_array and copy_engine, and
 // sort this include into the set above
 #include "gpu/gpgpu-sim/cuda_gpu.hh"
 
-class GPUCopyEngine : public MemObject
+namespace gem5 {
+
+class GPUCopyEngine : public ClockedObject
 {
 private:
     typedef GPUCopyEngineParams Params;
 
-    class CEExitCallback : public Callback
-    {
-    private:
-        std::string statsFilename;
-        GPUCopyEngine *engine;
+    void callback() ;
 
-    public:
-        virtual ~CEExitCallback() {}
-
-        CEExitCallback(GPUCopyEngine *_engine, const std::string& stats_filename)
-        {
-            statsFilename = stats_filename;
-            engine = _engine;
-        }
-
-        virtual void process();
-    };
-    CEExitCallback ceExitCB;
-
-    class CEPort : public MasterPort
+    class CEPort : public RequestPort
     {
         friend class GPUCopyEngine;
 
@@ -77,7 +61,7 @@ private:
 
     public:
         CEPort(const std::string &_name, GPUCopyEngine *_proc, int _idx)
-        : MasterPort(_name, _proc), engine(_proc), idx(_idx) {}
+        : RequestPort(_name, _proc), engine(_proc), idx(_idx) {}
 
     protected:
         virtual bool recvTimingResp(PacketPtr pkt);
@@ -113,7 +97,7 @@ private:
     };
 
     TickEvent tickEvent;
-    MasterID masterId;
+    RequestorID masterId;
 
 private:
     CudaGPU *cudaGPU;
@@ -166,7 +150,7 @@ private:
 
 public:
 
-    GPUCopyEngine(const Params *p);
+    GPUCopyEngine(const Params &p);
     // TODO schi change from BaseMasterPort
     virtual Port& getPort(const std::string &if_name, PortID idx = -1);
     void finishTranslation(WholeTranslationState *state);
@@ -184,11 +168,14 @@ public:
 
     void cePrintStats(std::ostream& out);
 
+    OutputStream* statsFile;
+
     Stats::Scalar numOperations;
     Stats::Scalar bytesRead;
     Stats::Scalar bytesWritten;
     Stats::Scalar operationTimeTicks;
     void regStats();
 };
+}
 
 #endif

@@ -42,6 +42,9 @@
 
 #include "base/logging.hh"
 
+namespace gem5
+{
+
 inline void
 eat_lead_white(std::string &s)
 {
@@ -108,10 +111,14 @@ tokenize(std::vector<std::string> &vector, const std::string &s,
  *       integeral type, as well as enums and floating-point types.
  */
 template <class T>
-typename std::enable_if<std::is_integral<T>::value &&
-                        std::is_signed<T>::value, T>::type
+typename std::enable_if_t<std::is_integral<T>::value &&
+                          std::is_signed<T>::value, T>
 __to_number(const std::string &value)
 {
+    // Cannot parse scientific numbers
+    if (value.find('e') != std::string::npos) {
+        throw std::invalid_argument("Cannot convert scientific to integral");
+    }
     // start big and narrow it down if needed, determine the base dynamically
     long long r = std::stoll(value, nullptr, 0);
     if (r < std::numeric_limits<T>::lowest()
@@ -122,10 +129,14 @@ __to_number(const std::string &value)
 }
 
 template <class T>
-typename std::enable_if<std::is_integral<T>::value &&
-                        !std::is_signed<T>::value, T>::type
+typename std::enable_if_t<std::is_integral<T>::value &&
+                          !std::is_signed<T>::value, T>
 __to_number(const std::string &value)
 {
+    // Cannot parse scientific numbers
+    if (value.find('e') != std::string::npos) {
+        throw std::invalid_argument("Cannot convert scientific to integral");
+    }
     // start big and narrow it down if needed, determine the base dynamically
     unsigned long long r = std::stoull(value, nullptr, 0);
     if (r > std::numeric_limits<T>::max())
@@ -134,15 +145,19 @@ __to_number(const std::string &value)
 }
 
 template <class T>
-typename std::enable_if<std::is_enum<T>::value, T>::type
+typename std::enable_if_t<std::is_enum<T>::value, T>
 __to_number(const std::string &value)
 {
+    // Cannot parse scientific numbers
+    if (value.find('e') != std::string::npos) {
+        throw std::invalid_argument("Cannot convert scientific to integral");
+    }
     auto r = __to_number<typename std::underlying_type<T>::type>(value);
     return static_cast<T>(r);
 }
 
 template <class T>
-typename std::enable_if<std::is_floating_point<T>::value, T>::type
+typename std::enable_if_t<std::is_floating_point<T>::value, T>
 __to_number(const std::string &value)
 {
     // start big and narrow it down if needed
@@ -156,15 +171,18 @@ __to_number(const std::string &value)
 /** @} */
 
 /**
- * Turn a string representation of a number, either integral or
- * floating point, into an actual number.
+ * Turn a string representation of a number, either integral, floating point,
+ * or enum into an actual number. Use to_bool for booleans.
  *
  * @param value The string representing the number
  * @param retval The resulting value
  * @return True if the parsing was successful
  */
 template <class T>
-inline bool
+inline std::enable_if_t<(std::is_integral<T>::value ||
+                         std::is_floating_point<T>::value ||
+                         std::is_enum<T>::value) &&
+                        !std::is_same<bool, T>::value, bool>
 to_number(const std::string &value, T &retval)
 {
     try {
@@ -246,5 +264,6 @@ startswith(const std::string &s, const std::string &prefix)
     return (s.compare(0, prefix.size(), prefix) == 0);
 }
 
+} // namespace gem5
 
 #endif //__BASE_STR_HH__

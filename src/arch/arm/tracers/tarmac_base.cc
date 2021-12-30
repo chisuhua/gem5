@@ -40,10 +40,13 @@
 #include <algorithm>
 #include <string>
 
-#include "config/the_isa.hh"
+#include "arch/arm/regs/misc.hh"
 #include "cpu/reg_class.hh"
 #include "cpu/static_inst.hh"
 #include "cpu/thread_context.hh"
+
+namespace gem5
+{
 
 using namespace ArmISA;
 
@@ -64,7 +67,7 @@ TarmacBaseRecord::InstEntry::InstEntry(
     bool predicate)
         : taken(predicate) ,
           addr(pc.instAddr()) ,
-          opcode(staticInst->machInst & 0xffffffff),
+          opcode(staticInst->getEMI() & 0xffffffff),
           disassemble(staticInst->disassemble(addr)),
           isetstate(pcToISetState(pc)),
           mode(MODE_USER)
@@ -115,3 +118,4 @@ TarmacBaseRecord::pcToISetState(PCState pc)
 }
 
 } // namespace Trace
+} // namespace gem5

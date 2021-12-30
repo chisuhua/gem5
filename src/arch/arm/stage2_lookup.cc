@@ -48,6 +48,9 @@
 #include "debug/TLBVerbose.hh"
 #include "sim/system.hh"
 
+namespace gem5
+{
+
 using namespace ArmISA;
 
 Fault
@@ -55,7 +58,7 @@ Stage2LookUp::getTe(ThreadContext *tc, TlbEntry *destTe)
 
 {
     fault = stage2Tlb->getTE(&stage2Te, req, tc, mode, this, timing,
-                                   functional, false, tranType);
+                                   functional, secure, tranType);
     // Call finish if we're done already
     if ((fault != NoFault) || (stage2Te != NULL)) {
         // Since we directly requested the table entry (which we need later on
@@ -76,7 +79,7 @@ Stage2LookUp::getTe(ThreadContext *tc, TlbEntry *destTe)
 }
 
 void
-Stage2LookUp::mergeTe(const RequestPtr &req, BaseTLB::Mode mode)
+Stage2LookUp::mergeTe(const RequestPtr &req, BaseMMU::Mode mode)
 {
     // Check again that we haven't got a fault
     if (fault == NoFault) {
@@ -174,13 +177,13 @@ Stage2LookUp::mergeTe(const RequestPtr &req, BaseTLB::Mode mode)
 
 void
 Stage2LookUp::finish(const Fault &_fault, const RequestPtr &req,
-    ThreadContext *tc, BaseTLB::Mode mode)
+    ThreadContext *tc, BaseMMU::Mode mode)
 {
     fault = _fault;
     // if we haven't got the table entry get it now
     if ((fault == NoFault) && (stage2Te == NULL)) {
         fault = stage2Tlb->getTE(&stage2Te, req, tc, mode, this,
-            timing, functional, false, tranType);
+            timing, functional, secure, tranType);
     }
 
     // Now we have the stage 2 table entry we need to merge it with the stage
@@ -201,3 +204,4 @@ Stage2LookUp::finish(const Fault &_fault, const RequestPtr &req,
     }
 }
 
+} // namespace gem5

@@ -30,11 +30,13 @@
 
 #include <algorithm>
 
-#include "arch/sparc/isa_traits.hh"
+#include "arch/sparc/mmu.hh"
 #include "arch/sparc/process.hh"
-#include "arch/sparc/tlb.hh"
+#include "arch/sparc/se_workload.hh"
+#include "arch/sparc/sparc_traits.hh"
 #include "arch/sparc/types.hh"
 #include "base/bitfield.hh"
+#include "base/compiler.hh"
 #include "base/trace.hh"
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
@@ -42,7 +44,8 @@
 #include "sim/full_system.hh"
 #include "sim/process.hh"
 
-using namespace std;
+namespace gem5
+{
 
 namespace SparcISA
 {
@@ -340,7 +343,7 @@ doREDFault(ThreadContext *tc, TrapType tt)
     tc->setMiscRegNoEffect(MISCREG_TT, tt);
 
     // Update GL
-    tc->setMiscReg(MISCREG_GL, min<int>(GL+1, MaxGL));
+    tc->setMiscReg(MISCREG_GL, std::min<int>(GL+1, MaxGL));
 
     bool priv = pstate.priv; // just save the priv bit
     pstate = 0;
@@ -424,9 +427,9 @@ doNormalFault(ThreadContext *tc, TrapType tt, bool gotoHpriv)
 
     // Update the global register level
     if (!gotoHpriv)
-        tc->setMiscReg(MISCREG_GL, min<int>(GL + 1, MaxPGL));
+        tc->setMiscReg(MISCREG_GL, std::min<int>(GL + 1, MaxPGL));
     else
-        tc->setMiscReg(MISCREG_GL, min<int>(GL + 1, MaxGL));
+        tc->setMiscReg(MISCREG_GL, std::min<int>(GL + 1, MaxGL));
 
     // pstate.mm is unchanged
     pstate.pef = 1; // PSTATE.pef = whether or not an fpu is present
@@ -669,8 +672,9 @@ FastInstructionAccessMMUMiss::invoke(ThreadContext *tc,
     // false for syscall emulation mode regardless of whether the
     // address is real in preceding code. Not sure sure that this is
     // correct, but also not sure if it matters at all.
-    dynamic_cast<TLB *>(tc->getITBPtr())->
-        insert(alignedvaddr, partition_id, context_id, false, entry.pte);
+    static_cast<MMU *>(tc->getMMUPtr())->insertItlbEntry(
+        alignedvaddr, partition_id, context_id,
+        false, entry.pte);
 }
 
 void
@@ -756,8 +760,9 @@ FastDataAccessMMUMiss::invoke(ThreadContext *tc, const StaticInstPtr &inst)
     // false for syscall emulation mode regardless of whether the
     // address is real in preceding code. Not sure sure that this is
     // correct, but also not sure if it matters at all.
-    dynamic_cast<TLB *>(tc->getDTBPtr())->
-        insert(alignedvaddr, partition_id, context_id, false, entry.pte);
+    static_cast<MMU *>(tc->getMMUPtr())->insertDtlbEntry(
+        alignedvaddr, partition_id, context_id,
+        false, entry.pte);
 }
 
 void
@@ -812,11 +817,11 @@ TrapInstruction::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 
     Process *p = tc->getProcessPtr();
 
-    SparcProcess *sp = dynamic_cast<SparcProcess *>(p);
+    GEM5_VAR_USED SparcProcess *sp = dynamic_cast<SparcProcess *>(p);
     assert(sp);
 
-    Fault fault;
-    sp->handleTrap(_n, tc, &fault);
+    auto *workload = dynamic_cast<SEWorkload *>(tc->getSystemPtr()->workload);
+    workload->handleTrap(tc, _n);
 
     // We need to explicitly advance the pc, since that's not done for us
     // on a faulting instruction
@@ -826,4 +831,4 @@ TrapInstruction::invoke(ThreadContext *tc, const StaticInstPtr &inst)
 }
 
 } // namespace SparcISA
-
+} // namespace gem5

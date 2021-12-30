@@ -26,13 +26,14 @@
 #
 
 
-from MemObject import MemObject
-from ShaderTLB import ShaderTLB
 from m5.params import *
+#from m5.objects.MemObject import MemObject
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ShaderTLB import ShaderTLB
 
-class ShaderLSQ(MemObject):
+class ShaderLSQ(ClockedObject):
     type = 'ShaderLSQ'
-    cxx_class = 'ShaderLSQ'
+    cxx_class = 'gem5::ShaderLSQ'
     cxx_header = "gpu/shader_lsq.hh"
 
     cache_port = MasterPort("The data cache port for this LSQ")

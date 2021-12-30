@@ -51,6 +51,7 @@
 #include "sim/process.hh"
 #include "sim/system.hh"
 
+namespace gem5 {
 /**
  * A wrapper class to manage the clocking of GPGPU-Sim-side components.
  * The CudaGPU must contain one of these wrappers for each clocked component or
@@ -70,7 +71,7 @@ class GPGPUSimComponentWrapper : public ClockedObject
     CycleFunc endCycleFunction;
 
   public:
-    GPGPUSimComponentWrapper(const GPGPUSimComponentWrapperParams *p) :
+    GPGPUSimComponentWrapper(const GPGPUSimComponentWrapperParams &p) :
         ClockedObject(p), theGPU(NULL), startCycleFunction(NULL),
         endCycleFunction(NULL), componentCycleStartEvent(this),
         // End cycle events must happen after all other components are cycled
@@ -304,7 +305,7 @@ class CudaGPU : public ClockedObject
 
     /// Pointer to ruby system used to clear the Ruby stats
     /// NOTE: I think there is a more right way to do this
-    RubySystem *ruby;
+    ruby::RubySystem *ruby;
 
     /// Holds all of the CUDA cores in this GPU
     std::vector<CudaCore*> cudaCores;
@@ -443,7 +444,7 @@ class CudaGPU : public ClockedObject
 
   public:
     /// Constructor
-    CudaGPU(const Params *p);
+    CudaGPU(const CudaGPUParams &p);
 
     /// For checkpointing
     virtual void serialize(CheckpointOut &cp) const;
@@ -469,7 +470,7 @@ class CudaGPU : public ClockedObject
     }
     int getSharedMemDelay() { return sharedMemDelay; }
     const char* getConfigPath() { return gpgpusimConfigPath.c_str(); }
-    RubySystem* getRubySystem() { return ruby; }
+    ruby::RubySystem* getRubySystem() { return ruby; }
     gpgpu_sim* getTheGPU() { return theGPU; }
 
     /// Called at the beginning of each kernel launch to start the statistics
@@ -619,11 +620,16 @@ class CudaGPU : public ClockedObject
     void regStats();
 
     bool is_active() { return theGPU->active(); }
+
+    void callback();
+
+    OutputStream* statsFile;
 };
 
 /**
  *  Helper class to print out statistics at the end of simulation
  */
+/*
 class GPUExitCallback : public Callback
 {
   private:
@@ -641,6 +647,8 @@ class GPUExitCallback : public Callback
 
     virtual void process();
 };
+*/
+}
 
 #endif
 

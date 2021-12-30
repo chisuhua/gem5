@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 ARM Limited
+ * Copyright (c) 2017,2019 ARM Limited
  * All rights reserved.
  *
  * The license below extends only to copyright in the software and shall
@@ -50,7 +50,11 @@
 #include "mem/ruby/system/RubySystem.hh"
 #include "sim/system.hh"
 
-using namespace std;
+namespace gem5
+{
+
+namespace ruby
+{
 
 int DirectoryMemory::m_num_directories = 0;
 int DirectoryMemory::m_num_directories_bits = 0;
@@ -61,10 +65,8 @@ int DirectoryMemory::m_num_dev_directories = 0;
 Addr DirectoryMemory::m_device_segment_base = 0;
 int DirectoryMemory::m_num_dev_directories_bits = 0;
 
-// FIXME the it might be a conflict if addr_ranges is not continguous
-DirectoryMemory::DirectoryMemory(const Params *p)
-    : SimObject(p), addrRanges(p->addr_ranges.begin(), p->addr_ranges.end())
-      ,m_size(p->size)
+DirectoryMemory::DirectoryMemory(const Params &p)
+    : SimObject(p), addrRanges(p.addr_ranges.begin(), p.addr_ranges.end())
 {
     m_size_bytes = 0;
 
@@ -78,10 +80,10 @@ DirectoryMemory::DirectoryMemory(const Params *p)
 
     m_size_bits = floorLog2(m_size_bytes);
     m_num_entries = 0;
-    m_version = p->version;
-    m_numa_high_bit = p->numa_high_bit;
-    m_device_directory = p->device_directory;
-    m_device_segment_base = p->device_segment_base;
+    m_version = p.version;
+    m_numa_high_bit = p.numa_high_bit;
+    m_device_directory = p.device_directory;
+    m_device_segment_base = p.device_segment_base;
 }
 
 void
@@ -228,6 +230,7 @@ DirectoryMemory::allocate(Addr address, AbstractCacheEntry *entry)
 
     idx = mapAddressToLocalIdx(address);
     assert(idx < m_num_entries);
+    assert(m_entries[idx] == NULL);
     entry->changePermission(AccessPermission_Read_Only);
     m_entries[idx] = entry;
 
@@ -235,7 +238,21 @@ DirectoryMemory::allocate(Addr address, AbstractCacheEntry *entry)
 }
 
 void
-DirectoryMemory::print(ostream& out) const
+DirectoryMemory::deallocate(Addr address)
+{
+    assert(isPresent(address));
+    uint64_t idx;
+    DPRINTF(RubyCache, "Removing entry for address: %#x\n", address);
+
+    idx = mapAddressToLocalIdx(address);
+    assert(idx < m_num_entries);
+    assert(m_entries[idx] != NULL);
+    delete m_entries[idx];
+    m_entries[idx] = NULL;
+}
+
+void
+DirectoryMemory::print(std::ostream& out) const
 {
 }
 
@@ -245,8 +262,5 @@ DirectoryMemory::recordRequestType(DirectoryRequestType requestType) {
             DirectoryRequestType_to_string(requestType));
 }
 
-DirectoryMemory *
-RubyDirectoryMemoryParams::create()
-{
-    return new DirectoryMemory(this);
-}
+} // namespace ruby
+} // namespace gem5

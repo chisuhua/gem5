@@ -37,10 +37,13 @@
 #include "base/pollevent.hh"
 #include "base/types.hh"
 #include "sim/async.hh"
-#include "sim/eventq_impl.hh"
+#include "sim/eventq.hh"
 #include "sim/sim_events.hh"
 #include "sim/sim_exit.hh"
 #include "sim/stat_control.hh"
+
+namespace gem5
+{
 
 //! Mutex for handling async events.
 std::mutex asyncEventMutex;
@@ -192,7 +195,7 @@ doSimLoop(EventQueue *eventq)
             // routines want to schedule new events.
             std::lock_guard<EventQueue> lock(*eventq);
             if (async_statdump || async_statreset) {
-                Stats::schedStatEvent(async_statdump, async_statreset);
+                statistics::schedStatEvent(async_statdump, async_statreset);
                 async_statdump = false;
                 async_statreset = false;
             }
@@ -221,3 +224,5 @@ doSimLoop(EventQueue *eventq)
 
     // not reached... only exit is return on SimLoopExitEvent
 }
+
+} // namespace gem5

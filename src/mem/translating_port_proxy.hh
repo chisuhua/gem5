@@ -44,17 +44,9 @@
 #include "arch/generic/tlb.hh"
 #include "mem/port_proxy.hh"
 
-#if 0
-#ifdef BUILD_PPU
-namespace PpuISA {
-#endif
+namespace gem5
+{
 
-class ThreadContext;
-#ifdef BUILD_PPU
-};
-using namespace PpuISA;
-#endif
-#endif
 class ThreadContext;
 
 /**
@@ -66,8 +58,8 @@ class ThreadContext;
 class TranslatingPortProxy : public PortProxy
 {
   private:
-    bool tryTLBsOnce(RequestPtr req, BaseTLB::Mode) const;
-    bool tryTLBs(RequestPtr req, BaseTLB::Mode) const;
+    bool tryTLBsOnce(RequestPtr req, BaseMMU::Mode) const;
+    bool tryTLBs(RequestPtr req, BaseMMU::Mode) const;
 
   protected:
     ThreadContext* _tc;
@@ -76,7 +68,7 @@ class TranslatingPortProxy : public PortProxy
     Request::Flags flags;
 
     virtual bool
-    fixupAddr(Addr addr, BaseTLB::Mode mode) const
+    fixupAddr(Addr addr, BaseMMU::Mode mode) const
     {
         return false;
     }
@@ -98,5 +90,7 @@ class TranslatingPortProxy : public PortProxy
      */
     bool tryMemsetBlob(Addr address, uint8_t  v, int size) const override;
 };
+
+} // namespace gem5
 
 #endif //__MEM_TRANSLATING_PORT_PROXY_HH__

@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-#include "arch/utility.hh"
+//#include "arch/utility.hh"
 #include "base/output.hh"
 #include "debug/GPUCopyEngine.hh"
 #include "gpu/copy_engine.hh"
@@ -38,14 +38,16 @@
 
 using namespace std;
 
-GPUCopyEngine::GPUCopyEngine(const Params *p) :
-    MemObject(p), ceExitCB(this, p->stats_filename),
+namespace gem5 {
+
+GPUCopyEngine::GPUCopyEngine(const GPUCopyEngineParams &p) :
+    ClockedObject(p),
     hostPort(name() + ".host_port", this, 0),
     devicePort(name() + ".device_port", this, 0), readPort(NULL),
-    writePort(NULL), tickEvent(this), masterId(p->sys->getMasterId(this, name())),
-    cudaGPU(p->gpu), cacheLineSize(p->cache_line_size),
-    driverDelay(p->driver_delay), hostDTB(p->host_dtb),
-    deviceDTB(p->device_dtb), readDTB(NULL), writeDTB(NULL)
+    writePort(NULL), tickEvent(this), masterId(p.sys->getRequestorId(this, name())),
+    cudaGPU(p.gpu), cacheLineSize(p.cache_line_size),
+    driverDelay(p.driver_delay), hostDTB(p.host_dtb),
+    deviceDTB(p.device_dtb), readDTB(NULL), writeDTB(NULL)
 {
     DPRINTF(GPUCopyEngine, "Created copy engine\n");
 
@@ -53,11 +55,18 @@ GPUCopyEngine::GPUCopyEngine(const Params *p) :
     needToWrite = false;
     running = false;
 
-    registerExitCallback(&ceExitCB);
+    OutputStream *os = simout.find(p.stats_filename);
+    if (!os) {
+        statsFile = simout.create(p.stats_filename);
+    }
+
+    assert(statsFile);
+
+    registerExitCallback([this]() { callback(); });
 
     cudaGPU->registerCopyEngine(this);
 
-    bufferDepth = p->buffering * cacheLineSize;
+    bufferDepth = p.buffering * cacheLineSize;
 }
 
 Tick GPUCopyEngine::CEPort::recvAtomic(PacketPtr pkt)
@@ -189,7 +198,7 @@ void GPUCopyEngine::tryRead()
 
     DPRINTF(GPUCopyEngine, "trying read addr: 0x%x, %d bytes\n", currentReadAddr, size);
 
-    BaseTLB::Mode mode = BaseTLB::Read;
+    BaseMMU::Mode mode = BaseMMU::Read;
 
     WholeTranslationState *state =
             new WholeTranslationState(req, NULL, NULL, mode);
@@ -249,7 +258,7 @@ void GPUCopyEngine::tryWrite()
 
     DPRINTF(GPUCopyEngine, "trying write addr: 0x%x, %d bytes, data %d\n", currentWriteAddr, size, *((int*)(&curData[totalLength-writeLeft])));
 
-    BaseTLB::Mode mode = BaseTLB::Write;
+    BaseMMU::Mode mode = BaseMMU::Write;
 
     WholeTranslationState *state =
             new WholeTranslationState(req, NULL, NULL, mode);
@@ -402,11 +411,11 @@ void GPUCopyEngine::finishTranslation(WholeTranslationState *state)
     }
     DPRINTF(GPUCopyEngine, "Finished translation of Vaddr 0x%x -> Paddr 0x%x\n", state->mainReq->getVaddr(), state->mainReq->getPaddr());
     PacketPtr pkt;
-    if (state->mode == BaseTLB::Read) {
+    if (state->mode == BaseMMU::Read) {
         pkt = new Packet(state->mainReq, MemCmd::ReadReq);
         pkt->allocate();
         readPort->sendPacket(pkt);
-    } else if (state->mode == BaseTLB::Write) {
+    } else if (state->mode == BaseMMU::Write) {
         pkt = new Packet(state->mainReq, MemCmd::WriteReq);
         uint8_t *pkt_data = (uint8_t *)state->mainReq->getExtraData();
         pkt->dataDynamic(pkt_data);
@@ -425,13 +434,13 @@ GPUCopyEngine::getPort(const std::string &if_name, PortID idx)
     else if (if_name == "device_port")
         return devicePort;
     else
-        return MemObject::getPort(if_name, idx);
+        return ClockedObject::getPort(if_name, idx);
         // TODO schi return MemObject::getMasterPort(if_name, idx);
 }
 
 void GPUCopyEngine::regStats() {
 
-    MemObject::regStats();
+    ClockedObject::regStats();
     using namespace Stats;
 
     numOperations
@@ -456,10 +465,11 @@ void GPUCopyEngine::regStats() {
     if (readDTB) { readDTB->regStats(); }
     if (writeDTB) { writeDTB->regStats(); }
 }
-
-GPUCopyEngine *GPUCopyEngineParams::create() {
-    return new GPUCopyEngine(this);
+/*
+GPUCopyEngine *GPUCopyEngineParams::create() const {
+    return new GPUCopyEngine(*this);
 }
+*/
 
 void GPUCopyEngine::cePrintStats(std::ostream& out) {
     int memcpy_cnt = 0;
@@ -504,6 +514,7 @@ void GPUCopyEngine::cePrintStats(std::ostream& out) {
     out << "\n";
 }
 
+/*
 void GPUCopyEngine::CEExitCallback::process()
 {
     // TODO schi std::ostream *os = simout.find(statsFilename);
@@ -513,4 +524,13 @@ void GPUCopyEngine::CEExitCallback::process()
     }
     engine->cePrintStats(*os->stream());
     *os->stream() << std::endl;
+}
+*/
+
+void GPUCopyEngine::callback()
+{
+    this->cePrintStats(*statsFile->stream());
+    *statsFile->stream() << std::endl;
+}
+
 }

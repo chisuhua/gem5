@@ -37,7 +37,7 @@ extern time_t g_simulation_starttime;
 
 class gpgpu_sim *gpgpu_ptx_sim_init_perf();
 // TODO schi 
-class gpgpu_sim *gem5_ptx_sim_init_perf(stream_manager **p_stream_manager, CudaGPU *cuda_gpu, const char *config_path);
+class gpgpu_sim *gem5_ptx_sim_init_perf(stream_manager **p_stream_manager, gem5::CudaGPU *cuda_gpu, const char *config_path);
 
 // void start_sim_thread(int api);
 

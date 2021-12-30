@@ -38,7 +38,7 @@
 #ifndef __CPU_INST_PB_TRACE_HH__
 #define __CPU_INST_PB_TRACE_HH__
 
-#include "arch/types.hh"
+#include "arch/pcstate.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "cpu/static_inst_fwd.hh"
@@ -46,11 +46,14 @@
 #include "proto/protoio.hh"
 #include "sim/insttracer.hh"
 
-class ThreadContext;
-
 namespace ProtoMessage {
 class Inst;
 }
+
+namespace gem5
+{
+
+class ThreadContext;
 
 namespace Trace {
 
@@ -83,7 +86,7 @@ class InstPBTraceRecord : public InstRecord
 class InstPBTrace : public InstTracer
 {
  public:
-    InstPBTrace(const InstPBTraceParams *p);
+    InstPBTrace(const InstPBTraceParams &p);
     virtual ~InstPBTrace();
 
     InstPBTraceRecord* getInstRecord(Tick when, ThreadContext *tc, const
@@ -132,5 +135,8 @@ class InstPBTrace : public InstTracer
 
     friend class InstPBTraceRecord;
 };
+
 } // namespace Trace
+} // namespace gem5
+
 #endif // __CPU_INST_PB_TRACE_HH__

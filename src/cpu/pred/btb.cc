@@ -32,6 +32,12 @@
 #include "base/trace.hh"
 #include "debug/Fetch.hh"
 
+namespace gem5
+{
+
+namespace branch_prediction
+{
+
 DefaultBTB::DefaultBTB(unsigned _numEntries,
                        unsigned _tagBits,
                        unsigned _instShiftAmt,
@@ -136,3 +142,6 @@ DefaultBTB::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)
     btb[btb_idx].target = target;
     btb[btb_idx].tag = getTag(instPC);
 }
+
+} // namespace branch_prediction
+} // namespace gem5

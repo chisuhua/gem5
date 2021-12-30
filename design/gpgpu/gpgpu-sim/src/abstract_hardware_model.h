@@ -28,8 +28,6 @@
 #ifndef ABSTRACT_HARDWARE_MODEL_INCLUDED
 #define ABSTRACT_HARDWARE_MODEL_INCLUDED
 
-struct CudaGPU;
-
 // Forward declarations
 // class gpgpu_sim;
 // class kernel_info_t;
@@ -570,10 +568,14 @@ private:
     unsigned m_texcache_linesize;
 };
 
+namespace gem5 {
+    struct CudaGPU;
+}
+
 
 class gpgpu_t {
 public:
-    gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu );
+    gpgpu_t( const gpgpu_functional_sim_config &config, gem5::CudaGPU *cuda_gpu );
     int checkpoint_option;
     int checkpoint_kernel;
     int checkpoint_CTA;
@@ -634,7 +636,7 @@ public:
     std::map<std::string, const struct textureInfo*> getNameInfoMapping() {return m_NameToTextureInfo;}
 
     // gem5 stuff
-    CudaGPU *gem5CudaGPU;
+    gem5::CudaGPU *gem5CudaGPU;
     int sharedMemDelay;
 
 

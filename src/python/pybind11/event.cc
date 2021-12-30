@@ -51,6 +51,8 @@
 
 namespace py = pybind11;
 
+namespace gem5
+{
 
 /**
  * PyBind wrapper for Events
@@ -99,9 +101,9 @@ class PyEvent : public Event
 };
 
 void
-pybind_init_event(py::module &m_native)
+pybind_init_event(py::module_ &m_native)
 {
-    py::module m = m_native.def_submodule("event");
+    py::module_ m = m_native.def_submodule("event");
 
     m.def("simulate", &simulate,
           py::arg("ticks") = MaxTick);
@@ -183,3 +185,5 @@ pybind_init_event(py::module &m_native)
     PRIO(Sim_Exit_Pri);
     PRIO(Maximum_Pri);
 }
+
+} // namespace gem5

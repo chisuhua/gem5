@@ -37,8 +37,17 @@
 #include <ostream>
 #include <vector>
 
+namespace gem5
+{
+
+namespace ruby
+{
+
 typedef std::vector<int> IntVec;
 
 std::ostream& operator<<(std::ostream& os, const std::vector<int>& myvector);
+
+} // namespace ruby
+} // namespace gem5
 
 #endif //__MEM_RUBY_COMMON_INTVEC_HH__

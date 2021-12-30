@@ -35,6 +35,7 @@
 #include "gpu/atomic_operations.hh"
 #include "mem/packet.hh"
 
+namespace gem5 {
 /**
  * The WarpInstBuffer class represents a hardware buffer to hold a warp
  * instruction that is in-flight in a GPU load-store queue. It tracks the
@@ -79,7 +80,7 @@ class WarpInstBuffer {
     Tick startTick;
     Tick firstCycleTick;
     Tick completeCycleTick;
-    MasterID masterId;
+    RequestorID masterId;
     // An array to hold warp instruction requests per lane (thread) while
     // they are coalesced and access the caches
     PacketPtr* laneRequestPkts;
@@ -228,7 +229,7 @@ class WarpInstBuffer {
         warpId = pkt->req->threadId();
         requestDataSize = pkt->getSize();
         pc = pkt->req->getPC();
-        masterId = pkt->req->masterId();
+        masterId = pkt->req->requestorId();
         bypassL1 = pkt->req->isBypassL1();
     }
     void startFence() {
@@ -308,5 +309,6 @@ class WarpInstBuffer {
         bypassL1 = false;
     }
 };
+}
 
 #endif

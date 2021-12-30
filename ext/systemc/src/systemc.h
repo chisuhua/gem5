@@ -124,9 +124,10 @@
     using std::fputs;
     using std::getc;
     using std::getchar;
-#ifndef SC_NO_STDGETS_
-    using std::gets;
-#endif
+//#ifndef SC_NO_STDGETS_
+//    using std::gets;
+//#endif
+    //using std::gets;
     using std::putc;
     using std::putchar;
     using std::puts;

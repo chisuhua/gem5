@@ -42,6 +42,9 @@
 #include "arch/arm/system.hh"
 #include "cpu/base.hh"
 
+namespace gem5
+{
+
 namespace Trace {
 
 std::string
@@ -51,10 +54,10 @@ TarmacContext::tarmacCpuName() const
     return "cpu" + std::to_string(id);
 }
 
-TarmacTracer::TarmacTracer(const Params *p)
+TarmacTracer::TarmacTracer(const Params &p)
   : InstTracer(p),
-    startTick(p->start_tick),
-    endTick(p->end_tick)
+    startTick(p.start_tick),
+    endTick(p.end_tick)
 {
     // Wrong parameter setting: The trace end happens before the
     // trace start.
@@ -93,9 +96,4 @@ TarmacTracer::getInstRecord(Tick when, ThreadContext *tc,
 }
 
 } // namespace Trace
-
-Trace::TarmacTracer *
-TarmacTracerParams::create()
-{
-    return new Trace::TarmacTracer(this);
-}
+} // namespace gem5

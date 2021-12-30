@@ -37,6 +37,12 @@
 #include "mem/ruby/protocol/MachineType.hh"
 #include "mem/ruby/structures/DirectoryMemory.hh"
 
+namespace gem5
+{
+
+namespace ruby
+{
+
 inline MachineID
 getL2ID(Addr addr, int num_l2, int select_bits, int select_start_bit)
 {
@@ -51,5 +57,8 @@ getL2ID(Addr addr, int num_l2, int select_bits, int select_start_bit)
     MachineID mach = {string_to_MachineType("GPUL2Cache"), num};
     return mach;
 }
+} // namespace ruby
+} // namespace gem5
+
 
 #endif

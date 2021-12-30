@@ -37,7 +37,11 @@
 
 #include "cpu/minor/pipe_data.hh"
 
-namespace Minor
+namespace gem5
+{
+
+GEM5_DEPRECATED_NAMESPACE(Minor, minor);
+namespace minor
 {
 
 std::ostream &
@@ -284,4 +288,5 @@ ForwardInstData::reportData(std::ostream &os) const
     }
 }
 
-}
+} // namespace minor
+} // namespace gem5

@@ -45,12 +45,14 @@
 using namespace std;
 using namespace TheISA;
 
-ShaderTLB::ShaderTLB(const Params *p) :
-    BaseTLB(p), numEntries(p->entries), hitLatency(p->hit_latency),
-    cudaGPU(p->gpu), accessHostPageTable(p->access_host_pagetable)
+namespace gem5 {
+
+ShaderTLB::ShaderTLB(const ShaderTLBParams &p) :
+    BaseTLB(p), numEntries(p.entries), hitLatency(p.hit_latency),
+    cudaGPU(p.gpu), accessHostPageTable(p.access_host_pagetable)
 {
     if (numEntries > 0) {
-        tlbMemory = new TLBMemory(p->entries, p->associativity);
+        tlbMemory = new TLBMemory(p.entries, p.associativity);
     } else {
         tlbMemory = new InfiniteTLBMemory();
     }
@@ -67,8 +69,8 @@ ShaderTLB::unserialize(CheckpointIn &cp)
 
 void
 ShaderTLB::beginTranslateTiming(RequestPtr req,
-                                BaseTLB::Translation *translation,
-                                BaseTLB::Mode mode)
+                                BaseMMU::Translation *translation,
+                                BaseMMU::Mode mode)
 {
     if (accessHostPageTable) {
         translateTiming(req, cudaGPU->getThreadContext(), translation, mode);
@@ -95,7 +97,7 @@ ShaderTLB::beginTranslateTiming(RequestPtr req,
 
 void
 ShaderTLB::translateTiming(const RequestPtr &req, ThreadContext *tc,
-                           Translation *translation, Mode mode)
+                           BaseMMU::Translation *translation, BaseMMU::Mode mode)
 {
 
 #if THE_ISA == ARM_ISA
@@ -239,9 +241,12 @@ ShaderTLB::regStats()
     hitRate = hits / (hits + misses);
     */
 }
-
+/*
 ShaderTLB *
-ShaderTLBParams::create()
+ShaderTLBParams::create() const
 {
-    return new ShaderTLB(this);
+    return new ShaderTLB(*this);
+}
+*/
+
 }

@@ -250,6 +250,8 @@ class kernel_config {
     gpgpu_ptx_sim_arg_list_t m_args;
 };
 
+using namespace gem5;
+
 extern "C" void ptxinfo_addinfo()
 {
     if (!strcmp("__cuda_dummy_entry__",get_ptxinfo_kname())) {

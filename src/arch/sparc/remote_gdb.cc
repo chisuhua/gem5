@@ -124,6 +124,9 @@
 #include <csignal>
 #include <string>
 
+#include "arch/sparc/regs/int.hh"
+#include "arch/sparc/regs/misc.hh"
+#include "arch/sparc/types.hh"
 #include "base/intmath.hh"
 #include "base/remote_gdb.hh"
 #include "base/socket.hh"
@@ -140,11 +143,13 @@
 #include "sim/process.hh"
 #include "sim/system.hh"
 
-using namespace std;
+namespace gem5
+{
+
 using namespace SparcISA;
 
-RemoteGDB::RemoteGDB(System *_system, ThreadContext *c, int _port)
-    : BaseRemoteGDB(_system, c, _port), regCache32(this), regCache64(this)
+RemoteGDB::RemoteGDB(System *_system, int _port)
+    : BaseRemoteGDB(_system, _port), regCache32(this), regCache64(this)
 {}
 
 ///////////////////////////////////////////////////////////
@@ -245,3 +250,5 @@ RemoteGDB::gdbRegs()
         return &regCache64;
     }
 }
+
+} // namespace gem5

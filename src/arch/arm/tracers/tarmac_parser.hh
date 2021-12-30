@@ -49,7 +49,6 @@
 #include <fstream>
 #include <unordered_map>
 
-#include "arch/arm/registers.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "cpu/static_inst.hh"
@@ -58,6 +57,9 @@
 #include "params/TarmacParser.hh"
 #include "sim/insttracer.hh"
 #include "tarmac_base.hh"
+
+namespace gem5
+{
 
 namespace Trace {
 
@@ -216,17 +218,17 @@ class TarmacParser : public InstTracer
   public:
     typedef TarmacParserParams Params;
 
-    TarmacParser(const Params *p) : InstTracer(p), startPc(p->start_pc),
-                                    exitOnDiff(p->exit_on_diff),
-                                    exitOnInsnDiff(p->exit_on_insn_diff),
-                                    memWrCheck(p->mem_wr_check),
-                                    ignoredAddrRange(p->ignore_mem_addr),
-                                    cpuId(p->cpu_id),
+    TarmacParser(const Params &p) : InstTracer(p), startPc(p.start_pc),
+                                    exitOnDiff(p.exit_on_diff),
+                                    exitOnInsnDiff(p.exit_on_insn_diff),
+                                    memWrCheck(p.mem_wr_check),
+                                    ignoredAddrRange(p.ignore_mem_addr),
+                                    cpuId(p.cpu_id),
                                     macroopInProgress(false)
     {
         assert(!(exitOnDiff && exitOnInsnDiff));
 
-        trace.open(p->path_to_trace.c_str());
+        trace.open(p.path_to_trace.c_str());
         if (startPc == 0x0) {
             started = true;
         } else {
@@ -296,5 +298,6 @@ class TarmacParser : public InstTracer
 };
 
 } // namespace Trace
+} // namespace gem5
 
 #endif // __ARCH_ARM_TRACERS_TARMAC_PARSER_HH__

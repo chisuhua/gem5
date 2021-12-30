@@ -36,38 +36,31 @@
 #include <cassert>
 
 #include "params/WeightedLRURP.hh"
+#include "sim/cur_tick.hh"
 
-WeightedLRUPolicy::WeightedLRUPolicy(const Params* p)
-    : BaseReplacementPolicy(p)
+namespace gem5
 {
-}
 
-WeightedLRUPolicy *
-WeightedLRURPParams::create()
+GEM5_DEPRECATED_NAMESPACE(ReplacementPolicy, replacement_policy);
+namespace replacement_policy
 {
-    return new WeightedLRUPolicy(this);
+
+WeightedLRU::WeightedLRU(const Params &p)
+  : LRU(p)
+{
 }
 
 void
-WeightedLRUPolicy::touch(const std::shared_ptr<ReplacementData>&
-                                                  replacement_data) const
+WeightedLRU::touch(const std::shared_ptr<ReplacementData>& replacement_data,
+    int occupancy) const
 {
-    std::static_pointer_cast<WeightedLRUReplData>(replacement_data)->
-                                                 last_touch_tick = curTick();
-}
-
-void
-WeightedLRUPolicy::touch(const std::shared_ptr<ReplacementData>&
-                        replacement_data, int occupancy) const
-{
-    std::static_pointer_cast<WeightedLRUReplData>(replacement_data)->
-                                                  last_touch_tick = curTick();
+    LRU::touch(replacement_data);
     std::static_pointer_cast<WeightedLRUReplData>(replacement_data)->
                                                   last_occ_ptr = occupancy;
 }
 
 ReplaceableEntry*
-WeightedLRUPolicy::getVictim(const ReplacementCandidates& candidates) const
+WeightedLRU::getVictim(const ReplacementCandidates& candidates) const
 {
     assert(candidates.size() > 0);
 
@@ -91,8 +84,8 @@ WeightedLRUPolicy::getVictim(const ReplacementCandidates& candidates) const
         } else if (candidate_replacement_data->last_occ_ptr ==
                     victim_replacement_data->last_occ_ptr) {
             // Evict the block with a smaller tick.
-            Tick time = candidate_replacement_data->last_touch_tick;
-            if (time < victim_replacement_data->last_touch_tick) {
+            Tick time = candidate_replacement_data->lastTouchTick;
+            if (time < victim_replacement_data->lastTouchTick) {
                 victim = candidate;
             }
         }
@@ -101,25 +94,10 @@ WeightedLRUPolicy::getVictim(const ReplacementCandidates& candidates) const
 }
 
 std::shared_ptr<ReplacementData>
-WeightedLRUPolicy::instantiateEntry()
+WeightedLRU::instantiateEntry()
 {
     return std::shared_ptr<ReplacementData>(new WeightedLRUReplData);
 }
 
-void
-WeightedLRUPolicy::reset(const std::shared_ptr<ReplacementData>&
-                                                    replacement_data) const
-{
-    // Set last touch timestamp
-    std::static_pointer_cast<WeightedLRUReplData>(
-        replacement_data)->last_touch_tick = curTick();
-}
-
-void
-WeightedLRUPolicy::invalidate(const std::shared_ptr<ReplacementData>&
-                                                    replacement_data) const
-{
-    // Reset last touch timestamp
-    std::static_pointer_cast<WeightedLRUReplData>(
-        replacement_data)->last_touch_tick = Tick(0);
-}
+} // namespace replacement_policy
+} // namespace gem5

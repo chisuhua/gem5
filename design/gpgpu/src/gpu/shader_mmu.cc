@@ -51,19 +51,21 @@
 using namespace std;
 using namespace TheISA;
 
-ShaderMMU::ShaderMMU(const Params *p) :
-    ClockedObject(p), pagewalkers(p->pagewalkers),
+namespace gem5 {
+
+ShaderMMU::ShaderMMU(const ShaderMMUParams &p) :
+    ClockedObject(p), pagewalkers(p.pagewalkers),
 #if THE_ISA == ARM_ISA
-    stage2MMU(p->stage2_mmu),
+    stage2MMU(p.stage2_mmu),
 #endif
-    latency(p->latency), startMissEvent(this), faultTimeoutEvent(this),
+    latency(p.latency), startMissEvent(this), faultTimeoutEvent(this),
     faultTimeoutCycles(1000000), outstandingFaultStatus(None),
     outstandingFaultInfo(NULL), curOutstandingWalks(0),
-    prefetchBufferSize(p->prefetch_buffer_size)
+    prefetchBufferSize(p.prefetch_buffer_size)
 {
     activeWalkers.resize(pagewalkers.size());
-    if (p->l2_tlb_entries > 0) {
-        tlb = new TLBMemory(p->l2_tlb_entries, p->l2_tlb_assoc);
+    if (p.l2_tlb_entries > 0) {
+        tlb = new TLBMemory(p.l2_tlb_entries, p.l2_tlb_assoc);
     } else {
         tlb = NULL;
     }
@@ -91,8 +93,8 @@ ShaderMMU::~ShaderMMU()
 }
 
 void
-ShaderMMU::beginTLBMiss(ShaderTLB *req_tlb, BaseTLB::Translation *translation,
-                        RequestPtr req, BaseTLB::Mode mode, ThreadContext *tc)
+ShaderMMU::beginTLBMiss(ShaderTLB *req_tlb, BaseMMU::Translation *translation,
+                        RequestPtr req, BaseMMU::Mode mode, ThreadContext *tc)
 {
     // Wrap the translation in another class so we can catch the insertion
     TranslationRequest *wrapped_translation = new TranslationRequest(this,
@@ -118,9 +120,9 @@ ShaderMMU::handleTLBMiss()
     }
 
     ShaderTLB *req_tlb = translation_request->origTLB;
-    BaseTLB::Translation *translation = translation_request->wrappedTranslation;
+    BaseMMU::Translation *translation = translation_request->wrappedTranslation;
     RequestPtr req = translation_request->req;
-    BaseTLB::Mode mode = translation_request->mode;
+    BaseMMU::Mode mode = translation_request->mode;
     ThreadContext *tc = translation_request->tc;
 
     Addr pp_base;
@@ -336,7 +338,7 @@ ShaderMMU::raisePageFaultInterrupt(ThreadContext *tc)
     fault_reg.inFault = 1;
 
     GPUFaultCode code = 0;
-    code.write = (outstandingFaultInfo->mode == BaseTLB::Write);
+    code.write = (outstandingFaultInfo->mode == BaseMMU::Write);
     code.user = 1;
 
     GPUFaultRSPReg fault_rsp = tc->readMiscRegNoEffect(MISCREG_GPU_FAULT_RSP);
@@ -600,7 +602,7 @@ ShaderMMU::tryPrefetch(Addr vp_base, ThreadContext *tc)
     Request::Flags flags;
     RequestPtr req = std::make_shared<Request>(0, next_vp_base, 4, flags, 0, 0, 0, 0);
     TranslationRequest *translation = new TranslationRequest(this, NULL, NULL,
-                                        req, BaseTLB::Read, tc, true);
+                                        req, BaseMMU::Read, tc, true);
     outstandingWalks[next_vp_base].push_back(translation);
     TLB *walker = getFreeWalker();
     assert(walker != NULL); // Should never try to issue a prefetch in this case
@@ -691,8 +693,8 @@ ShaderMMU::regStats()
 }
 
 ShaderMMU::TranslationRequest::TranslationRequest(ShaderMMU *_mmu,
-    ShaderTLB *_tlb, BaseTLB::Translation *translation,
-    RequestPtr _req, BaseTLB::Mode _mode, ThreadContext *_tc, Tick start_tick,
+    ShaderTLB *_tlb, BaseMMU::Translation *translation,
+    RequestPtr _req, BaseMMU::Mode _mode, ThreadContext *_tc, Tick start_tick,
     bool prefetch)
             : mmu(_mmu), origTLB(_tlb), pageWalker(NULL),
               wrappedTranslation(translation), req(_req), mode(_mode), tc(_tc),
@@ -702,9 +704,11 @@ ShaderMMU::TranslationRequest::TranslationRequest(ShaderMMU *_mmu,
     vpBase = req->getVaddr() - req->getVaddr() % TheISA::PageBytes;
 }
 
-ShaderMMU *ShaderMMUParams::create() {
-    return new ShaderMMU(this);
+/*
+ShaderMMU *ShaderMMUParams::create() const {
+    return new ShaderMMU(*this);
 }
+*/
 
 #if THE_ISA == ARM_ISA
     // TODO: Need to define an analogous function to be called from an ARM
@@ -717,6 +721,7 @@ void
 gpuFinishPageFault(int gpuId, ThreadContext *tc)
 {
     CudaGPU::getCudaGPU(gpuId)->handleFinishPageFault(tc);
+}
 }
 }
 

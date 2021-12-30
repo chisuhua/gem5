@@ -45,13 +45,21 @@
 #ifndef __CPU_MINOR_FETCH1_HH__
 #define __CPU_MINOR_FETCH1_HH__
 
+#include <vector>
+
+#include "arch/generic/mmu.hh"
+#include "base/named.hh"
+#include "cpu/base.hh"
 #include "cpu/minor/buffers.hh"
 #include "cpu/minor/cpu.hh"
 #include "cpu/minor/pipe_data.hh"
-#include "cpu/base.hh"
 #include "mem/packet.hh"
 
-namespace Minor
+namespace gem5
+{
+
+GEM5_DEPRECATED_NAMESPACE(Minor, minor);
+namespace minor
 {
 
 /** A stage responsible for fetching "lines" from memory and passing
@@ -97,7 +105,7 @@ class Fetch1 : public Named
     /** Structure to hold SenderState info through
      *  translation and memory accesses. */
     class FetchRequest :
-        public BaseTLB::Translation, /* For TLB lookups */
+        public BaseMMU::Translation, /* For TLB lookups */
         public Packet::SenderState /* For packing into a Packet */
     {
       protected:
@@ -152,7 +160,7 @@ class Fetch1 : public Named
         bool isComplete() const { return state == Complete; }
 
       protected:
-        /** BaseTLB::Translation interface */
+        /** BaseMMU::Translation interface */
 
         /** Interface for ITLB responses.  We can handle delay, so don't
          *  do anything */
@@ -162,7 +170,7 @@ class Fetch1 : public Named
          *  the request on to the ports' handleTLBResponse member
          *  function */
         void finish(const Fault &fault_, const RequestPtr &request_,
-                    ThreadContext *tc, BaseTLB::Mode mode);
+                    ThreadContext *tc, BaseMMU::Mode mode);
 
       public:
         FetchRequest(Fetch1 &fetch_, InstId id_, TheISA::PCState pc_) :
@@ -233,7 +241,8 @@ class Fetch1 : public Named
 
     /** Stage cycle-by-cycle state */
 
-    struct Fetch1ThreadInfo {
+    struct Fetch1ThreadInfo
+    {
 
         /** Consturctor to initialize all fields. */
         Fetch1ThreadInfo() :
@@ -382,7 +391,7 @@ class Fetch1 : public Named
   public:
     Fetch1(const std::string &name_,
         MinorCPU &cpu_,
-        MinorCPUParams &params,
+        const MinorCPUParams &params,
         Latch<BranchData>::Output inp_,
         Latch<ForwardLineData>::Input out_,
         Latch<BranchData>::Output prediction_,
@@ -405,6 +414,7 @@ class Fetch1 : public Named
     bool isDrained();
 };
 
-}
+} // namespace minor
+} // namespace gem5
 
 #endif /* __CPU_MINOR_FETCH1_HH__ */

@@ -9,7 +9,7 @@
 
 class l1icache_gem5 : public read_only_cache {
     gpgpu_t* abstractGPU;
-    CudaCore* shaderCore;
+    gem5::CudaCore* shaderCore;
     unsigned m_sid;
 public:
     l1icache_gem5(gpgpu_t* _gpu, const char *name, cache_config &config, int core_id, int type_id, mem_fetch_interface *memport, enum mem_fetch_status status);

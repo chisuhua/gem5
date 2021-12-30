@@ -43,17 +43,20 @@
 #include "sim/process.hh"
 #include "sim/system.hh"
 
+namespace gem5
+{
+
 SETranslatingPortProxy::SETranslatingPortProxy(
         ThreadContext *tc, AllocType alloc, Request::Flags _flags) :
     TranslatingPortProxy(tc, _flags), allocating(alloc)
 {}
 
 bool
-SETranslatingPortProxy::fixupAddr(Addr addr, BaseTLB::Mode mode) const
+SETranslatingPortProxy::fixupAddr(Addr addr, BaseMMU::Mode mode) const
 {
     auto *process = _tc->getProcessPtr();
 
-    if (mode == BaseTLB::Write) {
+    if (mode == BaseMMU::Write) {
         if (allocating == Always) {
             process->allocateMem(roundDown(addr, pageBytes), pageBytes);
             return true;
@@ -62,6 +65,7 @@ SETranslatingPortProxy::fixupAddr(Addr addr, BaseTLB::Mode mode) const
             return true;
         }
     }
-    panic("Page table fault when accessing virtual address %#x "
-          "during functional write.", addr);
+    return false;
 }
+
+} // namespace gem5

@@ -32,6 +32,10 @@
 #include "arch/riscv/faults.hh"
 #include "base/loader/object_file.hh"
 #include "sim/system.hh"
+#include "sim/workload.hh"
+
+namespace gem5
+{
 
 /* TODO remote after merge
 BareMetalRiscvSystem::BareMetalRiscvSystem(Params *p)
@@ -60,12 +64,13 @@ BareMetalRiscvSystem::BareMetalRiscvSystem(Params *p)
 namespace RiscvISA
 {
 
-BareMetal::BareMetal(Params *p) : RiscvISA::FsWorkload(p),
-      bootloader(Loader::createObjectFile(p->bootloader)),
-      bootloaderSymtab(new Loader::SymbolTable)
+BareMetal::BareMetal(const Params &p) : Workload(p),
+    _isBareMetal(p.bare_metal), _resetVect(p.reset_vect),
+    bootloader(loader::createObjectFile(p.bootloader))
 {
-    fatal_if(!bootloader, "Could not load bootloader file %s.", p->bootloader);
+    fatal_if(!bootloader, "Could not load bootloader file %s.", p.bootloader);
     _resetVect = bootloader->entryPoint();
+    bootloaderSymtab = bootloader->symtab();
 }
 
 BareMetal::~BareMetal()
@@ -77,9 +82,9 @@ BareMetal::~BareMetal()
 void
 BareMetal::initState()
 {
-    RiscvISA::FsWorkload::initState();
+    Workload::initState();
 
-    for (auto *tc: system->threadContexts) {
+    for (auto *tc: system->threads) {
         RiscvISA::Reset().invoke(tc);
         tc->activate();
     }
@@ -87,16 +92,11 @@ BareMetal::initState()
     warn_if(!bootloader->buildImage().write(system->physProxy),
             "Could not load sections to memory.");
 
-    for (auto *tc: system->threadContexts) {
+    for (auto *tc: system->threads) {
         RiscvISA::Reset().invoke(tc);
         tc->activate();
     }
 }
 
 } // namespace RiscvISA
-
-RiscvISA::BareMetal *
-RiscvBareMetalParams::create()
-{
-    return new RiscvISA::BareMetal(this);
-}
+} // namespace gem5

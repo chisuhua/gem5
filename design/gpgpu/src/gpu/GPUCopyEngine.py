@@ -25,15 +25,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from MemObject import MemObject
-from ShaderTLB import ShaderTLB
 from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
+#from m5.objects.MemObject import MemObject
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ShaderTLB import ShaderTLB
 
-class GPUCopyEngine(MemObject):
+class GPUCopyEngine(ClockedObject):
     type = 'GPUCopyEngine'
-    cxx_class = 'GPUCopyEngine'
+    cxx_class = 'gem5::GPUCopyEngine'
     cxx_header = "gpu/copy_engine.hh"
 
     host_port = MasterPort("The copy engine port to host coherence domain")

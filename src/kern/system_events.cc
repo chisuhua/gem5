@@ -28,17 +28,23 @@
 
 #include "kern/system_events.hh"
 
+#include "base/compiler.hh"
 #include "base/trace.hh"
 #include "cpu/thread_context.hh"
 #include "debug/PCEvent.hh"
 
+namespace gem5
+{
+
 void
 SkipFuncBase::process(ThreadContext *tc)
 {
-    TheISA::PCState oldPC M5_VAR_USED = tc->pcState();
+    GEM5_VAR_USED TheISA::PCState oldPC = tc->pcState();
 
     returnFromFuncIn(tc);
 
     DPRINTF(PCEvent, "skipping %s: pc = %s, newpc = %s\n", description,
             oldPC, tc->pcState());
 }
+
+} // namespace gem5

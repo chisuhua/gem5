@@ -179,7 +179,7 @@ void gpgpu_functional_sim_config::ptx_set_tex_cache_linesize(unsigned linesize)
 
 // TODO schi gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config )
 //    : m_function_model_config(config)
-gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, CudaGPU *cuda_gpu )
+gpgpu_t::gpgpu_t( const gpgpu_functional_sim_config &config, gem5::CudaGPU *cuda_gpu )
     : gem5CudaGPU(cuda_gpu), m_function_model_config(config)
 {
    // m_global_mem = new memory_space_impl<8192>("global",64*1024);

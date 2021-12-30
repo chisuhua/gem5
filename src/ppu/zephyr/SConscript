@@ -30,9 +30,9 @@
 Import('*')
 
 #if 'O3CPU' in env['CPU_MODELS']:
-SimObject('Zephyr.py')
+#SimObject('Zephyr.py')
 
-Source('zephyr.cc')
+#Source('zephyr.cc')
 
 
 #Source('task_queue.cc')
@@ -42,4 +42,4 @@ Source('zephyr.cc')
 
 #Source('src/runtime/thread_pool.cc')
 
-DebugFlag('Zephyr')
+#DebugFlag('Zephyr')

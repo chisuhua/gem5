@@ -41,11 +41,14 @@
 #include "gpgpu-sim/shader.h"
 #include "gpu/atomic_operations.hh"
 #include "gpu/shader_tlb.hh"
-#include "mem/mem_object.hh"
+#include "sim/clocked_object.hh"
 #include "mem/ruby/system/RubySystem.hh"
 #include "params/CudaCore.hh"
 
+namespace gem5 {
+
 class CudaGPU;
+
 
 /**
  *  Wrapper class for the shader cores in GPGPU-Sim. Shader memory references
@@ -54,7 +57,7 @@ class CudaGPU;
  *
  *  NOTE: A CUDA core is equivalent to an NVIDIA streaming multiprocessor (SM)
  */
-class CudaCore : public MemObject
+class CudaCore : public ClockedObject
 {
   protected:
     typedef CudaCoreParams Params;
@@ -100,7 +103,7 @@ class CudaCore : public MemObject
 
     /**
      * Port for sending a receiving instruction memory accesses
-     * Required for implementing MemObject
+     * Required for implementing ClockedObject
      */
     class InstPort : public MasterPort
     {
@@ -182,8 +185,8 @@ class CudaCore : public MemObject
     }
     const CudaCoreParams *_params;
 
-    MasterID dataMasterId;
-    MasterID instMasterId;
+    RequestorID dataMasterId;
+    RequestorID instMasterId;
 
   private:
 
@@ -236,10 +239,10 @@ class CudaCore : public MemObject
 
   public:
     // Constructor and deconstructor
-    CudaCore(const Params *p);
+    CudaCore(const CudaCoreParams &p);
     ~CudaCore();
 
-    // Required for implementing MemObject
+    // Required for implementing ClockedObject
     // TODO schi change from BaseMasterPort
     virtual Port& getPort(const std::string &if_name,
                                           PortID idx = -1);
@@ -351,6 +354,7 @@ class CudaCore : public MemObject
     void printCTAStats(std::ostream& out);
 };
 
+}
 
 #endif
 

@@ -41,14 +41,18 @@
 #include <sstream>
 
 #include "arch/isa.hh"
-#include "arch/registers.hh"
 #include "cpu/base.hh"
 #include "cpu/minor/trace.hh"
+#include "cpu/null_static_inst.hh"
 #include "cpu/reg_class.hh"
 #include "debug/MinorExecute.hh"
 #include "enums/OpClass.hh"
 
-namespace Minor
+namespace gem5
+{
+
+GEM5_DEPRECATED_NAMESPACE(Minor, minor);
+namespace minor
 {
 
 const InstSeqNum InstId::firstStreamSeqNum;
@@ -79,7 +83,7 @@ void
 MinorDynInst::init()
 {
     if (!bubbleInst) {
-        bubbleInst = new MinorDynInst();
+        bubbleInst = new MinorDynInst(nullStaticInstPtr);
         assert(bubbleInst->isBubble());
         /* Make bubbleInst immortal */
         bubbleInst->incref();
@@ -132,13 +136,14 @@ operator <<(std::ostream &os, const MinorDynInst &inst)
     return os;
 }
 
-/** Print a register in the form r<n>, f<n>, m<n>(<name>), z for integer,
- *  float, misc and zero registers given an 'architectural register number' */
+/** Print a register in the form r<n>, f<n>, m<n>(<name>) for integer,
+ *  float, and misc given an 'architectural register number' */
 static void
-printRegName(std::ostream &os, const RegId& reg)
+printRegName(std::ostream &os, const RegId& reg,
+        const BaseISA::RegClasses &reg_classes)
 {
-    switch (reg.classValue())
-    {
+    const auto &reg_class = reg_classes.at(reg.classValue());
+    switch (reg.classValue()) {
       case MiscRegClass:
         {
             RegIndex misc_reg = reg.index();
@@ -153,24 +158,23 @@ printRegName(std::ostream &os, const RegId& reg)
         }
         break;
       case FloatRegClass:
-        os << 'f' << static_cast<unsigned int>(reg.index());
+        os << 'f' << reg.index();
         break;
       case VecRegClass:
-        os << 'v' << static_cast<unsigned int>(reg.index());
+        os << 'v' << reg.index();
         break;
       case VecElemClass:
-        os << 'v' << static_cast<unsigned int>(reg.index()) << '[' <<
-              static_cast<unsigned int>(reg.elemIndex()) << ']';
+        os << 'v' << reg.index() << '[' << reg.elemIndex() << ']';
         break;
       case IntRegClass:
-        if (reg.isZeroReg()) {
+        if (reg.index() == reg_class.zeroReg()) {
             os << 'z';
         } else {
-            os << 'r' << static_cast<unsigned int>(reg.index());
+            os << 'r' << reg.index();
         }
         break;
       case CCRegClass:
-        os << 'c' << static_cast<unsigned int>(reg.index());
+        os << 'c' << reg.index();
         break;
       default:
         panic("Unknown register class: %d", (int)reg.classValue());
@@ -178,10 +182,11 @@ printRegName(std::ostream &os, const RegId& reg)
 }
 
 void
-MinorDynInst::minorTraceInst(const Named &named_object) const
+MinorDynInst::minorTraceInst(const Named &named_object,
+        const BaseISA::RegClasses &reg_classes) const
 {
     if (isFault()) {
-        MINORINST(&named_object, "id=F;%s addr=0x%x fault=\"%s\"\n",
+        minorInst(named_object, "id=F;%s addr=0x%x fault=\"%s\"\n",
             id, pc.instAddr(), fault->name());
     } else {
         unsigned int num_src_regs = staticInst->numSrcRegs();
@@ -196,7 +201,8 @@ MinorDynInst::minorTraceInst(const Named &named_object) const
 
             unsigned int src_reg = 0;
             while (src_reg < num_src_regs) {
-                printRegName(regs_str, staticInst->srcRegIdx(src_reg));
+                printRegName(regs_str, staticInst->srcRegIdx(src_reg),
+                        reg_classes);
 
                 src_reg++;
                 if (src_reg != num_src_regs)
@@ -207,28 +213,26 @@ MinorDynInst::minorTraceInst(const Named &named_object) const
 
             unsigned int dest_reg = 0;
             while (dest_reg < num_dest_regs) {
-                printRegName(regs_str, staticInst->destRegIdx(dest_reg));
+                printRegName(regs_str, staticInst->destRegIdx(dest_reg),
+                        reg_classes);
 
                 dest_reg++;
                 if (dest_reg != num_dest_regs)
                     regs_str << ',';
             }
 
-#if THE_ISA == ARM_ISA
-            regs_str << " extMachInst=" << std::hex << std::setw(16)
-                << std::setfill('0') << staticInst->machInst << std::dec;
-#endif
+            ccprintf(regs_str, " extMachInst=%160x", staticInst->getEMI());
         }
 
         std::ostringstream flags;
         staticInst->printFlags(flags, " ");
 
-        MINORINST(&named_object, "id=%s addr=0x%x inst=\"%s\" class=%s"
+        minorInst(named_object, "id=%s addr=0x%x inst=\"%s\" class=%s"
             " flags=\"%s\"%s%s\n",
             id, pc.instAddr(),
             (staticInst->opClass() == No_OpClass ?
                 "(invalid)" : staticInst->disassemble(0,NULL)),
-            Enums::OpClassStrings[staticInst->opClass()],
+            enums::OpClassStrings[staticInst->opClass()],
             flags.str(),
             regs_str.str(),
             (predictedTaken ? " predictedTaken" : ""));
@@ -241,4 +245,5 @@ MinorDynInst::~MinorDynInst()
         delete traceData;
 }
 
-}
+} // namespace minor
+} // namespace gem5

@@ -135,13 +135,13 @@ PpuSOCSystem::PpuSOCSystem(Params *p)
         warn_once("Cache line size is neither 16, 32, 64 nor 128 bytes.\n");
 
     // Get the generic system master IDs
-    MasterID tmp_id M5_VAR_USED;
-    tmp_id = getMasterId(this, "writebacks");
-    assert(tmp_id == Request::PpuwbMasterId);
-    tmp_id = getMasterId(this, "functional");
-    assert(tmp_id == Request::PpufuncMasterId);
-    tmp_id = getMasterId(this, "interrupt");
-    assert(tmp_id == Request::PpuintMasterId);
+    RequestorID tmp_id M5_VAR_USED;
+    tmp_id = getRequestorId(this, "writebacks");
+    assert(tmp_id == Request::PpuwbRequestorId);
+    tmp_id = getRequestorId(this, "functional");
+    assert(tmp_id == Request::PpufuncRequestorId);
+    tmp_id = getRequestorId(this, "interrupt");
+    assert(tmp_id == Request::PpuintRequestorId);
 /*
     if (PpuFullSystem) {
         if (params()->kernel == "") {
@@ -524,12 +524,12 @@ PpuSOCSystem::stripSystemName(const std::string& master_name) const
     */
 }
 
-MasterID
-PpuSOCSystem::lookupMasterId(const SimObject* obj) const
+RequestorID
+PpuSOCSystem::lookupRequestorId(const SimObject* obj) const
 {
-    return system->lookupMasterId(obj);
+    return system->lookupRequestorId(obj);
     /*
-    MasterID id = Request::invldMasterId;
+    RequestorID id = Request::invldRequestorId;
 
     // number of occurrences of the SimObject pointer
     // in the master list.
@@ -543,17 +543,17 @@ PpuSOCSystem::lookupMasterId(const SimObject* obj) const
     }
 
     fatal_if(obj_number > 1,
-        "Cannot lookup MasterID by SimObject pointer: "
+        "Cannot lookup RequestorID by SimObject pointer: "
         "More than one master is sharing the same SimObject\n");
 
     return id;
     */
 }
 
-MasterID
-PpuSOCSystem::lookupMasterId(const std::string& master_name) const
+RequestorID
+PpuSOCSystem::lookupRequestorId(const std::string& master_name) const
 {
-    return system->lookupMasterId(master_name);
+    return system->lookupRequestorId(master_name);
     /*
     std::string name = stripSystemName(master_name);
 
@@ -563,29 +563,29 @@ PpuSOCSystem::lookupMasterId(const std::string& master_name) const
         }
     }
 
-    return Request::invldMasterId;
+    return Request::invldRequestorId;
     */
 }
 
-MasterID
-PpuSOCSystem::getGlobalMasterId(const std::string& master_name)
+RequestorID
+PpuSOCSystem::getGlobalRequestorId(const std::string& master_name)
 {
-    return system->getGlobalMasterId(master_name);
-    // return _getMasterId(nullptr, master_name);
+    return system->getGlobalRequestorId(master_name);
+    // return _getRequestorId(nullptr, master_name);
 }
 
-MasterID
-PpuSOCSystem::getMasterId(const SimObject* master, std::string submaster)
+RequestorID
+PpuSOCSystem::getRequestorId(const SimObject* master, std::string submaster)
 {
-    return system->getMasterId(master, submaster);
+    return system->getRequestorId(master, submaster);
     /*
-    auto master_name = leafMasterName(master, submaster);
-    return _getMasterId(master, master_name);
+    auto master_name = leafRequestorName(master, submaster);
+    return _getRequestorId(master, master_name);
     */
 }
 /*
-MasterID
-PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_name)
+RequestorID
+PpuSOCSystem::_getRequestorId(const SimObject* master, const std::string& master_name)
 {
     std::string name = stripSystemName(master_name);
 
@@ -605,10 +605,10 @@ PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_na
                 "You must do so in init().\n");
     }
 
-    // Generate a new MasterID incrementally
-    MasterID master_id = masters.size();
+    // Generate a new RequestorID incrementally
+    RequestorID master_id = masters.size();
 
-    // Append the new Master metadata to the group of system Masters.
+    // Append the new Requestor metadata to the group of system Requestors.
     masters.emplace_back(master, name, master_id);
 
     return masters.back().masterId;
@@ -616,9 +616,9 @@ PpuSOCSystem::_getMasterId(const SimObject* master, const std::string& master_na
 */
 
 std::string
-PpuSOCSystem::leafMasterName(const SimObject* master, const std::string& submaster)
+PpuSOCSystem::leafRequestorName(const SimObject* master, const std::string& submaster)
 {
-    return system->leafMasterName(master, submaster);
+    return system->leafRequestorName(master, submaster);
     /*
     if (submaster.empty()) {
         return master->name();
@@ -631,12 +631,12 @@ PpuSOCSystem::leafMasterName(const SimObject* master, const std::string& submast
 }
 
 std::string
-PpuSOCSystem::getMasterName(MasterID master_id)
+PpuSOCSystem::getRequestorName(RequestorID master_id)
 {
-    return system->getMasterName(master_id);
+    return system->getRequestorName(master_id);
     /*
     if (master_id >= masters.size())
-        fatal("Invalid master_id passed to getMasterName()\n");
+        fatal("Invalid master_id passed to getRequestorName()\n");
 
     const auto& master_info = masters[master_id];
     return master_info.masterName;

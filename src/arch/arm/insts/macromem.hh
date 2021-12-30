@@ -44,6 +44,9 @@
 #include "arch/arm/insts/pred_inst.hh"
 #include "arch/arm/tlb.hh"
 
+namespace gem5
+{
+
 namespace ArmISA
 {
 
@@ -262,7 +265,7 @@ class MicroSetPCCPSR : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -281,7 +284,7 @@ class MicroIntMov : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -301,7 +304,7 @@ class MicroIntImmOp : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 class MicroIntImmXOp : public MicroOpX
@@ -318,7 +321,7 @@ class MicroIntImmXOp : public MicroOpX
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -337,7 +340,7 @@ class MicroIntOp : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 class MicroIntRegXOp : public MicroOp
@@ -357,7 +360,7 @@ class MicroIntRegXOp : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -397,7 +400,7 @@ class MicroMemOp : public MicroIntImmOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 class MicroMemPairOp : public MicroOp
@@ -418,7 +421,7 @@ class MicroMemPairOp : public MicroOp
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 /**
@@ -438,7 +441,8 @@ class MacroMemOp : public PredMacroOp
 class PairMemOp : public PredMacroOp
 {
   public:
-    enum AddrMode {
+    enum AddrMode
+    {
         AddrMd_Offset,
         AddrMd_PreIndex,
         AddrMd_PostIndex
@@ -538,6 +542,7 @@ class MacroVFPMemOp : public PredMacroOp
                   bool writeback, bool load, uint32_t offset);
 };
 
-}
+} // namespace ArmISA
+} // namespace gem5
 
 #endif //__ARCH_ARM_INSTS_MACROMEM_HH__

@@ -42,15 +42,17 @@
 
 using namespace std;
 
+namespace gem5 {
+
 // FIXME schi add this to getMasterId, anem remove name()
-CudaCore::CudaCore(const Params *p) :
-    MemObject(p), instPort(name() + ".inst_port", this),
-    lsqControlPort(name() + ".lsq_ctrl_port", this), _params(p),
+CudaCore::CudaCore(const CudaCoreParams &p) :
+    ClockedObject(p), instPort(name() + ".inst_port", this),
+    lsqControlPort(name() + ".lsq_ctrl_port", this), _params(&p),
     // dataMasterId(p->sys->getMasterId(this, name() + ".data")),
     // instMasterId(p->sys->getMasterId(this, name() + ".inst")), id(p->id),
-    dataMasterId(p->sys->getMasterId(this, "data")),
-    instMasterId(p->sys->getMasterId(this, "inst")), id(p->id),
-    itb(p->itb), cudaGPU(p->gpu), maxNumWarpsPerCore(p->warp_contexts)
+    dataMasterId(p.sys->getRequestorId(this, "data")),
+    instMasterId(p.sys->getRequestorId(this, "inst")), id(p.id),
+    itb(p.itb), cudaGPU(p.gpu), maxNumWarpsPerCore(p.warp_contexts)
 {
     writebackBlocked = -1; // Writeback is not blocked
 
@@ -62,7 +64,7 @@ CudaCore::CudaCore(const Params *p) :
 
     signalKernelFinish = false;
 
-    if (p->port_lsq_port_connection_count != warpSize) {
+    if (p.port_lsq_port_connection_count != warpSize) {
         panic("Shader core lsq_port size != to warp size\n");
     }
 
@@ -104,7 +106,7 @@ CudaCore::getPort(const std::string &if_name, PortID idx)
         return lsqControlPort;
     } else {
         // TODO schi return MemObject::getMasterPort(if_name, idx);
-        return MemObject::getPort(if_name, idx);
+        return ClockedObject::getPort(if_name, idx);
     }
 }
 
@@ -151,7 +153,7 @@ CudaCore::icacheFetch(Addr addr, mem_fetch *mf)
     Addr pc = (Addr)mf->get_pc();
     const int asid = 0;
 
-    BaseTLB::Mode mode = BaseTLB::Read;
+    BaseMMU::Mode mode = BaseMMU::Read;
     req->setVirt(asid, line_addr, mf->size(), flags, instMasterId, pc);
     req->setFlags(Request::INST_FETCH);
 
@@ -170,7 +172,7 @@ void CudaCore::finishTranslation(WholeTranslationState *state)
         panic("Instruction translation encountered fault (%s) for address 0x%x",
               state->getFault()->name(), state->mainReq->getVaddr());
     }
-    assert(state->mode == BaseTLB::Read);
+    assert(state->mode == BaseMMU::Read);
     PacketPtr pkt = new Packet(state->mainReq, MemCmd::ReadReq);
     pkt->allocate();
     assert(pkt->req->isInstFetch());
@@ -574,14 +576,16 @@ CudaCore::InstPort::recvFunctional(PacketPtr pkt)
     panic("Not sure how to recvFunctional");
 }
 
-CudaCore *CudaCoreParams::create() {
-    return new CudaCore(this);
+/*
+CudaCore *CudaCoreParams::create() const {
+    return new CudaCore(*this);
 }
+*/
 
 void
 CudaCore::regStats()
 {
-    MemObject::regStats();
+    ClockedObject::regStats();
     using namespace Stats;
 
     numLocalLoads
@@ -782,4 +786,6 @@ void CudaCore::printCTAStats(std::ostream& out)
         }
         out << curTick() << "\n";
     }
+}
+
 }

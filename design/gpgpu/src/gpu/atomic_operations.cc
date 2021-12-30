@@ -4,8 +4,11 @@
 #include "gpu/atomic_operations.hh"
 #include "mem/simple_mem.hh"
 
+namespace gem5 {
+
+
 void
-AtomicOpRequest::atomicMemoryAccess(PacketPtr pkt, SimpleMemory *phys_mem)
+AtomicOpRequest::atomicMemoryAccess(PacketPtr pkt, memory::SimpleMemory *phys_mem)
 {
     // The pkt's atomic operation commands
     AtomicOpRequest **atomic_ops =
@@ -266,6 +269,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
         break;
 
     }
+}
 }
 
 // The rest of the code from GPGPU-Sim's atomics implementations

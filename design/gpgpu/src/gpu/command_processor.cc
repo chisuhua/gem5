@@ -54,6 +54,7 @@
 
 using namespace std;
 
+namespace gem5 {
 /*
 bool
 CommandProcessor::sendPkt(PacketPtr pkt) {
@@ -208,7 +209,7 @@ void CommandProcessor::tryRead()
 
     DPRINTF(CommandProcessor, "trying read addr: 0x%x, %d bytes\n", currentReadAddr, size);
 
-    BaseTLB::Mode mode = BaseTLB::Read;
+    BaseMMU::Mode mode = BaseMMU::Read;
 
     WholeTranslationState *state =
             new WholeTranslationState(req, NULL, NULL, mode);
@@ -269,7 +270,7 @@ void CommandProcessor::tryWrite()
 
     DPRINTF(CommandProcessor, "trying write addr: 0x%x, %d bytes, data %x\n", currentWriteAddr, size, *((int*)(&curData[totalLength-writeLeft])));
 
-    BaseTLB::Mode mode = BaseTLB::Write;
+    BaseMMU::Mode mode = BaseMMU::Write;
 
     WholeTranslationState *state =
             new WholeTranslationState(req, NULL, NULL, mode);
@@ -308,11 +309,11 @@ void CommandProcessor::finishTranslation(WholeTranslationState *state)
     }
     DPRINTF(CommandProcessor, "Finished translation of Vaddr 0x%x -> Paddr 0x%x\n", state->mainReq->getVaddr(), state->mainReq->getPaddr());
     PacketPtr pkt;
-    if (state->mode == BaseTLB::Read) {
+    if (state->mode == BaseMMU::Read) {
         pkt = new Packet(state->mainReq, MemCmd::ReadReq);
         pkt->allocate();
         readPort->sendPacket(pkt);
-    } else if (state->mode == BaseTLB::Write) {
+    } else if (state->mode == BaseMMU::Write) {
         pkt = new Packet(state->mainReq, MemCmd::WriteReq);
         uint8_t *pkt_data = (uint8_t *)state->mainReq->getExtraData();
         pkt->dataDynamic(pkt_data);
@@ -324,30 +325,30 @@ void CommandProcessor::finishTranslation(WholeTranslationState *state)
 }
 
 
-CommandProcessor::CommandProcessor(const Params *p)
+CommandProcessor::CommandProcessor(const Params &p)
     : ClockedObject(p),
       hostPort(name() + ".host_port", this, 0),
       devicePort(name() + ".device_port", this, 0),
       pioPort(this),
       writePort(NULL), readPort(NULL),
-      driverDelay(p->driver_delay),
+      driverDelay(p.driver_delay),
       active(false),
-      pioAddr(p->pio_addr),
+      pioAddr(p.pio_addr),
       pioSize(4096),
-      pioDelay(p->pio_latency),
-      cudaGPU(p->gpu),
-      cacheLineSize(p->cache_line_size),
-      hostDTB(p->host_dtb),
-      deviceDTB(p->device_dtb),
+      pioDelay(p.pio_latency),
+      cudaGPU(p.gpu),
+      cacheLineSize(p.cache_line_size),
+      hostDTB(p.host_dtb),
+      deviceDTB(p.device_dtb),
       readDTB(NULL), writeDTB(NULL),
       zephyrOsTickEvent([this]{ zephyrOsTick(); }, name()),
       memAccessTickEvent([this]{ memAccessTick(); }, name()),
       retryPkt(nullptr),
-      masterId(p->system->getMasterId(this)),
-      startTick(p->start_tick),
-      OSEventTick(p->os_event_tick),
-      atomic(p->system->isAtomicMode()),
-      suppressFuncWarnings(p->suppress_func_warnings)
+      masterId(p.system->getRequestorId(this)),
+      startTick(p.start_tick),
+      OSEventTick(p.os_event_tick),
+      atomic(p.system->isAtomicMode()),
+      suppressFuncWarnings(p.suppress_func_warnings)
 {
 
     DPRINTF(CommandProcessor, "Created copy engine\n");
@@ -358,12 +359,12 @@ CommandProcessor::CommandProcessor(const Params *p)
     needToWrite = false;
     running = false;
 
-    bufferDepth = p->buffering * cacheLineSize;
+    bufferDepth = p.buffering * cacheLineSize;
 
     zephyr_instance = this;
     // event_queue = new EventQueue("CommandProcessorOsEventQueue");
 
-    fileName = p->file_name;
+    fileName = p.file_name;
 
     /*
     schedule(zephyrOsTickEvent, curTick() + startTick);
@@ -566,7 +567,7 @@ CommandProcessor::readReg(CpRegIndex reg)
         panic("Local APIC Processor Priority register unimplemented.\n");
         break;
       case CP_VERSION:
-        regs[CP_VERSION] &= ~ULL(0x1);
+        regs[CP_VERSION] &= ~0x1ULL;
         break;
       default:
         break;
@@ -787,9 +788,11 @@ CommandProcessor::init()
 
     pioPort.sendRangeChange();
 }
-
+/*
 CommandProcessor *
-CommandProcessorParams::create()
+CommandProcessorParams::create() const
 {
-    return new CommandProcessor(this);
+    return new CommandProcessor(*this);
+}
+*/
 }

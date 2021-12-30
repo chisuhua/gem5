@@ -37,11 +37,14 @@
 #include "gpu-compute/rr_scheduling_policy.hh"
 #include "params/ComputeUnit.hh"
 
-Scheduler::Scheduler(const ComputeUnitParams *p)
+namespace gem5
 {
-    if (p->execPolicy == "OLDEST-FIRST") {
+
+Scheduler::Scheduler(const ComputeUnitParams &p)
+{
+    if (p.execPolicy == "OLDEST-FIRST") {
         schedPolicy = new OFSchedulingPolicy();
-    } else if (p->execPolicy == "ROUND-ROBIN") {
+    } else if (p.execPolicy == "ROUND-ROBIN") {
         schedPolicy = new RRSchedulingPolicy();
     } else {
         fatal("Unimplemented scheduling policy.\n");
@@ -59,3 +62,5 @@ Scheduler::bindList(std::vector<Wavefront*> *sched_list)
 {
     scheduleList = sched_list;
 }
+
+} // namespace gem5

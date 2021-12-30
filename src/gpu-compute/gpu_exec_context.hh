@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Advanced Micro Devices, Inc.
+ * Copyright (c) 2015-2018 Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * For use for simulation and test purposes only
@@ -38,6 +38,9 @@
 #include "base/types.hh"
 #include "config/the_gpu_isa.hh"
 
+namespace gem5
+{
+
 class ComputeUnit;
 class Wavefront;
 
@@ -48,6 +51,12 @@ class GPUExecContext
     Wavefront* wavefront();
     ComputeUnit* computeUnit();
 
+    template<typename T> T
+    readConstVal(int opIdx) const
+    {
+        return gpuISA->readConstVal<T>(opIdx);
+    }
+
     RegVal readMiscReg(int opIdx) const;
     void writeMiscReg(int opIdx, RegVal operandVal);
 
@@ -56,5 +65,7 @@ class GPUExecContext
     Wavefront *wf;
     TheGpuISA::GPUISA *gpuISA;
 };
+
+} // namespace gem5
 
 #endif // __GPU_EXEC_CONTEXT_HH__

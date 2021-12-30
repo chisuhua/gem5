@@ -1,4 +1,16 @@
 /*
+ * Copyright (c) 2020 ARM Limited
+ * All rights reserved
+ *
+ * The license below extends only to copyright in the software and shall
+ * not be construed as granting a license to any other intellectual
+ * property including but not limited to intellectual property relating
+ * to a hardware implementation of the functionality of the software
+ * licensed hereunder.  You may use the software subject to the license
+ * terms below provided that you ensure that this notice is replicated
+ * unmodified and in its entirety in all distributions of the software,
+ * modified or unmodified, in source code or in binary form.
+ *
  * Copyright (c) 2010 Gabe Black
  * All rights reserved.
  *
@@ -30,20 +42,13 @@
 #define __ARCH_GENERIC_TYPES_HH__
 
 #include <iostream>
-#include <limits>
 
 #include "base/trace.hh"
 #include "base/types.hh"
 #include "sim/serialize.hh"
 
-// Logical register index type.
-typedef uint16_t RegIndex;
-
-/** Logical vector register elem index type. */
-using ElemIndex = uint16_t;
-
-/** ElemIndex value that indicates that the register is not a vector. */
-#define ILLEGAL_ELEM_INDEX std::numeric_limits<ElemIndex>::max()
+namespace gem5
+{
 
 namespace GenericISA
 {
@@ -135,7 +140,7 @@ class PCStateBase : public Serializable
  */
 
 // The most basic type of PC.
-template <class MachInst>
+template <int InstWidth>
 class SimplePCState : public PCStateBase
 {
   protected:
@@ -153,7 +158,7 @@ class SimplePCState : public PCStateBase
     set(Addr val)
     {
         pc(val);
-        npc(val + sizeof(MachInst));
+        npc(val + InstWidth);
     };
 
     void
@@ -168,7 +173,7 @@ class SimplePCState : public PCStateBase
     bool
     branching() const
     {
-        return this->npc() != this->pc() + sizeof(MachInst);
+        return this->npc() != this->pc() + InstWidth;
     }
 
     // Advance the PC.
@@ -176,24 +181,24 @@ class SimplePCState : public PCStateBase
     advance()
     {
         _pc = _npc;
-        _npc += sizeof(MachInst);
+        _npc += InstWidth;
     }
 };
 
-template <class MachInst>
+template <int InstWidth>
 std::ostream &
-operator<<(std::ostream & os, const SimplePCState<MachInst> &pc)
+operator<<(std::ostream & os, const SimplePCState<InstWidth> &pc)
 {
     ccprintf(os, "(%#x=>%#x)", pc.pc(), pc.npc());
     return os;
 }
 
 // A PC and microcode PC.
-template <class MachInst>
-class UPCState : public SimplePCState<MachInst>
+template <int InstWidth>
+class UPCState : public SimplePCState<InstWidth>
 {
   protected:
-    typedef SimplePCState<MachInst> Base;
+    typedef SimplePCState<InstWidth> Base;
 
     MicroPC _upc;
     MicroPC _nupc;
@@ -226,7 +231,7 @@ class UPCState : public SimplePCState<MachInst>
     bool
     branching() const
     {
-        return this->npc() != this->pc() + sizeof(MachInst) ||
+        return this->npc() != this->pc() + InstWidth ||
                this->nupc() != this->upc() + 1;
     }
 
@@ -247,8 +252,16 @@ class UPCState : public SimplePCState<MachInst>
         _nupc = 1;
     }
 
+    // Reset the macroop's upc without advancing the regular pc.
+    void
+    uReset()
+    {
+        _upc = 0;
+        _nupc = 1;
+    }
+
     bool
-    operator == (const UPCState<MachInst> &opc) const
+    operator == (const UPCState<InstWidth> &opc) const
     {
         return Base::_pc == opc._pc &&
                Base::_npc == opc._npc &&
@@ -256,7 +269,7 @@ class UPCState : public SimplePCState<MachInst>
     }
 
     bool
-    operator != (const UPCState<MachInst> &opc) const
+    operator != (const UPCState<InstWidth> &opc) const
     {
         return !(*this == opc);
     }
@@ -278,9 +291,9 @@ class UPCState : public SimplePCState<MachInst>
     }
 };
 
-template <class MachInst>
+template <int InstWidth>
 std::ostream &
-operator<<(std::ostream & os, const UPCState<MachInst> &pc)
+operator<<(std::ostream & os, const UPCState<InstWidth> &pc)
 {
     ccprintf(os, "(%#x=>%#x).(%d=>%d)",
             pc.pc(), pc.npc(), pc.upc(), pc.nupc());
@@ -288,11 +301,11 @@ operator<<(std::ostream & os, const UPCState<MachInst> &pc)
 }
 
 // A PC with a delay slot.
-template <class MachInst>
-class DelaySlotPCState : public SimplePCState<MachInst>
+template <int InstWidth>
+class DelaySlotPCState : public SimplePCState<InstWidth>
 {
   protected:
-    typedef SimplePCState<MachInst> Base;
+    typedef SimplePCState<InstWidth> Base;
 
     Addr _nnpc;
 
@@ -305,7 +318,7 @@ class DelaySlotPCState : public SimplePCState<MachInst>
     set(Addr val)
     {
         Base::set(val);
-        nnpc(val + 2 * sizeof(MachInst));
+        nnpc(val + 2 * InstWidth);
     }
 
     DelaySlotPCState() {}
@@ -314,9 +327,9 @@ class DelaySlotPCState : public SimplePCState<MachInst>
     bool
     branching() const
     {
-        return !(this->nnpc() == this->npc() + sizeof(MachInst) &&
-                 (this->npc() == this->pc() + sizeof(MachInst) ||
-                  this->npc() == this->pc() + 2 * sizeof(MachInst)));
+        return !(this->nnpc() == this->npc() + InstWidth &&
+                 (this->npc() == this->pc() + InstWidth ||
+                  this->npc() == this->pc() + 2 * InstWidth));
     }
 
     // Advance the PC.
@@ -325,11 +338,11 @@ class DelaySlotPCState : public SimplePCState<MachInst>
     {
         Base::_pc = Base::_npc;
         Base::_npc = _nnpc;
-        _nnpc += sizeof(MachInst);
+        _nnpc += InstWidth;
     }
 
     bool
-    operator == (const DelaySlotPCState<MachInst> &opc) const
+    operator == (const DelaySlotPCState<InstWidth> &opc) const
     {
         return Base::_pc == opc._pc &&
                Base::_npc == opc._npc &&
@@ -337,7 +350,7 @@ class DelaySlotPCState : public SimplePCState<MachInst>
     }
 
     bool
-    operator != (const DelaySlotPCState<MachInst> &opc) const
+    operator != (const DelaySlotPCState<InstWidth> &opc) const
     {
         return !(*this == opc);
     }
@@ -357,9 +370,9 @@ class DelaySlotPCState : public SimplePCState<MachInst>
     }
 };
 
-template <class MachInst>
+template <int InstWidth>
 std::ostream &
-operator<<(std::ostream & os, const DelaySlotPCState<MachInst> &pc)
+operator<<(std::ostream & os, const DelaySlotPCState<InstWidth> &pc)
 {
     ccprintf(os, "(%#x=>%#x=>%#x)",
             pc.pc(), pc.npc(), pc.nnpc());
@@ -367,11 +380,11 @@ operator<<(std::ostream & os, const DelaySlotPCState<MachInst> &pc)
 }
 
 // A PC with a delay slot and a microcode PC.
-template <class MachInst>
-class DelaySlotUPCState : public DelaySlotPCState<MachInst>
+template <int InstWidth>
+class DelaySlotUPCState : public DelaySlotPCState<InstWidth>
 {
   protected:
-    typedef DelaySlotPCState<MachInst> Base;
+    typedef DelaySlotPCState<InstWidth> Base;
 
     MicroPC _upc;
     MicroPC _nupc;
@@ -425,7 +438,7 @@ class DelaySlotUPCState : public DelaySlotPCState<MachInst>
     }
 
     bool
-    operator == (const DelaySlotUPCState<MachInst> &opc) const
+    operator == (const DelaySlotUPCState<InstWidth> &opc) const
     {
         return Base::_pc == opc._pc &&
                Base::_npc == opc._npc &&
@@ -434,7 +447,7 @@ class DelaySlotUPCState : public DelaySlotPCState<MachInst>
     }
 
     bool
-    operator != (const DelaySlotUPCState<MachInst> &opc) const
+    operator != (const DelaySlotUPCState<InstWidth> &opc) const
     {
         return !(*this == opc);
     }
@@ -456,9 +469,9 @@ class DelaySlotUPCState : public DelaySlotPCState<MachInst>
     }
 };
 
-template <class MachInst>
+template <int InstWidth>
 std::ostream &
-operator<<(std::ostream & os, const DelaySlotUPCState<MachInst> &pc)
+operator<<(std::ostream & os, const DelaySlotUPCState<InstWidth> &pc)
 {
     ccprintf(os, "(%#x=>%#x=>%#x).(%d=>%d)",
             pc.pc(), pc.npc(), pc.nnpc(), pc.upc(), pc.nupc());
@@ -466,5 +479,7 @@ operator<<(std::ostream & os, const DelaySlotUPCState<MachInst> &pc)
 }
 
 }
+
+} // namespace gem5
 
 #endif

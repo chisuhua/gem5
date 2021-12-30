@@ -29,9 +29,16 @@
 #ifndef __SOCKET_HH__
 #define __SOCKET_HH__
 
+namespace gem5
+{
+
 class ListenSocket
 {
   protected:
+    /**
+     * The following variables are only used by socket unit tests:
+     * listeningDisabled, anyListening, bindToLoopback.
+     */
     static bool listeningDisabled;
     static bool anyListening;
 
@@ -54,14 +61,22 @@ class ListenSocket
 
 
   public:
+    /**
+     * @ingroup api_socket
+     * @{
+     */
     ListenSocket();
     virtual ~ListenSocket();
 
     virtual int accept(bool nodelay = false);
+
     virtual bool listen(int port, bool reuse = true);
 
     int getfd() const { return fd; }
     bool islistening() const { return listening; }
+    /** @} */ // end of api_socket
 };
+
+} // namespace gem5
 
 #endif //__SOCKET_HH__

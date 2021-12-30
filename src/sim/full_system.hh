@@ -29,6 +29,9 @@
 #ifndef __SIM_FULL_SYSTEM_HH__
 #define __SIM_FULL_SYSTEM_HH__
 
+namespace gem5
+{
+
 /**
  * The FullSystem variable can be used to determine the current mode
  * of simulation.
@@ -44,5 +47,7 @@ extern bool PpuFullSystem;
  */
 extern unsigned int FullSystemInt;
 extern unsigned int PpuFullSystemInt;
+
+} // namespace gem5
 
 #endif // __SIM_FULL_SYSTEM_HH__

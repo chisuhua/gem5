@@ -28,11 +28,13 @@
 
 #include "arch/sparc/nativetrace.hh"
 
-#include "arch/sparc/isa_traits.hh"
-#include "arch/sparc/registers.hh"
+#include "arch/sparc/regs/int.hh"
 #include "cpu/thread_context.hh"
 #include "params/SparcNativeTrace.hh"
 #include "sim/byteswap.hh"
+
+namespace gem5
+{
 
 namespace Trace {
 
@@ -87,13 +89,4 @@ Trace::SparcNativeTrace::check(NativeTraceRecord *record)
 }
 
 } // namespace Trace
-
-////////////////////////////////////////////////////////////////////////
-//
-//  ExeTracer Simulation Object
-//
-Trace::SparcNativeTrace *
-SparcNativeTraceParams::create()
-{
-    return new Trace::SparcNativeTrace(this);
-};
+} // namespace gem5

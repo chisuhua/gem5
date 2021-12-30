@@ -60,14 +60,14 @@ python_ready(pybind11::args args)
 }
 
 void
-systemc_pybind(pybind11::module &m_internal)
+systemc_pybind(pybind11::module_ &m_internal)
 {
-    pybind11::module m = m_internal.def_submodule("systemc");
+    pybind11::module_ m = m_internal.def_submodule("systemc");
     m.def("python_ready", &python_ready);
     for (auto ptr = firstInitFunc(); ptr; ptr = ptr->next)
         ptr->run(m);
 }
-EmbeddedPyBind embed_("systemc", &systemc_pybind);
+gem5::EmbeddedPyBind embed_("systemc", &systemc_pybind);
 
 } // anonymous namespace
 

@@ -725,7 +725,7 @@ void gpgpu_sim::stop_all_running_kernels(){
 void set_ptx_warp_size(const struct core_config * warp_size);
 
 // TODO schi gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config ) 
-gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config, CudaGPU *cuda_gpu )
+gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config, gem5::CudaGPU *cuda_gpu )
     : gpgpu_t(config, cuda_gpu), m_config(config)
 { 
     m_shader_config = &m_config.m_shader_config;

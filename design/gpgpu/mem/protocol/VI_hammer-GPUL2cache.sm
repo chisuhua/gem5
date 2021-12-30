@@ -454,7 +454,7 @@ machine(MachineType:GPUL2Cache, "Simple write back L2 cache")
         out_msg.MessageSize := MessageSizeType:Response_Data;
       }
     }
-    ++L2cache.demand_hits;
+    L2cache.profileDemandHit();
   }
 
   action(hx_external_load_hit, "hx", desc="load required external msgs, send data to L1") {
@@ -478,7 +478,7 @@ machine(MachineType:GPUL2Cache, "Simple write back L2 cache")
       cache_entry.DataBlk.copyPartial(in_msg.DataBlk, in_msg.Offset, in_msg.Size);
       cache_entry.Dirty := true;
     }
-    ++L2cache.demand_hits;
+    L2cache.profileDemandHit();
     DPRINTF(RubySlicc, "%s %s\n", address, cache_entry.DataBlk);
   }
 
@@ -948,11 +948,11 @@ machine(MachineType:GPUL2Cache, "Simple write back L2 cache")
   }
 
   action(uu_profileWriteMiss, "uu", desc="...") {
-    ++L2cache.demand_misses;
+    L2cache.profileDemandMiss();
   }
 
   action(vv_profileReadMiss, "vv", desc="...") {
-    ++L2cache.demand_misses;
+    L2cache.profileDemandMiss();
   }
 
   // TRANSITIONS

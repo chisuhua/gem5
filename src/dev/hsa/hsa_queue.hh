@@ -29,8 +29,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Anthony Gutierrez
  */
 
 #ifndef __DEV_HSA_HSA_QUEUE_HH__
@@ -38,18 +36,21 @@
 
 #include <cstdint>
 
-typedef enum
+namespace gem5
+{
+
+enum _hsa_queue_type_t
 {
     _HSA_QUEUE_TYPE_MULTI = 0,
     _HSA_QUEUE_TYPE_SINGLE = 1
-} _hsa_queue_type_t;
+};
 
-typedef struct _hsa_signal_s
+struct _hsa_signal_t
 {
     uint64_t handle;
-} _hsa_signal_t;
+};
 
-typedef struct _hsa_queue_s
+struct _hsa_queue_t
 {
     _hsa_queue_type_t type;
     uint32_t features;
@@ -58,11 +59,11 @@ typedef struct _hsa_queue_s
     uint32_t size;
     uint32_t reserved1;
     uint64_t id;
-} _hsa_queue_t;
+};
 
 typedef uint32_t _amd_queue_properties32_t;
 
-typedef struct _amd_queue_s
+struct _amd_queue_t
 {
     _hsa_queue_t hsa_queue;
     uint32_t reserved1[4];
@@ -87,6 +88,8 @@ typedef struct _amd_queue_s
     uint32_t reserved3[2];
     _hsa_signal_t queue_inactive_signal;
     uint32_t reserved4[14];
-} _amd_queue_t;
+};
+
+} // namespace gem5
 
 #endif // __DEV_HSA_HSA_QUEUE_HH__

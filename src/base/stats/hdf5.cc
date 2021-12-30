@@ -40,6 +40,9 @@
 #include "base/logging.hh"
 #include "base/stats/info.hh"
 
+namespace gem5
+{
+
 /**
  * Check if all strings in a container are empty.
  */
@@ -54,7 +57,9 @@ bool emptyStrings(const T &labels)
 }
 
 
-namespace Stats {
+GEM5_DEPRECATED_NAMESPACE(Stats, statistics);
+namespace statistics
+{
 
 Hdf5::Hdf5(const std::string &file, unsigned chunking,
            bool desc, bool formulas)
@@ -248,8 +253,15 @@ Hdf5::appendStat(const Info &info, int rank, hsize_t *dims, const double *data)
         props.setDeflate(1);
 
         fspace = H5::DataSpace(rank, dims, max_dims.data());
-        data_set = group.createDataSet(info.name, H5::PredType::NATIVE_DOUBLE,
-                                       fspace, props);
+        try {
+            data_set = group.createDataSet(info.name,
+                H5::PredType::NATIVE_DOUBLE, fspace, props);
+        } catch (const H5::Exception &e) {
+          std::string err = "Failed creating H5::DataSet " +  info.name + "; ";
+          err += e.getDetailMsg() + " in " + e.getFuncName();
+          // Rethrow std exception so that it's passed on to the Python world
+          throw std::runtime_error(err);
+        }
 
         if (enableDescriptions && !info.desc.empty()) {
             addMetaData(data_set, "description", info.desc);
@@ -320,4 +332,5 @@ initHDF5(const std::string &filename, unsigned chunking,
         new Hdf5(simout.resolve(filename), chunking, desc, formulas));
 }
 
-}; // namespace Stats
+}; // namespace statistics
+} // namespace gem5

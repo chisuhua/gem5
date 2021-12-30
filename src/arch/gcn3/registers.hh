@@ -29,8 +29,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Anthony Gutierrez
  */
 
 #ifndef __ARCH_GCN3_REGISTERS_HH__
@@ -43,6 +41,9 @@
 #include "arch/generic/vec_reg.hh"
 #include "base/intmath.hh"
 #include "base/logging.hh"
+
+namespace gem5
+{
 
 namespace Gcn3ISA
 {
@@ -170,33 +171,14 @@ namespace Gcn3ISA
     typedef int64_t VecElemI64;
     typedef double VecElemF64;
 
-    // typedefs for the various sizes/types of vector regs
-    using VecRegU8 = ::VecRegT<VecElemU8, NumVecElemPerVecReg, false>;
-    using VecRegI8 = ::VecRegT<VecElemI8, NumVecElemPerVecReg, false>;
-    using VecRegU16 = ::VecRegT<VecElemU16, NumVecElemPerVecReg, false>;
-    using VecRegI16 = ::VecRegT<VecElemI16, NumVecElemPerVecReg, false>;
-    using VecRegU32 = ::VecRegT<VecElemU32, NumVecElemPerVecReg, false>;
-    using VecRegI32 = ::VecRegT<VecElemI32, NumVecElemPerVecReg, false>;
-    using VecRegF32 = ::VecRegT<VecElemF32, NumVecElemPerVecReg, false>;
-    using VecRegU64 = ::VecRegT<VecElemU64, NumVecElemPerVecReg, false>;
-    using VecRegI64 = ::VecRegT<VecElemI64, NumVecElemPerVecReg, false>;
-    using VecRegF64 = ::VecRegT<VecElemF64, NumVecElemPerVecReg, false>;
-    // non-writeable versions of vector regs
-    using ConstVecRegU8 = ::VecRegT<VecElemU8, NumVecElemPerVecReg, true>;
-    using ConstVecRegI8 = ::VecRegT<VecElemI8, NumVecElemPerVecReg, true>;
-    using ConstVecRegU16 = ::VecRegT<VecElemU16, NumVecElemPerVecReg, true>;
-    using ConstVecRegI16 = ::VecRegT<VecElemI16, NumVecElemPerVecReg, true>;
-    using ConstVecRegU32 = ::VecRegT<VecElemU32, NumVecElemPerVecReg, true>;
-    using ConstVecRegI32 = ::VecRegT<VecElemI32, NumVecElemPerVecReg, true>;
-    using ConstVecRegF32 = ::VecRegT<VecElemF32, NumVecElemPerVecReg, true>;
-    using ConstVecRegU64 = ::VecRegT<VecElemU64, NumVecElemPerVecReg, true>;
-    using ConstVecRegI64 = ::VecRegT<VecElemI64, NumVecElemPerVecReg, true>;
-    using ConstVecRegF64 = ::VecRegT<VecElemF64, NumVecElemPerVecReg, true>;
+    const int DWORDSize = sizeof(VecElemU32);
+    /**
+     * Size of a single-precision register in DWORDs.
+     */
+    const int RegSizeDWORDs = sizeof(VecElemU32) / DWORDSize;
 
-    using VecRegContainerU8 = VecRegU8::Container;
-    using VecRegContainerU16 = VecRegU16::Container;
-    using VecRegContainerU32 = VecRegU32::Container;
-    using VecRegContainerU64 = VecRegU64::Container;
+    using VecRegContainerU32 =
+        VecRegContainer<sizeof(VecElemU32) * NumVecElemPerVecReg>;
 
     struct StatusReg
     {
@@ -238,6 +220,9 @@ namespace Gcn3ISA
 
     std::string opSelectorToRegSym(int opIdx, int numRegs=0);
     int opSelectorToRegIdx(int opIdx, int numScalarRegs);
+    bool isPosConstVal(int opIdx);
+    bool isNegConstVal(int opIdx);
+    bool isConstVal(int opIdx);
     bool isLiteral(int opIdx);
     bool isScalarReg(int opIdx);
     bool isVectorReg(int opIdx);
@@ -245,5 +230,6 @@ namespace Gcn3ISA
     bool isExecMask(int opIdx);
     bool isVccReg(int opIdx);
 } // namespace Gcn3ISA
+} // namespace gem5
 
 #endif // __ARCH_GCN3_REGISTERS_HH__

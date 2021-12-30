@@ -32,6 +32,9 @@
 #include "base/types.hh"
 #include "kern/operatingsystem.hh"
 
+namespace gem5
+{
+
 ///
 /// This class encapsulates the types, structures, constants,
 /// functions, and syscall-number mappings specific to the Solaris
@@ -56,14 +59,16 @@ class Solaris : public OperatingSystem
     typedef uint32_t nlink_t;
     //@}
 
-    struct tgt_timespec {
+    struct tgt_timespec
+    {
         int64_t tv_sec;
         int64_t tv_nsec;
     };
 
     /// Stat buffer.  Note that we can't call it 'stat' since that
     /// gets #defined to something else on some systems.
-    typedef struct {
+    struct tgt_stat
+    {
         uint64_t        st_dev;         //!< device
         uint64_t        st_ino;         //!< inode
         uint32_t        st_mode;        //!< mode
@@ -79,10 +84,11 @@ class Solaris : public OperatingSystem
         int32_t         st_blksize;     //!< optimal I/O block size
         int64_t         st_blocks;      //!< number of blocks allocated
         char            st_fstype[16];
-    } tgt_stat;
+    };
 
     // same for stat64
-    typedef struct {
+    struct tgt_stat64
+    {
         uint64_t        st_dev;         //!< device
         uint64_t        st_ino;         //!< inode
         uint32_t        st_mode;        //!< mode
@@ -98,23 +104,26 @@ class Solaris : public OperatingSystem
         int32_t         st_blksize;     //!< optimal I/O block size
         int64_t         st_blocks;      //!< number of blocks allocated
         char            st_fstype[16];
-    } tgt_stat64;
+    };
 
     /// Length of strings in struct utsname (plus 1 for null char).
     static const int _SYS_NMLN = 257;
 
     /// Interface struct for uname().
-    typedef struct utsname {
+    struct utsname
+    {
         char sysname[_SYS_NMLN];        //!< System name.
         char nodename[_SYS_NMLN];       //!< Node name.
         char release[_SYS_NMLN];        //!< OS release.
         char version[_SYS_NMLN];        //!< OS version.
         char machine[_SYS_NMLN];        //!< Machine type.
-    } utsname;
+    };
 
     // for *at syscalls
     static const int TGT_AT_FDCWD   = -100;
 
 };  // class Solaris
+
+} // namespace gem5
 
 #endif // __SOLARIS_HH__

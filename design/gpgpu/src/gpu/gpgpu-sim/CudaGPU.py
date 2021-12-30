@@ -25,20 +25,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from ClockedObject import ClockedObject
-from ShaderMMU import ShaderMMU
 from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ShaderMMU import ShaderMMU
 
 class GPGPUSimComponentWrapper(ClockedObject):
     type = 'GPGPUSimComponentWrapper'
-    cxx_class = 'GPGPUSimComponentWrapper'
+    cxx_class = 'gem5::GPGPUSimComponentWrapper'
     cxx_header = "gpu/gpgpu-sim/cuda_gpu.hh"
 
 class CudaGPU(ClockedObject):
     type = 'CudaGPU'
-    cxx_class = 'CudaGPU'
+    cxx_class = 'gem5::CudaGPU'
     cxx_header = "gpu/gpgpu-sim/cuda_gpu.hh"
 
     sys = Param.System(Parent.any, "system sp will run on")

@@ -45,6 +45,7 @@
 #include "sim/clocked_object.hh"
 #include "sim/faults.hh"
 
+namespace gem5 {
 class ShaderMMU : public ClockedObject
 {
 private:
@@ -55,15 +56,15 @@ private:
     TheISA::Stage2MMU *stage2MMU;
 #endif
 
-    class TranslationRequest : public BaseTLB::Translation
+    class TranslationRequest : public BaseMMU::Translation
     {
     public:
         ShaderMMU *mmu;
         ShaderTLB *origTLB;
         TheISA::TLB *pageWalker;
-        BaseTLB::Translation *wrappedTranslation;
+        BaseMMU::Translation *wrappedTranslation;
         RequestPtr req;
-        BaseTLB::Mode mode;
+        BaseMMU::Mode mode;
         ThreadContext *tc;
         Addr vpBase;
         Cycles beginFault;
@@ -73,13 +74,13 @@ private:
 
     public:
         TranslationRequest(ShaderMMU *_mmu, ShaderTLB *_tlb,
-                           BaseTLB::Translation *translation, RequestPtr _req,
-                           BaseTLB::Mode _mode, ThreadContext *_tc,
+                           BaseMMU::Translation *translation, RequestPtr _req,
+                           BaseMMU::Mode _mode, ThreadContext *_tc,
                            Tick start_tick, bool prefetch = false);
         Tick getStartTick() { return startTick; }
         void markDelayed() { wrappedTranslation->markDelayed(); }
         void finish(const Fault &fault, const RequestPtr &_req, ThreadContext *_tc,
-                    BaseTLB::Mode _mode)
+                    BaseMMU::Mode _mode)
         {
             assert(_mode == mode);
             assert(_req == req);
@@ -210,7 +211,7 @@ private:
 public:
     /// Constructor
     typedef ShaderMMUParams Params;
-    ShaderMMU(const Params *p);
+    ShaderMMU(const ShaderMMUParams &p);
     ~ShaderMMU();
 
     /// Called from TLBMissEvent after latency cycles has passed since
@@ -218,8 +219,8 @@ public:
     void handleTLBMiss();
 
     /// Called when a shader tlb has a miss
-    void beginTLBMiss(ShaderTLB *req_tlb, BaseTLB::Translation *translation,
-                      RequestPtr req, BaseTLB::Mode mode, ThreadContext *tc);
+    void beginTLBMiss(ShaderTLB *req_tlb, BaseMMU::Translation *translation,
+                      RequestPtr req, BaseMMU::Mode mode, ThreadContext *tc);
 
     /// Called from a start pagewalk event
     void walk(TheISA::TLB *walker, TranslationRequest *translation) {
@@ -262,5 +263,6 @@ public:
     Stats::Histogram concurrentWalks;
     Stats::Histogram pagewalkLatency;
 };
+}
 
 #endif // SHADER_MMU_HH_

@@ -53,17 +53,13 @@
 
 #include "base/debug.hh"
 #include "base/output.hh"
-#include "config/the_isa.hh"
 #include "cpu/base.hh"
-#include "cpu/quiesce_event.hh"
 #include "cpu/thread_context.hh"
 #include "debug/Loader.hh"
 #include "debug/Quiesce.hh"
 #include "debug/WorkItems.hh"
 #include "dev/net/dist_iface.hh"
-#include "kern/kernel_stats.hh"
 #include "params/BaseCPU.hh"
-#include "sim/full_system.hh"
 #include "sim/process.hh"
 #include "sim/serialize.hh"
 #include "sim/sim_events.hh"
@@ -71,27 +67,31 @@
 #include "sim/stat_control.hh"
 #include "sim/stats.hh"
 #include "sim/system.hh"
-#include "sim/vptr.hh"
 
 // TODO schi I copied from gem5-gpu
 struct gpusyscall;
 typedef struct gpusyscall gpusyscall_t;
-typedef uint64_t (*cudaFunc_t)(ThreadContext *, gpusyscall_t *);
+typedef uint64_t (*cudaFunc_t)(gem5::ThreadContext *, gpusyscall_t *);
 
-// add for ppu_cmdio
+// add for opu_cmdio
 // struct ppusyscall;
 // typedef struct ppusyscall ppusyscall_t;
-typedef uint64_t (*ppu_cmdio_func_t)(ThreadContext *, gpusyscall_t *);
+typedef uint64_t (*opu_cmdio_func_t)(gem5::ThreadContext *, gpusyscall_t *);
 
 #ifdef BUILD_PPU_SYSTEM
 extern cudaFunc_t gpgpu_funcs[];
-extern ppu_cmdio_func_t ppu_cmdio_funcs[];
+extern opu_cmdio_func_t opu_cmdio_funcs[];
 #endif
 
 using namespace std;
-using namespace Stats;
+// using namespace Stats;
+namespace gem5
+{
 
-namespace PseudoInst
+using namespace statistics;
+
+GEM5_DEPRECATED_NAMESPACE(PseudoInst, pseudo_inst);
+namespace pseudo_inst
 {
 
 /**
@@ -100,7 +100,7 @@ namespace PseudoInst
  * @note Each key may be at most 16 characters (because we use
  * two 64-bit registers to pass in the key to the initparam function).
  */
-namespace InitParamKey
+namespace
 {
 
 /**
@@ -116,82 +116,75 @@ const std::string DIST_RANK = "dist-rank";
  */
 const std::string DIST_SIZE = "dist-size";
 
-} // namespace InitParamKey
+} // anonymous namespace
 
-static inline void
-panicFsOnlyPseudoInst(const char *name)
+void
+arm(gem5::ThreadContext *tc)
 {
-    panic("Pseudo inst \"%s\" is only available in Full System mode.");
+    DPRINTF(PseudoInst, "pseudo_inst::arm()\n");
+
+    auto *workload = tc->getSystemPtr()->workload;
+    if (workload)
+        workload->recordArm();
 }
 
 void
-arm(ThreadContext *tc)
+quiesce(gem5::ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::arm()\n");
-    if (!FullSystem)
-        panicFsOnlyPseudoInst("arm");
-
-    if (tc->getKernelStats())
-        tc->getKernelStats()->arm();
-}
-
-void
-quiesce(ThreadContext *tc)
-{
-    DPRINTF(PseudoInst, "PseudoInst::quiesce()\n");
+    DPRINTF(PseudoInst, "pseudo_inst::quiesce()\n");
     tc->quiesce();
 }
 
 void
 quiesceSkip(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::quiesceSkip()\n");
+    DPRINTF(PseudoInst, "pseudo_inst::quiesceSkip()\n");
     tc->quiesceTick(tc->getCpuPtr()->nextCycle() + 1);
 }
 
 void
 quiesceNs(ThreadContext *tc, uint64_t ns)
 {
-    DPRINTF(PseudoInst, "PseudoInst::quiesceNs(%i)\n", ns);
-    tc->quiesceTick(curTick() + SimClock::Int::ns * ns);
+    DPRINTF(PseudoInst, "pseudo_inst::quiesceNs(%i)\n", ns);
+    tc->quiesceTick(curTick() + sim_clock::as_int::ns * ns);
 }
 
 void
 quiesceCycles(ThreadContext *tc, uint64_t cycles)
 {
-    DPRINTF(PseudoInst, "PseudoInst::quiesceCycles(%i)\n", cycles);
+    DPRINTF(PseudoInst, "pseudo_inst::quiesceCycles(%i)\n", cycles);
     tc->quiesceTick(tc->getCpuPtr()->clockEdge(Cycles(cycles)));
 }
 
 uint64_t
 quiesceTime(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::quiesceTime()\n");
+    DPRINTF(PseudoInst, "pseudo_inst::quiesceTime()\n");
 
     return (tc->readLastActivate() - tc->readLastSuspend()) /
-        SimClock::Int::ns;
+        sim_clock::as_int::ns;
 }
 
 uint64_t
 rpns(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::rpns()\n");
-    return curTick() / SimClock::Int::ns;
+    DPRINTF(PseudoInst, "pseudo_inst::rpns()\n");
+    return curTick() / sim_clock::as_int::ns;
 }
 
 void
 wakeCPU(ThreadContext *tc, uint64_t cpuid)
 {
-    DPRINTF(PseudoInst, "PseudoInst::wakeCPU(%i)\n", cpuid);
+    DPRINTF(PseudoInst, "pseudo_inst::wakeCPU(%i)\n", cpuid);
     System *sys = tc->getSystemPtr();
 
-    if (sys->numContexts() <= cpuid) {
-        warn("PseudoInst::wakeCPU(%i), cpuid greater than number of contexts"
-             "(%i)\n",cpuid, sys->numContexts());
+    if (sys->threads.size() <= cpuid) {
+        warn("pseudo_inst::wakeCPU(%i), cpuid greater than number of contexts"
+             "(%i)\n", cpuid, sys->threads.size());
         return;
     }
 
-    ThreadContext *other_tc = sys->threadContexts[cpuid];
+    ThreadContext *other_tc = sys->threads[cpuid];
     if (other_tc->status() == ThreadContext::Suspended)
         other_tc->activate();
 }
@@ -199,36 +192,43 @@ wakeCPU(ThreadContext *tc, uint64_t cpuid)
 void
 m5exit(ThreadContext *tc, Tick delay)
 {
-    DPRINTF(PseudoInst, "PseudoInst::m5exit(%i)\n", delay);
+    DPRINTF(PseudoInst, "pseudo_inst::m5exit(%i)\n", delay);
     if (DistIface::readyToExit(delay)) {
-        Tick when = curTick() + delay * SimClock::Int::ns;
+        Tick when = curTick() + delay * sim_clock::as_int::ns;
         exitSimLoop("m5_exit instruction encountered", 0, when, 0, true);
     }
 }
 
+// m5sum is for sanity checking the gem5 op interface.
+uint64_t
+m5sum(ThreadContext *tc, uint64_t a, uint64_t b, uint64_t c,
+                         uint64_t d, uint64_t e, uint64_t f)
+{
+    DPRINTF(PseudoInst, "pseudo_inst::m5sum(%#x, %#x, %#x, %#x, %#x, %#x)\n",
+            a, b, c, d, e, f);
+    return a + b + c + d + e + f;
+}
 
 void
 m5fail(ThreadContext *tc, Tick delay, uint64_t code)
 {
-    DPRINTF(PseudoInst, "PseudoInst::m5fail(%i, %i)\n", delay, code);
-    Tick when = curTick() + delay * SimClock::Int::ns;
+    DPRINTF(PseudoInst, "pseudo_inst::m5fail(%i, %i)\n", delay, code);
+    Tick when = curTick() + delay * sim_clock::as_int::ns;
     exitSimLoop("m5_fail instruction encountered", code, when, 0, true);
 }
 
 void
 loadsymbol(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::loadsymbol()\n");
-    if (!FullSystem)
-        panicFsOnlyPseudoInst("loadsymbol");
+    DPRINTF(PseudoInst, "pseudo_inst::loadsymbol()\n");
 
-    const string &filename = tc->getCpuPtr()->system->params()->symbolfile;
+    const std::string &filename = tc->getCpuPtr()->system->params().symbolfile;
     if (filename.empty()) {
         return;
     }
 
     std::string buffer;
-    ifstream file(filename.c_str());
+    std::ifstream file(filename.c_str());
 
     if (!file)
         fatal("file error: Can't open symbol table file %s\n", filename);
@@ -239,17 +239,17 @@ loadsymbol(ThreadContext *tc)
         if (buffer.empty())
             continue;
 
-        string::size_type idx = buffer.find(' ');
-        if (idx == string::npos)
+        std::string::size_type idx = buffer.find(' ');
+        if (idx == std::string::npos)
             continue;
 
-        string address = "0x" + buffer.substr(0, idx);
+        std::string address = "0x" + buffer.substr(0, idx);
         eat_white(address);
         if (address.empty())
             continue;
 
         // Skip over letter and space
-        string symbol = buffer.substr(idx + 3);
+        std::string symbol = buffer.substr(idx + 3);
         eat_white(symbol);
         if (symbol.empty())
             continue;
@@ -258,8 +258,10 @@ loadsymbol(ThreadContext *tc)
         if (!to_number(address, addr))
             continue;
 
-        if (!tc->getSystemPtr()->workload->insertSymbol(addr, symbol))
+        if (!tc->getSystemPtr()->workload->insertSymbol(
+                    { loader::Symbol::Binding::Global, symbol, addr })) {
             continue;
+        }
 
 
         DPRINTF(Loader, "Loaded symbol: %s @ %#llx\n", symbol, addr);
@@ -270,48 +272,44 @@ loadsymbol(ThreadContext *tc)
 void
 addsymbol(ThreadContext *tc, Addr addr, Addr symbolAddr)
 {
-    DPRINTF(PseudoInst, "PseudoInst::addsymbol(0x%x, 0x%x)\n",
+    DPRINTF(PseudoInst, "pseudo_inst::addsymbol(0x%x, 0x%x)\n",
             addr, symbolAddr);
-    if (!FullSystem)
-        panicFsOnlyPseudoInst("addSymbol");
 
     std::string symbol;
     tc->getVirtProxy().readString(symbol, symbolAddr);
 
     DPRINTF(Loader, "Loaded symbol: %s @ %#llx\n", symbol, addr);
 
-    tc->getSystemPtr()->workload->insertSymbol(addr, symbol);
-    Loader::debugSymbolTable->insert(addr, symbol);
+    tc->getSystemPtr()->workload->insertSymbol(
+            { loader::Symbol::Binding::Global, symbol, addr });
+    loader::debugSymbolTable.insert(
+            { loader::Symbol::Binding::Global, symbol, addr });
 }
 
 uint64_t
 initParam(ThreadContext *tc, uint64_t key_str1, uint64_t key_str2)
 {
-    DPRINTF(PseudoInst, "PseudoInst::initParam() key:%s%s\n", (char *)&key_str1,
-            (char *)&key_str2);
-    if (!FullSystem) {
-        panicFsOnlyPseudoInst("initParam");
-        return 0;
-    }
+    DPRINTF(PseudoInst, "pseudo_inst::initParam() key:%s%s\n",
+        (char *)&key_str1, (char *)&key_str2);
 
     // The key parameter string is passed in via two 64-bit registers. We copy
     // out the characters from the 64-bit integer variables here, and
     // concatenate them in the key character buffer
     const int len = 2 * sizeof(uint64_t) + 1;
     char key[len];
-    memset(key, '\0', len);
+    std::memset(key, '\0', len);
 
     std::array<uint64_t, 2> key_regs = {{ key_str1, key_str2 }};
     key_regs = letoh(key_regs);
-    memcpy(key, key_regs.data(), sizeof(key_regs));
+    std::memcpy(key, key_regs.data(), sizeof(key_regs));
 
     // Check key parameter to figure out what to return.
     const std::string key_str(key);
-    if (key == InitParamKey::DEFAULT)
+    if (key == DEFAULT)
         return tc->getCpuPtr()->system->init_param;
-    else if (key == InitParamKey::DIST_RANK)
+    else if (key == DIST_RANK)
         return DistIface::rankParam();
-    else if (key == InitParamKey::DIST_SIZE)
+    else if (key == DIST_SIZE)
         return DistIface::sizeParam();
     else
         panic("Unknown key for initparam pseudo instruction:\"%s\"", key_str);
@@ -321,55 +319,56 @@ initParam(ThreadContext *tc, uint64_t key_str1, uint64_t key_str2)
 void
 resetstats(ThreadContext *tc, Tick delay, Tick period)
 {
-    DPRINTF(PseudoInst, "PseudoInst::resetstats(%i, %i)\n", delay, period);
-    if (!tc->getCpuPtr()->params()->do_statistics_insts)
+    DPRINTF(PseudoInst, "pseudo_inst::resetstats(%i, %i)\n", delay, period);
+    if (!tc->getCpuPtr()->params().do_statistics_insts)
         return;
 
 
-    Tick when = curTick() + delay * SimClock::Int::ns;
-    Tick repeat = period * SimClock::Int::ns;
+    Tick when = curTick() + delay * sim_clock::as_int::ns;
+    Tick repeat = period * sim_clock::as_int::ns;
 
-    Stats::schedStatEvent(false, true, when, repeat);
+    statistics::schedStatEvent(false, true, when, repeat);
 }
 
 void
 dumpstats(ThreadContext *tc, Tick delay, Tick period)
 {
-    DPRINTF(PseudoInst, "PseudoInst::dumpstats(%i, %i)\n", delay, period);
-    if (!tc->getCpuPtr()->params()->do_statistics_insts)
+    DPRINTF(PseudoInst, "pseudo_inst::dumpstats(%i, %i)\n", delay, period);
+    if (!tc->getCpuPtr()->params().do_statistics_insts)
         return;
 
 
-    Tick when = curTick() + delay * SimClock::Int::ns;
-    Tick repeat = period * SimClock::Int::ns;
+    Tick when = curTick() + delay * sim_clock::as_int::ns;
+    Tick repeat = period * sim_clock::as_int::ns;
 
-    Stats::schedStatEvent(true, false, when, repeat);
+    statistics::schedStatEvent(true, false, when, repeat);
 }
 
 void
 dumpresetstats(ThreadContext *tc, Tick delay, Tick period)
 {
-    DPRINTF(PseudoInst, "PseudoInst::dumpresetstats(%i, %i)\n", delay, period);
-    if (!tc->getCpuPtr()->params()->do_statistics_insts)
+    DPRINTF(PseudoInst, "pseudo_inst::dumpresetstats(%i, %i)\n", delay,
+        period);
+    if (!tc->getCpuPtr()->params().do_statistics_insts)
         return;
 
 
-    Tick when = curTick() + delay * SimClock::Int::ns;
-    Tick repeat = period * SimClock::Int::ns;
+    Tick when = curTick() + delay * sim_clock::as_int::ns;
+    Tick repeat = period * sim_clock::as_int::ns;
 
-    Stats::schedStatEvent(true, true, when, repeat);
+    statistics::schedStatEvent(true, true, when, repeat);
 }
 
 void
 m5checkpoint(ThreadContext *tc, Tick delay, Tick period)
 {
-    DPRINTF(PseudoInst, "PseudoInst::m5checkpoint(%i, %i)\n", delay, period);
-    if (!tc->getCpuPtr()->params()->do_checkpoint_insts)
+    DPRINTF(PseudoInst, "pseudo_inst::m5checkpoint(%i, %i)\n", delay, period);
+    if (!tc->getCpuPtr()->params().do_checkpoint_insts)
         return;
 
     if (DistIface::readyToCkpt(delay, period)) {
-        Tick when = curTick() + delay * SimClock::Int::ns;
-        Tick repeat = period * SimClock::Int::ns;
+        Tick when = curTick() + delay * sim_clock::as_int::ns;
+        Tick repeat = period * sim_clock::as_int::ns;
         exitSimLoop("checkpoint", 0, when, repeat);
     }
 }
@@ -377,16 +376,12 @@ m5checkpoint(ThreadContext *tc, Tick delay, Tick period)
 uint64_t
 readfile(ThreadContext *tc, Addr vaddr, uint64_t len, uint64_t offset)
 {
-    DPRINTF(PseudoInst, "PseudoInst::readfile(0x%x, 0x%x, 0x%x)\n",
+    DPRINTF(PseudoInst, "pseudo_inst::readfile(0x%x, 0x%x, 0x%x)\n",
             vaddr, len, offset);
-    if (!FullSystem) {
-        panicFsOnlyPseudoInst("readfile");
-        return 0;
-    }
 
-    const string &file = tc->getSystemPtr()->params()->readfile;
+    const std::string &file = tc->getSystemPtr()->params().readfile;
     if (file.empty()) {
-        return ULL(0);
+        return 0;
     }
 
     uint64_t result = 0;
@@ -420,7 +415,7 @@ uint64_t
 writefile(ThreadContext *tc, Addr vaddr, uint64_t len, uint64_t offset,
             Addr filename_addr)
 {
-    DPRINTF(PseudoInst, "PseudoInst::writefile(0x%x, 0x%x, 0x%x, 0x%x)\n",
+    DPRINTF(PseudoInst, "pseudo_inst::writefile(0x%x, 0x%x, 0x%x, 0x%x)\n",
             vaddr, len, offset, filename_addr);
 
     // copy out target filename
@@ -435,10 +430,11 @@ writefile(ThreadContext *tc, Addr vaddr, uint64_t len, uint64_t offset,
         // do not truncate file if offset is non-zero
         // (ios::in flag is required as well to keep the existing data
         //  intact, otherwise existing data will be zeroed out.)
-        out = simout.open(filename, ios::in | ios::out | ios::binary, true);
+        out = simout.open(filename,
+                std::ios::in | std::ios::out | std::ios::binary, true);
     }
 
-    ostream *os(out->stream());
+    std::ostream *os(out->stream());
     if (!os)
         panic("could not open file %s\n", filename);
 
@@ -464,34 +460,29 @@ writefile(ThreadContext *tc, Addr vaddr, uint64_t len, uint64_t offset,
 void
 debugbreak(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::debugbreak()\n");
-    Debug::breakpoint();
+    DPRINTF(PseudoInst, "pseudo_inst::debugbreak()\n");
+    debug::breakpoint();
 }
 
 void
 switchcpu(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::switchcpu()\n");
+    DPRINTF(PseudoInst, "pseudo_inst::switchcpu()\n");
     exitSimLoop("switchcpu");
-}
-
-/*
- * This function is executed when the simulation is executing the syscall
- * handler in System Emulation mode.
- */
-void
-m5Syscall(ThreadContext *tc)
-{
-    DPRINTF(PseudoInst, "PseudoInst::m5Syscall()\n");
-    Fault fault;
-    tc->syscall(&fault);
 }
 
 void
 togglesync(ThreadContext *tc)
 {
-    DPRINTF(PseudoInst, "PseudoInst::togglesync()\n");
+    DPRINTF(PseudoInst, "pseudo_inst::togglesync()\n");
     DistIface::toggleSync(tc);
+}
+
+void
+triggerWorkloadEvent(ThreadContext *tc)
+{
+    DPRINTF(PseudoInst, "pseudo_inst::triggerWorkloadEvent()\n");
+    tc->getSystemPtr()->workload->event(tc);
 }
 
 //
@@ -502,11 +493,11 @@ togglesync(ThreadContext *tc)
 void
 workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid)
 {
-    DPRINTF(PseudoInst, "PseudoInst::workbegin(%i, %i)\n", workid, threadid);
+    DPRINTF(PseudoInst, "pseudo_inst::workbegin(%i, %i)\n", workid, threadid);
     System *sys = tc->getSystemPtr();
-    const System::Params *params = sys->params();
+    const System::Params &params = sys->params();
 
-    if (params->exit_on_work_items) {
+    if (params.exit_on_work_items) {
         exitSimLoop("workbegin", static_cast<int>(workid));
         return;
     }
@@ -520,20 +511,20 @@ workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     // If specified, determine if this is the specific work item the user
     // identified
     //
-    if (params->work_item_id == -1 || params->work_item_id == workid) {
+    if (params.work_item_id == -1 || params.work_item_id == workid) {
 
         uint64_t systemWorkBeginCount = sys->incWorkItemsBegin();
         int cpuId = tc->getCpuPtr()->cpuId();
 
-        if (params->work_cpus_ckpt_count != 0 &&
-            sys->markWorkItem(cpuId) >= params->work_cpus_ckpt_count) {
+        if (params.work_cpus_ckpt_count != 0 &&
+            sys->markWorkItem(cpuId) >= params.work_cpus_ckpt_count) {
             //
             // If active cpus equals checkpoint count, create checkpoint
             //
             exitSimLoop("checkpoint");
         }
 
-        if (systemWorkBeginCount == params->work_begin_ckpt_count) {
+        if (systemWorkBeginCount == params.work_begin_ckpt_count) {
             //
             // Note: the string specified as the cause of the exit event must
             // exactly equal "checkpoint" inorder to create a checkpoint
@@ -541,14 +532,14 @@ workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid)
             exitSimLoop("checkpoint");
         }
 
-        if (systemWorkBeginCount == params->work_begin_exit_count) {
+        if (systemWorkBeginCount == params.work_begin_exit_count) {
             //
             // If a certain number of work items started, exit simulation
             //
             exitSimLoop("work started count reach");
         }
 
-        if (cpuId == params->work_begin_cpu_id_exit) {
+        if (cpuId == params.work_begin_cpu_id_exit) {
             //
             // If work started on the cpu id specified, exit simulation
             //
@@ -565,11 +556,11 @@ workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid)
 void
 workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
 {
-    DPRINTF(PseudoInst, "PseudoInst::workend(%i, %i)\n", workid, threadid);
+    DPRINTF(PseudoInst, "pseudo_inst::workend(%i, %i)\n", workid, threadid);
     System *sys = tc->getSystemPtr();
-    const System::Params *params = sys->params();
+    const System::Params &params = sys->params();
 
-    if (params->exit_on_work_items) {
+    if (params.exit_on_work_items) {
         exitSimLoop("workend", static_cast<int>(workid));
         return;
     }
@@ -582,21 +573,21 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
     // If specified, determine if this is the specific work item the user
     // identified
     //
-    if (params->work_item_id == -1 || params->work_item_id == workid) {
+    if (params.work_item_id == -1 || params.work_item_id == workid) {
 
         uint64_t systemWorkEndCount = sys->incWorkItemsEnd();
         int cpuId = tc->getCpuPtr()->cpuId();
 
-        if (params->work_cpus_ckpt_count != 0 &&
-            sys->markWorkItem(cpuId) >= params->work_cpus_ckpt_count) {
+        if (params.work_cpus_ckpt_count != 0 &&
+            sys->markWorkItem(cpuId) >= params.work_cpus_ckpt_count) {
             //
             // If active cpus equals checkpoint count, create checkpoint
             //
             exitSimLoop("checkpoint");
         }
 
-        if (params->work_end_ckpt_count != 0 &&
-            systemWorkEndCount == params->work_end_ckpt_count) {
+        if (params.work_end_ckpt_count != 0 &&
+            systemWorkEndCount == params.work_end_ckpt_count) {
             //
             // If total work items completed equals checkpoint count, create
             // checkpoint
@@ -604,8 +595,8 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
             exitSimLoop("checkpoint");
         }
 
-        if (params->work_end_exit_count != 0 &&
-            systemWorkEndCount == params->work_end_exit_count) {
+        if (params.work_end_exit_count != 0 &&
+            systemWorkEndCount == params.work_end_exit_count) {
             //
             // If total work items completed equals exit count, exit simulation
             //
@@ -631,19 +622,20 @@ gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 }
 
 void
-ppu_cmdio(ThreadContext *tc, uint64_t ppu_cmdio_sysno, uint64_t call_params)
+opu_cmdio(ThreadContext *tc, uint64_t opu_cmdio_sysno, uint64_t call_params)
 {
-    if (ppu_cmdio_sysno > 100) {
-        warn("Ignoring gpu syscall %d\n", ppu_cmdio_sysno);
+    if (opu_cmdio_sysno > 100) {
+        warn("Ignoring gpu syscall %d\n", opu_cmdio_sysno);
         return;
     }
 
 #ifdef BUILD_PPU_SYSTEM
-    ppu_cmdio_funcs[ppu_cmdio_sysno](tc, (gpusyscall_t*)call_params);
+    opu_cmdio_funcs[opu_cmdio_sysno](tc, (gpusyscall_t*)call_params);
 #else
-    warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", gpusysno);
+    warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", opu_cmdio_sysno);
     return;
 #endif
 }
 
-} // namespace PseudoInst
+} // namespace pseudo_inst
+} // namespace gem5

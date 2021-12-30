@@ -36,6 +36,7 @@
 #include "base/statistics.hh"
 #include "params/ShaderTLB.hh"
 
+namespace gem5 {
 class ShaderMMU;
 class CudaGPU;
 
@@ -129,35 +130,35 @@ private:
     BaseTLBMemory *tlbMemory;
 
     // TODO schi add from gem5-gpu, not used
-    Fault translateAtomic(const RequestPtr &req, ThreadContext *tc, Mode mode) {
+    Fault translateAtomic(const RequestPtr &req, ThreadContext *tc, BaseMMU::Mode mode) {
         panic("ShaderTLB don't support translateAtomic");
         return NoFault;
     };
 
     Fault finalizePhysical(const RequestPtr &req,
-                      ThreadContext *tc, Mode mode) const {
+                      ThreadContext *tc, BaseMMU::Mode mode) const {
         panic("ShaderTLB don't support finalizePhysical");
         return NoFault;
     };
 
 
     void translateTiming(const RequestPtr &req, ThreadContext *tc,
-                         Translation *translation, Mode mode);
+                         BaseMMU::Translation *translation, BaseMMU::Mode mode);
 
     ShaderMMU *mmu;
 
 public:
     typedef ShaderTLBParams Params;
-    ShaderTLB(const Params *p);
+    ShaderTLB(const ShaderTLBParams &p);
 
     // For checkpoint restore (empty unserialize)
     virtual void unserialize(CheckpointIn &cp);
 
-    void beginTranslateTiming(RequestPtr req, BaseTLB::Translation *translation,
-                              BaseTLB::Mode mode);
+    void beginTranslateTiming(RequestPtr req, BaseMMU::Translation *translation,
+                              BaseMMU::Mode mode);
 
     void finishTranslation(Fault fault, RequestPtr req, ThreadContext *tc,
-                           Mode mode, Translation* origTranslation);
+                           BaseMMU::Mode mode, BaseMMU::Translation* origTranslation);
 
     void demapPage(Addr addr, uint64_t asn);
     void flushAll();
@@ -173,5 +174,5 @@ public:
     Stats::Formula hitRate;
     */
 };
-
+}
 #endif /* SHADER_TLB_HH_ */

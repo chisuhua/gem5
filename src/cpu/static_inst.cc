@@ -30,52 +30,8 @@
 
 #include <iostream>
 
-#include "sim/core.hh"
-
-namespace {
-
-static TheISA::ExtMachInst nopMachInst;
-
-class NopStaticInst : public StaticInst
+namespace gem5
 {
-  public:
-    NopStaticInst() : StaticInst("gem5 nop", nopMachInst, No_OpClass)
-    {}
-
-    Fault
-    execute(ExecContext *xc, Trace::InstRecord *traceData) const override
-    {
-        return NoFault;
-    }
-
-    void
-    advancePC(TheISA::PCState &pcState) const override
-    {
-        pcState.advance();
-    }
-
-    std::string
-    generateDisassembly(Addr pc,
-            const Loader::SymbolTable *symtab) const override
-    {
-        return mnemonic;
-    }
-
-  private:
-};
-
-}
-
-StaticInstPtr StaticInst::nullStaticInstPtr;
-StaticInstPtr StaticInst::nopStaticInstPtr = new NopStaticInst;
-
-using namespace std;
-
-StaticInst::~StaticInst()
-{
-    if (cachedDisassembly)
-        delete cachedDisassembly;
-}
 
 bool
 StaticInst::hasBranchTarget(const TheISA::PCState &pc, ThreadContext *tc,
@@ -106,7 +62,6 @@ StaticInst::branchTarget(const TheISA::PCState &pc) const
 {
     panic("StaticInst::branchTarget() called on instruction "
           "that is not a PC-relative branch.");
-    M5_DUMMY_RETURN;
 }
 
 TheISA::PCState
@@ -114,14 +69,15 @@ StaticInst::branchTarget(ThreadContext *tc) const
 {
     panic("StaticInst::branchTarget() called on instruction "
           "that is not an indirect branch.");
-    M5_DUMMY_RETURN;
 }
 
-const string &
-StaticInst::disassemble(Addr pc, const Loader::SymbolTable *symtab) const
+const std::string &
+StaticInst::disassemble(Addr pc, const loader::SymbolTable *symtab) const
 {
-    if (!cachedDisassembly)
-        cachedDisassembly = new string(generateDisassembly(pc, symtab));
+    if (!cachedDisassembly) {
+        cachedDisassembly =
+            std::make_unique<std::string>(generateDisassembly(pc, symtab));
+    }
 
     return *cachedDisassembly;
 }
@@ -142,3 +98,5 @@ StaticInst::printFlags(std::ostream &outs,
         }
     }
 }
+
+} // namespace gem5

@@ -25,15 +25,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from MemObject import MemObject
-from ShaderTLB import ShaderTLB
 from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
+#from m5.objects.MemObject import MemObject
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ShaderTLB import ShaderTLB
 
-class CudaCore(MemObject):
+class CudaCore(ClockedObject):
     type = 'CudaCore'
-    cxx_class = 'CudaCore'
+    cxx_class = 'gem5::CudaCore'
     cxx_header = "gpu/gpgpu-sim/cuda_core.hh"
 
     inst_port = MasterPort("The instruction cache port for this SC")

@@ -32,10 +32,10 @@ import os
 
 Import('*')
 
-all_protocols.extend([
+main['ALL_PROTOCOLS'].extend([
     'VI_hammer',
     ])
 
-protocol_dirs.append(str(Dir('.').abspath))
+main['PROTOCOL_DIRS'].append(Dir('.'))
 
-slicc_includes.append(str(Dir('..').abspath) + '/ruby/RubySlicc_GPUMappings.hh')
+main['SLICC_INCLUDES'].append(str(Dir('..').abspath) + '/ruby/RubySlicc_GPUMappings.hh')

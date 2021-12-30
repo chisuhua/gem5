@@ -47,12 +47,20 @@
  * Generic helper functions for locked memory accesses.
  */
 
-#include "config/the_isa.hh"
+#include "base/compiler.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 
-namespace TheISA
+namespace gem5
 {
+
+namespace GenericISA
+{
+
+GEM5_DEPRECATED_NAMESPACE(LockedMem, locked_mem);
+namespace locked_mem
+{
+
 template <class XC>
 inline void
 handleLockedSnoop(XC *xc, PacketPtr pkt, Addr cacheBlockMask)
@@ -85,6 +93,9 @@ globalClearExclusive(XC *xc)
 {
 }
 
+} // namespace locked_mem
+
 } // namespace Generic ISA
+} // namespace gem5
 
 #endif

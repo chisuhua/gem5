@@ -44,6 +44,9 @@
 #include "cpu/kvm/base.hh"
 #include "params/ArmKvmCPU.hh"
 
+namespace gem5
+{
+
 /**
  * ARM implementation of a KVM-based hardware virtualized CPU.
  * Architecture specific limitations:
@@ -59,7 +62,7 @@
 class ArmKvmCPU : public BaseKvmCPU
 {
   public:
-    ArmKvmCPU(ArmKvmCPUParams *params);
+    ArmKvmCPU(const ArmKvmCPUParams &params);
     virtual ~ArmKvmCPU();
 
     void startup();
@@ -67,20 +70,22 @@ class ArmKvmCPU : public BaseKvmCPU
     void dump();
 
   protected:
-    struct KvmIntRegInfo {
+    struct KvmIntRegInfo
+    {
         /** KVM ID */
         const uint64_t id;
         /** gem5 index */
-        const IntRegIndex idx;
+        const ArmISA::IntRegIndex idx;
         /** Name in debug output */
         const char *name;
     };
 
-    struct KvmCoreMiscRegInfo {
+    struct KvmCoreMiscRegInfo
+    {
         /** KVM ID */
         const uint64_t id;
         /** gem5 index */
-        const MiscRegIndex idx;
+        const ArmISA::MiscRegIndex idx;
         /** Name in debug output */
         const char *name;
     };
@@ -162,5 +167,7 @@ class ArmKvmCPU : public BaseKvmCPU
      */
     static const std::set<uint64_t> invariant_regs;
 };
+
+} // namespace gem5
 
 #endif // __ARCH_ARM_KVM_ARM_CPU_HH__

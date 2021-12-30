@@ -48,6 +48,9 @@
 #include "params/TarmacTracer.hh"
 #include "sim/insttracer.hh"
 
+namespace gem5
+{
+
 class ThreadContext;
 
 namespace Trace {
@@ -87,7 +90,7 @@ class TarmacTracer : public InstTracer
   public:
     typedef TarmacTracerParams Params;
 
-    TarmacTracer(const Params *p);
+    TarmacTracer(const Params &p);
 
     /**
      * Generates a TarmacTracerRecord, depending on the Tarmac version.
@@ -126,5 +129,6 @@ class TarmacTracer : public InstTracer
 };
 
 } // namespace Trace
+} // namespace gem5
 
 #endif // __ARCH_ARM_TRACERS_TARMAC_TRACER_HH__

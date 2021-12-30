@@ -30,8 +30,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Anthony Gutierrez
 
 Import('*')
 
@@ -39,12 +37,8 @@ if not env['BUILD_GPU']:
     Return()
 
 SimObject('HSADevice.py')
-SimObject('HSADriver.py')
 
-Source('hsa_device.cc')
-Source('hsa_driver.cc')
 Source('hsa_packet_processor.cc')
 Source('hw_scheduler.cc')
 
-DebugFlag('HSADriver')
 DebugFlag('HSAPacketProcessor')

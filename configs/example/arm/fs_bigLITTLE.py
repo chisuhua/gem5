@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017, 2019 ARM Limited
+# Copyright (c) 2016-2017, 2019-2021 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -36,10 +36,6 @@
 # This is an example configuration script for full system simulation of
 # a generic ARM bigLITTLE system.
 
-
-from __future__ import print_function
-from __future__ import absolute_import
-
 import argparse
 import os
 import sys
@@ -60,7 +56,6 @@ from devices import AtomicCluster, KvmCluster, FastmodelCluster
 
 
 default_disk = 'aarch64-ubuntu-trusty-headless.img'
-default_rcs = 'bootscript.rcS'
 
 default_mem_size= "2GB"
 
@@ -118,13 +113,12 @@ def createSystem(caches, kernel, bootscript, machine_type="VExpress_GEM5",
     platform = ObjectList.platform_list.get(machine_type)
     m5.util.inform("Simulated platform: %s", platform.__name__)
 
-    sys = devices.simpleSystem(ArmSystem,
-                               caches, mem_size, platform(),
+    sys = devices.SimpleSystem(caches, mem_size, platform(),
                                workload=ArmFsLinux(
                                    object_file=SysPaths.binary(kernel)),
                                readfile=bootscript)
 
-    sys.mem_ctrls = [ SimpleMemory(range=r, port=sys.membus.master)
+    sys.mem_ctrls = [ SimpleMemory(range=r, port=sys.membus.mem_side_ports)
                       for r in sys.mem_ranges ]
 
     sys.connect()
@@ -175,7 +169,7 @@ def addOptions(parser):
                         help="Hardware platform class")
     parser.add_argument("--disk", action="append", type=str, default=[],
                         help="Disks to instantiate")
-    parser.add_argument("--bootscript", type=str, default=default_rcs,
+    parser.add_argument("--bootscript", type=str, default="",
                         help="Linux bootscript")
     parser.add_argument("--cpu-type", type=str, choices=list(cpu_types.keys()),
                         default="timing",
@@ -203,6 +197,9 @@ def addOptions(parser):
                         help="Custom Linux kernel command")
     parser.add_argument("--bootloader", action="append",
                         help="executable file that runs before the --kernel")
+    parser.add_argument("--kvm-userspace-gic", action="store_true",
+                        default=False,
+                        help="Use the gem5 GIC in a KVM simulation")
     parser.add_argument("-P", "--param", action="append", default=[],
         help="Set a SimObject parameter relative to the root node. "
              "An extended Python multi range slicing syntax can be used "
@@ -213,13 +210,16 @@ def addOptions(parser):
              "only parameters of its children.")
     parser.add_argument("--vio-9p", action="store_true",
                         help=Options.vio_9p_help)
+    parser.add_argument("--dtb-gen", action="store_true",
+                        help="Doesn't run simulation, it generates a DTB only")
     return parser
 
 def build(options):
     m5.ticks.fixGlobalFrequency()
 
     kernel_cmd = [
-        "earlyprintk=pl011,0x1c090000",
+        "earlyprintk",
+        "earlycon=pl011,0x1c090000",
         "console=ttyAMA0",
         "lpj=19988480",
         "norandmaps",
@@ -284,7 +284,7 @@ def build(options):
 
     # Create a KVM VM and do KVM-specific configuration
     if issubclass(big_model, KvmCluster):
-        _build_kvm(system, all_cpus)
+        _build_kvm(options, system, all_cpus)
 
     # Linux device tree
     if options.dtb is not None:
@@ -308,8 +308,17 @@ def build(options):
 
     return root
 
-def _build_kvm(system, cpus):
+def _build_kvm(options, system, cpus):
     system.kvm_vm = KvmVM()
+
+    if options.kvm_userspace_gic:
+        # We will use the simulated GIC.
+        # In order to make it work we need to remove the system interface
+        # of the generic timer from the DTB and we need to inform the
+        # MuxingKvmGic class to use the gem5 GIC instead of relying on the
+        # host interrupt controller
+        GenericTimer.generateDeviceTree = SimObject.generateDeviceTree
+        system.realview.gic.simulate_gic = True
 
     # Assign KVM CPUs to their own event queues / threads. This
     # has to be done after creating caches and other child objects
@@ -366,6 +375,10 @@ def run(checkpoint_dir=m5.options.outdir):
     sys.exit(event.getCode())
 
 
+def generateDtb(root):
+    root.system.generateDtb(os.path.join(m5.options.outdir, "system.dtb"))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generic ARM big.LITTLE configuration")
@@ -374,7 +387,10 @@ def main():
     root = build(options)
     root.apply_config(options.param)
     instantiate(options)
-    run()
+    if options.dtb_gen:
+      generateDtb(root)
+    else:
+      run()
 
 
 if __name__ == "__m5_main__":

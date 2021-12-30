@@ -42,10 +42,9 @@ output header {{
     class MipsStaticInst : public StaticInst
     {
       protected:
-
         // Constructor
         MipsStaticInst(const char *mnem, MachInst _machInst, OpClass __opClass)
-            : StaticInst(mnem, _machInst, __opClass)
+            : StaticInst(mnem, __opClass), machInst(_machInst)
         {
         }
 
@@ -54,13 +53,24 @@ output header {{
         void printReg(std::ostream &os, RegId reg) const;
 
         std::string generateDisassembly(
-                Addr pc, const Loader::SymbolTable *symtab) const override;
+                Addr pc, const loader::SymbolTable *symtab) const override;
 
       public:
+        ExtMachInst machInst;
+
         void
         advancePC(MipsISA::PCState &pc) const override
         {
             pc.advance();
+        }
+
+        PCState
+        buildRetPC(const PCState &curPC, const PCState &callPC) const override
+        {
+            PCState ret = callPC;
+            ret.advance();
+            ret.pc(curPC.npc());
+            return ret;
         }
 
         size_t
@@ -78,7 +88,7 @@ output decoder {{
     void
     MipsStaticInst::printReg(std::ostream &os, RegId reg) const
     {
-        if (reg.isIntReg()) {
+        if (reg.is(IntRegClass)) {
             ccprintf(os, "r%d", reg.index());
         } else {
             ccprintf(os, "f%d", reg.index());
@@ -87,7 +97,7 @@ output decoder {{
 
     std::string
     MipsStaticInst::generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const
+            Addr pc, const loader::SymbolTable *symtab) const
     {
         std::stringstream ss;
 
@@ -98,17 +108,17 @@ output decoder {{
         // class?
         if (strcmp(mnemonic, "syscall") != 0) {
             if(_numDestRegs > 0){
-                printReg(ss, _destRegIdx[0]);
+                printReg(ss, destRegIdx(0));
             }
 
             if(_numSrcRegs > 0) {
                 ss << ", ";
-                printReg(ss, _srcRegIdx[0]);
+                printReg(ss, srcRegIdx(0));
             }
 
             if(_numSrcRegs > 1) {
                 ss << ", ";
-                printReg(ss, _srcRegIdx[1]);
+                printReg(ss, srcRegIdx(1));
             }
         }
 

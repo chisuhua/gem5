@@ -6,6 +6,8 @@
 #include "base/types.hh"
 #include "mem/simple_mem.hh"
 
+namespace gem5 {
+
 /**
  * A class for representing GPU atomic operations requested by each GPU core
  * lane. Each instance contains the parameters of an atomic memory operation
@@ -85,7 +87,7 @@ class AtomicOpRequest {
 
     // Called from the RubyPort hit callback to actually perform the atomic
     // operation requests in a CoalescedAccess (i.e. the passed PacketPtr)
-    static void atomicMemoryAccess(PacketPtr pkt, SimpleMemory *phys_mem);
+    static void atomicMemoryAccess(PacketPtr pkt, memory::SimpleMemory *phys_mem);
 
   private:
     // Perform the atomic's operation on the passed data
@@ -93,5 +95,6 @@ class AtomicOpRequest {
     void doAtomicOperation(uint8_t *read_data, uint8_t *write_data);
 
 };
+}
 
 #endif // __ATOMIC_OPERATIONS_HH__

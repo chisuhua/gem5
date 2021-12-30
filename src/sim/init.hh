@@ -54,6 +54,9 @@ struct _object;
 typedef _object PyObject;
 #endif
 
+namespace gem5
+{
+
 /*
  * Data structure describing an embedded python file.
  */
@@ -82,11 +85,11 @@ class EmbeddedPyBind
 {
   public:
     EmbeddedPyBind(const char *_name,
-                   void (*init_func)(pybind11::module &),
+                   void (*init_func)(pybind11::module_ &),
                    const char *_base);
 
     EmbeddedPyBind(const char *_name,
-                   void (*init_func)(pybind11::module &));
+                   void (*init_func)(pybind11::module_ &));
 
 #if PY_MAJOR_VERSION >= 3
     static PyObject *initAll();
@@ -95,10 +98,10 @@ class EmbeddedPyBind
 #endif
 
   private:
-    void (*initFunc)(pybind11::module &);
+    void (*initFunc)(pybind11::module_ &);
 
     bool depsReady() const;
-    void init(pybind11::module &m);
+    void init(pybind11::module_ &m);
 
     bool registered;
     const std::string name;
@@ -110,5 +113,7 @@ class EmbeddedPyBind
 void registerNativeModules();
 
 int m5Main(int argc, char **argv);
+
+} // namespace gem5
 
 #endif // __SIM_INIT_HH__

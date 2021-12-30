@@ -31,18 +31,18 @@ from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
 from m5.util import fatal
-from ClockedObject import ClockedObject
+from m5.objects.ClockedObject import ClockedObject
 
 class ShaderMMU(ClockedObject):
     type = 'ShaderMMU'
-    cxx_class = 'ShaderMMU'
+    cxx_class = 'gem5::ShaderMMU'
     cxx_header = "gpu/shader_mmu.hh"
 
     if buildEnv['TARGET_ISA'] == 'x86':
-        from X86TLB import X86TLB
+        from m5.objects.X86TLB import X86TLB
         pagewalkers = VectorParam.X86TLB("wrapped TLB")
     elif buildEnv['TARGET_ISA'] == 'arm':
-        from ArmTLB import ArmTLB
+        from m5.objects.ArmTLB import ArmTLB
         pagewalkers = VectorParam.ArmTLB("wrapped TLB")
         stage2_mmu = Param.ArmStage2MMU("Stage 2 MMU for port")
     else:
@@ -57,13 +57,13 @@ class ShaderMMU(ClockedObject):
 
     def setUpPagewalkers(self, num, port, bypass_l1):
         if buildEnv['TARGET_ISA'] == 'arm':
-            from ArmTLB import ArmTLB, ArmStage2DMMU
+            from m5.objects.ArmTLB import ArmTLB, ArmStage2DMMU
             self.stage2_mmu = ArmStage2DMMU(tlb = ArmTLB())
         tlbs = []
         for i in range(num):
             # set to only a single entry here so that all requests are misses
             if buildEnv['TARGET_ISA'] == 'x86':
-                from X86TLB import X86TLB
+                from m5.objects.X86TLB import X86TLB
                 t = X86TLB(size=1)
                 t.walker.bypass_l1 = bypass_l1
             elif buildEnv['TARGET_ISA'] == 'arm':

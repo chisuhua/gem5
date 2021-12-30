@@ -37,6 +37,9 @@
 #include "params/ExeTracer.hh"
 #include "sim/insttracer.hh"
 
+namespace gem5
+{
+
 class ThreadContext;
 
 namespace Trace {
@@ -60,7 +63,7 @@ class ExeTracer : public InstTracer
 {
   public:
     typedef ExeTracerParams Params;
-    ExeTracer(const Params *params) : InstTracer(params)
+    ExeTracer(const Params &params) : InstTracer(params)
     {}
 
     InstRecord *
@@ -68,7 +71,7 @@ class ExeTracer : public InstTracer
             const StaticInstPtr staticInst, TheISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {
-        if (!Debug::ExecEnable)
+        if (!debug::ExecEnable)
             return NULL;
 
         return new ExeTracerRecord(when, tc,
@@ -77,5 +80,6 @@ class ExeTracer : public InstTracer
 };
 
 } // namespace Trace
+} // namespace gem5
 
 #endif // __CPU_EXETRACE_HH__

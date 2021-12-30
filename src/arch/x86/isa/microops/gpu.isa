@@ -45,7 +45,7 @@ output header {{
         GPUFaultFinish(ExtMachInst _machInst, const char * instMnem,
                 uint64_t setFlags) :
             X86MicroopBase(_machInst, "gpufaultfinish", instMnem,
-                           setFlags | (ULL(1) << StaticInst::IsNonSpeculative),
+                           setFlags | (1ULL << StaticInst::IsNonSpeculative),
                            No_OpClass)
         {
         }

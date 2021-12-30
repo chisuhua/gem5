@@ -1,4 +1,16 @@
 /*
+ * Copyright (c) 2020 ARM Limited
+ * All rights reserved
+ *
+ * The license below extends only to copyright in the software and shall
+ * not be construed as granting a license to any other intellectual
+ * property including but not limited to intellectual property relating
+ * to a hardware implementation of the functionality of the software
+ * licensed hereunder.  You may use the software subject to the license
+ * terms below provided that you ensure that this notice is replicated
+ * unmodified and in its entirety in all distributions of the software,
+ * modified or unmodified, in source code or in binary form.
+ *
  * Copyright 2019 Google, Inc.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +41,7 @@
 
 #include <utility>
 
+#include "arch/arm/fastmodel/iris/cpu.hh"
 #include "arch/arm/system.hh"
 #include "arch/arm/utility.hh"
 #include "iris/detail/IrisCppAdapter.h"
@@ -36,6 +49,9 @@
 #include "mem/se_translating_port_proxy.hh"
 #include "mem/translating_port_proxy.hh"
 #include "sim/pseudo_inst.hh"
+
+namespace gem5
+{
 
 namespace Iris
 {
@@ -204,9 +220,22 @@ ThreadContext::phaseInitLeave(
     std::vector<iris::ResourceInfo> resources;
     call().resource_getList(_instId, resources);
 
+    std::map<iris::ResourceId, const iris::ResourceInfo *>
+        idToResource;
+    for (const auto &resource: resources) {
+        idToResource[resource.rscId] = &resource;
+    }
     ResourceMap resourceMap;
-    for (auto &resource: resources)
-        resourceMap[resource.name] = resource;
+    for (const auto &resource: resources) {
+        std::string name = resource.name;
+        iris::ResourceId parentId = resource.parentRscId;
+        while (parentId != iris::IRIS_UINT64_MAX) {
+            const auto *parent = idToResource[parentId];
+            name = parent->name + "." + name;
+            parentId = parent->parentRscId;
+        }
+        resourceMap[name] = resource;
+    }
 
     initFromIrisInstance(resourceMap);
 
@@ -279,9 +308,10 @@ ThreadContext::semihostingEvent(
 }
 
 ThreadContext::ThreadContext(
-        BaseCPU *cpu, int id, System *system, ::BaseTLB *dtb, ::BaseTLB *itb,
-        iris::IrisConnectionInterface *iris_if, const std::string &iris_path) :
-    _cpu(cpu), _threadId(id), _system(system), _dtb(dtb), _itb(itb),
+        gem5::BaseCPU *cpu, int id, System *system, gem5::BaseMMU *mmu,
+        BaseISA *isa, iris::IrisConnectionInterface *iris_if,
+        const std::string &iris_path) :
+    _cpu(cpu), _threadId(id), _system(system), _mmu(mmu), _isa(isa),
     _irisPath(iris_path), vecRegs(ArmISA::NumVecRegs),
     vecPredRegs(ArmISA::NumVecPredRegs),
     comInstEventQueue("instruction-based event queue"),
@@ -448,18 +478,23 @@ ThreadContext::getCurrentInstCount()
 }
 
 void
-ThreadContext::initMemProxies(::ThreadContext *tc)
+ThreadContext::initMemProxies(gem5::ThreadContext *tc)
 {
+    assert(!virtProxy);
     if (FullSystem) {
-        assert(!physProxy && !virtProxy);
-        physProxy.reset(new PortProxy(_cpu->getSendFunctional(),
-                                      _cpu->cacheLineSize()));
         virtProxy.reset(new TranslatingPortProxy(tc));
     } else {
-        assert(!virtProxy);
         virtProxy.reset(new SETranslatingPortProxy(this,
                         SETranslatingPortProxy::NextPage));
     }
+}
+
+void
+ThreadContext::sendFunctional(PacketPtr pkt)
+{
+    auto *iris_cpu = dynamic_cast<Iris::BaseCPU *>(getCpuPtr());
+    assert(iris_cpu);
+    iris_cpu->evs_base_cpu->sendFunc(pkt);
 }
 
 ThreadContext::Status
@@ -638,7 +673,7 @@ ThreadContext::readVecReg(const RegId &reg_id) const
     call().resource_read(_instId, result, vecRegIds.at(idx));
     size_t data_size = result.data.size() * (sizeof(*result.data.data()));
     size_t size = std::min(data_size, reg.size());
-    memcpy(reg.raw_ptr<void>(), (void *)result.data.data(), size);
+    memcpy(reg.as<uint8_t>(), (void *)result.data.data(), size);
 
     return reg;
 }
@@ -667,13 +702,13 @@ ThreadContext::readVecPredReg(const RegId &reg_id) const
     size_t num_bits = reg.NUM_BITS;
     uint8_t *bytes = (uint8_t *)result.data.data();
     while (num_bits > 8) {
-        reg.set_bits(offset, 8, *bytes);
+        reg.setBits(offset, 8, *bytes);
         offset += 8;
         num_bits -= 8;
         bytes++;
     }
     if (num_bits)
-        reg.set_bits(offset, num_bits, *bytes);
+        reg.setBits(offset, num_bits, *bytes);
 
     return reg;
 }
@@ -685,3 +720,4 @@ ThreadContext::readVecPredRegFlat(RegIndex idx) const
 }
 
 } // namespace Iris
+} // namespace gem5

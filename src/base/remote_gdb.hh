@@ -44,15 +44,30 @@
 
 #include <sys/signal.h>
 
+#include <cstdint>
 #include <exception>
 #include <map>
 #include <string>
+#include <vector>
 
-#include "arch/types.hh"
-#include "base/intmath.hh"
+#include "arch/pcstate.hh"
+#include "base/cprintf.hh"
 #include "base/pollevent.hh"
 #include "base/socket.hh"
+#include "base/types.hh"
 #include "cpu/pc_event.hh"
+#include "sim/debug.hh"
+#include "sim/eventq.hh"
+
+/*
+ * This file implements a client for the GDB remote serial protocol as
+ * described in this official documentation:
+ *
+ * https://sourceware.org/gdb/current/onlinedocs/gdb/Remote-Protocol.html
+ */
+
+namespace gem5
+{
 
 class System;
 
@@ -76,23 +91,31 @@ class BaseGdbRegCache
      * Return the pointer to the raw bytes buffer containing the
      * register values.  Each byte of this buffer is literally
      * encoded as two hex digits in the g or G RSP packet.
+     *
+     * @ingroup api_remote_gdb
      */
     virtual char *data() const = 0;
 
     /**
      * Return the size of the raw buffer, in bytes
      * (i.e., half of the number of digits in the g/G packet).
+     *
+     * @ingroup api_remote_gdb
      */
     virtual size_t size() const = 0;
 
     /**
      * Fill the raw buffer from the registers in the ThreadContext.
+     *
+     * @ingroup api_remote_gdb
      */
     virtual void getRegs(ThreadContext*) = 0;
 
     /**
      * Set the ThreadContext's registers from the values
      * in the raw buffer.
+     *
+     * @ingroup api_remote_gdb
      */
     virtual void setRegs(ThreadContext*) const = 0;
 
@@ -101,9 +124,14 @@ class BaseGdbRegCache
      * Having each concrete superclass redefine this member
      * is useful in situations where the class of the regCache
      * can change on the fly.
+     *
+     * @ingroup api_remote_gdb
      */
     virtual const std::string name() const = 0;
 
+    /**
+     * @ingroup api_remote_gdb
+     */
     BaseGdbRegCache(BaseRemoteGDB *g) : gdb(g)
     {}
     virtual ~BaseGdbRegCache()
@@ -118,20 +146,15 @@ class BaseRemoteGDB
     friend class HardBreakpoint;
   public:
 
-    /*
+    /**
+     * @ingroup api_remote_gdb
+     * @{
+     */
+
+    /**
      * Interface to other parts of the simulator.
      */
-    BaseRemoteGDB(System *system, ThreadContext *c, int _port):
-        connectEvent(nullptr), dataEvent(nullptr), _port(_port), fd(-1),
-        active(false), attached(false), sys(system), tc(c),
-        trapEvent(this), singleStepEvent(*this)
-    {
-        addDebuggers();
-        // debuggers.push_back(this);
-    }
-
-    void addDebuggers();
-
+    BaseRemoteGDB(System *system, int _port);
     virtual ~BaseRemoteGDB();
 
     std::string name();
@@ -145,10 +168,24 @@ class BaseRemoteGDB
     void detach();
     bool isAttached() { return attached; }
 
-    void replaceThreadContext(ThreadContext *_tc) { tc = _tc; }
+    void addThreadContext(ThreadContext *_tc);
+    void replaceThreadContext(ThreadContext *_tc);
+    bool selectThreadContext(ContextID id);
 
-    bool trap(int type);
-    bool breakpoint() { return trap(SIGTRAP); }
+    bool trap(ContextID id, int type);
+
+    /** @} */ // end of api_remote_gdb
+
+    template <class GDBStub, class ...Args>
+    static BaseRemoteGDB *
+    build(Args... args)
+    {
+        int port = getRemoteGDBPort();
+        if (port)
+            return new GDBStub(args..., port);
+        else
+            return nullptr;
+    }
 
   private:
     /*
@@ -192,22 +229,34 @@ class BaseRemoteGDB
 
     void recv(std::vector<char> &bp);
     void send(const char *data);
+    void send(const std::string &data) { send(data.c_str()); }
+
+    template <typename ...Args>
+    void
+    send(const char *format, const Args &...args)
+    {
+        send(csprintf(format, args...));
+    }
 
     /*
      * Simulator side debugger state.
      */
-    bool active;
-    bool attached;
+    bool active = false;
+    bool attached = false;
+    bool threadSwitching = false;
 
     System *sys;
-    ThreadContext *tc;
 
-    BaseGdbRegCache *regCachePtr;
+    std::map<ContextID, ThreadContext *> threads;
+    ThreadContext *tc = nullptr;
+
+    BaseGdbRegCache *regCachePtr = nullptr;
 
     class TrapEvent : public Event
     {
       protected:
         int _type;
+        ContextID _id;
         BaseRemoteGDB *gdb;
 
       public:
@@ -215,7 +264,8 @@ class BaseRemoteGDB
         {}
 
         void type(int t) { _type = t; }
-        void process() { gdb->trap(_type); }
+        void id(ContextID id) { _id = id; }
+        void process() { gdb->trap(_id, _type); }
     } trapEvent;
 
     /*
@@ -246,9 +296,6 @@ class BaseRemoteGDB
     void insertHardBreak(Addr addr, size_t len);
     void removeHardBreak(Addr addr, size_t len);
 
-    void clearTempBreakpoint(Addr &bkpt);
-    void setTempBreakpoint(Addr bkpt);
-
     /*
      * GDB commands.
      */
@@ -258,7 +305,7 @@ class BaseRemoteGDB
         struct Context
         {
             const GdbCommand *cmd;
-            char cmd_byte;
+            char cmdByte;
             int type;
             char *data;
             int len;
@@ -272,24 +319,55 @@ class BaseRemoteGDB
         GdbCommand(const char *_name, Func _func) : name(_name), func(_func) {}
     };
 
-    static std::map<char, GdbCommand> command_map;
+    static std::map<char, GdbCommand> commandMap;
 
-    bool cmd_unsupported(GdbCommand::Context &ctx);
+    bool cmdUnsupported(GdbCommand::Context &ctx);
 
-    bool cmd_signal(GdbCommand::Context &ctx);
-    bool cmd_cont(GdbCommand::Context &ctx);
-    bool cmd_async_cont(GdbCommand::Context &ctx);
-    bool cmd_detach(GdbCommand::Context &ctx);
-    bool cmd_reg_r(GdbCommand::Context &ctx);
-    bool cmd_reg_w(GdbCommand::Context &ctx);
-    bool cmd_set_thread(GdbCommand::Context &ctx);
-    bool cmd_mem_r(GdbCommand::Context &ctx);
-    bool cmd_mem_w(GdbCommand::Context &ctx);
-    bool cmd_query_var(GdbCommand::Context &ctx);
-    bool cmd_step(GdbCommand::Context &ctx);
-    bool cmd_async_step(GdbCommand::Context &ctx);
-    bool cmd_clr_hw_bkpt(GdbCommand::Context &ctx);
-    bool cmd_set_hw_bkpt(GdbCommand::Context &ctx);
+    bool cmdSignal(GdbCommand::Context &ctx);
+    bool cmdCont(GdbCommand::Context &ctx);
+    bool cmdAsyncCont(GdbCommand::Context &ctx);
+    bool cmdDetach(GdbCommand::Context &ctx);
+    bool cmdRegR(GdbCommand::Context &ctx);
+    bool cmdRegW(GdbCommand::Context &ctx);
+    bool cmdSetThread(GdbCommand::Context &ctx);
+    bool cmdMemR(GdbCommand::Context &ctx);
+    bool cmdMemW(GdbCommand::Context &ctx);
+    bool cmdQueryVar(GdbCommand::Context &ctx);
+    bool cmdStep(GdbCommand::Context &ctx);
+    bool cmdAsyncStep(GdbCommand::Context &ctx);
+    bool cmdClrHwBkpt(GdbCommand::Context &ctx);
+    bool cmdSetHwBkpt(GdbCommand::Context &ctx);
+    bool cmdDumpPageTable(GdbCommand::Context &ctx);
+
+    struct QuerySetCommand
+    {
+        struct Context
+        {
+            const std::string &name;
+            std::vector<std::string> args;
+
+            Context(const std::string &_name) : name(_name) {}
+        };
+
+        using Func = void (BaseRemoteGDB::*)(Context &ctx);
+
+        const char * const argSep;
+        const Func func;
+
+        QuerySetCommand(Func _func, const char *_argSep=nullptr) :
+            argSep(_argSep), func(_func)
+        {}
+    };
+
+    static std::map<std::string, QuerySetCommand> queryMap;
+
+    void queryC(QuerySetCommand::Context &ctx);
+    void querySupported(QuerySetCommand::Context &ctx);
+    void queryXfer(QuerySetCommand::Context &ctx);
+
+    size_t threadInfoIdx = 0;
+    void queryFThreadInfo(QuerySetCommand::Context &ctx);
+    void querySThreadInfo(QuerySetCommand::Context &ctx);
 
   protected:
     ThreadContext *context() { return tc; }
@@ -336,5 +414,7 @@ BaseRemoteGDB::write(Addr addr, T data)
 {
     write(addr, sizeof(T), (const char *)&data);
 }
+
+} // namespace gem5
 
 #endif /* __REMOTE_GDB_H__ */

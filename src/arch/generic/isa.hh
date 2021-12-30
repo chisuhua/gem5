@@ -40,19 +40,52 @@
 #ifndef __ARCH_GENERIC_ISA_HH__
 #define __ARCH_GENERIC_ISA_HH__
 
+#include <vector>
+
+#include "cpu/reg_class.hh"
+#include "enums/VecRegRenameMode.hh"
 #include "sim/sim_object.hh"
+
+namespace gem5
+{
 
 class ThreadContext;
 
 class BaseISA : public SimObject
 {
+  public:
+    typedef std::vector<RegClassInfo> RegClasses;
+
   protected:
     using SimObject::SimObject;
 
+    ThreadContext *tc = nullptr;
+
+    RegClasses _regClasses;
+
   public:
-    virtual void
-    takeOverFrom(ThreadContext *new_tc, ThreadContext *old_tc)
-    {}
+    virtual void takeOverFrom(ThreadContext *new_tc, ThreadContext *old_tc) {}
+    virtual void setThreadContext(ThreadContext *_tc) { tc = _tc; }
+
+    virtual uint64_t getExecutingAsid() const { return 0; }
+    virtual bool inUserMode() const = 0;
+    virtual void copyRegsFrom(ThreadContext *src) = 0;
+
+    virtual enums::VecRegRenameMode
+    initVecRegRenameMode() const
+    {
+        return enums::Full;
+    }
+
+    virtual enums::VecRegRenameMode
+    vecRegRenameMode(ThreadContext *_tc) const
+    {
+        return initVecRegRenameMode();
+    }
+
+    const RegClasses &regClasses() const { return _regClasses; }
 };
+
+} // namespace gem5
 
 #endif // __ARCH_GENERIC_ISA_HH__

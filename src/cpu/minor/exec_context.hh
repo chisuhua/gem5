@@ -56,7 +56,11 @@
 #include "mem/request.hh"
 #include "debug/MinorExecute.hh"
 
-namespace Minor
+namespace gem5
+{
+
+GEM5_DEPRECATED_NAMESPACE(Minor, minor);
+namespace minor
 {
 
 /* Forward declaration of Execute */
@@ -66,7 +70,7 @@ class Execute;
  *  separates that interface from other classes such as Pipeline, MinorCPU
  *  and DynMinorInst and makes it easier to see what state is accessed by it.
  */
-class ExecContext : public ::ExecContext
+class ExecContext : public gem5::ExecContext
 {
   public:
     MinorCPU &cpu;
@@ -83,7 +87,7 @@ class ExecContext : public ::ExecContext
     ExecContext (
         MinorCPU &cpu_,
         SimpleThread &thread_, Execute &execute_,
-        MinorDynInstPtr inst_) :
+        MinorDynInstPtr inst_, RegIndex zeroReg) :
         cpu(cpu_),
         thread(thread_),
         execute(execute_),
@@ -93,7 +97,7 @@ class ExecContext : public ::ExecContext
         pcState(inst->pc);
         setPredicate(inst->readPredicate());
         setMemAccPredicate(inst->readMemAccPredicate());
-        thread.setIntReg(TheISA::ZeroReg, 0);
+        thread.setIntReg(zeroReg, 0);
     }
 
     ~ExecContext()
@@ -105,21 +109,27 @@ class ExecContext : public ::ExecContext
     Fault
     initiateMemRead(Addr addr, unsigned int size,
                     Request::Flags flags,
-                    const std::vector<bool>& byte_enable =
-                        std::vector<bool>()) override
+                    const std::vector<bool>& byte_enable) override
     {
-        assert(byte_enable.empty() || byte_enable.size() == size);
+        assert(byte_enable.size() == size);
         return execute.getLSQ().pushRequest(inst, true /* load */, nullptr,
             size, addr, flags, nullptr, nullptr, byte_enable);
     }
 
     Fault
+    initiateHtmCmd(Request::Flags flags) override
+    {
+        panic("ExecContext::initiateHtmCmd() not implemented on MinorCPU\n");
+        return NoFault;
+    }
+
+    Fault
     writeMem(uint8_t *data, unsigned int size, Addr addr,
              Request::Flags flags, uint64_t *res,
-             const std::vector<bool>& byte_enable = std::vector<bool>())
+             const std::vector<bool>& byte_enable)
         override
     {
-        assert(byte_enable.empty() || byte_enable.size() == size);
+        assert(byte_enable.size() == size);
         return execute.getLSQ().pushRequest(inst, false /* store */, data,
             size, addr, flags, res, nullptr, byte_enable);
     }
@@ -130,14 +140,15 @@ class ExecContext : public ::ExecContext
     {
         // AMO requests are pushed through the store path
         return execute.getLSQ().pushRequest(inst, false /* amo */, nullptr,
-            size, addr, flags, nullptr, std::move(amo_op));
+            size, addr, flags, nullptr, std::move(amo_op),
+            std::vector<bool>(size, true));
     }
 
     RegVal
     readIntRegOperand(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isIntReg());
+        assert(reg.is(IntRegClass));
         return thread.readIntReg(reg.index());
     }
 
@@ -145,7 +156,7 @@ class ExecContext : public ::ExecContext
     readFloatRegOperandBits(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isFloatReg());
+        assert(reg.is(FloatRegClass));
         return thread.readFloatReg(reg.index());
     }
 
@@ -153,7 +164,7 @@ class ExecContext : public ::ExecContext
     readVecRegOperand(const StaticInst *si, int idx) const override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecReg());
+        assert(reg.is(VecRegClass));
         return thread.readVecReg(reg);
     }
 
@@ -161,7 +172,7 @@ class ExecContext : public ::ExecContext
     getWritableVecRegOperand(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecReg());
+        assert(reg.is(VecRegClass));
         return thread.getWritableVecReg(reg);
     }
 
@@ -169,7 +180,7 @@ class ExecContext : public ::ExecContext
     readVecElemOperand(const StaticInst *si, int idx) const override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecElem());
+        assert(reg.is(VecElemClass));
         return thread.readVecElem(reg);
     }
 
@@ -177,7 +188,7 @@ class ExecContext : public ::ExecContext
     readVecPredRegOperand(const StaticInst *si, int idx) const override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecPredReg());
+        assert(reg.is(VecPredRegClass));
         return thread.readVecPredReg(reg);
     }
 
@@ -185,7 +196,7 @@ class ExecContext : public ::ExecContext
     getWritableVecPredRegOperand(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecPredReg());
+        assert(reg.is(VecPredRegClass));
         return thread.getWritableVecPredReg(reg);
     }
 
@@ -193,7 +204,7 @@ class ExecContext : public ::ExecContext
     setIntRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isIntReg());
+        assert(reg.is(IntRegClass));
         thread.setIntReg(reg.index(), val);
     }
 
@@ -201,7 +212,7 @@ class ExecContext : public ::ExecContext
     setFloatRegOperandBits(const StaticInst *si, int idx, RegVal val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isFloatReg());
+        assert(reg.is(FloatRegClass));
         thread.setFloatReg(reg.index(), val);
     }
 
@@ -210,7 +221,7 @@ class ExecContext : public ::ExecContext
                      const TheISA::VecRegContainer& val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecReg());
+        assert(reg.is(VecRegClass));
         thread.setVecReg(reg, val);
     }
 
@@ -219,93 +230,16 @@ class ExecContext : public ::ExecContext
                          const TheISA::VecPredRegContainer& val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecPredReg());
+        assert(reg.is(VecPredRegClass));
         thread.setVecPredReg(reg, val);
     }
-
-    /** Vector Register Lane Interfaces. */
-    /** @{ */
-    /** Reads source vector 8bit operand. */
-    ConstVecLane8
-    readVec8BitLaneOperand(const StaticInst *si, int idx) const
-                            override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecReg());
-        return thread.readVec8BitLaneReg(reg);
-    }
-
-    /** Reads source vector 16bit operand. */
-    ConstVecLane16
-    readVec16BitLaneOperand(const StaticInst *si, int idx) const
-                            override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecReg());
-        return thread.readVec16BitLaneReg(reg);
-    }
-
-    /** Reads source vector 32bit operand. */
-    ConstVecLane32
-    readVec32BitLaneOperand(const StaticInst *si, int idx) const
-                            override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecReg());
-        return thread.readVec32BitLaneReg(reg);
-    }
-
-    /** Reads source vector 64bit operand. */
-    ConstVecLane64
-    readVec64BitLaneOperand(const StaticInst *si, int idx) const
-                            override
-    {
-        const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isVecReg());
-        return thread.readVec64BitLaneReg(reg);
-    }
-
-    /** Write a lane of the destination vector operand. */
-    template <typename LD>
-    void
-    setVecLaneOperandT(const StaticInst *si, int idx, const LD& val)
-    {
-        const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecReg());
-        return thread.setVecLane(reg, val);
-    }
-    virtual void
-    setVecLaneOperand(const StaticInst *si, int idx,
-            const LaneData<LaneSize::Byte>& val) override
-    {
-        setVecLaneOperandT(si, idx, val);
-    }
-    virtual void
-    setVecLaneOperand(const StaticInst *si, int idx,
-            const LaneData<LaneSize::TwoByte>& val) override
-    {
-        setVecLaneOperandT(si, idx, val);
-    }
-    virtual void
-    setVecLaneOperand(const StaticInst *si, int idx,
-            const LaneData<LaneSize::FourByte>& val) override
-    {
-        setVecLaneOperandT(si, idx, val);
-    }
-    virtual void
-    setVecLaneOperand(const StaticInst *si, int idx,
-            const LaneData<LaneSize::EightByte>& val) override
-    {
-        setVecLaneOperandT(si, idx, val);
-    }
-    /** @} */
 
     void
     setVecElemOperand(const StaticInst *si, int idx,
                       const TheISA::VecElem val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isVecElem());
+        assert(reg.is(VecElemClass));
         thread.setVecElem(reg, val);
     }
 
@@ -331,6 +265,39 @@ class ExecContext : public ::ExecContext
     setMemAccPredicate(bool val) override
     {
         thread.setMemAccPredicate(val);
+    }
+
+    // hardware transactional memory
+    uint64_t
+    getHtmTransactionUid() const override
+    {
+        panic("ExecContext::getHtmTransactionUid() not"
+              "implemented on MinorCPU\n");
+        return 0;
+    }
+
+    uint64_t
+    newHtmTransactionUid() const override
+    {
+        panic("ExecContext::newHtmTransactionUid() not"
+              "implemented on MinorCPU\n");
+        return 0;
+    }
+
+    bool
+    inHtmTransactionalState() const override
+    {
+        // ExecContext::inHtmTransactionalState() not
+        // implemented on MinorCPU
+        return false;
+    }
+
+    uint64_t
+    getHtmTransactionalDepth() const override
+    {
+        panic("ExecContext::getHtmTransactionalDepth() not"
+              "implemented on MinorCPU\n");
+        return 0;
     }
 
     TheISA::PCState
@@ -367,7 +334,7 @@ class ExecContext : public ::ExecContext
     readMiscRegOperand(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isMiscReg());
+        assert(reg.is(MiscRegClass));
         return thread.readMiscReg(reg.index());
     }
 
@@ -375,14 +342,8 @@ class ExecContext : public ::ExecContext
     setMiscRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isMiscReg());
+        assert(reg.is(MiscRegClass));
         return thread.setMiscReg(reg.index(), val);
-    }
-
-    void
-    syscall(Fault *fault) override
-    {
-        thread.syscall(fault);
     }
 
     ThreadContext *tcBase() const override { return thread.getTC(); }
@@ -398,15 +359,14 @@ class ExecContext : public ::ExecContext
     void
     demapPage(Addr vaddr, uint64_t asn) override
     {
-        thread.getITBPtr()->demapPage(vaddr, asn);
-        thread.getDTBPtr()->demapPage(vaddr, asn);
+        thread.getMMUPtr()->demapPage(vaddr, asn);
     }
 
     RegVal
     readCCRegOperand(const StaticInst *si, int idx) override
     {
         const RegId& reg = si->srcRegIdx(idx);
-        assert(reg.isCCReg());
+        assert(reg.is(CCRegClass));
         return thread.readCCReg(reg.index());
     }
 
@@ -414,39 +374,40 @@ class ExecContext : public ::ExecContext
     setCCRegOperand(const StaticInst *si, int idx, RegVal val) override
     {
         const RegId& reg = si->destRegIdx(idx);
-        assert(reg.isCCReg());
+        assert(reg.is(CCRegClass));
         thread.setCCReg(reg.index(), val);
-    }
-
-    void
-    demapInstPage(Addr vaddr, uint64_t asn)
-    {
-        thread.getITBPtr()->demapPage(vaddr, asn);
-    }
-
-    void
-    demapDataPage(Addr vaddr, uint64_t asn)
-    {
-        thread.getDTBPtr()->demapPage(vaddr, asn);
     }
 
     BaseCPU *getCpuPtr() { return &cpu; }
 
   public:
     // monitor/mwait funtions
-    void armMonitor(Addr address) override
-    { getCpuPtr()->armMonitor(inst->id.threadId, address); }
+    void
+    armMonitor(Addr address) override
+    {
+        getCpuPtr()->armMonitor(inst->id.threadId, address);
+    }
 
-    bool mwait(PacketPtr pkt) override
-    { return getCpuPtr()->mwait(inst->id.threadId, pkt); }
+    bool
+    mwait(PacketPtr pkt) override
+    {
+        return getCpuPtr()->mwait(inst->id.threadId, pkt);
+    }
 
-    void mwaitAtomic(ThreadContext *tc) override
-    { return getCpuPtr()->mwaitAtomic(inst->id.threadId, tc, thread.dtb); }
+    void
+    mwaitAtomic(ThreadContext *tc) override
+    {
+        return getCpuPtr()->mwaitAtomic(inst->id.threadId, tc, thread.mmu);
+    }
 
-    AddressMonitor *getAddrMonitor() override
-    { return getCpuPtr()->getCpuAddrMonitor(inst->id.threadId); }
+    AddressMonitor *
+    getAddrMonitor() override
+    {
+        return getCpuPtr()->getCpuAddrMonitor(inst->id.threadId);
+    }
 };
 
-}
+} // namespace minor
+} // namespace gem5
 
 #endif /* __CPU_MINOR_EXEC_CONTEXT_HH__ */

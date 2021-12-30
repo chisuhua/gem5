@@ -29,9 +29,21 @@
 #ifndef __CPU_KVM_X86_CPU_HH__
 #define __CPU_KVM_X86_CPU_HH__
 
+#include <vector>
+
 #include "cpu/kvm/base.hh"
 #include "cpu/kvm/vm.hh"
 #include "params/X86KvmCPU.hh"
+
+struct kvm_debugregs;
+struct kvm_msr_entry;
+struct kvm_msrs;
+struct kvm_vcpu_events;
+struct kvm_xcrs;
+struct kvm_xsave;
+
+namespace gem5
+{
 
 /**
  * x86 implementation of a KVM-based hardware virtualized CPU.
@@ -39,7 +51,7 @@
 class X86KvmCPU : public BaseKvmCPU
 {
   public:
-    X86KvmCPU(X86KvmCPUParams *params);
+    X86KvmCPU(const X86KvmCPUParams &params);
     virtual ~X86KvmCPU();
 
     void startup() override;
@@ -77,9 +89,6 @@ class X86KvmCPU : public BaseKvmCPU
      * @return Number of ticks executed
      */
     Tick kvmRunDrain() override;
-
-    /** Wrapper that synchronizes state in kvm_run */
-    Tick kvmRunWrapper(Tick ticks);
 
     uint64_t getHostCycles() const override;
 
@@ -157,6 +166,9 @@ class X86KvmCPU : public BaseKvmCPU
      * otherwise.
      */
     bool archIsDrained() const override;
+
+    /** Override for synchronizing state in kvm_run */
+    void ioctlRun() override;
 
   private:
     /**
@@ -249,5 +261,7 @@ class X86KvmCPU : public BaseKvmCPU
     bool haveXCRs;
     /** @} */
 };
+
+} // namespace gem5
 
 #endif

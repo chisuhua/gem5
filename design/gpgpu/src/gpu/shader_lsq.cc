@@ -34,19 +34,20 @@
 
 using namespace std;
 
-ShaderLSQ::ShaderLSQ(Params *p)
-    : MemObject(p), controlPort(name() + ".ctrl_port", this),
+namespace gem5 {
+ShaderLSQ::ShaderLSQ(const ShaderLSQParams &p)
+    : ClockedObject(p), controlPort(name() + ".ctrl_port", this),
       writebackBlocked(false), cachePort(name() + ".cache_port", this),
-      warpSize(p->warp_size), maxNumWarpsPerCore(p->warp_contexts),
-      atomsPerSubline(p->atoms_per_subline),
-      flushing(false), flushingPkt(NULL), forwardFlush(p->forward_flush),
-      warpInstBufPoolSize(p->num_warp_inst_buffers), dispatchWarpInstBuf(NULL),
-      perWarpInstructionQueues(p->warp_contexts),
-      perWarpOutstandingAccesses(p->warp_contexts),
-      overallLatencyCycles(p->latency), l1TagAccessCycles(p->l1_tag_cycles),
-      tlb(p->data_tlb), sublineBytes(p->subline_bytes),
-      nextAllowedInject(Cycles(0)), injectWidth(p->inject_width),
-      mshrsFull(false), ejectWidth(p->eject_width), cacheLineAddrMaskBits(-1),
+      warpSize(p.warp_size), maxNumWarpsPerCore(p.warp_contexts),
+      atomsPerSubline(p.atoms_per_subline),
+      flushing(false), flushingPkt(NULL), forwardFlush(p.forward_flush),
+      warpInstBufPoolSize(p.num_warp_inst_buffers), dispatchWarpInstBuf(NULL),
+      perWarpInstructionQueues(p.warp_contexts),
+      perWarpOutstandingAccesses(p.warp_contexts),
+      overallLatencyCycles(p.latency), l1TagAccessCycles(p.l1_tag_cycles),
+      tlb(p.data_tlb), sublineBytes(p.subline_bytes),
+      nextAllowedInject(Cycles(0)), injectWidth(p.inject_width),
+      mshrsFull(false), ejectWidth(p.eject_width), cacheLineAddrMaskBits(-1),
       lastWarpInstBufferChange(0), numActiveWarpInstBuffers(0),
       dispatchInstEvent(this), injectAccessesEvent(this),
       ejectAccessesEvent(this), commitInstEvent(this)
@@ -80,7 +81,7 @@ ShaderLSQ::ShaderLSQ(Params *p)
     assert(completeCycles > Cycles(0));
 
     // Set the number of bits to mask for cache line addresses
-    cacheLineAddrMaskBits = log2(p->cache_line_size);
+    cacheLineAddrMaskBits = log2(p.cache_line_size);
 }
 
 ShaderLSQ::~ShaderLSQ()
@@ -108,7 +109,7 @@ ShaderLSQ::getPort(const string &if_name, PortID idx)
     } else {
         // pass it along to our super class
         // return MemObject::getSlavePort(if_name, idx);
-        return MemObject::getPort(if_name, idx);
+        return ClockedObject::getPort(if_name, idx);
     }
 
 }
@@ -344,11 +345,11 @@ ShaderLSQ::dispatchWarpInst()
 void
 ShaderLSQ::issueWarpInstTranslations(WarpInstBuffer *warp_inst)
 {
-    BaseTLB::Mode mode;
+    BaseMMU::Mode mode;
     if (warp_inst->isLoad()) {
-        mode = BaseTLB::Read;
+        mode = BaseMMU::Read;
     } else if (warp_inst->isStore() || warp_inst->isAtomic()) {
-        mode = BaseTLB::Write;
+        mode = BaseMMU::Write;
     } else {
         panic("Trying to issue translations for unknown instruction type!");
     }
@@ -733,7 +734,7 @@ ShaderLSQ::processFlush()
     // FIXME schi activeWarpInstBuffers.sample(numActiveWarpInstBuffers, since_last_change);
     lastWarpInstBufferChange = 0;
     if (forwardFlush) {
-        MasterID master_id = flushingPkt->req->masterId();
+        RequestorID master_id = flushingPkt->req->requestorId();
         int asid = 0;
         Addr addr(0);
         Request::Flags flags;
@@ -762,7 +763,7 @@ void ShaderLSQ::finalizeFlush()
 void
 ShaderLSQ::regStats()
 {
-    MemObject::regStats();
+    ClockedObject::regStats();
     using namespace Stats;
 
     /* FIXME schi
@@ -826,7 +827,9 @@ ShaderLSQ::regStats()
     tlb->regStats();
 }
 
-
-ShaderLSQ *ShaderLSQParams::create() {
-    return new ShaderLSQ(this);
+/*
+ShaderLSQ *ShaderLSQParams::create() const {
+    return new ShaderLSQ(*this);
+}
+*/
 }

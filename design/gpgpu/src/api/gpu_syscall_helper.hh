@@ -33,6 +33,8 @@
 #include "base/types.hh"
 #include "cpu/thread_context.hh"
 
+using namespace gem5;
+
 #if THE_ISA == ARM_ISA
     // Currently supports 32-bit ARM platform
     #define __POINTER_SIZE__ 4

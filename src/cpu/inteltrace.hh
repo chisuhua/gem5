@@ -37,6 +37,9 @@
 #include "params/IntelTrace.hh"
 #include "sim/insttracer.hh"
 
+namespace gem5
+{
+
 namespace Trace {
 
 class IntelTraceRecord : public InstRecord
@@ -57,7 +60,7 @@ class IntelTrace : public InstTracer
 {
   public:
 
-    IntelTrace(const IntelTraceParams *p) : InstTracer(p)
+    IntelTrace(const IntelTraceParams &p) : InstTracer(p)
     {}
 
     IntelTraceRecord *
@@ -65,7 +68,7 @@ class IntelTrace : public InstTracer
             const StaticInstPtr staticInst, TheISA::PCState pc,
             const StaticInstPtr macroStaticInst = NULL)
     {
-        if (!Debug::ExecEnable)
+        if (!debug::ExecEnable)
             return NULL;
 
         return new IntelTraceRecord(when, tc, staticInst, pc, macroStaticInst);
@@ -73,5 +76,6 @@ class IntelTrace : public InstTracer
 };
 
 } // namespace Trace
+} // namespace gem5
 
 #endif // __CPU_INTELTRACE_HH__

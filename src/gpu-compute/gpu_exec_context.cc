@@ -34,6 +34,9 @@
 #include "gpu-compute/gpu_exec_context.hh"
 #include "gpu-compute/wavefront.hh"
 
+namespace gem5
+{
+
 GPUExecContext::GPUExecContext(ComputeUnit *_cu, Wavefront *_wf)
     : cu(_cu), wf(_wf), gpuISA(_wf ? &_wf->gpuISA() : nullptr)
 {
@@ -59,8 +62,10 @@ GPUExecContext::readMiscReg(int opIdx) const
 }
 
 void
-GPUExecContext::writeMiscReg(int opIdx, RegVal operandVal)
+GPUExecContext::writeMiscReg(int opIdx, RegVal val)
 {
     assert(gpuISA);
-    gpuISA->writeMiscReg(opIdx, operandVal);
+    gpuISA->writeMiscReg(opIdx, val);
 }
+
+} // namespace gem5

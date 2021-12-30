@@ -43,6 +43,9 @@
 
 #include "arch/arm/insts/pred_inst.hh"
 
+namespace gem5
+{
+
 namespace ArmISA
 {
 
@@ -54,7 +57,7 @@ class MightBeMicro : public PredOp
     {}
 
     void
-    advancePC(PCState &pcState) const
+    advancePC(PCState &pcState) const override
     {
         if (flags[IsLastMicroop]) {
             pcState.uEnd();
@@ -70,7 +73,8 @@ class MightBeMicro : public PredOp
 class RfeOp : public MightBeMicro
 {
   public:
-    enum AddrMode {
+    enum AddrMode
+    {
         DecrementAfter,
         DecrementBefore,
         IncrementAfter,
@@ -108,14 +112,15 @@ class RfeOp : public MightBeMicro
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 // The address is a base register plus an immediate.
 class SrsOp : public MightBeMicro
 {
   public:
-    enum AddrMode {
+    enum AddrMode
+    {
         DecrementAfter,
         DecrementBefore,
         IncrementAfter,
@@ -149,13 +154,14 @@ class SrsOp : public MightBeMicro
     }
 
     std::string generateDisassembly(
-            Addr pc, const Loader::SymbolTable *symtab) const override;
+            Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
 class Memory : public MightBeMicro
 {
   public:
-    enum AddrMode {
+    enum AddrMode
+    {
         AddrMd_Offset,
         AddrMd_PreIndex,
         AddrMd_PostIndex
@@ -372,7 +378,8 @@ class MemoryOffset : public Base
     {}
 
     std::string
-    generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
+    generateDisassembly(Addr pc,
+                        const loader::SymbolTable *symtab) const override
     {
         std::stringstream ss;
         this->printInst(ss, Memory::AddrMd_Offset);
@@ -422,7 +429,8 @@ class MemoryPreIndex : public Base
     {}
 
     std::string
-    generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
+    generateDisassembly(Addr pc,
+                        const loader::SymbolTable *symtab) const override
     {
         std::stringstream ss;
         this->printInst(ss, Memory::AddrMd_PreIndex);
@@ -472,13 +480,16 @@ class MemoryPostIndex : public Base
     {}
 
     std::string
-    generateDisassembly(Addr pc, const Loader::SymbolTable *symtab) const
+    generateDisassembly(Addr pc,
+                        const loader::SymbolTable *symtab) const override
     {
         std::stringstream ss;
         this->printInst(ss, Memory::AddrMd_PostIndex);
         return ss.str();
     }
 };
-}
+
+} // namespace ArmISA
+} // namespace gem5
 
 #endif //__ARCH_ARM_INSTS_MEM_HH__
