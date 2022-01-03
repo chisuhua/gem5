@@ -29,6 +29,7 @@
 #include "../src/gpgpu-sim/stat-tool.h"
 #include <assert.h>
 
+namespace libcuda {
 // used to allocate memory that is large enough to adapt the changes in cache size across kernels
 
 const char * cache_request_status_str(enum cache_request_status status) 
@@ -147,6 +148,7 @@ unsigned l1d_cache_config::set_index(new_addr_type addr) const{
     return set_index;
 }
 
+/*
 void l2_cache_config::init(linear_to_raw_address_translation *address_mapping){
 	cache_config::init(m_config_string,FuncCachePreferNone);
 	m_address_mapping = address_mapping;
@@ -161,6 +163,7 @@ unsigned l2_cache_config::set_index(new_addr_type addr) const{
 		return(part_addr >> m_line_sz_log2) & (m_nset -1);
 	}
 }
+*/
 
 #if 0
 tag_array::~tag_array() 
@@ -1825,3 +1828,4 @@ void tex_cache::display_state( FILE *fp ) const
 }
 /******************************************************************************************************************************************/
 #endif
+}

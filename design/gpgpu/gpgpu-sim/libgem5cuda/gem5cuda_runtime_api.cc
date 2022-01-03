@@ -138,7 +138,7 @@
 #include <assert.h>
 #include <time.h>
 #include <stdarg.h>
-
+#include <dlfcn.h>
 #include <unistd.h>
 #include <stdint.h>
 
@@ -166,12 +166,58 @@ namespace m5op {
 
 #include "gem5cuda_runtime_util.h"
 #include "../libcuda/abstract_hardware_model.h"
-#include "../src/cuda-sim/ptx_ir.h"
+// #include "../src/cuda-sim/ptx_ir.h"
+
+extern "C" void app_direct_call_gpu(uint64_t gpusysno, uint64_t call_params);
+extern "C" void gem5_main();
+
+typedef void (*pfn_app_direct_call_gpu)(uint64_t gpusysno, uint64_t call_params);
+typedef void (*pfn_gem5_main)();
+
+static int app_run_in_gem5 = 0;
+static pfn_app_direct_call_gpu g_app_direct_call_gpu = nullptr;
+static pfn_gem5_main g_gem5_main = nullptr;
+// TODO local thread
+static void set_run_in_gem5() {
+    char *mode = getenv("APP_RUN_IN_GEM5");
+    if (mode) {
+        app_run_in_gem5 = 1;
+    } else {
+        app_run_in_gem5 = -1;
+        void* libgem5_sc_handle = dlopen("libgem5_sc.so", RTLD_NOW);
+        if (libgem5_sc_handle = nullptr) {
+            printf("dlopen error - %s\n", dlerror());
+            assert(false);
+        }
+
+        g_app_direct_call_gpu = (pfn_app_direct_call_gpu)dlsym(libgem5_sc_handle, "app_direct_call_gpu");
+
+        if (g_app_direct_call_gpu == nullptr) {
+            printf("load symbol app_direct_call_gpu fail\n");
+            assert(false);
+        }
+        g_gem5_main = (pfn_gem5_main)dlsym(libgem5_sc_handle, "gem5_main");
+        if (g_gem5_main == nullptr) {
+            printf("load symbol g_gem5_main faile\n");
+            assert(false);
+        }
+        (g_gem5_main)();
+    }
+}
+
 
 inline void m5_gpu(uint64_t __gpusysno, uint64_t call_params) {
+    if (app_run_in_gem5 == 0) {
+        set_run_in_gem5();
+    }
+    if (app_run_in_gem5 != 1) {
+        // call pseudo_inst.cc
+        (g_app_direct_call_gpu)(__gpusysno, call_params);
+    } else {
 #ifndef __MEM_DEBUG__
     m5op::m5_gpu(__gpusysno, call_params);
 #endif
+    }
 }
 
 //cudaError_t g_last_cudaError = cudaSuccess;
@@ -290,7 +336,8 @@ extern "C" {
 //   }
 }
 
- cudaError_t  gem5cudaMallocArray(struct cudaArray **array, const struct cudaChannelFormatDesc *desc, size_t width, size_t height, unsigned int flags)
+#if 1
+ cudaError_t  gem5cudaMallocArray(struct libcuda::cudaArray **array, const struct cudaChannelFormatDesc *desc, size_t width, size_t height, unsigned int flags)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
@@ -311,6 +358,7 @@ extern "C" {
 //       return g_last_cudaError = cudaErrorMemoryAllocation;
 //   }
 }
+#endif
 
  cudaError_t  gem5cudaFreeHelper(void* ptr, unsigned type)
 {
@@ -395,11 +443,13 @@ blockThread()
     delete is_free;
 }
 
+#if 0
  cudaError_t  gem5cudaFreeArray(struct cudaArray *array)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
 };
+#endif
 
 
 /*******************************************************************************
@@ -509,6 +559,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     return cudaSuccess;
 }
 
+#if 0
  cudaError_t  gem5cudaMemcpyToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind)
 {
      cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -530,7 +581,9 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
 //   dst->devPtr32 = (unsigned) (size_t)(dst->devPtr);
 //   return g_last_cudaError = cudaSuccess;
 }
+#endif
 
+#if 0
  cudaError_t  gem5cudaMemcpyFromArray(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -542,6 +595,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
 }
+#endif
 
  cudaError_t  gem5cudaMemcpy2D(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind)
 {
@@ -566,7 +620,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
 //   return g_last_cudaError = cudaSuccess;
 }
 
-
+#if 0
  cudaError_t  gem5cudaMemcpy2DToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -608,6 +662,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
 }
+#endif
 
  cudaError_t  gem5cudaMemcpyToSymbolAsync(const char *symbol, const void *src, size_t count, size_t offset, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
@@ -730,7 +785,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
 //    return g_last_cudaError = cudaSuccess;
 }
 */
-
+#if 0
  cudaError_t  gem5cudaMemcpyToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -742,6 +797,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
 }
+#endif
 
  cudaError_t  gem5cudaMemcpy2DAsync(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
@@ -749,6 +805,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     return g_last_cudaError = cudaErrorUnknown;
 }
 
+#if 0
  cudaError_t  gem5cudaMemcpy2DToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -760,6 +817,7 @@ __host__ cudaError_t CUDARTAPI gem5cudaMemcpy(void *dst, const void *src, size_t
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
     return g_last_cudaError = cudaErrorUnknown;
 }
+#endif
 
 /*******************************************************************************
 *                                                                              *
@@ -1061,6 +1119,7 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
     return ret;
 }
 
+#if 0
  cudaError_t  gem5cudaBindTextureToArray(const struct textureReference *texref, const struct cudaArray *array, const struct cudaChannelFormatDesc *desc)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -1074,6 +1133,7 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
 //   gpu->gpgpu_ptx_sim_bindTextureToArray(texref, array);
 //   return g_last_cudaError = cudaSuccess;
 }
+#endif
 
  cudaError_t  gem5cudaUnbindTexture(const struct textureReference *texref)
 {
@@ -1093,6 +1153,7 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
     return g_last_cudaError = cudaErrorUnknown;
 }
 
+#if 0
  cudaError_t  gem5cudaGetChannelDesc(struct cudaChannelFormatDesc *desc, const struct cudaArray *array)
 {
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
@@ -1100,6 +1161,7 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
 //   *desc = array->desc;
 //   return g_last_cudaError = cudaSuccess;
 }
+#endif
 
  struct cudaChannelFormatDesc  gem5cudaCreateChannelDesc(int x, int y, int z, int w, enum cudaChannelFormatKind f)
 {
@@ -1179,7 +1241,7 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
 
     return ret;
 }
-
+/*
  cudaError_t  gem5cudaSetupArgument(function_info *f, const void **args)
 {
     gpusyscall_t call_params;
@@ -1210,8 +1272,8 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
 
     return ret;
 }
+*/
 
-/*
  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset)
 {
     gpusyscall_t call_params;
@@ -1244,7 +1306,6 @@ cudaError_t  gem5cudaMemset(void *mem, int c, size_t count)
 
     return ret;
 }
-*/
 
  cudaError_t  gem5cudaFuncSetCacheConfig(const char *func, enum cudaFuncCache cacheConfig)
 {
@@ -1485,7 +1546,7 @@ int  __cudaSynchronizeThreads(void**, void*)
 //   return cudaThreadExit();
 }
 */
-
+/*
 void gem5cudaRegisterPtxInfo(const char *ptxinfo_kname, gpgpu_ptx_sim_info ptxinfo_kinfo)
 {
     gpusyscall_t call_params;
@@ -1513,6 +1574,7 @@ void gem5cudaRegisterPtxInfo(const char *ptxinfo_kname, gpgpu_ptx_sim_info ptxin
     delete call_params.args;
     delete call_params.arg_lengths;
 }
+*/
 
 /*******************************************************************************
 *                                                                              *
@@ -1520,6 +1582,7 @@ void gem5cudaRegisterPtxInfo(const char *ptxinfo_kname, gpgpu_ptx_sim_info ptxin
 *                                                                              *
 *******************************************************************************/
 // void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle, char *ptxinfo_kname, gpgpu_ptx_sim_info ptxinfo_kinfo)
+#if 0
 void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
 {
     // Now, tell gem5 + GPGPU-Sim to register the binary
@@ -1651,6 +1714,7 @@ void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
 
     return ret;
 }
+#endif
 
 void  gem5cudaRegisterFunction(void *fatCubinHandle,
         const char *hostFun, const char *deviceFun )
@@ -2157,6 +2221,8 @@ int gem5gpu_system_call(const char *command)
 
 void gem5gpu_extract_ptx_files_using_cuobjdump(const char *ptx_list_file_name)
 {
+    printf("gem5gpu_cuobjdumpParseBinary is not used now\n");
+    assert(false);
     gpusyscall_t call_params;
     call_params.num_args = 1;
     call_params.arg_lengths = new int[call_params.num_args];
@@ -2186,6 +2252,7 @@ void gem5gpu_extract_ptx_files_using_cuobjdump(const char *ptx_list_file_name)
     // return ret;
 }
 
+#if 0
 symbol_table* gem5gpu_cuobjdumpParseBinary(const char *ptxfile, unsigned  int handle)
 {
     gpusyscall_t call_params;
@@ -2287,6 +2354,7 @@ function_info* gem5gpu_symbol_get_function(symbol_table *symtab, const char* nam
 
     return ret;
 }
+#endif
 
 
 bool  gem5gpu_cycle_insn_cta_max_hit()

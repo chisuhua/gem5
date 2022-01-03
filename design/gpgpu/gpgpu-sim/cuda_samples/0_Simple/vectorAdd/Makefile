@@ -46,7 +46,7 @@ HOST_OS   := $(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")
 TARGET_OS ?= $(HOST_OS)
 
 # host compiler
-HOST_COMPILER ?= g++
+HOST_COMPILER ?= g++-9
 NVCC          := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 
 TARGET_SIZE := 64
@@ -55,7 +55,7 @@ TARGET_SIZE := 64
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcudart.so.10.0 -Xcompiler "-Wl\,-rpath=."
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda  -Xcompiler "-Wl\,-rpath=."
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
-NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
+NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda -L${GPGPUSIM_ROOT}/libcuda"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=

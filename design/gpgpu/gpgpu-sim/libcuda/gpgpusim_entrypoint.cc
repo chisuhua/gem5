@@ -27,10 +27,10 @@
 
 #include <stdio.h>
 
-#include "option_parser.h"
-#include "cuda-sim/cuda-sim.h"
-#include "cuda-sim/ptx_ir.h"
-#include "cuda-sim/ptx_parser.h"
+#include "option.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
+#include "../libcuda/cuda-sim/ptx_ir.h"
+#include "../libcuda/cuda-sim/ptx_parser.h"
 
 #include "../libcuda/gpu-sim.h"
 // #include "gpgpu-sim/icnt_wrapper.h"
@@ -44,7 +44,7 @@
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-
+namespace libcuda {
 
 struct gpgpu_ptx_sim_arg *grid_params;
 
@@ -354,3 +354,4 @@ int gpgpu_opencl_ptx_sim_main_func( kernel_info_t *grid )
    return 0;
 }
 */
+}

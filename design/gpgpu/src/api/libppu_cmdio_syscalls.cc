@@ -33,11 +33,12 @@ void ppu_open(ThreadContext *tc, gpusyscall_t *call_params)
 
     g_last_cmdioError = cmdioSuccess;
 
-    int64_t handle = (int64_t)cmd_open(device_num);
-
+    //int64_t handle = (int64_t)cmd_open(device_num);
+    ioctl_open_args args;
+    helper.setReturn((uint8_t*)&(args.handle), sizeof(int64_t));
     // Addr addr = cudaGPU->allocateGPUMemory(sim_size);
 
-    helper.setReturn((uint8_t*)&handle, sizeof(int64_t));
+    //helper.setReturn((uint8_t*)&handle, sizeof(int64_t));
 }
 
 

@@ -44,20 +44,20 @@
 // #include "gpu-cache.h"
 // #include "gpu-misc.h"
 // #include "delayqueue.h"
-// #include "../src/gpgpu-sim/shader.h"
-#include "../src/gpgpu-sim/icnt_wrapper.h"
-#include "../src/gpgpu-sim/dram.h"
+// #include "../src/gpgpu-sim/icnt_wrapper.h"
+// #include "../src/gpgpu-sim/dram.h"
+#include "../libcuda/shader.h"
 // #include "addrdec.h"
 // #include "stat-tool.h"
 #include "../libcuda/l2cache.h"
 
-#include "../src/cuda-sim/ptx-stats.h"
+#include "../libcuda/cuda-sim/ptx-stats.h"
 // #include "../statwrapper.h"
 #include "../libcuda/abstract_hardware_model.h"
 #include "../src/debug.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
-#include "../src/cuda-sim/cuda-sim.h"
-#include "../src/cuda-sim/ptx_ir.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
+#include "../libcuda/cuda-sim/ptx_ir.h"
 // #include "../trace.h"
 #include "../libcuda/mem_latency_stat.h"
 // #include "power_stat.h"
@@ -79,6 +79,7 @@ class  gpgpu_sim_wrapper {};
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+namespace libcuda {
 
 bool g_interactive_debugger_enabled=false;
 
@@ -107,130 +108,11 @@ tr1_hash_map<new_addr_type,unsigned> address_random_interleaving;
 #define  DRAM  0x04
 #define  ICNT  0x08
 
-
 #define MEM_LATENCY_STAT_IMPL
-
-
-
-#include "../libcuda/mem_latency_stat.h"
-
-void power_config::reg_options(class OptionParser * opp)
-{
-
-
-	  option_parser_register(opp, "-gpuwattch_xml_file", OPT_CSTR,
-			  	  	  	  	 &g_power_config_name,"GPUWattch XML file",
-	                   "gpuwattch.xml");
-
-	   option_parser_register(opp, "-power_simulation_enabled", OPT_BOOL,
-	                          &g_power_simulation_enabled, "Turn on power simulator (1=On, 0=Off)",
-	                          "0");
-
-	   option_parser_register(opp, "-power_per_cycle_dump", OPT_BOOL,
-	                          &g_power_per_cycle_dump, "Dump detailed power output each cycle",
-	                          "0");
-
-	   // Output Data Formats
-	   option_parser_register(opp, "-power_trace_enabled", OPT_BOOL,
-	                          &g_power_trace_enabled, "produce a file for the power trace (1=On, 0=Off)",
-	                          "0");
-
-	   option_parser_register(opp, "-power_trace_zlevel", OPT_INT32,
-	                          &g_power_trace_zlevel, "Compression level of the power trace output log (0=no comp, 9=highest)",
-	                          "6");
-
-	   option_parser_register(opp, "-steady_power_levels_enabled", OPT_BOOL,
-	                          &g_steady_power_levels_enabled, "produce a file for the steady power levels (1=On, 0=Off)",
-	                          "0");
-
-	   option_parser_register(opp, "-steady_state_definition", OPT_CSTR,
-			   	  &gpu_steady_state_definition, "allowed deviation:number of samples",
-	                 	  "8:4");
-
-}
-
-void memory_config::reg_options(class OptionParser * opp)
-{
-    option_parser_register(opp, "-perf_sim_memcpy", OPT_BOOL, &m_perf_sim_memcpy,
-                                "Fill the L2 cache on memcpy", "1");
-    option_parser_register(opp, "-gpgpu_dram_scheduler", OPT_INT32, &scheduler_type,
-                                "0 = fifo, 1 = FR-FCFS (defaul)", "1");
-    option_parser_register(opp, "-gpgpu_dram_partition_queues", OPT_CSTR, &gpgpu_L2_queue_config,
-                           "i2$:$2d:d2$:$2i",
-                           "8:8:8:8");
-
-    option_parser_register(opp, "-l2_ideal", OPT_BOOL, &l2_ideal,
-                           "Use a ideal L2 cache that always hit",
-                           "0");
-    option_parser_register(opp, "-gpgpu_cache:dl2", OPT_CSTR, &m_L2_config.m_config_string,
-                   "unified banked L2 data cache config "
-                   " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>}",
-                   "64:128:8,L:B:m:N,A:16:4,4");
-    option_parser_register(opp, "-gpgpu_cache:dl2_texture_only", OPT_BOOL, &m_L2_texure_only,
-                           "L2 cache used for texture only",
-                           "1");
-    option_parser_register(opp, "-gpgpu_n_mem", OPT_UINT32, &m_n_mem,
-                 "number of memory modules (e.g. memory controllers) in gpu",
-                 "8");
-    option_parser_register(opp, "-gpgpu_n_sub_partition_per_mchannel", OPT_UINT32, &m_n_sub_partition_per_memory_channel,
-                 "number of memory subpartition in each memory module",
-                 "1");
-    option_parser_register(opp, "-gpgpu_n_mem_per_ctrlr", OPT_UINT32, &gpu_n_mem_per_ctrlr,
-                 "number of memory chips per memory controller",
-                 "1");
-    option_parser_register(opp, "-gpgpu_memlatency_stat", OPT_INT32, &gpgpu_memlatency_stat,
-                "track and display latency statistics 0x2 enables MC, 0x4 enables queue logs",
-                "0");
-    option_parser_register(opp, "-gpgpu_frfcfs_dram_sched_queue_size", OPT_INT32, &gpgpu_frfcfs_dram_sched_queue_size,
-                "0 = unlimited (default); # entries per chip",
-                "0");
-    option_parser_register(opp, "-gpgpu_dram_return_queue_size", OPT_INT32, &gpgpu_dram_return_queue_size,
-                "0 = unlimited (default); # entries per chip",
-                "0");
-    option_parser_register(opp, "-gpgpu_dram_buswidth", OPT_UINT32, &busW,
-                 "default = 4 bytes (8 bytes per cycle at DDR)",
-                 "4");
-    option_parser_register(opp, "-gpgpu_dram_burst_length", OPT_UINT32, &BL,
-                 "Burst length of each DRAM request (default = 4 data bus cycle)",
-                 "4");
-    option_parser_register(opp, "-dram_data_command_freq_ratio", OPT_UINT32, &data_command_freq_ratio,
-                 "Frequency ratio between DRAM data bus and command bus (default = 2 times, i.e. DDR)",
-                 "2");
-    option_parser_register(opp, "-gpgpu_dram_timing_opt", OPT_CSTR, &gpgpu_dram_timing_opt,
-                "DRAM timing parameters = {nbk:tCCD:tRRD:tRCD:tRAS:tRP:tRC:CL:WL:tCDLR:tWR:nbkgrp:tCCDL:tRTPL}",
-                "4:2:8:12:21:13:34:9:4:5:13:1:0:0");
-    option_parser_register(opp, "-rop_latency", OPT_UINT32, &rop_latency,
-                     "ROP queue latency (default 85)",
-                     "85");
-    option_parser_register(opp, "-dram_latency", OPT_UINT32, &dram_latency,
-                     "DRAM latency (default 30)",
-                     "30");
-    option_parser_register(opp, "-dual_bus_interface", OPT_UINT32, &dual_bus_interface,
-                                        "dual_bus_interface (default = 0) ",
-                                        "0");
-    option_parser_register(opp, "-dram_bnk_indexing_policy", OPT_UINT32, &dram_bnk_indexing_policy,
-                                            "dram_bnk_indexing_policy (0 = normal indexing, 1 = Xoring with the higher bits) (Default = 0)",
-                                            "0");
-    option_parser_register(opp, "-dram_bnkgrp_indexing_policy", OPT_UINT32, &dram_bnkgrp_indexing_policy,
-                                            "dram_bnkgrp_indexing_policy (0 = take higher bits, 1 = take lower bits) (Default = 0)",
-                                            "0");
-    option_parser_register(opp, "-Seperate_Write_Queue_Enable", OPT_BOOL, &seperate_write_queue_enabled,
-                           "Seperate_Write_Queue_Enable",
-                           "0");
-    option_parser_register(opp, "-Write_Queue_Size", OPT_CSTR, &write_queue_size_opt,
-                                  "Write_Queue_Size",
-                                  "32:28:16");
-    option_parser_register(opp, "-Elimnate_rw_turnaround", OPT_BOOL, &elimnate_rw_turnaround,
-                               "elimnate_rw_turnaround i.e set tWTR and tRTW = 0",
-                               "0");
-    option_parser_register(opp, "-icnt_flit_size", OPT_UINT32, &icnt_flit_size,
-                               "icnt_flit_size",
-                               "32");
-    m_address_mapping.addrdec_setoption(opp);
-}
 
 void shader_core_config::reg_options(class OptionParser * opp)
 {
+#if 0
     option_parser_register(opp, "-gpgpu_simd_model", OPT_INT32, &model,
                    "1 = post-dominator", "1");
     option_parser_register(opp, "-gpgpu_shader_core_pipeline", OPT_CSTR, &gpgpu_shader_core_pipeline_opt,
@@ -476,7 +358,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_concurrent_kernel_sm", OPT_BOOL, &gpgpu_concurrent_kernel_sm,
                 "Support concurrent kernels on a SM (default = disabled)",
                 "0");
-
+#endif
 }
 
 void gpgpu_sim_config::reg_options(option_parser_t opp)
@@ -484,7 +366,8 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
     gpgpu_functional_sim_config::reg_options(opp);
     m_shader_config.reg_options(opp);
     m_memory_config.reg_options(opp);
-    power_config::reg_options(opp);
+    // power_config::reg_options(opp);
+#if 0
    option_parser_register(opp, "-gpgpu_max_cycle", OPT_INT32, &gpu_max_cycle_opt,
                "terminates gpu simulation early (0 = no limit)",
                "0");
@@ -500,12 +383,14 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
    option_parser_register(opp, "-liveness_message_freq", OPT_INT64, &liveness_message_freq,
                "Minimum number of seconds between simulation liveness messages (0 = always print)",
                "1");
+#endif
    option_parser_register(opp, "-gpgpu_compute_capability_major", OPT_UINT32, &gpgpu_compute_capability_major,
                  "Major compute capability version number",
                  "7");
    option_parser_register(opp, "-gpgpu_compute_capability_minor", OPT_UINT32, &gpgpu_compute_capability_minor,
                  "Minor compute capability version number",
                  "0");
+#if 0
    option_parser_register(opp, "-gpgpu_flush_l1_cache", OPT_BOOL, &gpgpu_flush_l1_cache,
                 "Flush L1 cache at the end of each kernel call",
                 "0");
@@ -519,6 +404,7 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
                &gpgpu_ptx_instruction_classification,
                "if enabled will classify ptx instruction types per kernel (Max 255 kernels now)",
                "0");
+#endif
    option_parser_register(opp, "-gpgpu_ptx_sim_mode", OPT_INT32, &g_ptx_sim_mode,
                "Select between Performance (default) or Functional simulation (1)",
                "0");
@@ -527,6 +413,7 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
                   "500.0:2000.0:2000.0:2000.0");
    option_parser_register(opp, "-gpgpu_max_concurrent_kernel", OPT_INT32, &max_concurrent_kernel,
                           "maximum kernels that can run concurrently on GPU", "8" );
+#if 0
    option_parser_register(opp, "-gpgpu_cflog_interval", OPT_INT32, &gpgpu_cflog_interval,
                "Interval between each snapshot in control flow logger",
                "0");
@@ -574,6 +461,7 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
     option_parser_register(opp, "-gpgpu_cdp_enabled", OPT_BOOL,
                           &g_cdp_enabled, "Turn on CDP",
                           "0");
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -741,12 +629,8 @@ gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config )
     set_ptx_warp_size(m_shader_config);
     ptx_file_line_stats_create_exposed_latency_tracker(m_config.num_shader());
 
-#ifdef GPGPUSIM_POWER_MODEL
-        m_gpgpusim_wrapper = new gpgpu_sim_wrapper(config.g_power_simulation_enabled,config.g_power_config_name);
-#endif
-
-    m_shader_stats = new shader_core_stats(m_shader_config);
-    m_memory_stats = new memory_stats_t(m_config.num_shader(),m_shader_config,m_memory_config);
+    // m_shader_stats = new shader_core_stats(m_shader_config);
+    // m_memory_stats = new memory_stats_t(m_config.num_shader(),m_shader_config,m_memory_config);
     average_pipeline_duty_cycle = (float *)malloc(sizeof(float));
     active_sms=(float *)malloc(sizeof(float));
     // m_power_stats = new power_stat_t(m_shader_config,average_pipeline_duty_cycle,active_sms,m_shader_stats,m_memory_config,m_memory_stats);
@@ -764,6 +648,7 @@ gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config )
 
     m_memory_partition_unit = new memory_partition_unit*[m_memory_config->m_n_mem];
     m_memory_sub_partition = new memory_sub_partition*[m_memory_config->m_n_mem_sub_partition];
+    //FIXME
 #if 0
     for (unsigned i=0;i<m_memory_config->m_n_mem;i++) {
         m_memory_partition_unit[i] = new memory_partition_unit(i, m_memory_config, m_memory_stats);
@@ -947,7 +832,7 @@ void gpgpu_sim::update_stats() {
     partiton_replys_in_parallel_total += partiton_replys_in_parallel;
     partiton_reqs_in_parallel_util_total += partiton_reqs_in_parallel_util;
     gpu_tot_sim_cycle_parition_util += gpu_sim_cycle_parition_util ;
-    gpu_tot_occupancy += gpu_occupancy;
+    // gpu_tot_occupancy += gpu_occupancy;
 
     gpu_sim_cycle = 0;
     partiton_reqs_in_parallel = 0;
@@ -956,7 +841,7 @@ void gpgpu_sim::update_stats() {
     gpu_sim_cycle_parition_util = 0;
     gpu_sim_insn = 0;
     m_total_cta_launched = 0;
-    gpu_occupancy = occupancy_stats();
+    // gpu_occupancy = occupancy_stats();
 }
 
 void gpgpu_sim::print_stats()
@@ -1511,4 +1396,4 @@ simt_core_cluster * gpgpu_sim::getSIMTCluster()
 {
    return *m_cluster;
 }
-
+}

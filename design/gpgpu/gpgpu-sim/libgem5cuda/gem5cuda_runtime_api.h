@@ -94,6 +94,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+using namespace libcuda;
+
 extern  cudaError_t  gem5gpu_finish_kernel();
 extern  cudaError_t  gem5gpu_stop_all_running_kernels();
 extern  cudaError_t  gem5gpu_print_stats();
@@ -1390,7 +1392,7 @@ extern  cudaError_t  gem5cudaMallocPitch(void **devPtr, size_t *pitch, size_t wi
  * ::cudaFreeHost, ::cudaMalloc3D, ::cudaMalloc3DArray,
  * ::cudaHostAlloc
  */
-extern  cudaError_t  gem5cudaMallocArray(struct cudaArray **array, const struct cudaChannelFormatDesc *desc, size_t width, size_t height __dv(0), unsigned int flags __dv(0));
+extern  cudaError_t  gem5cudaMallocArray(struct libcuda::cudaArray **array, const struct cudaChannelFormatDesc *desc, size_t width, size_t height __dv(0), unsigned int flags __dv(0));
 
 /**
  * \brief Frees memory on the device
@@ -1456,7 +1458,7 @@ extern  cudaError_t  gem5cudaFreeHost(void *ptr);
  * \ref ::cudaMallocHost(void**, size_t) "cudaMallocHost (C API)",
  * ::cudaFreeHost, ::cudaHostAlloc
  */
-extern  cudaError_t  gem5cudaFreeArray(struct cudaArray *array);
+// TODO extern  cudaError_t  gem5cudaFreeArray(struct cudaArray *array);
 
 
 /**
@@ -1646,7 +1648,7 @@ extern  cudaError_t  gem5cudaMalloc3D(struct cudaPitchedPtr* pitchedDevPtr, stru
  * ::cudaFreeHost, ::cudaHostAlloc,
  * ::make_cudaExtent
  */
-extern  cudaError_t  gem5cudaMalloc3DArray(struct cudaArray** array, const struct cudaChannelFormatDesc* desc, struct cudaExtent extent, unsigned int flags __dv(0));
+// TODO extern  cudaError_t  gem5cudaMalloc3DArray(struct cudaArray** array, const struct cudaChannelFormatDesc* desc, struct cudaExtent extent, unsigned int flags __dv(0));
 
 
 /**
@@ -1933,7 +1935,7 @@ extern  cudaError_t  gem5cudaMemcpy(void *dst, const void *src, size_t count, en
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpyToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind);
+// TODO extern  cudaError_t  gem5cudaMemcpyToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind);
 
 /**
  * \brief Copies data between host and device
@@ -1966,7 +1968,7 @@ extern  cudaError_t  gem5cudaMemcpyToArray(struct cudaArray *dst, size_t wOffset
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpyFromArray(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind);
+// TODO extern  cudaError_t  gem5cudaMemcpyFromArray(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind);
 
 /**
  * \brief Copies data between host and device
@@ -2001,7 +2003,7 @@ extern  cudaError_t  gem5cudaMemcpyFromArray(void *dst, const struct cudaArray *
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpyArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst, const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc, size_t count, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice));
+// TODO extern  cudaError_t  gem5cudaMemcpyArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst, const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc, size_t count, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice));
 
 /**
  * \brief Copies data between host and device
@@ -2084,7 +2086,7 @@ extern  cudaError_t  gem5cudaMemcpy2D(void *dst, size_t dpitch, const void *src,
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpy2DToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind);
+// TODO extern  cudaError_t  gem5cudaMemcpy2DToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind);
 
 /**
  * \brief Copies data between host and device
@@ -2125,7 +2127,7 @@ extern  cudaError_t  gem5cudaMemcpy2DToArray(struct cudaArray *dst, size_t wOffs
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpy2DFromArray(void *dst, size_t dpitch, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t width, size_t height, enum cudaMemcpyKind kind);
+// TODO extern  cudaError_t  gem5cudaMemcpy2DFromArray(void *dst, size_t dpitch, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t width, size_t height, enum cudaMemcpyKind kind);
 
 /**
  * \brief Copies data between host and device
@@ -2164,7 +2166,7 @@ extern  cudaError_t  gem5cudaMemcpy2DFromArray(void *dst, size_t dpitch, const s
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpy2DArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst, const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc, size_t width, size_t height, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice));
+// TODO extern  cudaError_t  gem5cudaMemcpy2DArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst, const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc, size_t width, size_t height, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice));
 
 /**
  * \brief Copies data to the given symbol on the device
@@ -2318,7 +2320,7 @@ extern  cudaError_t  gem5cudaMemcpyAsync(void *dst, const void *src, size_t coun
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpyToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
+// TODO extern  cudaError_t  gem5cudaMemcpyToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
 
 /**
  * \brief Copies data between host and device
@@ -2360,7 +2362,7 @@ extern  cudaError_t  gem5cudaMemcpyToArrayAsync(struct cudaArray *dst, size_t wO
  * ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpyFromArrayAsync(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
+// TODO extern  cudaError_t  gem5cudaMemcpyFromArrayAsync(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
 
 /**
  * \brief Copies data between host and device
@@ -2461,7 +2463,7 @@ extern  cudaError_t  gem5cudaMemcpy2DAsync(void *dst, size_t dpitch, const void 
  * ::cudaMemcpyFromArrayAsync, ::cudaMemcpy2DFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpy2DToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
+// TODO extern  cudaError_t  gem5cudaMemcpy2DToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
 
 /**
  * \brief Copies data between host and device
@@ -2511,7 +2513,7 @@ extern  cudaError_t  gem5cudaMemcpy2DToArrayAsync(struct cudaArray *dst, size_t 
  * ::cudaMemcpyFromArrayAsync,
  * ::cudaMemcpyToSymbolAsync, ::cudaMemcpyFromSymbolAsync
  */
-extern  cudaError_t  gem5cudaMemcpy2DFromArrayAsync(void *dst, size_t dpitch, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
+// TODO extern  cudaError_t  gem5cudaMemcpy2DFromArrayAsync(void *dst, size_t dpitch, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t width, size_t height, enum cudaMemcpyKind kind, cudaStream_t stream __dv(0));
 
 /**
  * \brief Copies data to the given symbol on the device
@@ -3046,7 +3048,7 @@ extern  cudaError_t  gem5cudaGraphicsResourceGetMappedPointer(void **devPtr, siz
  *
  * \sa ::cudaGraphicsResourceGetMappedPointer
  */
-extern  cudaError_t  gem5cudaGraphicsSubResourceGetMappedArray(struct cudaArray **array, cudaGraphicsResource_t resource, unsigned int arrayIndex, unsigned int mipLevel);
+// TODO extern  cudaError_t  gem5cudaGraphicsSubResourceGetMappedArray(struct cudaArray **array, cudaGraphicsResource_t resource, unsigned int arrayIndex, unsigned int mipLevel);
 
 /** @} */ /* END gem5cudaRT_INTEROP */
 
@@ -3079,7 +3081,7 @@ extern  cudaError_t  gem5cudaGraphicsSubResourceGetMappedArray(struct cudaArray 
  * \ref ::cudaUnbindTexture(const struct textureReference*) "cudaUnbindTexture (C API)",
  * \ref ::cudaGetTextureAlignmentOffset(size_t*, const struct textureReference*) "cudaGetTextureAlignmentOffset (C API)"
  */
-extern  cudaError_t  gem5cudaGetChannelDesc(struct cudaChannelFormatDesc *desc, const struct cudaArray *array);
+// TODO extern  cudaError_t  gem5cudaGetChannelDesc(struct cudaChannelFormatDesc *desc, const struct cudaArray *array);
 
 /**
  * \brief Returns a channel descriptor using the specified format
@@ -3227,7 +3229,7 @@ extern  cudaError_t  gem5cudaBindTexture2D(size_t *offset, const struct textureR
  * \ref ::cudaUnbindTexture(const struct textureReference*) "cudaUnbindTexture (C API)",
  * \ref ::cudaGetTextureAlignmentOffset(size_t*, const struct textureReference*) "cudaGetTextureAlignmentOffset (C API)"
  */
-extern  cudaError_t  gem5cudaBindTextureToArray(const struct textureReference *texref, const struct cudaArray *array, const struct cudaChannelFormatDesc *desc);
+// TODO extern  cudaError_t  gem5cudaBindTextureToArray(const struct textureReference *texref, const struct cudaArray *array, const struct cudaChannelFormatDesc *desc);
 
 /**
  * \brief Unbinds a texture
@@ -3330,7 +3332,7 @@ extern  cudaError_t  gem5cudaGetTextureReference(const struct textureReference *
  * \ref ::cudaBindSurfaceToArray(const struct surface< T, dim>&, const struct cudaArray*) "cudaBindSurfaceToArray (C++ API, inherited channel descriptor)",
  * ::cudaGetSurfaceReference
  */
-extern  cudaError_t  gem5cudaBindSurfaceToArray(const struct surfaceReference *surfref, const struct cudaArray *array, const struct cudaChannelFormatDesc *desc);
+// TODO extern  cudaError_t  gem5cudaBindSurfaceToArray(const struct surfaceReference *surfref, const struct cudaArray *array, const struct cudaChannelFormatDesc *desc);
 
 /**
  * \brief Get the surface reference associated with a symbol

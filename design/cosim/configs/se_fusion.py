@@ -53,7 +53,7 @@ from common import Options
 from ruby import Ruby
 from common import Simulation
 
-import ipdb
+#import ipdb
 
 parser = optparse.OptionParser()
 GPUConfig.addGPUOptions(parser)
@@ -124,6 +124,12 @@ if options.cacheline_size != 128:
     print("Warning: Only block size currently supported is 128B. Defaulting to 128.")
     options.cacheline_size = 128
 
+cp_process = Process(pid=1000)
+cp_process.executable = options.cp_firmware
+cp_process.cmd = optons.cp_firmware
+
+multiprocesses = [process, cp_process]
+options.num_cpus = 2
 ############################
 # Instantiate system
 #
@@ -132,7 +138,7 @@ if options.cacheline_size != 128:
 multi_thread = False
 num_threads = 1
 system = System(cpu = [CPUClass(cpu_id = i,
-                                workload = process,
+                                workload = multiprocesses[i],
                                 numThreads = num_threads
                                )
                        for i in xrange(options.num_cpus)],
@@ -140,6 +146,15 @@ system = System(cpu = [CPUClass(cpu_id = i,
                 mem_mode = test_mem_mode,
                 mem_ranges = [cpu_mem_range],
                 cache_line_size = options.cacheline_size)
+
+if ObjectList.is_kvm_cpu(CPUClass) or ObjectList.is_kvm_cpu(FutureClass):
+    if buildEnv['TARGET_ISA'] == 'x86':
+        system.kvm_vm = KvmVM()
+        for process in multiprocesses:
+            process.useArchPT = True
+            process.kvmInSE = True
+    else:
+        fatal("KvmCPU can only be used in SE mode with x86")
 
 # Create a top-level voltage domain
 system.voltage_domain = VoltageDomain(voltage = options.sys_voltage)
@@ -161,7 +176,7 @@ Simulation.setWorkCountOptions(system, options)
 ############################
 # Create the GPU
 #
-system.gpu = GPUConfig.createGPU(options, gpu_mem_range)
+system.gpu = GPUConfig.createGPU(options, gpu_mem_range, system)
 
 #
 # Setup Ruby
@@ -176,13 +191,13 @@ system.ruby.clk_domain = system.ruby_clk_domain
 system.ruby.block_size_bytes = 128
 
 #ipdb.set_trace()
-if options.split or options.ppu:
-    if options.access_backing_store:
-        #
-        # Reset Ruby's phys_mem to add the device memory range
-        #
-        system.ruby.phys_mem = SimpleMemory(range=total_mem_range,
-                                            in_addr_map=False)
+#if options.split or options.ppu:
+#    if options.access_backing_store:
+#        #
+#        # Reset Ruby's phys_mem to add the device memory range
+#        #
+#        system.ruby.phys_mem = SimpleMemory(range=total_mem_range,
+#                                            in_addr_map=False)
 
 
 
@@ -192,39 +207,36 @@ if options.split or options.ppu:
 # Create a memory bus, a system crossbar, in this case
 # IOXbar is non-coherent , it run little faster in gem5
 #system.membus = SystemXBar()
-system.membus = IOXBar()
+#system.membus = IOXBar()
 
 
 for (i, cpu) in enumerate(system.cpu):
-    cpu.wait_for_remote_gdb = options.wait_for_gdb
+#    cpu.wait_for_remote_gdb = options.wait_for_gdb
+    ruby_port = system.ruby
 
     cpu.clk_domain = system.cpu_clk_domain
     cpu.createThreads()
     cpu.createInterruptController()
 
-    # Hook the CPU ports up to the membus
-    cpu.icache_port = system.membus.slave
-    cpu.dcache_port = system.membus.slave
-
-
     cpu.createInterruptController()
 
     if buildEnv['TARGET_ISA'] == "x86":
-        cpu.interrupts[0].pio = system.membus.master
-        cpu.interrupts[0].int_master = system.membus.slave
-        cpu.interrupts[0].int_slave = system.membus.master
-
-system.mem_ctrl = SimpleMemory(latency="0ns", bandwidth="0GB/s")
-system.mem_ctrl.range = system.mem_ranges[0]
-system.mem_ctrl.port = system.membus.master
-
-# Connect the system up to the membus
-system.system_port = system.membus.slave
+        cpu.interrupts[0].pio = ruby_port.master
+        cpu.interrupts[0].int_master = ruby_port.slave
+        cpu.interrupts[0].int_slave = ruby_port.master
+    # Tie the cpu port s to correct ruby system ports
+    cpu.icache_port = system.ruby._cpu_ports[i].slave
+    cpu.dcache_port = system.ruby._cpu_ports[i].slave
+    if buildEnv['TARGET_ISA'] == "x86":
+        cpu.itb.walker.port = system.ruby._cpu_ports[i].slave
+        cpu.dtb.walker.port = system.ruby._cpu_ports[i].slave
+    else:
+        fatal("Not sure how to connect TLB walker ports in non-x86 system!")
 
 ##########################
 # Connect GPU ports
 #
-GPUConfig.connectGPUPorts(system.gpu, system.ruby, system.membus, options)
+GPUConfig.connectGPUPorts(system.gpu, system.ruby, options)
 
 if options.mem_type == "RubyMemoryControl":
     GPUMemConfig.setMemoryControlOptions(system, options)

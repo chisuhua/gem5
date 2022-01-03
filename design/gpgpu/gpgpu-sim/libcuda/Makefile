@@ -90,36 +90,29 @@ PROG     =cuda
 M5OP = m5op_x86
 INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer
 
-CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc shader.cc gpu-cache.cc \
-	    gpu-sim.cc l2cache.cc mem_latency_stat.cc \
-	    ../src/cuda-sim/ptx_loader.cc \
-	    ../src/cuda-sim/ptx_sim.cc \
-	    ../src/cuda-sim/ptx_parser.cc \
-	    ../src/cuda-sim/ptx-stats.cc \
-	    ../src/cuda-sim/ptx_ir.cc \
-	    ../src/cuda-sim/instructions.cc \
-	    ../src/cuda-sim/cuda-sim.cc \
-	    ../src/cuda-sim/memory.cc \
-	    ../src/cuda-sim/decuda_pred_table/decuda_pred_table.cc \
-	    ../src/gpgpu-sim/addrdec.cc \
-	    ../src/gpgpu-sim/gpu-misc.cc \
-	    ../src/debug.cc \
-	    ../src/option_parser.cc
+CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc shader.cc \
+	    gpu-sim.cc \
+	    addrdec.cc \
+	    gpu-misc.cc \
+		debug.cc \
+	    mem_latency_stat.cc \
+	    option.cc \
 
 	#	gpu-cache.cc \
 	#    ../src/gpgpu-sim/dram.cc \
 #            ../src/cuda-sim/cuda_device_printf.cc \
 #            ../src/cuda-sim/cuda_device_runtime.cc \
 
-C_SRCS =  ../src/cuda-sim/ptxinfo.tab.c \
-	  ../src/cuda-sim/ptx.tab.c \
-          ../src/cuda-sim/lex.ptx_.c \
-          ../src/cuda-sim/lex.ptxinfo_.c
+#C_SRCS =  ../src/cuda-sim/ptxinfo.tab.c \
+#	  ../src/cuda-sim/ptx.tab.c \
+#          ../src/cuda-sim/lex.ptx_.c \
+#          ../src/cuda-sim/lex.ptxinfo_.c
 
 LEX_SRCS = cuobjdump.l
 YACC_SRCS = cuobjdump.y
 CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
 CCFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
+CUDA_SIM_OBJS = $(shell ls cuda-sim/*.o cuda-sim/decuda_pred_table/*.o)
 LEX			= flex
 LEXFLAGS	= -B
 YACC		= bison
@@ -131,7 +124,7 @@ YFLAGS		= -t -d -v --report=all
 OUTPUT_DIR=.
 
 OBJS = $(CXX_SRCS:%.cc=$(OUTPUT_DIR)/%.o)
-OBJS += $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o)
+#OBJS += $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o)
 OBJS += $(LEX_SRCS:%.l=$(OUTPUT_DIR)/%_lexer.o)
 OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 
@@ -143,8 +136,8 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 #	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
 all: libcudart.so libcudart_static.a
 
-libcudart.so: $(OBJS)
-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) ../libgem5cuda/m5op_x86.o ../libgem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -pthread -o $(OUTPUT_DIR)/libcudart.so
+libcudart.so: cuda-sim $(OBJS)
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) ../libgem5cuda/m5op_x86.o ../libgem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -o $(OUTPUT_DIR)/libcudart.so
 
 libcudart_static.a: $(OBJS)
 	$(AR) rcs libcudart_static.a $(OBJS) ../libgem5cuda/gem5cuda_runtime_api.o ../libgem5cuda/m5op_x86.o
@@ -171,9 +164,14 @@ $(OUTPUT_DIR)/%_parser.h: $(OUTPUT_DIR)/%_parser.c
 	:
 $(OUTPUT_DIR)/Makefile.makedepend: depend
 
-depend:
+depend: cuda-sim
+	$(MAKE) -C ./cuda-sim
 	touch $(OUTPUT_DIR)/Makefile.makedepend
 	makedepend -f$(OUTPUT_DIR)/Makefile.makedepend -p$(OUTPUT_DIR)/ $(CXX_SRCS) 2> /dev/null
+
+cuda-sim:
+	$(MAKE) -C ./cuda-sim/ depend
+	$(MAKE) -C ./cuda-sim/
 
 clean:
 	rm -f $(PROG)
@@ -182,6 +180,7 @@ clean:
 	rm -f *_parser.*
 	rm -f *_lexer.*
 	rm -f Makefile.makedepend Makefile.makedepend.bak
+	make -C cuda-sim clean
 
 include $(OUTPUT_DIR)/Makefile.makedepend
 

@@ -741,7 +741,7 @@ gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config, gem5::CudaGPU *cuda_gpu )
     m_memory_stats = new memory_stats_t(m_config.num_shader(),m_shader_config,m_memory_config);
     average_pipeline_duty_cycle = (float *)malloc(sizeof(float));
     active_sms=(float *)malloc(sizeof(float));
-    m_power_stats = new power_stat_t(m_shader_config,average_pipeline_duty_cycle,active_sms,m_shader_stats,m_memory_config,m_memory_stats);
+    // m_power_stats = new power_stat_t(m_shader_config,average_pipeline_duty_cycle,active_sms,m_shader_stats,m_memory_config,m_memory_stats);
 
     gpu_sim_insn = 0;
     gpu_tot_sim_insn = 0;
@@ -1571,15 +1571,15 @@ void
 gpgpu_sim::core_cycle_start()
 {
     // L1 cache + shader core pipeline stages
-    m_power_stats->pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].clear();
+    // m_power_stats->pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX].clear();
     for (unsigned i=0;i<m_shader_config->n_simt_clusters;i++) {
        if (m_cluster[i]->get_not_completed() || get_more_cta_left() ) {
              m_cluster[i]->core_cycle();
              *active_sms+=m_cluster[i]->get_n_active_sms();
        }
        // Update core icnt/cache stats for GPUWattch
-       m_cluster[i]->get_icnt_stats(m_power_stats->pwr_mem_stat->n_simt_to_mem[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_mem_to_simt[CURRENT_STAT_IDX][i]);
-       m_cluster[i]->get_cache_stats(m_power_stats->pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX]);
+       // m_cluster[i]->get_icnt_stats(m_power_stats->pwr_mem_stat->n_simt_to_mem[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_mem_to_simt[CURRENT_STAT_IDX][i]);
+       // m_cluster[i]->get_cache_stats(m_power_stats->pwr_mem_stat->core_cache_stats[CURRENT_STAT_IDX]);
     }
     float temp=0;
     for (unsigned i=0;i<m_shader_config->num_shader();i++){
@@ -1732,16 +1732,16 @@ gpgpu_sim::dram_cycle()
     for (unsigned i=0;i<m_memory_config->m_n_mem;i++){
        m_memory_partition_unit[i]->dram_cycle(); // Issue the dram command (scheduler + delay model)
        // Update performance counters for DRAM
-       m_memory_partition_unit[i]->set_dram_power_stats(m_power_stats->pwr_mem_stat->n_cmd[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_activity[CURRENT_STAT_IDX][i],
-                      m_power_stats->pwr_mem_stat->n_nop[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_act[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_pre[CURRENT_STAT_IDX][i],
-                      m_power_stats->pwr_mem_stat->n_rd[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_wr[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_req[CURRENT_STAT_IDX][i]);
+       //m_memory_partition_unit[i]->set_dram_power_stats(m_power_stats->pwr_mem_stat->n_cmd[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_activity[CURRENT_STAT_IDX][i],
+       //               m_power_stats->pwr_mem_stat->n_nop[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_act[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_pre[CURRENT_STAT_IDX][i],
+       //               m_power_stats->pwr_mem_stat->n_rd[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_wr[CURRENT_STAT_IDX][i], m_power_stats->pwr_mem_stat->n_req[CURRENT_STAT_IDX][i]);
     }
 }
 
 void
 gpgpu_sim::l2_cycle()
 {
-    m_power_stats->pwr_mem_stat->l2_cache_stats[CURRENT_STAT_IDX].clear();
+    // m_power_stats->pwr_mem_stat->l2_cache_stats[CURRENT_STAT_IDX].clear();
     for (unsigned i=0;i<m_memory_config->m_n_mem_sub_partition;i++) {
         //move memory request from interconnect into memory partition (if not backed up)
         //Note:This needs to be called in DRAM clock domain if there is no L2 cache in the system
@@ -1753,7 +1753,7 @@ gpgpu_sim::l2_cycle()
             m_memory_sub_partition[i]->push( mf, gpu_sim_cycle + gpu_tot_sim_cycle );
         }
         m_memory_sub_partition[i]->cache_cycle(gpu_sim_cycle+gpu_tot_sim_cycle);
-        m_memory_sub_partition[i]->accumulate_L2cache_stats(m_power_stats->pwr_mem_stat->l2_cache_stats[CURRENT_STAT_IDX]);
+        // m_memory_sub_partition[i]->accumulate_L2cache_stats(m_power_stats->pwr_mem_stat->l2_cache_stats[CURRENT_STAT_IDX]);
     }
 }
 

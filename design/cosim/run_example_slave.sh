@@ -25,7 +25,7 @@ OPTION="$OPTION -e 500000000"
 
 
 if [ ! -e "m5out/config.ini" ]; then
-GEM5=$DIR/../../build/X86_VI_hammer/gem5.debug
+GEM5=$DIR/../../build/X86_VI_hammer/gem5.$GEM5_VARIANT
 echo "Running $GEM5 $TEST to generate m5out/config.ini"
 $GEM5 $TEST
 fi

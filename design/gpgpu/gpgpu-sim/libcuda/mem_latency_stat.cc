@@ -44,6 +44,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace libcuda {
+
 memory_stats_t::memory_stats_t( unsigned n_shader, const struct shader_core_config *shader_config, const struct memory_config *mem_config )
 {
 #if 0
@@ -483,3 +485,4 @@ void memory_stats_t::memlatstat_print( unsigned n_mem, unsigned gpu_mem_n_bk )
    }
 }
 #endif
+}

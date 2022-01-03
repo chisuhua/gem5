@@ -221,7 +221,7 @@ def parseGpgpusimConfig(options):
 
     return gpgpusimconfig
 
-def createGPU(options, gpu_mem_range):
+def createGPU(options, gpu_mem_range, system):
     # DEPRECATED: Set a default GPU DRAM clock to be passed to the wrapper.
     # This must be eliminated when the wrapper can be removed.
     options.gpu_dram_clock = None
@@ -258,12 +258,12 @@ def createGPU(options, gpu_mem_range):
                           )
 
     # Create the zephyr os act as cp
-    gpu.cp = CommandProcessor(driver_delay = 5000,
-                           buffering = options.cp_buffering,
-                           start_tick = 20000,
-                           file_name=options.cp_firmware
-                          )
-    assert(options.cp_firmware != None)
+    #gpu.cp = CommandProcessor(driver_delay = 5000,
+    #                       buffering = options.cp_buffering,
+    #                       start_tick = 20000,
+    #                       file_name=options.cp_firmware
+    #                      )
+    #assert(options.cp_firmware != None)
 
     # The default setting for atoms_per_cache_subline is 3, consistent with
     # the Fermi microarchitecture. If the user wishes to set it differently,
@@ -323,8 +323,8 @@ def createGPU(options, gpu_mem_range):
             sc.lsq.data_tlb.access_host_pagetable = True
         gpu.ce.device_dtb.access_host_pagetable = True
         gpu.ce.host_dtb.access_host_pagetable = True
-        gpu.cp.device_dtb.access_host_pagetable = True
-        gpu.cp.host_dtb.access_host_pagetable = True
+        #gpu.cp.device_dtb.access_host_pagetable = True
+        #gpu.cp.host_dtb.access_host_pagetable = True
 
     gpu.shared_mem_delay = options.shMemDelay
     gpu.config_path = gpgpusimOptions
@@ -332,8 +332,8 @@ def createGPU(options, gpu_mem_range):
 
     return gpu
 
-def connectGPUPorts(gpu, ruby, membus, options):
-    num_cpus = 0 # options.num_cpus
+def connectGPUPorts(gpu, ruby, options):
+    num_cpus = options.num_cpus
     for i,sc in enumerate(gpu.shader_cores):
         sc.inst_port = ruby._cpu_ports[num_cpus+i].slave
         for j in xrange(options.gpu_warp_size):
@@ -384,17 +384,13 @@ def connectGPUPorts(gpu, ruby, membus, options):
         # Tie copy engine ports to appropriate sequencers
         # the host-side is connect to Membus , and device-side is connect to caches
         #gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
-        gpu.ce.host_port = membus.slave
+        #gpu.ce.host_port = membus.slave
+        gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
         gpu.ce.device_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
-        gpu.ce.device_dtb.access_host_pagetable = False
 
         # Tie cp command processor ports to appropriate sequencers
-        gpu.cp.host_port = membus.slave
-        gpu.cp.device_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
-        gpu.cp.device_dtb.access_host_pagetable = False
 
         #gpu.cp.pio_port = ruby._cpu_ports[num_cpus+options.num_sc].master
-        gpu.cp.pio_port = membus.master
 
         #gpu.cp_membus = IOXBar()
         #gpu.cp.port = gpu.cp_membus.slave

@@ -37,7 +37,7 @@ Export('gpgpu_sources')
 #SimObject('Bridge.py')
 
 Source('abstract_hardware_model.cc', append={'CXXFLAGS': '-Wno-error=format -Wno-error=missing-field-initializers'})
-Source('debug.cc')
+Source('debug.cc', append={'CXXFLAGS': '-Wno-error=unused-result'})
 Source('gpgpusim_entrypoint.cc')
 Source('option_parser.cc', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('statwrapper.cc')

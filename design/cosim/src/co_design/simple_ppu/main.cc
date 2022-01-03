@@ -3,8 +3,8 @@
 
 #include "base/addr_range.hh"
 #include "cli_parser.hh"
-#include "cxx_config/ExternalMaster.hh"
-#include "cxx_config/ExternalSlave.hh"
+#include "params/ExternalMaster.hh"
+#include "params/ExternalSlave.hh"
 #include "master_transactor.hh"
 #include "report_handler.hh"
 #include "sc_initiator.hh"
@@ -12,6 +12,18 @@
 #include "sim_control.hh"
 #include "slave_transactor.hh"
 #include "stats.hh"
+#include "ini_loader.h"
+#include <cstdio>
+#include <list>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+static std::thread* gem5_thread = nullptr;
+static std::mutex gem5_lock;
+static std::condition_variable gem5_cv;
+static bool gem5_ready = false;
 
 int
 sc_main(int argc, char **argv)
@@ -31,27 +43,27 @@ sc_main(int argc, char **argv)
     std::map<std::string,int> tlmObjectByName;
     std::map<std::string,std::string> tlmMasterPortName;
     std::map<std::string,std::string> tlmSlavePortName;
-    std::map<std::string,AddrRange> tlmSlaveAddrRange;
+    std::map<std::string,gem5::AddrRange> tlmSlaveAddrRange;
     std::vector<std::string> tlmName;
 
-    CxxConfigManager *config_manager = sim_control.config_manager;
-    std::list<SimObject *> objectsInOrder = config_manager->objectsInOrder;
+    gem5::CxxConfigManager *config_manager = sim_control.config_manager;
+    std::list<gem5::SimObject *> objectsInOrder = config_manager->objectsInOrder;
 
     for (auto i = objectsInOrder.begin(); i != objectsInOrder.end(); ++i)
     {
-        SimObject *object = *i;
+        gem5::SimObject *object = *i;
         const std::string &instance_name = object->name();
         std::string object_name = config_manager->unRename(instance_name);
 
         std::string object_type;
-        const CxxConfigDirectoryEntry &entry = config_manager->findObjectType(object_name, object_type);
-        CxxConfigParams* params = config_manager->findObjectParams(object_name);
+        const gem5::CxxConfigDirectoryEntry &entry = config_manager->findObjectType(object_name, object_type);
+        gem5::CxxConfigParams* params = config_manager->findObjectParams(object_name);
 
         if (object_type == "ExternalMaster")
         {
             std::size_t pos = object_name.find("master");
             object_name.replace(pos, 6,"");
-            tlmMasterPortName[object_name] = ((ExternalMasterCxxConfigParams*)params)->port_data;
+            tlmMasterPortName[object_name] = ((gem5::ExternalMasterParams*)params)->port_data;
             if (tlmObjectByName.find(object_name) != tlmObjectByName.end())
             {
                 tlmObjectByName[object_name] |= 0x1;
@@ -64,8 +76,8 @@ sc_main(int argc, char **argv)
         {
             std::size_t pos = object_name.find("slave");
             object_name.replace(pos, 5,"");
-            tlmSlavePortName[object_name] = ((ExternalSlaveCxxConfigParams*)params)->port_data;
-            tlmSlaveAddrRange[object_name] = ((ExternalSlaveCxxConfigParams*)params)->addr_ranges;
+            tlmSlavePortName[object_name] = ((gem5::ExternalSlaveParams*)params)->port_data;
+            tlmSlaveAddrRange[object_name] = ((gem5::ExternalSlaveParams*)params)->addr_ranges;
             if (tlmObjectByName.find(object_name) != tlmObjectByName.end())
             {
                 tlmObjectByName[object_name] |= 0x2;
@@ -112,7 +124,7 @@ sc_main(int argc, char **argv)
         // unsigned long long int memorySize = 512*1024*1024ULL;
         slave_transactor.push_back(new Gem5SystemC::Gem5SlaveTransactor("slave_transactor" + i, tlmSlavePortName[object_name]));
 
-        AddrRange range = tlmSlaveAddrRange[object_name];
+        gem5::AddrRange range = tlmSlaveAddrRange[object_name];
         unsigned long long int target_start = range.start();
         unsigned long long int target_size = range.size();
 
@@ -141,6 +153,12 @@ sc_main(int argc, char **argv)
 
     SC_REPORT_INFO("sc_main", "Start of Simulation");
 
+    gem5_ready = true;
+    {
+        std::lock_guard<std::mutex> locker(gem5_lock);
+        gem5_cv.notify_one();
+    }
+
     sc_core::sc_start(); // Run to end of simulation
     // sc_core::sc_start(140, SC_US);
 
@@ -155,4 +173,39 @@ sc_main(int argc, char **argv)
     }
 
     return EXIT_SUCCESS;
+}
+
+#define CONFIG_FILE "gem5_settings.ini"
+
+extern "C" {
+void gem5_main() {
+    util::config::ini_loader cfg_loader;
+    int argc;
+
+    cfg_loader.load_file(CONFIG_FILE);
+    cfg_loader.dump_to("args.argc", argc);
+    std::vector<char*> argv(argc+1, static_cast<char*>(NULL));
+    char tmp[255];
+    char argv0[] = "gem5_main";
+    argv[0] = &argv0[0];
+    for (int i = 1; i < argc + 1; ++i) {
+        std::string arg_str("args.argv");
+        cfg_loader.dump_to(arg_str + std::to_string(i), tmp);
+        std::size_t size = std::strlen(tmp) + 1;
+        argv[i] = new char[size];
+        std::copy(tmp, tmp+size, argv[i]);
+    }
+
+    gem5_thread = new std::thread(sc_main, argc + 1, &argv[0]);
+    std::unique_lock<std::mutex> locker(gem5_lock);
+    gem5_cv.wait(locker, [] {return gem5_ready;});
+}
+
+void gem5_stop() {
+    if (gem5_thread != nullptr) {
+        gem5_thread->join();
+        delete gem5_thread;
+        gem5_thread = nullptr;
+    }
+}
 }

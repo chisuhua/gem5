@@ -80,91 +80,91 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
         l2_bits += 1
     block_size_bits = int(math.log(options.cacheline_size, 2))
 
-    #for i in xrange(options.num_cpus):
-    #    #
-    #    # First create the Ruby objects associated with this cpu
-    #    #
-    #    l1i_cache = L1Cache(size = options.l1i_size,
-    #                        assoc = options.l1i_assoc,
-    #                        start_index_bit = block_size_bits,
-    #                        is_icache = True)
-    #    l1d_cache = L1Cache(size = options.l1d_size,
-    #                        assoc = options.l1d_assoc,
-    #                        start_index_bit = block_size_bits)
-    #    l2_cache = L2Cache(size = options.l2_size,
-    #                       assoc = options.l2_assoc,
-    #                       start_index_bit = block_size_bits)
+    for i in xrange(options.num_cpus):
+        #
+        # First create the Ruby objects associated with this cpu
+        #
+        l1i_cache = L1Cache(size = options.l1i_size,
+                            assoc = options.l1i_assoc,
+                            start_index_bit = block_size_bits,
+                            is_icache = True)
+        l1d_cache = L1Cache(size = options.l1d_size,
+                            assoc = options.l1d_assoc,
+                            start_index_bit = block_size_bits)
+        l2_cache = L2Cache(size = options.l2_size,
+                           assoc = options.l2_assoc,
+                           start_index_bit = block_size_bits)
 
-    #    l1_cntrl = L1Cache_Controller(version = i,
-    #                                  L1Icache = l1i_cache,
-    #                                  L1Dcache = l1d_cache,
-    #                                  L2cache = l2_cache,
-    #                                  no_mig_atomic = not \
-    #                                    options.allow_atomic_migration,
-    #                                  send_evictions = send_evicts(options),
-    #                                  transitions_per_cycle = options.ports,
-    #                                  ruby_system = ruby_system)
+        l1_cntrl = L1Cache_Controller(version = i,
+                                      L1Icache = l1i_cache,
+                                      L1Dcache = l1d_cache,
+                                      L2cache = l2_cache,
+                                      no_mig_atomic = not \
+                                        options.allow_atomic_migration,
+                                      send_evictions = send_evicts(options),
+                                      transitions_per_cycle = options.ports,
+                                      ruby_system = ruby_system)
 
-    #    cpu_seq = RubySequencer(version = i,
-    #                            icache = l1i_cache,
-    #                            dcache = l1d_cache,
-    #                            ruby_system = ruby_system)
+        cpu_seq = RubySequencer(version = i,
+                                icache = l1i_cache,
+                                dcache = l1d_cache,
+                                ruby_system = ruby_system)
 
-    #    l1_cntrl.sequencer = cpu_seq
+        l1_cntrl.sequencer = cpu_seq
 
-    #    if options.recycle_latency:
-    #        l1_cntrl.recycle_latency = options.recycle_latency
+        if options.recycle_latency:
+            l1_cntrl.recycle_latency = options.recycle_latency
 
-    #    exec("ruby_system.l1_cntrl%d = l1_cntrl" % i)
-    #    #
-    #    # Add controllers and sequencers to the appropriate lists
-    #    #
-    #    cpu_sequencers.append(cpu_seq)
-    #    topology.add(l1_cntrl)
+        exec("ruby_system.l1_cntrl%d = l1_cntrl" % i)
+        #
+        # Add controllers and sequencers to the appropriate lists
+        #
+        cpu_sequencers.append(cpu_seq)
+        topology.add(l1_cntrl)
 
-    #    # Connect the L1 controller and the network
-    #    # Connect the buffers from the controller to network
-    #    l1_cntrl.requestFromCache = MessageBuffer()
-    #    l1_cntrl.requestFromCache.master = ruby_system.network.slave
-    #    l1_cntrl.responseFromCache = MessageBuffer()
-    #    l1_cntrl.responseFromCache.master = ruby_system.network.slave
-    #    l1_cntrl.unblockFromCache = MessageBuffer()
-    #    l1_cntrl.unblockFromCache.master = ruby_system.network.slave
+        # Connect the L1 controller and the network
+        # Connect the buffers from the controller to network
+        l1_cntrl.requestFromCache = MessageBuffer()
+        l1_cntrl.requestFromCache.master = ruby_system.network.slave
+        l1_cntrl.responseFromCache = MessageBuffer()
+        l1_cntrl.responseFromCache.master = ruby_system.network.slave
+        l1_cntrl.unblockFromCache = MessageBuffer()
+        l1_cntrl.unblockFromCache.master = ruby_system.network.slave
 
-    #    # Connect the buffers from the network to the controller
-    #    l1_cntrl.forwardToCache = MessageBuffer()
-    #    l1_cntrl.forwardToCache.slave = ruby_system.network.master
-    #    l1_cntrl.responseToCache = MessageBuffer()
-    #    l1_cntrl.responseToCache.slave = ruby_system.network.master
+        # Connect the buffers from the network to the controller
+        l1_cntrl.forwardToCache = MessageBuffer()
+        l1_cntrl.forwardToCache.slave = ruby_system.network.master
+        l1_cntrl.responseToCache = MessageBuffer()
+        l1_cntrl.responseToCache.slave = ruby_system.network.master
 
-    #    l1_cntrl.mandatoryQueue = MessageBuffer()
-    #    l1_cntrl.triggerQueue = MessageBuffer()
+        l1_cntrl.mandatoryQueue = MessageBuffer()
+        l1_cntrl.triggerQueue = MessageBuffer()
 
-    #cpu_mem_range = AddrRange(options.total_mem_size)
-    #mem_module_size = cpu_mem_range.size() / options.num_dirs
+    cpu_mem_range = AddrRange(options.total_mem_size)
+    mem_module_size = cpu_mem_range.size() / options.num_dirs
 
     #
     # determine size and index bits for probe filter
     # By default, the probe filter size is configured to be twice the
     # size of the L2 cache.
     #
-    #pf_size = MemorySize(options.l2_size)
-    #pf_size.value = pf_size.value * 2
-    #dir_bits = int(math.log(options.num_dirs, 2))
-    #pf_bits = int(math.log(pf_size.value, 2))
-    #if options.numa_high_bit:
-    #    if options.pf_on or options.dir_on:
-    #        # if numa high bit explicitly set, make sure it does not overlap
-    #        # with the probe filter index
-    #        assert(options.numa_high_bit - dir_bits > pf_bits)
+    pf_size = MemorySize(options.l2_size)
+    pf_size.value = pf_size.value * 2
+    dir_bits = int(math.log(options.num_dirs, 2))
+    pf_bits = int(math.log(pf_size.value, 2))
+    if options.numa_high_bit:
+        if options.pf_on or options.dir_on:
+            # if numa high bit explicitly set, make sure it does not overlap
+            # with the probe filter index
+            assert(options.numa_high_bit - dir_bits > pf_bits)
 
-    #    # set the probe filter start bit to just above the block offset
-    #    pf_start_bit = block_size_bits
-    #else:
-    #    if dir_bits > 0:
-    #        pf_start_bit = dir_bits + block_size_bits - 1
-    #    else:
-    #        pf_start_bit = block_size_bits
+        # set the probe filter start bit to just above the block offset
+        pf_start_bit = block_size_bits
+    else:
+        if dir_bits > 0:
+            pf_start_bit = dir_bits + block_size_bits - 1
+        else:
+            pf_start_bit = block_size_bits
 
 
     #mem_dir_cntrl_nodes, rom_dir_cntrl_node = create_directories(
@@ -175,94 +175,94 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
     #    dir_cntrl_nodes.append(rom_dir_cntrl_node)
 
     #for dir_cntrl in dir_cntrl_nodes:
-    #for i in xrange(options.num_dirs):
-    #    #
-    #    # Create the Ruby objects associated with the directory controller
-    #    #
+    for i in xrange(options.num_dirs):
+        #
+        # Create the Ruby objects associated with the directory controller
+        #
 
-    #    dir_size = MemorySize('0B')
-    #    dir_size.value = mem_module_size
+        dir_size = MemorySize('0B')
+        dir_size.value = mem_module_size
 
-    #    pf = ProbeFilter(size = pf_size, assoc = 4,
-    #                     start_index_bit = pf_start_bit)
+        pf = ProbeFilter(size = pf_size, assoc = 4,
+                         start_index_bit = pf_start_bit)
 
-    #    dir_cntrl = Directory_Controller()
-    #    dir_cntrl.version = i
-    #    # TODO fix option
-    #    dir_cntrl.directory = RubyDirectoryMemory(
-    #                                     version = i,
-    #                                     size = dir_size,
-    #                                     numa_high_bit = options.numa_high_bit
-    #                       )
-    #    dir_cntrl.ruby_system = ruby_system
-    #    dir_cntrl.probeFilter = pf
+        dir_cntrl = Directory_Controller()
+        dir_cntrl.version = i
+        # TODO fix option
+        dir_cntrl.directory = RubyDirectoryMemory(
+                                         version = i,
+                                         size = dir_size,
+                                         numa_high_bit = options.numa_high_bit
+                           )
+        dir_cntrl.ruby_system = ruby_system
+        dir_cntrl.probeFilter = pf
 
-    #    #dir_cntrl = Directory_Controller(version = i,
-    #    #                                 directory = \
-    #    #                                 RubyDirectoryMemory( \
-    #    #                                            version = i,
-    #    #                                            size = dir_size,
-    #    #                                            numa_high_bit = \
-    #    #                                            options.numa_high_bit),
-    #    #                                 probeFilter = pf,
-    #    #                                 probe_filter_enabled = options.pf_on,
-    #    #                                 full_bit_dir_enabled = options.dir_on,
-    #    #                                 transitions_per_cycle = options.ports,
-    #    #                                 ruby_system = ruby_system)
+        dir_cntrl = Directory_Controller(version = i,
+                                         directory = \
+                                         RubyDirectoryMemory( \
+                                                    version = i,
+                                                    size = dir_size,
+                                                    numa_high_bit = \
+                                                    options.numa_high_bit),
+                                         probeFilter = pf,
+                                         probe_filter_enabled = options.pf_on,
+                                         full_bit_dir_enabled = options.dir_on,
+                                         transitions_per_cycle = options.ports,
+                                         ruby_system = ruby_system)
 
-    #    if options.recycle_latency:
-    #        dir_cntrl.recycle_latency = options.recycle_latency
+        if options.recycle_latency:
+            dir_cntrl.recycle_latency = options.recycle_latency
 
-    #    exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
-    #    dir_cntrl_nodes.append(dir_cntrl)
+        exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
+        dir_cntrl_nodes.append(dir_cntrl)
 
-    #    # Connect the directory controller to the network
-    #    dir_cntrl.forwardFromDir = MessageBuffer()
-    #    dir_cntrl.forwardFromDir.master = ruby_system.network.slave
-    #    dir_cntrl.responseFromDir = MessageBuffer()
-    #    dir_cntrl.responseFromDir.master = ruby_system.network.slave
-    #    dir_cntrl.dmaResponseFromDir = MessageBuffer(ordered = True)
-    #    dir_cntrl.dmaResponseFromDir.master = ruby_system.network.slave
+        # Connect the directory controller to the network
+        dir_cntrl.forwardFromDir = MessageBuffer()
+        dir_cntrl.forwardFromDir.master = ruby_system.network.slave
+        dir_cntrl.responseFromDir = MessageBuffer()
+        dir_cntrl.responseFromDir.master = ruby_system.network.slave
+        dir_cntrl.dmaResponseFromDir = MessageBuffer(ordered = True)
+        dir_cntrl.dmaResponseFromDir.master = ruby_system.network.slave
 
-    #    dir_cntrl.unblockToDir = MessageBuffer()
-    #    dir_cntrl.unblockToDir.slave = ruby_system.network.master
-    #    dir_cntrl.responseToDir = MessageBuffer()
-    #    dir_cntrl.responseToDir.slave = ruby_system.network.master
-    #    dir_cntrl.requestToDir = MessageBuffer()
-    #    dir_cntrl.requestToDir.slave = ruby_system.network.master
-    #    dir_cntrl.dmaRequestToDir = MessageBuffer(ordered = True)
-    #    dir_cntrl.dmaRequestToDir.slave = ruby_system.network.master
+        dir_cntrl.unblockToDir = MessageBuffer()
+        dir_cntrl.unblockToDir.slave = ruby_system.network.master
+        dir_cntrl.responseToDir = MessageBuffer()
+        dir_cntrl.responseToDir.slave = ruby_system.network.master
+        dir_cntrl.requestToDir = MessageBuffer()
+        dir_cntrl.requestToDir.slave = ruby_system.network.master
+        dir_cntrl.dmaRequestToDir = MessageBuffer(ordered = True)
+        dir_cntrl.dmaRequestToDir.slave = ruby_system.network.master
 
-    #    dir_cntrl.triggerQueue = MessageBuffer(ordered = True)
-    #    dir_cntrl.requestToMemory = MessageBuffer()
-    #    dir_cntrl.responseFromMemory = MessageBuffer()
+        dir_cntrl.triggerQueue = MessageBuffer(ordered = True)
+        dir_cntrl.requestToMemory = MessageBuffer()
+        dir_cntrl.responseFromMemory = MessageBuffer()
 
-    #for i, dma_port in enumerate(dma_ports):
-    #    #
-    #    # Create the Ruby objects associated with the dma controller
-    #    #
-    #    dma_seq = DMASequencer(version = i,
-    #                           ruby_system = ruby_system)
+    for i, dma_port in enumerate(dma_ports):
+        #
+        # Create the Ruby objects associated with the dma controller
+        #
+        dma_seq = DMASequencer(version = i,
+                               ruby_system = ruby_system)
 
-    #    dma_cntrl = DMA_Controller(version = i,
-    #                               dma_sequencer = dma_seq,
-    #                               transitions_per_cycle = options.ports,
-    #                               ruby_system = ruby_system)
+        dma_cntrl = DMA_Controller(version = i,
+                                   dma_sequencer = dma_seq,
+                                   transitions_per_cycle = options.ports,
+                                   ruby_system = ruby_system)
 
-    #    exec("ruby_system.dma_cntrl%d = dma_cntrl" % i)
-    #    exec("ruby_system.dma_cntrl%d.dma_sequencer.slave = dma_port" % i)
-    #    dma_cntrl_nodes.append(dma_cntrl)
+        exec("ruby_system.dma_cntrl%d = dma_cntrl" % i)
+        exec("ruby_system.dma_cntrl%d.dma_sequencer.slave = dma_port" % i)
+        dma_cntrl_nodes.append(dma_cntrl)
 
-    #    if options.recycle_latency:
-    #        dma_cntrl.recycle_latency = options.recycle_latency
+        if options.recycle_latency:
+            dma_cntrl.recycle_latency = options.recycle_latency
 
-    #    # Connect the dma controller to the network
-    #    dma_cntrl.responseFromDir = MessageBuffer(ordered = True)
-    #    dma_cntrl.responseFromDir.slave = ruby_system.network.master
-    #    dma_cntrl.requestToDir = MessageBuffer()
-    #    dma_cntrl.requestToDir.master = ruby_system.network.slave
+        # Connect the dma controller to the network
+        dma_cntrl.responseFromDir = MessageBuffer(ordered = True)
+        dma_cntrl.responseFromDir.slave = ruby_system.network.master
+        dma_cntrl.requestToDir = MessageBuffer()
+        dma_cntrl.requestToDir.master = ruby_system.network.slave
 
-    #    dma_cntrl.mandatoryQueue = MessageBuffer()
+        dma_cntrl.mandatoryQueue = MessageBuffer()
 
     # Create the io controller and the sequencer
     if full_system:

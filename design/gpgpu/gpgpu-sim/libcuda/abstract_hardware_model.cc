@@ -28,19 +28,22 @@
 
 
 #include "abstract_hardware_model.h"
-#include "cuda-sim/memory.h"
-#include "cuda-sim/ptx_ir.h"
-#include "cuda-sim/ptx-stats.h"
-#include "cuda-sim/cuda-sim.h"
+#include "../libcuda/cuda-sim/memory.h"
+#include "../libcuda/cuda-sim/ptx_ir.h"
+#include "../libcuda/cuda-sim/ptx-stats.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/gpu-sim.h"
 
 
-#include "option_parser.h"
+#include "option.h"
 #include <algorithm>
 #include <sys/stat.h>
 #include <sstream>
 #include <iostream>
 
+//Jin: CDP support
+bool g_cdp_enabled;
+namespace libcuda {
 
 unsigned mem_access_t::sm_next_access_uid = 0;
 unsigned warp_inst_t::sm_next_uid = 0;
@@ -689,8 +692,6 @@ void warp_inst_t::completed( unsigned long long cycle ) const
    ptx_file_line_stats_add_latency(pc, latency * active_count());
 }
 
-//Jin: CDP support
-bool g_cdp_enabled;
 unsigned g_kernel_launch_latency;
 
 unsigned kernel_info_t::m_next_uid = 1;
@@ -698,8 +699,8 @@ unsigned kernel_info_t::m_next_uid = 1;
 /*A snapshot of the texture mappings needs to be stored in the kernel's info as
 kernels should use the texture bindings seen at the time of launch and textures
  can be bound/unbound asynchronously with respect to streams. */
-// FIXME kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct cudaArray*> nameToCudaArray, std::map<std::string, const struct textureInfo*> nameToTextureInfo)
-kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry)
+kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry, std::map<std::string, const struct libcuda::cudaArray*> nameToCudaArray, std::map<std::string, const struct libcuda::textureInfo*> nameToTextureInfo)
+// kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *entry)
 {
     m_kernel_entry=entry;
     m_grid_dim=gridDim;
@@ -719,10 +720,8 @@ kernel_info_t::kernel_info_t( dim3 gridDim, dim3 blockDim, class function_info *
     m_launch_latency = g_kernel_launch_latency;
 
     volta_cache_config_set=false;
-    /* FIXME
     m_NameToCudaArray = nameToCudaArray;
     m_NameToTextureInfo = nameToTextureInfo;
-    */
 }
 
 kernel_info_t::~kernel_info_t()
@@ -1102,7 +1101,6 @@ void simt_stack::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addre
     }
 }
 
-#if 0
 void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 {
     for ( unsigned t=0; t < m_warp_size; t++ ) {
@@ -1117,8 +1115,13 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
         }
     }
 }
-#endif
 
+// TODO schi add
+void core_t::writeRegister(const warp_inst_t &inst, unsigned warpSize, unsigned lane_id, char *data) {
+    assert(inst.active(lane_id));
+    int warpId = inst.warp_id();
+    m_thread[warpSize*warpId+lane_id]->writeRegister(inst, lane_id, data);
+}
 
 bool  core_t::ptx_thread_done( unsigned hw_thread_id ) const
 {
@@ -1144,12 +1147,12 @@ void core_t::updateSIMTStack(unsigned warpId, warp_inst_t * inst)
 }
 
 // FIXME
-#if 0
+#if 1
 //! Get the warp to be executed using the data taken form the SIMT stack
 warp_inst_t core_t::getExecuteWarp(unsigned warpId)
 {
     unsigned pc,rpc;
-    fprintf("core_t::getExecuteWarp not supported\n");
+    //printf("core_t::getExecuteWarp not supported\n");
     assert(0);
     m_simt_stack[warpId]->get_pdom_stack_top_info(&pc,&rpc);
     warp_inst_t wi= *ptx_fetch_inst(pc);
@@ -1181,4 +1184,5 @@ void core_t::initilizeSIMTStack(unsigned warp_count, unsigned warp_size)
 void core_t::get_pdom_stack_top_info( unsigned warpId, unsigned *pc, unsigned *rpc ) const
 {
     m_simt_stack[warpId]->get_pdom_stack_top_info(pc,rpc);
+}
 }

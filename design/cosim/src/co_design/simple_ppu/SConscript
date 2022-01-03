@@ -3,6 +3,7 @@ import pdb
 
 Import('env')
 Import('deps')
+Import('linklibs')
 Import('compile_design')
 Import('compile_scala')
 
@@ -52,7 +53,19 @@ vdeps.append(File(verilated_o))
 vdeps.append(File(verilated_obj))
 
 
-bin = env.Program('gem5.sc', src + src_sc + deps + vdeps)
+#bin = env.Program('gem5.sc', src + src_sc + deps + vdeps)
+env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME']=1
 
+libdir = os.path.abspath(env['COSIM_DIR'])
+liblist = []
+for lib in linklibs:
+    lib_copy = os.path.join(libdir, os.path.basename(lib))
+    Command(lib_copy, lib, Copy("$TARGET", "$SOURCE"))
+    liblist.append(lib_copy)
 
-Return('bin')
+lib = env.SharedLibrary('gem5_sc.so', src + src_sc + vdeps + deps, RPATH=libdir,
+           LIBPATH=libdir, LIBS=[os.path.basename(lib) for lib in liblist])
+libout = os.path.join(libdir, 'libgem5_sc.so')
+Command(libout, lib, Copy("$TARGET", "$SOURCE"))
+
+Return('libout')

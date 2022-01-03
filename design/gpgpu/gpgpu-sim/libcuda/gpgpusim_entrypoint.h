@@ -31,9 +31,9 @@
 #include "abstract_hardware_model.h"
 
 #include <time.h>
+
+namespace libcuda {
 extern time_t g_simulation_starttime;
-
-
 
 class gpgpu_sim *gpgpu_ptx_sim_init_perf();
 // TODO schi 
@@ -41,7 +41,8 @@ class gpgpu_sim *gpgpu_ptx_sim_init_perf();
 
 void start_sim_thread(int api);
 
-int gpgpu_opencl_ptx_sim_main_perf( kernel_info_t *grid );
-int gpgpu_opencl_ptx_sim_main_func( kernel_info_t *grid );
+// int gpgpu_opencl_ptx_sim_main_perf( kernel_info_t *grid );
+// int gpgpu_opencl_ptx_sim_main_func( kernel_info_t *grid );
+}
 
 #endif

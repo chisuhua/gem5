@@ -85,7 +85,7 @@ Source('arbiters/prio_arb.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifie
 Source('arbiters/roundrobin_arb.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('arbiters/tree_arb.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 
-Source('networks/anynet.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=implicit-fallthrough'})
+Source('networks/anynet.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('networks/cmesh.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('networks/dragonfly.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=unused-but-set-variable -Wno-error=maybe-uninitialized'})
 Source('networks/fattree.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
@@ -94,7 +94,7 @@ Source('networks/fly.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('networks/kncube.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=maybe-uninitialized'})
 Source('networks/network.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('networks/qtree.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=maybe-uninitialized'})
-Source('networks/tree4.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
+Source('networks/tree4.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers -Wno-error=maybe-uninitialized'})
 
 Source('power/buffer_monitor.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})
 Source('power/power_module.cpp', append={'CXXFLAGS': '-Wno-error=ignored-qualifiers'})

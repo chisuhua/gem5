@@ -46,12 +46,12 @@
 
 // #include "delayqueue.h"
 // #include "stack.h"
-#include "../src/gpgpu-sim/dram.h"
+// #include "../src/gpgpu-sim/dram.h"
 #include "../libcuda/abstract_hardware_model.h"
 // #include "scoreboard.h"
 // #include "mem_fetch.h"
-#include "../src/gpgpu-sim/stats.h"
-#include "../src/gpgpu-sim/gpu-cache.h"
+#include "../libcuda/stats.h"
+#include "../libcuda/gpu-cache.h"
 // #include "traffic_breakdown.h"
 
 
@@ -68,6 +68,8 @@
 #define WRITE_PACKET_SIZE 8
 
 #define WRITE_MASK_SIZE 8
+
+namespace libcuda {
 
 enum exec_unit_type_t
 {
@@ -1236,6 +1238,9 @@ class simt_core_cluster;
 class shader_memory_interface;
 class shader_core_mem_fetch_allocator;
 class cache_t;
+class memory_config;
+class shader_core_stats;
+class memory_stats_t;
 
 #if 0
 class ldst_unit: public pipelined_simd_unit {
@@ -1452,8 +1457,8 @@ struct shader_core_config : public core_config
         m_L1D_config.init(m_L1D_config.m_config_string,FuncCachePreferNone);
         gpgpu_cache_texl1_linesize = m_L1T_config.get_line_sz();
         gpgpu_cache_constl1_linesize = m_L1C_config.get_line_sz();
-        m_valid = true;
 #endif
+        m_valid = true;
     }
     void reg_options(class OptionParser * opp );
     unsigned max_cta( const kernel_info_t &k ) const;
@@ -1483,7 +1488,7 @@ struct shader_core_config : public core_config
     mutable cache_config m_L1I_config;
     mutable cache_config m_L1T_config;
     mutable cache_config m_L1C_config;
-    mutable l1d_cache_config m_L1D_config;
+    // mutable l1d_cache_config m_L1D_config;
 
     bool gpgpu_dwf_reg_bankconflict;
 
@@ -1724,7 +1729,7 @@ public:
 
     void event_warp_issued( unsigned s_id, unsigned warp_id, unsigned num_issued, unsigned dynamic_warp_id );
 
-    void visualizer_print( gzFile visualizer_file );
+    // void visualizer_print( gzFile visualizer_file );
 
     void print( FILE *fout ) const;
 
@@ -2225,6 +2230,7 @@ private:
     shader_core_ctx *m_core;
     simt_core_cluster *m_cluster;
 };
+}
 
 
 // inline int scheduler_unit::get_sid() const { return m_shader->get_sid(); }

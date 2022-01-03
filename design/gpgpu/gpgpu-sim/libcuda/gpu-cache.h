@@ -35,11 +35,12 @@
 #include "../libcuda/abstract_hardware_model.h"
 #include "../src/tr1_hash_map.h"
 
-#include "../src/gpgpu-sim/addrdec.h"
+#include "../libcuda/addrdec.h"
 #include <iostream>
 
 #define MAX_DEFAULT_CACHE_SIZE_MULTIBLIER 4
 
+namespace libcuda {
 
 // FIXME schi add for not include mem_fetch_status.tup
 enum mem_fetch_status {};
@@ -783,7 +784,7 @@ public:
 	unsigned set_index(new_addr_type addr) const;
 	unsigned l1_latency;
 };
-
+/*
 class l2_cache_config : public cache_config {
 public:
 	l2_cache_config() : cache_config(){}
@@ -793,6 +794,7 @@ public:
 private:
 	linear_to_raw_address_translation *m_address_mapping;
 };
+*/
 
 class tag_array {
 public:
@@ -1761,5 +1763,6 @@ private:
     extra_mf_fields_lookup m_extra_mf_fields;
 };
 #endif // 0
+}
 
 #endif

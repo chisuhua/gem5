@@ -28,7 +28,7 @@
 #include "../libcuda/stream_manager.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
 // TODO schi #include "gpu/gpgpu-sim/cuda_gpu.hh"
-#include "cuda-sim/cuda-sim.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
 // TODO schi #include "gpgpu-sim/gpu-sim.h"
 #include "../libgem5cuda/gem5cuda_runtime_api.h"
 
@@ -41,6 +41,7 @@ namespace m5op {
 
 #include "unistd.h"
 
+namespace libcuda {
 unsigned CUstream_st::sm_next_stream_uid = 0;
 
 CUstream_st::CUstream_st()
@@ -573,4 +574,5 @@ void stream_manager::pushCudaStreamWaitEventToAllStreams( CUevent_st *e, unsigne
         stream_operation op(*s,e,flags);
         push(op);
     }
+}
 }

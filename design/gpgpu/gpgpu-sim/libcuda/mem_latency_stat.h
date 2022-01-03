@@ -32,6 +32,8 @@
 #include <zlib.h>
 #include <map>
 
+namespace libcuda {
+
 class memory_stats_t {
 public:
    memory_stats_t( unsigned n_shader, 
@@ -113,5 +115,6 @@ public:
    unsigned total_n_reads;
    unsigned total_n_writes;
 };
+}
 
 #endif /*MEM_LATENCY_STAT_H*/

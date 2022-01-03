@@ -51,7 +51,11 @@ GPUSyscallHelper::readBlob(Addr addr, uint8_t* p, int size, ThreadContext *tc)
         tc->getVirtProxy().readBlob(addr, p, size);
     } else {
         // TODO schi for gem5-gpu tc->getMemProxy().readBlob(addr, p, size);
-        tc->getVirtProxy().readBlob(addr, p, size);
+        if (tc->getSystemPtr()) {
+            tc->getVirtProxy().readBlob(addr, p, size);
+        } else {
+            memcpy((void*)p, (void*)addr, size);
+        }
     }
 }
 
@@ -95,7 +99,11 @@ GPUSyscallHelper::writeBlob(Addr addr, uint8_t* p, int size, ThreadContext *tc, 
         tc->getVirtProxy().writeBlob(addr, p, size);
     } else {
         // TODO schi for gem5 tc->getMemProxy().writeBlob(addr, p, size);
-        tc->getVirtProxy().writeBlob(addr, p, size);
+        if (tc->getSystemPtr()) {
+            tc->getVirtProxy().writeBlob(addr, p, size);
+        } else {
+            memcpy((void*)addr, (void*)p, size);
+        }
     }
 }
 

@@ -35,6 +35,7 @@
 #include <list>
 #include <queue>
 
+namespace libcuda {
 class mem_fetch;
 
 class partition_mf_allocator : public mem_fetch_allocator {
@@ -251,5 +252,6 @@ public:
 private:
     memory_sub_partition *m_unit;
 };
+}
 
 #endif

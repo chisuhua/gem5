@@ -4,10 +4,11 @@ import datetime
 from operator import add
 from functools import reduce
 
-import pdb
+#import pdb
 
 Import('env')
 Import('deps')
+Import('linklibs')
 
 cosim_dir = env['COSIM_DIR']
 
@@ -242,7 +243,7 @@ design = []
 co_design = os.environ.get('CO_DESIGN')
 design.append(SConscript(co_design + '/SConscript',
                         variant_dir=env['OUT_DIR'] + '/' + co_design,
-                        exports=['env', 'deps', 'compile_design', 'compile_scala'])
+                        exports=['env', 'deps', 'linklibs', 'compile_design', 'compile_scala'])
              )
 
 

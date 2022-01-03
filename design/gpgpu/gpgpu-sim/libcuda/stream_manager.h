@@ -43,6 +43,8 @@
 //private:
 //    unsigned m_pending_streams;
 //};
+//
+namespace libcuda {
 
 struct CUevent_st {
 public:
@@ -95,6 +97,8 @@ enum stream_operation_type {
     stream_wait_event,
     stream_memset
 };
+
+struct CUstream_st;
 
 class stream_operation {
 public:
@@ -293,5 +297,6 @@ private:
     pthread_mutex_t m_lock;
     std::list<struct CUstream_st*>::iterator m_last_stream;
 };
+}
 
 #endif

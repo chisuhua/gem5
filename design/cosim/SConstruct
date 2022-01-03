@@ -7,12 +7,13 @@ import sys
 import pdb
 
 
-#gem5_variant = 'opt'
-gem5_variant = 'debug'
+gem5_variant = 'opt'
+#gem5_variant = 'debug'
 
 
 gem5_root = Dir('#../..').srcnode().abspath
 gem5_tlm = gem5_root + '/util/tlm'
+gem5_libcuda = gem5_root + '/design/gpgpu/gpgpu-sim'
 
 env = Environment()
 
@@ -42,6 +43,7 @@ env.Append(CPPPATH=[gem5_root + '/build/' + gem5_arch,
                     gem5_root + '/ext/systemc/src',
                     gem5_root + '/ext/libsystemctlm-soc',
                     gem5_root + '/ext/axi',
+                    gem5_root + '/util/libiniloader',
                     gem5_tlm + '/src',
                     gem5_tlm + '/examples/common',
                     ])
@@ -51,18 +53,23 @@ env.Append(CXXFLAGS=['-std=c++14',
                      '-DTRACING_ON',
                      ])
 
-if gem5_variant == 'debug':
-    env.Append(CXXFLAGS=['-g', '-DDEBUG'])
+env.Append(CXXFLAGS=['-g', '-DDEBUG'])
+if gem5_variant == 'opt':
+    env.Append(CXXFLAGS=['-O3'])
 
 deps = [] # keep track of all dependencies required for building the binaries
-
-
-deps += SConscript(gem5_tlm + '/src/SConscript', variant_dir= co_build_dir + '/tlm', exports='env')
-
 
 deps += SConscript(gem5_tlm + '/examples/common/SConscript',
                    variant_dir= co_build_dir + '/examples/common',
                    exports=['env'])
+
+deps += SConscript(gem5_root + '/util/libiniloader/SConscript',
+                   variant_dir= co_build_dir + '/libiniloader',
+                   exports=['env'])
+
+linklibs = []
+tlm = SConscript(gem5_tlm + '/src/SConscript', variant_dir= co_build_dir + '/tlm', exports='env')
+linklibs.append(os.path.join(Dir('#.').srcnode().abspath, co_build_dir, 'tlm', tlm[0].name))
 
 # the SystemC SConscript makes certain assumptions, we need to fulfill these
 # assumptions before calling the SConscript.
@@ -71,15 +78,11 @@ sys.path.append(gem5_root + '/src/python')
 AddOption('--no-colors', dest='use_colors', action='store_false',
           help="Don't add color to abbreviated scons output")
 
-SConscript(gem5_root + '/ext/systemc/SConscript',
+sysc = SConscript(gem5_root + '/ext/systemc/SConscript',
            variant_dir= co_build_dir + '/systemc',
            exports='main')
-
-# By adding libraries as dependencies instead of using LIBS, we avoid that
-# the user needs to set the LD_LIBRARY_PATH
-deps.append(File( co_build_dir + '/systemc/libsystemc' + shlibsuffix))
-deps.append(File(os.path.join(gem5_root, 'build', gem5_arch,
-             'libgem5_' + gem5_variant + shlibsuffix)))
+linklibs.append(os.path.join(Dir('#.').srcnode().abspath, co_build_dir, 'systemc', sysc[0].name))
+linklibs.append(os.path.join(gem5_root, 'build', gem5_arch, 'libgem5_' + gem5_variant + shlibsuffix))
 
 ex_master = SConscript('examples/master_port/SConscript',
                        variant_dir= co_build_dir + '/examples/master_port',
@@ -120,8 +123,17 @@ print("# of job: %d" % GetOption('num_jobs'))
 design = SConscript(
     'src/SConscript',
     variant_dir=co_build_dir,
-    exports=[ 'env', 'deps'
-    ])
+    exports=[ 'env', 'deps' , 'linklibs'])
+
+build_libgem5_cmd = "scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
+
+env.Command(os.path.join(gem5_root, 'build', gem5_arch, 'libgem5_' + gem5_variant + shlibsuffix), "", 'cd ' + gem5_root + ";" + build_libgem5_cmd)
+
+env.Command(os.path.join(gem5_libcuda, 'libgem5cuda', 'libgem5cuda.a'), os.path.join(gem5_libcuda, 'libgem5cuda', 'gem5cuda_runtime_api.cc'), 'make -C ' + os.path.join(gem5_libcuda, 'libgem5cuda'))
+
+env.Command(os.path.join(gem5_libcuda, 'libcuda', 'libcudart.so'), os.path.join(gem5_libcuda, 'libgem5cuda', 'libgem5cuda.a'), 'make -C ' + os.path.join(gem5_libcuda, 'libcuda'))
+
+Depends(design, os.path.join(gem5_libcuda, 'libcuda', 'libcudart.so'))
 
 #Default(ex_master + ex_slave + design)
 Default(design)

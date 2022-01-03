@@ -141,7 +141,8 @@ endif
 #M5OP_PATH = ../../gem5/util/m5
 # we assume the depot dir is gem5
 M5OP_PATH = ../../../../util/m5
-INCLUDES = -I./ -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I../../../../include
+GEM5_PATH = ../../../../
+INCLUDES = -I./ -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I../../../../include -I$(GEM5_PATH)/src
 
 PROG = gem5cuda
 M5OP = m5op_x86

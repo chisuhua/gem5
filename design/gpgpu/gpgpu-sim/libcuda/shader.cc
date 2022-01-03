@@ -36,9 +36,10 @@
 #include "dram.h"
 #include "stat-tool.h"
 #include "gpu-misc.h"
-#include "../cuda-sim/ptx_sim.h"
-#include "../cuda-sim/ptx-stats.h"
-#include "../cuda-sim/cuda-sim.h"
+#include "gpu-sim.h"
+#include "../libcuda/cuda-sim/ptx_sim.h"
+#include "../libcuda/cuda-sim/ptx-stats.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
 #include "mem_fetch.h"
 #include "mem_latency_stat.h"
 #include "visualizer.h"
@@ -50,6 +51,7 @@
 #include "shader_trace.h"
 */
 
+namespace libcuda {
 #define PRIORITIZE_MSHR_OVER_WB 1
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
@@ -509,6 +511,7 @@ void shader_core_ctx::get_pdom_stack_top_info( unsigned tid, unsigned *pc, unsig
     m_simt_stack[warp_id]->get_pdom_stack_top_info(pc,rpc);
 }
 
+/*
 float shader_core_ctx::get_current_occupancy( unsigned long long & active, unsigned long long & total ) const
 {
     // To match the achieved_occupancy in nvprof, only SMs that are active are counted toward the occupancy.
@@ -725,6 +728,7 @@ void shader_core_stats::visualizer_print( gzFile visualizer_file )
       gzprintf(visualizer_file, "%u ", m_n_diverge[i] );
    gzprintf(visualizer_file, "\n");
 }
+*/
 
 extern long long g_program_memory_start;
 #define PROGRAM_MEM_START g_program_memory_start;
@@ -4130,3 +4134,4 @@ void shader_core_ctx::checkExecutionStatusAndUpdate(warp_inst_t &inst, unsigned 
     }
 }
 #endif
+}

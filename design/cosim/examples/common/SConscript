@@ -35,6 +35,7 @@
 Import('env')
 
 env = env.Clone()
+env.Append(CCFLAGS = '-fPIC')
 
 objs = []
 objs += env.Object('cli_parser.cc')
