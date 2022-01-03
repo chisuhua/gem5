@@ -30,10 +30,14 @@
 #ifndef __ARCH_PPU_PAGETABLE_H__
 #define __ARCH_PPU_PAGETABLE_H__
 
+#include "base/bitunion.hh"
 #include "base/logging.hh"
 #include "base/trie.hh"
 #include "base/types.hh"
 #include "sim/serialize.hh"
+
+namespace gem5
+{
 
 namespace PpuISA {
 
@@ -108,5 +112,7 @@ struct TlbEntry : public Serializable
 };
 
 };
+} // namespace gem5
+
 #endif // __ARCH_PPU_PAGETABLE_H__
 

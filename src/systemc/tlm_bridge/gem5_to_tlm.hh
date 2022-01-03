@@ -65,6 +65,7 @@
 #include "mem/port.hh"
 #include "params/Gem5ToTlmBridgeBase.hh"
 #include "sim/system.hh"
+#include "sim/clocked_object.hh"
 #include "systemc/ext/core/sc_module.hh"
 #include "systemc/ext/core/sc_module_name.hh"
 #include "systemc/ext/tlm_core/2/generic_payload/gp.hh"
@@ -81,8 +82,14 @@ void addPacketToPayloadConversionStep(PacketToPayloadConversionStep step);
 
 tlm::tlm_generic_payload *packet2payload(gem5::PacketPtr packet);
 
-class Gem5ToTlmBridgeBase : public sc_core::sc_module
+class Gem5ToTlmBridgeBase : public sc_core::sc_module, public gem5::SimObject
 {
+  public:
+    Gem5ToTlmBridgeBase(const sc_core::sc_module_name &mn, const Params &params) :
+        sc_core::sc_module(mn),
+        gem5::SimObject(params)
+    {
+    }
   protected:
     using sc_core::sc_module::sc_module;
 };

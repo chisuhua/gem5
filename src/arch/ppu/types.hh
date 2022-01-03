@@ -46,14 +46,17 @@
 #ifndef __ARCH_PPU_TYPES_HH__
 #define __ARCH_PPU_TYPES_HH__
 
-#include "arch/generic/types.hh"
+#include "arch/ppu/pcstate.hh"
+
+namespace gem5
+{
 
 namespace PpuISA
 {
 
 typedef uint32_t MachInst;
 typedef uint64_t ExtMachInst;
-
+/*
 class PCState : public GenericISA::UPCState<MachInst>
 {
   private:
@@ -82,7 +85,9 @@ class PCState : public GenericISA::UPCState<MachInst>
         }
     }
 };
+*/
 
 }
+} // namespace gem5
 
 #endif // __ARCH_PPU_TYPES_HH__

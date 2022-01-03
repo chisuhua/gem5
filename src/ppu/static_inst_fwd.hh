@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Gabe Black
  */
 
 #ifndef __PPU_STATIC_INST_FWD_HH__
@@ -33,11 +31,15 @@
 
 #include "base/refcnt.hh"
 
+namespace gem5
+{
+
 namespace PpuISA
 {
 
 class StaticInst;
 typedef RefCountingPtr<StaticInst> StaticInstPtr;
 } // namespace PpuISA
+} // namespace gem5
 
 #endif // __PPU_STATIC_INST_FWD_HH__

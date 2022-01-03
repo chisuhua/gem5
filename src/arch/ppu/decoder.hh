@@ -32,21 +32,25 @@
 #define __ARCH_PPU_DECODER_HH__
 
 #include "arch/generic/decode_cache.hh"
-#include "arch/ppu/isa_traits.hh"
+#include "arch/generic/decoder.hh"
+// #include "arch/ppu/isa_traits.hh"
 #include "arch/ppu/types.hh"
 #include "base/logging.hh"
 #include "base/types.hh"
 #include "ppu/static_inst.hh"
 #include "debug/Decode.hh"
 
+namespace gem5
+{
+
 namespace PpuISA
 {
 
 class ISA;
-class Decoder
+class Decoder : public InstDecoder
 {
   private:
-    DecodeCache::InstMap<ExtMachInst> instMap;
+    decode_cache::InstMap<ExtMachInst> instMap;
     bool aligned;
     bool mid;
     bool more;
@@ -54,23 +58,8 @@ class Decoder
   protected:
     //The extended machine instruction being generated
     ExtMachInst emi;
+    uint32_t machInst;
     bool instDone;
-
-  public:
-    Decoder(ISA* isa=nullptr) { reset(); }
-
-    void process() {}
-    void reset();
-
-    inline bool compressed(ExtMachInst inst) { return (inst & 0x3) < 0x3; }
-
-    //Use this to give data to the decoder. This should be used
-    //when there is control flow.
-    void moreBytes(const PCState &pc, Addr fetchPC, MachInst inst);
-
-    bool needMoreBytes() { return more; }
-    bool instReady() { return instDone; }
-    void takeOverFrom(Decoder *old) {}
 
     StaticInstPtr decodeInst(ExtMachInst mach_inst);
 
@@ -79,9 +68,26 @@ class Decoder
     /// @retval A pointer to the corresponding StaticInst object.
     StaticInstPtr decode(ExtMachInst mach_inst, Addr addr);
 
-    StaticInstPtr decode(PpuISA::PCState &nextPC);
+  public:
+    Decoder(ISA* isa=nullptr) : InstDecoder(&machInst) { reset(); }
+
+    void process() {}
+    void reset();
+
+    inline bool compressed(ExtMachInst inst) { return (inst & 0x3) < 0x3; }
+
+    //Use this to give data to the decoder. This should be used
+    //when there is control flow.
+    void moreBytes(const PCState &pc, Addr fetchPC);
+
+    bool needMoreBytes() { return more; }
+    bool instReady() { return instDone; }
+    void takeOverFrom(Decoder *old) {}
+
+    StaticInstPtr decode(RiscvISA::PCState &nextPC);
 };
 
 } // namespace PpuISA
+} // namespace gem5
 
 #endif // __ARCH_PPU_DECODER_HH__

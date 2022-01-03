@@ -29,19 +29,15 @@
  */
 
 #include "arch/ppu/decoder.hh"
-
 #include "arch/ppu/types.hh"
+#include "base/bitfield.hh"
 #include "debug/Decode.hh"
+namespace gem5
+{
 
 
 namespace PpuISA
 {
-
-// namespace Trace = ::Trace;
-
-
-static const MachInst LowerBitMask = (1 << sizeof(MachInst) * 4) - 1;
-static const MachInst UpperBitMask = LowerBitMask << sizeof(MachInst) * 4;
 
 void Decoder::reset()
 {
@@ -53,9 +49,13 @@ void Decoder::reset()
 }
 
 void
-Decoder::moreBytes(const PCState &pc, Addr fetchPC, MachInst inst)
+Decoder::moreBytes(const PCState &pc, Addr fetchPC)
 {
-    inst = letoh(inst);
+    // The MSB of the upper and lower halves of a machine instruction.
+    constexpr size_t max_bit = sizeof(machInst) * 8 - 1;
+    constexpr size_t mid_bit = sizeof(machInst) * 4 - 1;
+
+    auto inst = letoh(machInst);
     DPRINTF(Decode, "Requesting bytes 0x%08x from address %#x\n", inst,
             fetchPC);
 
@@ -63,18 +63,18 @@ Decoder::moreBytes(const PCState &pc, Addr fetchPC, MachInst inst)
     if (aligned) {
         emi = inst;
         if (compressed(emi))
-            emi &= LowerBitMask;
+            emi = bits(emi, mid_bit, 0);
         more = !compressed(emi);
         instDone = true;
     } else {
         if (mid) {
-            assert((emi & UpperBitMask) == 0);
-            emi |= (inst & LowerBitMask) << sizeof(MachInst)*4;
+            assert(bits(emi, max_bit, mid_bit + 1) == 0);
+            replaceBits(emi, max_bit, mid_bit + 1, inst);
             mid = false;
             more = false;
             instDone = true;
         } else {
-            emi = (inst & UpperBitMask) >> sizeof(MachInst)*4;
+            emi = bits(inst, max_bit, mid_bit + 1);
             mid = !compressed(emi);
             more = true;
             instDone = compressed(emi);
@@ -87,13 +87,14 @@ Decoder::decode(ExtMachInst mach_inst, Addr addr)
 {
     DPRINTF(Decode, "Decoding instruction 0x%08x at address %#x\n",
             mach_inst, addr);
-    if (instMap.find(mach_inst) != instMap.end())
-        return instMap[mach_inst];
-    else {
-        StaticInstPtr si = decodeInst(mach_inst);
-        instMap[mach_inst] = si;
-        return si;
-    }
+
+    StaticInstPtr &si = instMap[mach_inst];
+    if (!si)
+        si = decodeInst(mach_inst);
+
+    DPRINTF(Decode, "Decode: Decoded %s instruction: %#x\n",
+            si->getName(), mach_inst);
+    return si;
 }
 
 StaticInstPtr
@@ -113,3 +114,4 @@ Decoder::decode(PpuISA::PCState &nextPC)
 }
 
 }
+} // namespace gem5

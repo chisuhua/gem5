@@ -82,8 +82,14 @@ void addPayloadToPacketConversionStep(PayloadToPacketConversionStep step);
 gem5::PacketPtr payload2packet(gem5::RequestorID _id,
     tlm::tlm_generic_payload &trans);
 
-class TlmToGem5BridgeBase : public sc_core::sc_module
+class TlmToGem5BridgeBase : public sc_core::sc_module, public gem5::SimObject
 {
+  public:
+    TlmToGem5BridgeBase(const sc_core::sc_module_name &mn, const Params &params) :
+        sc_core::sc_module(mn),
+        gem5::SimObject(params)
+    {
+    }
   protected:
     using sc_core::sc_module::sc_module;
 };

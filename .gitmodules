@@ -16,3 +16,6 @@
 [submodule "design/cosim/src/chisel_design/hwacha"]
 	path = design/cosim/src/chisel_design/hwacha
 	url = https://gitee.com/chisuhua/hwacha.git
+[submodule "util/libiniloader"]
+	path = util/libiniloader
+	url = git@github.com:chisuhua/libiniloader.git

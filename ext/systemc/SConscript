@@ -63,6 +63,9 @@ else:
     termcap = get_termcap(GetOption('use_colors'))
     print(termcap.Yellow + termcap.Bold +
           "Warning: Unrecognized architecture for systemc." + termcap.Normal)
+    #systemc['COROUTINE_LIB'] = 'qt'
+    #systemc['QT_ARCH'] = 'iX86_64'
+    #arch = 'x86_64'
 
 systemc = conf.Finish()
 
@@ -82,6 +85,10 @@ if arch:
                                exports=['systemc', 'SystemCSource'],
                                variant_dir=os.path.join(build_root, build_dir))
 
-    systemc.Library('libsystemc', systemc_files)
-    systemc.SharedLibrary('libsystemc', systemc_files)
+    #systemc.Library('libsystemc', systemc_files)
+    #systemc.SharedLibrary('libsystemc', systemc_files)
+    libsystemc = systemc.SharedLibrary('libsystemc', systemc_files)
+    Return('libsystemc')
+else:
+    assert()
 

@@ -502,10 +502,10 @@ Gem5ToTlmBridge<BITWIDTH>::invalidate_direct_mem_ptr(
 template <unsigned int BITWIDTH>
 Gem5ToTlmBridge<BITWIDTH>::Gem5ToTlmBridge(
         const Params &params, const sc_core::sc_module_name &mn) :
-    Gem5ToTlmBridgeBase(mn),
-    bridgeResponsePort(std::string(name()) + ".gem5", *this),
+    Gem5ToTlmBridgeBase(mn, params),
+    bridgeResponsePort(std::string(sc_core::sc_object::name()) + ".gem5", *this),
     socket("tlm_socket"),
-    wrapper(socket, std::string(name()) + ".tlm", InvalidPortID),
+    wrapper(socket, std::string(sc_core::sc_object::name()) + ".tlm", InvalidPortID),
     system(params.system), blockingRequest(nullptr),
     needToSendRequestRetry(false), blockingResponse(nullptr),
     addrRanges(params.addr_ranges.begin(), params.addr_ranges.end())

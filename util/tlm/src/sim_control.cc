@@ -49,6 +49,7 @@
 #include "sim/stat_control.hh"
 #include "sim_control.hh"
 #include "stats.hh"
+#include "sim/core.hh"
 
 // Define global string variable decalred in stats.hh
 std::string filename = "m5out/stats-systemc.txt";
@@ -126,7 +127,7 @@ Gem5SimControl::Gem5SimControl(sc_core::sc_module_name name,
     CxxConfig::statsEnable();
 
     // FIXME schi sim/core.cc 's freqency need to be setup
-    fixClockFrequency();
+    gem5::fixClockFrequency();
     gem5::getEventQueue(0)->dump();
 
     try {

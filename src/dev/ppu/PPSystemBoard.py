@@ -26,14 +26,14 @@
 from m5.params import *
 from m5.proxy import *
 
-from Device import BasicPioDevice
-from Platform import Platform
+from m5.objects.Device import BasicPioDevice
+from m5.objects.Platform import Platform
 #from m5.objects.SubSystem import SubSystem
-from Terminal import Terminal
-from Uart import Uart8250
+from m5.objects.Terminal import Terminal
+from m5.objects.Uart import Uart8250
 
 from m5.objects.PpuSOCSystem import PpuSOCSystem
-import pdb
+#import pdb
 
 
 class CustomRegs(BasicPioDevice):

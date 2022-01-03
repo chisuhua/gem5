@@ -66,6 +66,8 @@
 #include "sim/sim_exit.hh"
 #include "sim/stat_control.hh"
 
+using namespace gem5;
+
 namespace Gem5SystemC
 {
 
@@ -101,7 +103,7 @@ Module::SCEventQueue::wakeup(gem5::Tick when)
 void
 Module::setupEventQueues(Module &module)
 {
-    fatal_if(mainEventQueue.size() != 0,
+    fatal_if(gem5::mainEventQueue.size() != 0,
         "Gem5SystemC::Module::setupEventQueues must be called"
         " before any gem5 event queues are set up");
 
@@ -144,7 +146,7 @@ Module::serviceAsyncEvent()
     gem5::EventQueue *eventq = gem5::getEventQueue(0);
     std::lock_guard<gem5::EventQueue> lock(*eventq);
 
-    assert(async_event);
+    assert(gem5::async_event);
 
     /* Catch up gem5 time with SystemC time so that any event here won't
      * be in the past relative to the current time */

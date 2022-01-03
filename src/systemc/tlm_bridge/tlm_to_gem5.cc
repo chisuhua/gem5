@@ -526,14 +526,14 @@ TlmToGem5Bridge<BITWIDTH>::gem5_getPort(const std::string &if_name, int idx)
 template <unsigned int BITWIDTH>
 TlmToGem5Bridge<BITWIDTH>::TlmToGem5Bridge(
         const Params &params, const sc_core::sc_module_name &mn) :
-    TlmToGem5BridgeBase(mn), peq(this, &TlmToGem5Bridge<BITWIDTH>::peq_cb),
+    TlmToGem5BridgeBase(mn, params), peq(this, &TlmToGem5Bridge<BITWIDTH>::peq_cb),
     waitForRetry(false), pendingRequest(nullptr), pendingPacket(nullptr),
     needToSendRetry(false), responseInProgress(false),
-    bmp(std::string(name()) + "master", *this), socket("tlm_socket"),
-    wrapper(socket, std::string(name()) + ".tlm", InvalidPortID),
+    bmp(std::string(sc_core::sc_object::name()) + "master", *this), socket("tlm_socket"),
+    wrapper(socket, std::string(sc_core::sc_object::name()) + ".tlm", InvalidPortID),
     system(params.system),
     _id(params.system->getGlobalRequestorId(
-                std::string("[systemc].") + name()))
+                std::string("[systemc].") + sc_core::sc_object::name()))
 {
 }
 

@@ -35,7 +35,7 @@ Import('env')
 env = env.Clone()
 
 objs = []
-objs += env.Object('cli_parser.cc')
-objs += env.Object('report_handler.cc')
+objs += env.SharedObject('cli_parser.cc')
+objs += env.SharedObject('report_handler.cc')
 
 Return('objs')

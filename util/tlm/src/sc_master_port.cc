@@ -37,6 +37,7 @@
 #include "sc_ext.hh"
 #include "sc_master_port.hh"
 #include "sim/system.hh"
+#include "sim/core.hh"
 
 namespace Gem5SystemC
 {

@@ -58,8 +58,9 @@ namespace Gem5SystemC
  */
 class Gem5SimControl : public Module, public Gem5SimControlInterface
 {
-  protected:
+  public:
     gem5::CxxConfigManager* config_manager;
+  protected:
     Gem5SystemC::Logger logger;
 
     gem5::Tick simulationEnd;
