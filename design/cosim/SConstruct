@@ -125,7 +125,8 @@ design = SConscript(
     variant_dir=co_build_dir,
     exports=[ 'env', 'deps' , 'linklibs'])
 
-build_libgem5_cmd = "scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
+#build_libgem5_cmd = "scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
+build_libgem5_cmd = "scons -j6 --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
 
 env.Command(os.path.join(gem5_root, 'build', gem5_arch, 'libgem5_' + gem5_variant + shlibsuffix), "", 'cd ' + gem5_root + ";" + build_libgem5_cmd)
 
