@@ -39,97 +39,93 @@
 #endif
 
 #include <assert.h>
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <map>
-#include <stdlib.h>
 
 typedef address_type mem_addr_t;
 
 namespace libcuda {
 
-#define MEM_BLOCK_SIZE (4*1024)
+#define MEM_BLOCK_SIZE (4 * 1024)
 
-template<unsigned BSIZE> class mem_storage {
-public:
-   mem_storage( const mem_storage &another )
-   {
-      m_data = (unsigned char*)calloc(1,BSIZE);
-      memcpy(m_data,another.m_data,BSIZE);
-   }
-   mem_storage()
-   {
-      m_data = (unsigned char*)calloc(1,BSIZE);
-   }
-   ~mem_storage()
-   {
-      free(m_data);
-   }
+template <unsigned BSIZE>
+class mem_storage {
+ public:
+  mem_storage(const mem_storage &another) {
+    m_data = (unsigned char *)calloc(1, BSIZE);
+    memcpy(m_data, another.m_data, BSIZE);
+  }
+  mem_storage() { m_data = (unsigned char *)calloc(1, BSIZE); }
+  ~mem_storage() { free(m_data); }
 
-   void write( unsigned offset, size_t length, const unsigned char *data )
-   {
-      assert( offset + length <= BSIZE );
-      memcpy(m_data+offset,data,length);
-   }
+  void write(unsigned offset, size_t length, const unsigned char *data) {
+    assert(offset + length <= BSIZE);
+    memcpy(m_data + offset, data, length);
+  }
 
-   void read( unsigned offset, size_t length, unsigned char *data ) const
-   {
-      assert( offset + length <= BSIZE );
-      memcpy(data,m_data+offset,length);
-   }
+  void read(unsigned offset, size_t length, unsigned char *data) const {
+    assert(offset + length <= BSIZE);
+    memcpy(data, m_data + offset, length);
+  }
 
-   void print( const char *format, FILE *fout ) const
-   {
-      unsigned int *i_data = (unsigned int*)m_data;
-      for (int d = 0; d < (BSIZE / sizeof(unsigned int)); d++) {
-         if (d % 1 == 0) {
-            fprintf(fout, "\n");
-         }
-         fprintf(fout, format, i_data[d]);
-         fprintf(fout, " ");
+  void print(const char *format, FILE *fout) const {
+    unsigned int *i_data = (unsigned int *)m_data;
+    for (int d = 0; d < (BSIZE / sizeof(unsigned int)); d++) {
+      if (d % 1 == 0) {
+        fprintf(fout, "\n");
       }
-      fprintf(fout, "\n");
-      fflush(fout);
-   }
+      fprintf(fout, format, i_data[d]);
+      fprintf(fout, " ");
+    }
+    fprintf(fout, "\n");
+    fflush(fout);
+  }
 
-private:
-   unsigned m_nbytes;
-   unsigned char *m_data;
+ private:
+  unsigned m_nbytes;
+  unsigned char *m_data;
 };
 
 class ptx_thread_info;
 class ptx_instruction;
 
-class memory_space
-{
-public:
-   virtual ~memory_space() {}
-   virtual void write( mem_addr_t addr, size_t length, const void *data, ptx_thread_info *thd, const ptx_instruction *pI ) = 0;
-   virtual void write_only( mem_addr_t index, mem_addr_t offset,  size_t length, const void *data ) = 0;
-   virtual void read( mem_addr_t addr, size_t length, void *data ) const = 0;
-   virtual void print( const char *format, FILE *fout ) const = 0;
-   virtual void set_watch( addr_t addr, unsigned watchpoint ) = 0;
+class memory_space {
+ public:
+  virtual ~memory_space() {}
+  virtual void write(mem_addr_t addr, size_t length, const void *data,
+                     ptx_thread_info *thd, const ptx_instruction *pI) = 0;
+  virtual void write_only(mem_addr_t index, mem_addr_t offset, size_t length,
+                          const void *data) = 0;
+  virtual void read(mem_addr_t addr, size_t length, void *data) const = 0;
+  virtual void print(const char *format, FILE *fout) const = 0;
+  virtual void set_watch(addr_t addr, unsigned watchpoint) = 0;
 };
 
-template<unsigned BSIZE> class memory_space_impl : public memory_space {
-public:
-   memory_space_impl( std::string name, unsigned hash_size );
+template <unsigned BSIZE>
+class memory_space_impl : public memory_space {
+ public:
+  memory_space_impl(std::string name, unsigned hash_size);
 
-   virtual void write( mem_addr_t addr, size_t length, const void *data, ptx_thread_info *thd, const ptx_instruction *pI );
-   virtual void write_only( mem_addr_t index, mem_addr_t offset, size_t length, const void *data);
-   virtual void read( mem_addr_t addr, size_t length, void *data ) const;
-   virtual void print( const char *format, FILE *fout ) const;
+  virtual void write(mem_addr_t addr, size_t length, const void *data,
+                     ptx_thread_info *thd, const ptx_instruction *pI);
+  virtual void write_only(mem_addr_t index, mem_addr_t offset, size_t length,
+                          const void *data);
+  virtual void read(mem_addr_t addr, size_t length, void *data) const;
+  virtual void print(const char *format, FILE *fout) const;
 
-   virtual void set_watch( addr_t addr, unsigned watchpoint );
+  virtual void set_watch(addr_t addr, unsigned watchpoint);
 
-private:
-   void read_single_block( mem_addr_t blk_idx, mem_addr_t addr, size_t length, void *data) const;
-   std::string m_name;
-   unsigned m_log2_block_size;
-   typedef mem_map<mem_addr_t,mem_storage<BSIZE> > map_t;
-   map_t m_data;
-   std::map<unsigned,mem_addr_t> m_watchpoints;
+ private:
+  void read_single_block(mem_addr_t blk_idx, mem_addr_t addr, size_t length,
+                         void *data) const;
+  std::string m_name;
+  unsigned m_log2_block_size;
+  typedef mem_map<mem_addr_t, mem_storage<BSIZE> > map_t;
+  map_t m_data;
+  std::map<unsigned, mem_addr_t> m_watchpoints;
 };
 }
 

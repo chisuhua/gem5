@@ -7,7 +7,7 @@ OPTION="${OPTION},MemoryAccess"
 OPTION="${OPTION},RubyPort"
 OPTION="${OPTION},ShaderTLB"
 OPTION="${OPTION},GPUCopyEngine"
-RUN=./build/X86_VI_hammer/gem5.debug
+RUN=./build/X86_VI_hammer/gem5.$GEM5_VARIANT
 
 
 ## NOTE: we have  4 option to run, simple_gpgpu.py is simplest

@@ -51,10 +51,11 @@
 // #include "stat-tool.h"
 #include "../libcuda/l2cache.h"
 
+#include "../libcuda/gpgpu_context.h"
 #include "../libcuda/cuda-sim/ptx-stats.h"
 // #include "../statwrapper.h"
 #include "../libcuda/abstract_hardware_model.h"
-#include "../src/debug.h"
+#include "../libcuda/debug.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/cuda-sim/ptx_ir.h"
@@ -83,26 +84,9 @@ namespace libcuda {
 
 bool g_interactive_debugger_enabled=false;
 
-unsigned long long  gpu_sim_cycle = 0;
-unsigned long long  gpu_tot_sim_cycle = 0;
-
-
-// performance counter for stalls due to congestion.
-unsigned int gpu_stall_dramfull = 0;
-unsigned int gpu_stall_icnt2sh = 0;
-unsigned long long partiton_reqs_in_parallel = 0;
-unsigned long long partiton_reqs_in_parallel_total = 0;
-unsigned long long partiton_reqs_in_parallel_util = 0;
-unsigned long long partiton_reqs_in_parallel_util_total = 0;
-unsigned long long  gpu_sim_cycle_parition_util = 0;
-unsigned long long  gpu_tot_sim_cycle_parition_util = 0;
-unsigned long long partiton_replys_in_parallel = 0;
-unsigned long long partiton_replys_in_parallel_total = 0;
-
 tr1_hash_map<new_addr_type,unsigned> address_random_interleaving;
 
 /* Clock Domains */
-
 #define  CORE  0x01
 #define  L2    0x02
 #define  DRAM  0x04
@@ -368,21 +352,24 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
     m_memory_config.reg_options(opp);
     // power_config::reg_options(opp);
 #if 0
-   option_parser_register(opp, "-gpgpu_max_cycle", OPT_INT32, &gpu_max_cycle_opt,
-               "terminates gpu simulation early (0 = no limit)",
-               "0");
-   option_parser_register(opp, "-gpgpu_max_insn", OPT_INT32, &gpu_max_insn_opt,
-               "terminates gpu simulation early (0 = no limit)",
-               "0");
-   option_parser_register(opp, "-gpgpu_max_cta", OPT_INT32, &gpu_max_cta_opt,
-               "terminates gpu simulation early (0 = no limit)",
-               "0");
-   option_parser_register(opp, "-gpgpu_runtime_stat", OPT_CSTR, &gpgpu_runtime_stat,
-                  "display runtime statistics such as dram utilization {<freq>:<flag>}",
-                  "10000:0");
-   option_parser_register(opp, "-liveness_message_freq", OPT_INT64, &liveness_message_freq,
-               "Minimum number of seconds between simulation liveness messages (0 = always print)",
-               "1");
+  option_parser_register(opp, "-gpgpu_max_cycle", OPT_INT64, &gpu_max_cycle_opt,
+                         "terminates gpu simulation early (0 = no limit)", "0");
+  option_parser_register(opp, "-gpgpu_max_insn", OPT_INT64, &gpu_max_insn_opt,
+                         "terminates gpu simulation early (0 = no limit)", "0");
+  option_parser_register(opp, "-gpgpu_max_cta", OPT_INT32, &gpu_max_cta_opt,
+                         "terminates gpu simulation early (0 = no limit)", "0");
+  option_parser_register(opp, "-gpgpu_max_completed_cta", OPT_INT32,
+                         &gpu_max_completed_cta_opt,
+                         "terminates gpu simulation early (0 = no limit)", "0");
+  option_parser_register(
+      opp, "-gpgpu_runtime_stat", OPT_CSTR, &gpgpu_runtime_stat,
+      "display runtime statistics such as dram utilization {<freq>:<flag>}",
+      "10000:0");
+  option_parser_register(opp, "-liveness_message_freq", OPT_INT64,
+                         &liveness_message_freq,
+                         "Minimum number of seconds between simulation "
+                         "liveness messages (0 = always print)",
+                         "1");
 #endif
    option_parser_register(opp, "-gpgpu_compute_capability_major", OPT_UINT32, &gpgpu_compute_capability_major,
                  "Major compute capability version number",
@@ -391,77 +378,90 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
                  "Minor compute capability version number",
                  "0");
 #if 0
-   option_parser_register(opp, "-gpgpu_flush_l1_cache", OPT_BOOL, &gpgpu_flush_l1_cache,
-                "Flush L1 cache at the end of each kernel call",
-                "0");
-   option_parser_register(opp, "-gpgpu_flush_l2_cache", OPT_BOOL, &gpgpu_flush_l2_cache,
-                   "Flush L2 cache at the end of each kernel call",
-                   "0");
-   option_parser_register(opp, "-gpgpu_deadlock_detect", OPT_BOOL, &gpu_deadlock_detect,
-                "Stop the simulation at deadlock (1=on (default), 0=off)",
-                "1");
-   option_parser_register(opp, "-gpgpu_ptx_instruction_classification", OPT_INT32,
-               &gpgpu_ptx_instruction_classification,
-               "if enabled will classify ptx instruction types per kernel (Max 255 kernels now)",
-               "0");
+  option_parser_register(opp, "-gpgpu_flush_l1_cache", OPT_BOOL,
+                         &gpgpu_flush_l1_cache,
+                         "Flush L1 cache at the end of each kernel call", "0");
+  option_parser_register(opp, "-gpgpu_flush_l2_cache", OPT_BOOL,
+                         &gpgpu_flush_l2_cache,
+                         "Flush L2 cache at the end of each kernel call", "0");
+  option_parser_register(
+      opp, "-gpgpu_deadlock_detect", OPT_BOOL, &gpu_deadlock_detect,
+      "Stop the simulation at deadlock (1=on (default), 0=off)", "1");
 #endif
-   option_parser_register(opp, "-gpgpu_ptx_sim_mode", OPT_INT32, &g_ptx_sim_mode,
-               "Select between Performance (default) or Functional simulation (1)",
-               "0");
-   option_parser_register(opp, "-gpgpu_clock_domains", OPT_CSTR, &gpgpu_clock_domains,
-                  "Clock Domain Frequencies in MhZ {<Core Clock>:<ICNT Clock>:<L2 Clock>:<DRAM Clock>}",
-                  "500.0:2000.0:2000.0:2000.0");
-   option_parser_register(opp, "-gpgpu_max_concurrent_kernel", OPT_INT32, &max_concurrent_kernel,
-                          "maximum kernels that can run concurrently on GPU", "8" );
+  option_parser_register(
+      opp, "-gpgpu_ptx_instruction_classification", OPT_INT32,
+      &(gpgpu_ctx->func_sim->gpgpu_ptx_instruction_classification),
+      "if enabled will classify ptx instruction types per kernel (Max 255 "
+      "kernels now)",
+      "0");
+  option_parser_register(
+     opp, "-gpgpu_ptx_sim_mode", OPT_INT32,
+      &(gpgpu_ctx->func_sim->g_ptx_sim_mode),
+      "Select between Performance (default) or Functional simulation (1)", "0");
+  option_parser_register(opp, "-gpgpu_clock_domains", OPT_CSTR,
+                         &gpgpu_clock_domains,
+                         "Clock Domain Frequencies in MhZ {<Core Clock>:<ICNT "
+                         "Clock>:<L2 Clock>:<DRAM Clock>}",
+                         "500.0:2000.0:2000.0:2000.0");
+  option_parser_register(
+      opp, "-gpgpu_max_concurrent_kernel", OPT_INT32, &max_concurrent_kernel,
+      "maximum kernels that can run concurrently on GPU", "8");
 #if 0
-   option_parser_register(opp, "-gpgpu_cflog_interval", OPT_INT32, &gpgpu_cflog_interval,
-               "Interval between each snapshot in control flow logger",
-               "0");
-   option_parser_register(opp, "-visualizer_enabled", OPT_BOOL,
-                          &g_visualizer_enabled, "Turn on visualizer output (1=On, 0=Off)",
-                          "1");
-   option_parser_register(opp, "-visualizer_outputfile", OPT_CSTR,
-                          &g_visualizer_filename, "Specifies the output log file for visualizer",
-                          NULL);
-   option_parser_register(opp, "-visualizer_zlevel", OPT_INT32,
-                          &g_visualizer_zlevel, "Compression level of the visualizer output log (0=no comp, 9=highest)",
-                          "6");
-   option_parser_register(opp, "-gpgpu_stack_size_limit", OPT_INT32, &stack_size_limit,
-                          "GPU thread stack size", "1024" );
-   option_parser_register(opp, "-gpgpu_heap_size_limit", OPT_INT32, &heap_size_limit,
-                          "GPU malloc heap size ", "8388608" );
-   option_parser_register(opp, "-gpgpu_runtime_sync_depth_limit", OPT_INT32, &runtime_sync_depth_limit,
-                          "GPU device runtime synchronize depth", "2" );
-   option_parser_register(opp, "-gpgpu_runtime_pending_launch_count_limit", OPT_INT32, &runtime_pending_launch_count_limit,
-                          "GPU device runtime pending launch count", "2048" );
-/*
-    option_parser_register(opp, "-trace_enabled", OPT_BOOL,
-                          &Trace_gpgpu::enabled, "Turn on traces",
-                          "0");
-    option_parser_register(opp, "-trace_components", OPT_CSTR,
-                          &Trace_gpgpu::config_str, "comma seperated list of traces to enable. "
-                          "Complete list found in trace_streams.tup. "
-                          "Default none",
-                          "none");
-    option_parser_register(opp, "-trace_sampling_core", OPT_INT32,
-                          &Trace_gpgpu::sampling_core, "The core which is printed using CORE_DPRINTF. Default 0",
-                          "0");
-    option_parser_register(opp, "-trace_sampling_memory_partition", OPT_INT32,
-                          &Trace_gpgpu::sampling_memory_partition, "The memory partition which is printed using MEMPART_DPRINTF. Default -1 (i.e. all)",
-                          "-1");
-                          */
-   ptx_file_line_stats_options(opp);
-
-    //Jin: kernel launch latency
-    extern unsigned g_kernel_launch_latency;
-    option_parser_register(opp, "-gpgpu_kernel_launch_latency", OPT_INT32,
-                          &g_kernel_launch_latency, "Kernel launch latency in cycles. Default: 0",
-                          "0");
-    extern bool g_cdp_enabled;
-    option_parser_register(opp, "-gpgpu_cdp_enabled", OPT_BOOL,
-                          &g_cdp_enabled, "Turn on CDP",
-                          "0");
+  option_parser_register(
+      opp, "-gpgpu_cflog_interval", OPT_INT32, &gpgpu_cflog_interval,
+      "Interval between each snapshot in control flow logger", "0");
+  option_parser_register(opp, "-visualizer_enabled", OPT_BOOL,
+                         &g_visualizer_enabled,
+                         "Turn on visualizer output (1=On, 0=Off)", "1");
+  option_parser_register(opp, "-visualizer_outputfile", OPT_CSTR,
+                         &g_visualizer_filename,
+                         "Specifies the output log file for visualizer", NULL);
+  option_parser_register(
+      opp, "-visualizer_zlevel", OPT_INT32, &g_visualizer_zlevel,
+      "Compression level of the visualizer output log (0=no comp, 9=highest)",
+      "6");
 #endif
+  option_parser_register(opp, "-gpgpu_stack_size_limit", OPT_INT32,
+                         &stack_size_limit, "GPU thread stack size", "1024");
+  option_parser_register(opp, "-gpgpu_heap_size_limit", OPT_INT32,
+                         &heap_size_limit, "GPU malloc heap size ", "8388608");
+  option_parser_register(opp, "-gpgpu_runtime_sync_depth_limit", OPT_INT32,
+                         &runtime_sync_depth_limit,
+                         "GPU device runtime synchronize depth", "2");
+  option_parser_register(opp, "-gpgpu_runtime_pending_launch_count_limit",
+                         OPT_INT32, &runtime_pending_launch_count_limit,
+                         "GPU device runtime pending launch count", "2048");
+/*
+  option_parser_register(opp, "-trace_enabled", OPT_BOOL, &Trace::enabled,
+                         "Turn on traces", "0");
+  option_parser_register(opp, "-trace_components", OPT_CSTR, &Trace::config_str,
+                         "comma seperated list of traces to enable. "
+                         "Complete list found in trace_streams.tup. "
+                         "Default none",
+                         "none");
+  option_parser_register(
+      opp, "-trace_sampling_core", OPT_INT32, &Trace::sampling_core,
+      "The core which is printed using CORE_DPRINTF. Default 0", "0");
+  option_parser_register(opp, "-trace_sampling_memory_partition", OPT_INT32,
+                         &Trace::sampling_memory_partition,
+                         "The memory partition which is printed using "
+                         "MEMPART_DPRINTF. Default -1 (i.e. all)",
+                         "-1");
+                          */
+  gpgpu_ctx->stats->ptx_file_line_stats_options(opp);
+
+  // Jin: kernel launch latency
+  option_parser_register(opp, "-gpgpu_kernel_launch_latency", OPT_INT32,
+                         &(gpgpu_ctx->device_runtime->g_kernel_launch_latency),
+                         "Kernel launch latency in cycles. Default: 0", "0");
+  option_parser_register(opp, "-gpgpu_cdp_enabled", OPT_BOOL,
+                         &(gpgpu_ctx->device_runtime->g_cdp_enabled),
+                         "Turn on CDP", "0");
+
+  option_parser_register(opp, "-gpgpu_TB_launch_latency", OPT_INT32,
+                         &(gpgpu_ctx->device_runtime->g_TB_launch_latency),
+                         "thread block launch latency in cycles. Default: 0",
+                         "0");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -483,54 +483,61 @@ void increment_x_then_y_then_z( dim3 &i, const dim3 &bound)
 void gpgpu_sim::launch( kernel_info_t *kinfo )
 {
     /*
-   unsigned cta_size = kinfo->threads_per_cta();
-   if ( cta_size > m_shader_config->n_thread_per_shader ) {
-      printf("Execution error: Shader kernel CTA (block) size is too large for microarch config.\n");
-      printf("                 CTA size (x*y*z) = %u, max supported = %u\n", cta_size,
-             m_shader_config->n_thread_per_shader );
-      printf("                 => either change -gpgpu_shader argument in gpgpusim.config file or\n");
-      printf("                 modify the CUDA source to decrease the kernel block size.\n");
-      abort();
-   }
-   unsigned n=0;
-   for(n=0; n < m_running_kernels.size(); n++ ) {
-       if( (NULL==m_running_kernels[n]) || m_running_kernels[n]->done() ) {
-           m_running_kernels[n] = kinfo;
-           break;
-       }
-   }
-   assert(n < m_running_kernels.size());
+  unsigned cta_size = kinfo->threads_per_cta();
+  if (cta_size > m_shader_config->n_thread_per_shader) {
+    printf(
+        "Execution error: Shader kernel CTA (block) size is too large for "
+        "microarch config.\n");
+    printf("                 CTA size (x*y*z) = %u, max supported = %u\n",
+           cta_size, m_shader_config->n_thread_per_shader);
+    printf(
+        "                 => either change -gpgpu_shader argument in "
+        "gpgpusim.config file or\n");
+    printf(
+        "                 modify the CUDA source to decrease the kernel block "
+        "size.\n");
+    abort();
+  }
+  unsigned n = 0;
+  for (n = 0; n < m_running_kernels.size(); n++) {
+    if ((NULL == m_running_kernels[n]) || m_running_kernels[n]->done()) {
+      m_running_kernels[n] = kinfo;
+      break;
+    }
+  }
+  assert(n < m_running_kernels.size());
    */
 }
 
 bool gpgpu_sim::can_start_kernel()
 {
     /*
-   for(unsigned n=0; n < m_running_kernels.size(); n++ ) {
-       if( (NULL==m_running_kernels[n]) || m_running_kernels[n]->done() )
-           return true;
-   }
+  for (unsigned n = 0; n < m_running_kernels.size(); n++) {
+    if ((NULL == m_running_kernels[n]) || m_running_kernels[n]->done())
+      return true;
+  }
    */
    return false;
 }
 
 bool gpgpu_sim::hit_max_cta_count() const {
     /*
-   if (m_config.gpu_max_cta_opt != 0) {
-      if( (gpu_tot_issued_cta + m_total_cta_launched) >= m_config.gpu_max_cta_opt )
-          return true;
-   }
+  if (m_config.gpu_max_cta_opt != 0) {
+    if ((gpu_tot_issued_cta + m_total_cta_launched) >= m_config.gpu_max_cta_opt)
+      return true;
+  }
    */
    return false;
 }
 
 bool gpgpu_sim::kernel_more_cta_left(kernel_info_t *kernel) const {
     /*
-    if(hit_max_cta_count())
-       return false;
+  if (hit_max_cta_count()) return false;
 
-    if(kernel && !kernel->no_more_ctas_to_run())
-        return true;
+  for (unsigned n = 0; n < m_running_kernels.size(); n++) {
+    if (m_running_kernels[n] && !m_running_kernels[n]->no_more_ctas_to_run())
+      return true;
+  }
         */
 
     return false;
@@ -539,45 +546,60 @@ bool gpgpu_sim::kernel_more_cta_left(kernel_info_t *kernel) const {
 bool gpgpu_sim::get_more_cta_left() const
 {
    /*
-   if(hit_max_cta_count())
-      return false;
+  if (hit_max_cta_count()) return false;
 
-   for(unsigned n=0; n < m_running_kernels.size(); n++ ) {
-       if( m_running_kernels[n] && !m_running_kernels[n]->no_more_ctas_to_run() )
-           return true;
-   }
+  for (unsigned n = 0; n < m_running_kernels.size(); n++) {
+    if (m_running_kernels[n] && !m_running_kernels[n]->no_more_ctas_to_run())
+      return true;
+  }
    */
    return false;
+}
+
+void gpgpu_sim::decrement_kernel_latency() {
+  for (unsigned n = 0; n < m_running_kernels.size(); n++) {
+    if (m_running_kernels[n] && m_running_kernels[n]->m_kernel_TB_latency)
+      m_running_kernels[n]->m_kernel_TB_latency--;
+  }
 }
 
 kernel_info_t *gpgpu_sim::select_kernel()
 {
     /*
-    if(m_running_kernels[m_last_issued_kernel] &&
-        !m_running_kernels[m_last_issued_kernel]->no_more_ctas_to_run()) {
-        unsigned launch_uid = m_running_kernels[m_last_issued_kernel]->get_uid();
-        if(std::find(m_executed_kernel_uids.begin(), m_executed_kernel_uids.end(), launch_uid) == m_executed_kernel_uids.end()) {
-            m_running_kernels[m_last_issued_kernel]->start_cycle = gpu_sim_cycle + gpu_tot_sim_cycle;
-            m_executed_kernel_uids.push_back(launch_uid);
-            m_executed_kernel_names.push_back(m_running_kernels[m_last_issued_kernel]->name());
-        }
-        return m_running_kernels[m_last_issued_kernel];
+  if (m_running_kernels[m_last_issued_kernel] &&
+      !m_running_kernels[m_last_issued_kernel]->no_more_ctas_to_run() &&
+      !m_running_kernels[m_last_issued_kernel]->m_kernel_TB_latency) {
+    unsigned launch_uid = m_running_kernels[m_last_issued_kernel]->get_uid();
+    if (std::find(m_executed_kernel_uids.begin(), m_executed_kernel_uids.end(),
+                  launch_uid) == m_executed_kernel_uids.end()) {
+      m_running_kernels[m_last_issued_kernel]->start_cycle =
+          gpu_sim_cycle + gpu_tot_sim_cycle;
+      m_executed_kernel_uids.push_back(launch_uid);
+      m_executed_kernel_names.push_back(
+          m_running_kernels[m_last_issued_kernel]->name());
     }
+    return m_running_kernels[m_last_issued_kernel];
+  }
 
-    for(unsigned n=0; n < m_running_kernels.size(); n++ ) {
-        unsigned idx = (n+m_last_issued_kernel+1)%m_config.max_concurrent_kernel;
-        if( kernel_more_cta_left(m_running_kernels[idx]) ){
-            m_last_issued_kernel=idx;
-            m_running_kernels[idx]->start_cycle = gpu_sim_cycle + gpu_tot_sim_cycle;
-            // record this kernel for stat print if it is the first time this kernel is selected for execution
-            unsigned launch_uid = m_running_kernels[idx]->get_uid();
-            assert(std::find(m_executed_kernel_uids.begin(), m_executed_kernel_uids.end(), launch_uid) == m_executed_kernel_uids.end());
-            m_executed_kernel_uids.push_back(launch_uid);
-            m_executed_kernel_names.push_back(m_running_kernels[idx]->name());
+  for (unsigned n = 0; n < m_running_kernels.size(); n++) {
+    unsigned idx =
+        (n + m_last_issued_kernel + 1) % m_config.max_concurrent_kernel;
+    if (kernel_more_cta_left(m_running_kernels[idx]) &&
+        !m_running_kernels[idx]->m_kernel_TB_latency) {
+      m_last_issued_kernel = idx;
+      m_running_kernels[idx]->start_cycle = gpu_sim_cycle + gpu_tot_sim_cycle;
+      // record this kernel for stat print if it is the first time this kernel
+      // is selected for execution
+      unsigned launch_uid = m_running_kernels[idx]->get_uid();
+      assert(std::find(m_executed_kernel_uids.begin(),
+                       m_executed_kernel_uids.end(),
+                       launch_uid) == m_executed_kernel_uids.end());
+      m_executed_kernel_uids.push_back(launch_uid);
+      m_executed_kernel_names.push_back(m_running_kernels[idx]->name());
 
-            return m_running_kernels[idx];
-        }
+      return m_running_kernels[idx];
     }
+  }
     */
     return NULL;
 }
@@ -586,11 +608,10 @@ unsigned gpgpu_sim::finished_kernel()
 {
     // This should never be called now
     assert(0);
-    if( m_finished_kernel.empty() )
-        return 0;
-    unsigned result = m_finished_kernel.front();
-    m_finished_kernel.pop_front();
-    return result;
+  if (m_finished_kernel.empty()) return 0;
+  unsigned result = m_finished_kernel.front();
+  m_finished_kernel.pop_front();
+  return result;
 }
 
 void gpgpu_sim::set_kernel_done( kernel_info_t *kernel )
@@ -598,36 +619,44 @@ void gpgpu_sim::set_kernel_done( kernel_info_t *kernel )
     unsigned uid = kernel->get_uid();
     // TODO schi
     // m_finished_kernel.push_back(uid);
-    std::vector<kernel_info_t*>::iterator k;
-    for( k=m_running_kernels.begin(); k!=m_running_kernels.end(); k++ ) {
-        if( *k == kernel ) {
-            kernel->end_cycle = gpu_sim_cycle + gpu_tot_sim_cycle;
-            *k = NULL;
-            break;
-        }
+  std::vector<kernel_info_t *>::iterator k;
+  for (k = m_running_kernels.begin(); k != m_running_kernels.end(); k++) {
+    if (*k == kernel) {
+      kernel->end_cycle = gpu_sim_cycle + gpu_tot_sim_cycle;
+      *k = NULL;
+      break;
     }
-    assert( k != m_running_kernels.end() );
+  }
+  assert(k != m_running_kernels.end());
 }
 
 void gpgpu_sim::stop_all_running_kernels(){
-    std::vector<kernel_info_t *>::iterator k;
-    for(k = m_running_kernels.begin(); k != m_running_kernels.end(); ++k){
-        if(*k != NULL){ // If a kernel is active
-            set_kernel_done(*k); // Stop the kernel
-            assert(*k==NULL);
-        }
+  std::vector<kernel_info_t *>::iterator k;
+  for (k = m_running_kernels.begin(); k != m_running_kernels.end(); ++k) {
+    if (*k != NULL) {       // If a kernel is active
+      set_kernel_done(*k);  // Stop the kernel
+      assert(*k == NULL);
     }
+  }
 }
 
-void set_ptx_warp_size(const struct core_config * warp_size);
-
-gpgpu_sim::gpgpu_sim( const gpgpu_sim_config &config )
-    : gpgpu_t(config ), m_config(config)
-{
-    m_shader_config = &m_config.m_shader_config;
-    m_memory_config = &m_config.m_memory_config;
-    set_ptx_warp_size(m_shader_config);
-    ptx_file_line_stats_create_exposed_latency_tracker(m_config.num_shader());
+void exec_gpgpu_sim::createSIMTCluster() {
+    assert(false || "not here ");
+    /* FIXME
+  m_cluster = new simt_core_cluster *[m_shader_config->n_simt_clusters];
+  for (unsigned i = 0; i < m_shader_config->n_simt_clusters; i++)
+    m_cluster[i] =
+        new exec_simt_core_cluster(this, i, m_shader_config, m_memory_config,
+                                   m_shader_stats, m_memory_stats);
+                                   */
+}
+gpgpu_sim::gpgpu_sim(const gpgpu_sim_config &config, gpgpu_context *ctx)
+    : gpgpu_t(config, ctx), m_config(config) {
+  gpgpu_ctx = ctx;
+  m_shader_config = &m_config.m_shader_config;
+  m_memory_config = &m_config.m_memory_config;
+  ctx->ptx_parser->set_ptx_warp_size(m_shader_config);
+  ptx_file_line_stats_create_exposed_latency_tracker(m_config.num_shader());
 
     // m_shader_stats = new shader_core_stats(m_shader_config);
     // m_memory_stats = new memory_stats_t(m_config.num_shader(),m_shader_config,m_memory_config);
@@ -707,6 +736,16 @@ int gpgpu_sim::shader_clock() const
    return m_config.core_freq/1000;
 }
 
+int gpgpu_sim::max_cta_per_core() const {
+  return m_shader_config->max_cta_per_core;
+}
+
+int gpgpu_sim::get_max_cta(const kernel_info_t &k) const {
+  // return m_shader_config->max_cta(k);
+  return m_shader_config->max_cta(k);
+}
+
+
 void gpgpu_sim::set_prop( cudaDeviceProp *prop )
 {
    m_cuda_properties = prop;
@@ -756,6 +795,10 @@ void gpgpu_sim::reinit_clock_domains(void)
    l2_time = 0;
 }
 
+bool gpgpu_sim::active() {
+    assert(false || "not here");
+    return true;
+}
 /*
 bool gpgpu_sim::active()
 {
@@ -919,6 +962,19 @@ std::string gpgpu_sim::executed_kernel_info_string()
 
    return statout.str();
 }
+
+std::string gpgpu_sim::executed_kernel_name() {
+  std::stringstream statout;  
+  if( m_executed_kernel_names.size() == 1)
+     statout << m_executed_kernel_names[0];
+  else{
+    for (unsigned int k = 0; k < m_executed_kernel_names.size(); k++) {
+      statout << m_executed_kernel_names[k] << " ";
+    }
+  }
+  return statout.str();
+}
+
 void gpgpu_sim::set_cache_config(std::string kernel_name,  FuncCache cacheConfig )
 {
 	m_special_cache_config[kernel_name]=cacheConfig ;
@@ -926,34 +982,38 @@ void gpgpu_sim::set_cache_config(std::string kernel_name,  FuncCache cacheConfig
 
 FuncCache gpgpu_sim::get_cache_config(std::string kernel_name)
 {
-	for (	std::map<std::string, FuncCache>::iterator iter = m_special_cache_config.begin(); iter != m_special_cache_config.end(); iter++){
-		    std::string kernel= iter->first;
-			if (kernel_name.compare(kernel) == 0){
-				return iter->second;
-			}
-	}
-	return (FuncCache)0;
+  for (std::map<std::string, FuncCache>::iterator iter =
+           m_special_cache_config.begin();
+       iter != m_special_cache_config.end(); iter++) {
+    std::string kernel = iter->first;
+    if (kernel_name.compare(kernel) == 0) {
+      return iter->second;
+    }
+  }
+  return (FuncCache)0;
 }
 
 bool gpgpu_sim::has_special_cache_config(std::string kernel_name)
 {
-	for (	std::map<std::string, FuncCache>::iterator iter = m_special_cache_config.begin(); iter != m_special_cache_config.end(); iter++){
-	    	std::string kernel= iter->first;
-			if (kernel_name.compare(kernel) == 0){
-				return true;
-			}
-	}
-	return false;
+  for (std::map<std::string, FuncCache>::iterator iter =
+           m_special_cache_config.begin();
+       iter != m_special_cache_config.end(); iter++) {
+    std::string kernel = iter->first;
+    if (kernel_name.compare(kernel) == 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
 void gpgpu_sim::set_cache_config(std::string kernel_name)
 {
-	if(has_special_cache_config(kernel_name)){
-		change_cache_config(get_cache_config(kernel_name));
-	}else{
-		change_cache_config(FuncCachePreferNone);
-	}
+  if (has_special_cache_config(kernel_name)) {
+    change_cache_config(get_cache_config(kernel_name));
+  } else {
+    change_cache_config(FuncCachePreferNone);
+  }
 }
 
 
@@ -1320,7 +1380,131 @@ void shader_core_ctx::dump_warp_state( FILE *fout ) const
    for (unsigned w=0; w < m_config->max_warps_per_shader; w++ )
        m_warp[w].print(fout);
 }
+
+unsigned exec_shader_core_ctx::sim_init_thread(
+    kernel_info_t &kernel, ptx_thread_info **thread_info, int sid, unsigned tid,
+    unsigned threads_left, unsigned num_threads, core_t *core,
+    unsigned hw_cta_id, unsigned hw_warp_id, gpgpu_t *gpu) {
+  return ptx_sim_init_thread(kernel, thread_info, sid, tid, threads_left,
+                             num_threads, core, hw_cta_id, hw_warp_id, gpu);
+}
 */
+
+void shader_core_ctx::issue_block2core(kernel_info_t &kernel) {
+/*
+  if (!m_config->gpgpu_concurrent_kernel_sm)
+    set_max_cta(kernel);
+  else
+    assert(occupy_shader_resource_1block(kernel, true));
+
+  kernel.inc_running();
+
+  // find a free CTA context
+  unsigned free_cta_hw_id = (unsigned)-1;
+
+  unsigned max_cta_per_core;
+  if (!m_config->gpgpu_concurrent_kernel_sm)
+    max_cta_per_core = kernel_max_cta_per_shader;
+  else
+    max_cta_per_core = m_config->max_cta_per_core;
+  for (unsigned i = 0; i < max_cta_per_core; i++) {
+    if (m_cta_status[i] == 0) {
+      free_cta_hw_id = i;
+      break;
+    }
+  }
+  assert(free_cta_hw_id != (unsigned)-1);
+
+  // determine hardware threads and warps that will be used for this CTA
+  int cta_size = kernel.threads_per_cta();
+
+  // hw warp id = hw thread id mod warp size, so we need to find a range
+  // of hardware thread ids corresponding to an integral number of hardware
+  // thread ids
+  int padded_cta_size = cta_size;
+  if (cta_size % m_config->warp_size)
+    padded_cta_size =
+        ((cta_size / m_config->warp_size) + 1) * (m_config->warp_size);
+
+  unsigned int start_thread, end_thread;
+
+  if (!m_config->gpgpu_concurrent_kernel_sm) {
+    start_thread = free_cta_hw_id * padded_cta_size;
+    end_thread = start_thread + cta_size;
+  } else {
+    start_thread = find_available_hwtid(padded_cta_size, true);
+    assert((int)start_thread != -1);
+    end_thread = start_thread + cta_size;
+    assert(m_occupied_cta_to_hwtid.find(free_cta_hw_id) ==
+           m_occupied_cta_to_hwtid.end());
+    m_occupied_cta_to_hwtid[free_cta_hw_id] = start_thread;
+  }
+
+  // reset the microarchitecture state of the selected hardware thread and warp
+  // contexts
+  reinit(start_thread, end_thread, false);
+
+  // initalize scalar threads and determine which hardware warps they are
+  // allocated to bind functional simulation state of threads to hardware
+  // resources (simulation)
+  warp_set_t warps;
+  unsigned nthreads_in_block = 0;
+  function_info *kernel_func_info = kernel.entry();
+  symbol_table *symtab = kernel_func_info->get_symtab();
+  unsigned ctaid = kernel.get_next_cta_id_single();
+  checkpoint *g_checkpoint = new checkpoint();
+  for (unsigned i = start_thread; i < end_thread; i++) {
+    m_threadState[i].m_cta_id = free_cta_hw_id;
+    unsigned warp_id = i / m_config->warp_size;
+    nthreads_in_block += sim_init_thread(
+        kernel, &m_thread[i], m_sid, i, cta_size - (i - start_thread),
+        m_config->n_thread_per_shader, this, free_cta_hw_id, warp_id,
+        m_cluster->get_gpu());
+    m_threadState[i].m_active = true;
+    // load thread local memory and register file
+    if (m_gpu->resume_option == 1 && kernel.get_uid() == m_gpu->resume_kernel &&
+        ctaid >= m_gpu->resume_CTA && ctaid < m_gpu->checkpoint_CTA_t) {
+      char fname[2048];
+      snprintf(fname, 2048, "checkpoint_files/thread_%d_%d_reg.txt",
+               i % cta_size, ctaid);
+      m_thread[i]->resume_reg_thread(fname, symtab);
+      char f1name[2048];
+      snprintf(f1name, 2048, "checkpoint_files/local_mem_thread_%d_%d_reg.txt",
+               i % cta_size, ctaid);
+      g_checkpoint->load_global_mem(m_thread[i]->m_local_mem, f1name);
+    }
+    //
+    warps.set(warp_id);
+  }
+  assert(nthreads_in_block > 0 &&
+         nthreads_in_block <=
+             m_config->n_thread_per_shader);  // should be at least one, but
+                                              // less than max
+  m_cta_status[free_cta_hw_id] = nthreads_in_block;
+
+  if (m_gpu->resume_option == 1 && kernel.get_uid() == m_gpu->resume_kernel &&
+      ctaid >= m_gpu->resume_CTA && ctaid < m_gpu->checkpoint_CTA_t) {
+    char f1name[2048];
+    snprintf(f1name, 2048, "checkpoint_files/shared_mem_%d.txt", ctaid);
+
+    g_checkpoint->load_global_mem(m_thread[start_thread]->m_shared_mem, f1name);
+  }
+  // now that we know which warps are used in this CTA, we can allocate
+  // resources for use in CTA-wide barrier operations
+  m_barriers.allocate_barrier(free_cta_hw_id, warps);
+
+  // initialize the SIMT stacks and fetch hardware
+  init_warps(free_cta_hw_id, start_thread, end_thread, ctaid, cta_size, kernel);
+  m_n_active_cta++;
+
+  shader_CTA_count_log(m_sid, 1);
+  SHADER_DPRINTF(LIVENESS,
+                 "GPGPU-Sim uArch: cta:%2u, start_tid:%4u, end_tid:%4u, "
+                 "initialized @(%lld,%lld)\n",
+                 free_cta_hw_id, start_thread, end_thread, m_gpu->gpu_sim_cycle,
+                 m_gpu->gpu_tot_sim_cycle);
+  */
+}
 
 
 void gpgpu_sim::perf_memcpy_to_gpu( size_t dst_start_addr, size_t count )

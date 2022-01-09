@@ -26,6 +26,18 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+%{
+typedef void * yyscan_t;
+#include "ptx_loader.h"
+using namespace libcuda;
+%}
+
+%define api.pure full
+%parse-param {yyscan_t scanner}
+%parse-param {libcuda::ptxinfo_data* ptxinfo}
+%lex-param {yyscan_t scanner}
+%lex-param {libcuda::ptxinfo_data* ptxinfo}
+
 
 %union {
   int    int_value;
@@ -66,17 +78,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 	static unsigned g_declared;
 	static unsigned g_system;
-	int ptxinfo_lex(void);
-	extern "C" void ptxinfo_addinfo();
-	extern "C" void ptxinfo_function(const char *fname );
-	extern "C" void ptxinfo_regs( unsigned nregs );
-	extern "C" void ptxinfo_lmem( unsigned declared, unsigned system );
-	extern "C" void ptxinfo_gmem( unsigned declared, unsigned system );
-	extern "C" void ptxinfo_smem( unsigned declared, unsigned system );
-	extern "C" void ptxinfo_cmem( unsigned nbytes, unsigned bank );
-	extern int ptxinfo_error(const char*);
-	extern "C" void ptxinfo_linenum( unsigned );
-	extern "C" void ptxinfo_dup_type( const char* );
+	int ptxinfo_lex(YYSTYPE * yylval_param, yyscan_t yyscanner, libcuda::ptxinfo_data* ptxinfo);
+	void yyerror(yyscan_t yyscanner, libcuda::ptxinfo_data* ptxinfo, const char* msg);
+	namespace libcuda {
+	void ptxinfo_function(const char *fname );
+	void ptxinfo_regs( unsigned nregs );
+	void ptxinfo_lmem( unsigned declared, unsigned system );
+	void ptxinfo_gmem( unsigned declared, unsigned system );
+	void ptxinfo_smem( unsigned declared, unsigned system );
+	void ptxinfo_cmem( unsigned nbytes, unsigned bank );
+	void ptxinfo_linenum( unsigned );
+	void ptxinfo_dup_type( const char* );
+	}
 %}
 
 %%
@@ -93,7 +106,7 @@ line: 	HEADER INFO COLON line_info
 	;
 
 line_info: function_name
-	| function_info { ptxinfo_addinfo(); }
+	| function_info { ptxinfo->ptxinfo_addinfo(); }
 	| gmem_info
 	;
 

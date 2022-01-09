@@ -83,7 +83,7 @@ extern int ptxinfo_debug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 30 "ptxinfo.y"
+#line 42 "ptxinfo.y"
 
   int    int_value;
   char * string_value;
@@ -97,8 +97,7 @@ typedef union YYSTYPE YYSTYPE;
 #endif
 
 
-extern YYSTYPE ptxinfo_lval;
 
-int ptxinfo_parse (void);
+int ptxinfo_parse (yyscan_t scanner, libcuda::ptxinfo_data* ptxinfo);
 
 #endif /* !YY_PTXINFO_PTXINFO_TAB_H_INCLUDED  */

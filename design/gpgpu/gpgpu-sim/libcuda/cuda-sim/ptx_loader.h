@@ -29,16 +29,40 @@
 #define PTX_LOADER_H_INCLUDED
 #include <string>
 
-extern "C" int no_of_ptx; //counter to track number of ptx files to be extracted in an application.
+#define PTXINFO_LINEBUF_SIZE 1024
+typedef void* yyscan_t;
+
+// extern "C" int no_of_ptx; //counter to track number of ptx files to be extracted in an application.
 namespace libcuda {
+class gpgpu_context;
+typedef void* yyscan_t;
+class ptxinfo_data {
+ public:
+  ptxinfo_data(gpgpu_context* ctx) { gpgpu_ctx = ctx; }
+  yyscan_t scanner;
+  char linebuf[PTXINFO_LINEBUF_SIZE];
+  unsigned col;
+  const char* g_ptxinfo_filename;
+  class gpgpu_context* gpgpu_ctx;
+  bool g_keep_intermediate_files;
+  bool m_ptx_save_converted_ptxplus;
+  void ptxinfo_addinfo();
+  bool keep_intermediate_files();
+  char* gpgpu_ptx_sim_convert_ptx_and_sass_to_ptxplus(
+      const std::string ptx_str, const std::string sass_str,
+      const std::string elf_str);
+};
+
+#if 0
 extern bool g_override_embedded_ptx;
- 
+
 class symbol_table *gpgpu_ptx_sim_load_ptx_from_string( const char *p, unsigned source_num );
 class symbol_table *gpgpu_ptx_sim_load_ptx_from_filename( const char *filename );
 void gpgpu_ptxinfo_load_from_string( const char *p_for_info, unsigned source_num, unsigned sm_version=20 );
 void gpgpu_ptx_info_load_from_filename( const char *filename, unsigned sm_version );
 char* gpgpu_ptx_sim_convert_ptx_and_sass_to_ptxplus(const std::string ptx_str, const std::string sass_str, const std::string elf_str);
 bool keep_intermediate_files();
+#endif
 }
 
 #endif

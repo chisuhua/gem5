@@ -446,7 +446,7 @@ class Request
              * SMMU/IOMMU Each transaction arriving at the SMMU/IOMMU is
              * associated with exactly one stream ID.
              */
-            uint32_t  _streamId = 0;
+            uint32_t  _streamId;
 
             /**
              * The substream ID identifies an "execution context" within a
@@ -454,11 +454,11 @@ class Request
              * PCIe PASID (Process Address Space ID). The presence of a
              * substream ID is optional.
              */
-            uint32_t _substreamId = 0;
+            uint32_t _substreamId;
         };
 
         /** The address space ID. */
-        uint64_t _asid;
+        uint64_t _asid = 0;
     };
 
     /** The virtual address of the request. */

@@ -601,6 +601,15 @@ for bdir in [ base_dir ] + extras_dir_list:
     if not isdir(bdir):
         error("Directory '%s' does not exist." % bdir)
     for root, dirs, files in os.walk(bdir):
+        if root.find("ppu") != -1:
+            continue
+        if 'SConsopts' in files:
+            if GetOption('verbose'):
+                print("Reading", os.path.join(root, 'SConsopts'))
+            SConscript(os.path.join(root, 'SConsopts'))
+    for root, dirs, files in os.walk(bdir):
+        if root.find("ppu") == -1:
+            continue
         if 'SConsopts' in files:
             if GetOption('verbose'):
                 print("Reading", os.path.join(root, 'SConsopts'))

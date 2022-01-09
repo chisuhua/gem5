@@ -146,7 +146,7 @@ $(OUTPUT_DIR)/%.o: %.cc
 	$(CPP) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OUTPUT_DIR)/%.o: %.c
-	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
+	$(CPP) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
 $(OUTPUT_DIR)/$(M5OP).o: $(M5OP_PATH)/$(M5OP).S
 	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
@@ -162,6 +162,8 @@ $(OUTPUT_DIR)/cuobjdump_lexer.c: cuobjdump.l $(OUTPUT_DIR)/cuobjdump_parser.h
 # in other words, get parser.c and do nothing to get parser.h
 $(OUTPUT_DIR)/%_parser.h: $(OUTPUT_DIR)/%_parser.c
 	:
+#$(OUTPUT_DIR)/%_parser.h: $(OUTPUT_DIR)/%_parser.cc
+#	:
 $(OUTPUT_DIR)/Makefile.makedepend: depend
 
 depend: cuda-sim

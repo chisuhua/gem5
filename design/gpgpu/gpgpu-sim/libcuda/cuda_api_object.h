@@ -8,10 +8,12 @@
 
 #include "builtin_types.h"
 
-#include "../src/abstract_hardware_model.h"
-#include "../src/cuda-sim/ptx_ir.h"
-#include "../src/gpgpu-sim/gpu-sim.h"
+#include "../libcuda/abstract_hardware_model.h"
+#include "../libcuda/cuda-sim/ptx_ir.h"
+#include "../libcuda/gpu-sim.h"
 #include "cuobjdump.h"
+
+using namespace libcuda;
 
 typedef std::list<gpgpu_ptx_sim_arg> gpgpu_ptx_sim_arg_list_t;
 
@@ -137,7 +139,7 @@ struct CUctx_st {
 class kernel_config {
  public:
   kernel_config(dim3 GridDim, dim3 BlockDim, size_t sharedMem,
-                struct CUstream_st *stream) {
+                struct libcuda::CUstream_st *stream) {
     m_GridDim = GridDim;
     m_BlockDim = BlockDim;
     m_sharedMem = sharedMem;
@@ -157,7 +159,7 @@ class kernel_config {
   void set_grid_dim(dim3 *d) { m_GridDim = *d; }
   void set_block_dim(dim3 *d) { m_BlockDim = *d; }
   gpgpu_ptx_sim_arg_list_t get_args() { return m_args; }
-  struct CUstream_st *get_stream() {
+  struct libcuda::CUstream_st *get_stream() {
     return m_stream;
   }
 
@@ -165,7 +167,7 @@ class kernel_config {
   dim3 m_GridDim;
   dim3 m_BlockDim;
   size_t m_sharedMem;
-  struct CUstream_st *m_stream;
+  struct libcuda::CUstream_st *m_stream;
   gpgpu_ptx_sim_arg_list_t m_args;
 };
 

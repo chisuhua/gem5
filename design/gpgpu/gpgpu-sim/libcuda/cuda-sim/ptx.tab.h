@@ -229,7 +229,7 @@ extern int ptx_debug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 30 "ptx.y"
+#line 41 "ptx.y"
 
   double double_value;
   float  float_value;
@@ -246,8 +246,7 @@ typedef union YYSTYPE YYSTYPE;
 #endif
 
 
-extern YYSTYPE ptx_lval;
 
-int ptx_parse (void);
+int ptx_parse (yyscan_t scanner, ptx_recognizer* recognizer);
 
 #endif /* !YY_PTX_PTX_TAB_H_INCLUDED  */

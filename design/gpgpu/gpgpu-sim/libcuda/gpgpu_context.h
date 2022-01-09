@@ -1,13 +1,14 @@
 #ifndef __gpgpu_context_h__
 #define __gpgpu_context_h__
-#include "../src/cuda-sim/cuda-sim.h"
-#include "../src/cuda-sim/cuda_device_runtime.h"
-#include "../src/cuda-sim/ptx-stats.h"
-#include "../src/cuda-sim/ptx_loader.h"
-#include "../src/cuda-sim/ptx_parser.h"
-#include "../src/gpgpusim_entrypoint.h"
+#include "../libcuda/cuda-sim/cuda-sim.h"
+#include "../libcuda/cuda-sim/cuda_device_runtime.h"
+#include "../libcuda/cuda-sim/ptx-stats.h"
+#include "../libcuda/cuda-sim/ptx_loader.h"
+#include "../libcuda/cuda-sim/ptx_parser.h"
+#include "../libcuda/gpgpusim_entrypoint.h"
 #include "cuda_api_object.h"
 
+namespace libcuda {
 class gpgpu_context {
  public:
   gpgpu_context() {
@@ -78,6 +79,7 @@ class gpgpu_context {
   const warp_inst_t *ptx_fetch_inst(address_type pc);
   unsigned translate_pc_to_ptxlineno(unsigned pc);
 };
+}
 gpgpu_context *GPGPU_Context();
 
 #endif /* __gpgpu_context_h__ */

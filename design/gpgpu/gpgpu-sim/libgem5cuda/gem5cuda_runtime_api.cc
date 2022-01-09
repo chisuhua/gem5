@@ -184,21 +184,28 @@ static void set_run_in_gem5() {
         app_run_in_gem5 = 1;
     } else {
         app_run_in_gem5 = -1;
-        void* libgem5_sc_handle = dlopen("libgem5_sc.so", RTLD_NOW);
+        void* libgem5_sc_handle = dlopen("libgem5_sc.so", RTLD_LAZY | RTLD_GLOBAL);
         if (libgem5_sc_handle = nullptr) {
             printf("dlopen error - %s\n", dlerror());
             assert(false);
         }
-
-        g_app_direct_call_gpu = (pfn_app_direct_call_gpu)dlsym(libgem5_sc_handle, "app_direct_call_gpu");
-
-        if (g_app_direct_call_gpu == nullptr) {
-            printf("load symbol app_direct_call_gpu fail\n");
-            assert(false);
-        }
         g_gem5_main = (pfn_gem5_main)dlsym(libgem5_sc_handle, "gem5_main");
         if (g_gem5_main == nullptr) {
+            printf("dlopen error - %s\n", dlerror());
             printf("load symbol g_gem5_main faile\n");
+            assert(false);
+        }
+        /*
+        void* libgem5_handle = dlopen("libgem5_opt.so", RTLD_NOW);
+        if (libgem5_handle = nullptr) {
+            printf("dlopen error - %s\n", dlerror());
+            assert(false);
+        }
+        */
+        g_app_direct_call_gpu = (pfn_app_direct_call_gpu)dlsym(libgem5_sc_handle, "app_direct_call_gpu");
+        if (g_app_direct_call_gpu == nullptr) {
+            printf("dlopen error - %s\n", dlerror());
+            printf("load symbol app_direct_call_gpu fail\n");
             assert(false);
         }
         (g_gem5_main)();

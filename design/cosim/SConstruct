@@ -5,11 +5,30 @@
 import os
 import sys
 import pdb
+import SCons
+import SCons.Node
+import SCons.Node.FS
+import SCons.Tool
 
+env = Environment()
+
+env.Tool(SCons.Tool.FindTool(['gcc', 'clang'], env))
+env.Tool(SCons.Tool.FindTool(['g++', 'clang++'], env))
+
+# As gcc and clang share many flags, do the common parts here
+env.Append(CCFLAGS=['-pipe'])
+env.Append(CCFLAGS=['-fno-strict-aliasing'])
+
+# Enable -Wall and -Wextra and then disable the few warnings that
+# we consistently violate
+env.Append(CCFLAGS=['-Wall', '-Wundef', '-Wextra',
+                         '-Wno-sign-compare', '-Wno-unused-parameter'])
+
+# We always compile using C++17
+env.Append(CXXFLAGS=['-std=c++17'])
 
 gem5_variant = 'opt'
 #gem5_variant = 'debug'
-
 
 gem5_root = Dir('#../..').srcnode().abspath
 gem5_tlm = gem5_root + '/util/tlm'
@@ -123,7 +142,7 @@ print("# of job: %d" % GetOption('num_jobs'))
 design = SConscript(
     'src/SConscript',
     variant_dir=co_build_dir,
-    exports=[ 'env', 'deps' , 'linklibs'])
+    exports=[ 'env', 'deps', 'linklibs'])
 
 #build_libgem5_cmd = "scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
 build_libgem5_cmd = "scons -j6 --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
