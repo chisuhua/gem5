@@ -13,6 +13,9 @@ export GEM5_ARCH=X86_VI_hammer
 #export CUDAHOME=/usr/local/cuda/
 #export CUDAHOME=$DIR/cuda3.2
 
+export GEM5_CPU_CORES="$(cat /proc/cpuinfo | grep "processor" | wc -l)"
+echo "gem5 root $GEM5_ROOT, cpu cores $GEM5_CPU_CORES"
+
 NVCC_PATH=`which nvcc`
 if [ x$NVCC_PATH == "x" ]; then
 	echo "Can't find nvcc "
@@ -41,9 +44,15 @@ export PTX_SIM_DEBUG=3
 export PYTORCH_BIN=
 export CUOBJDUMP_SIM_FILE=jj
 export PTX_JIT_PATH=
+export GPGPUSIM_ROOT=$GEM5_ROOT/design/gpgpu/gpgpu-sim/
 export LD_LIBRARY_PATH=$GEM5_ROOT/design/gpgpu/gpgpu-sim/libcuda:$LD_LIBRARY_PATH
 
 # then update-alternative --config gcc/g++ to 4.7
 # cd benchmarks/rodinia/vectorAdd or
 # cd benchmarks/rodinia/backprop
 # make gem5-fusion
+
+#setup cosim
+export CO_DESIGN=co_design/simple_ppu
+export CO_BUILD_DIR=build
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GEM5_ROOT/design/cosim

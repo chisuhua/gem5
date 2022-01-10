@@ -32,46 +32,45 @@ import re
 from m5.objects import *
 from m5.util.convert import *
 from m5.util import fatal
-import ipdb
 
 gpu_core_configs = ['Fermi', 'Maxwell', 'Volta', 'Ppu']
 
 def addGPUOptions(parser):
-    parser.add_option("--clusters", default=16, help="Number of shader core clusters in the gpu that GPGPU-sim is simulating", type="int")
-    parser.add_option("--cores_per_cluster", default=1, help="Number of shader cores per cluster in the gpu that GPGPU-sim is simulating", type="int")
-    parser.add_option("--ctas_per_shader", default=8, help="Number of simultaneous CTAs that can be scheduled to a single shader", type="int")
-    parser.add_option("--sc_l1_size", default="64kB", help="size of l1 cache hooked up to each sc")
-    parser.add_option("--sc_l2_size", default="1MB", help="size of L2 cache divided by num L2 caches")
-    parser.add_option("--sc_l1_assoc", default=4, help="associativity of l1 cache hooked up to each sc", type="int")
-    parser.add_option("--sc_l2_assoc", default=16, help="associativity of L2 cache backing SC L1's", type="int")
-    parser.add_option("--shMemDelay", default=1, help="delay to access shared memory in gpgpu-sim ticks", type="int")
-    parser.add_option("--gpu_core_config", type="choice", choices=gpu_core_configs, default='Ppu', help="configure the GPU cores like %s" % gpu_core_configs)
-    parser.add_option("--kernel_stats", default=False, action="store_true", help="Dump statistics on GPU kernel boundaries")
-    parser.add_option("--total-mem-size", default='4GB', help="Total size of memory in system")
-    parser.add_option("--gpu_l1_buf_depth", type="int", default=96, help="Number of buffered L1 requests per shader")
-    parser.add_option("--flush_kernel_end", default=False, action="store_true", help="Flush the L1s at the end of each kernel. (Only VI_hammer)")
-    parser.add_option("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
-    parser.add_option("--access-host-pagetable", action="store_true", default=False)
-    parser.add_option("--split", default=False, action="store_true", help="Use split CPU and GPU cache hierarchies instead of fusion")
-    parser.add_option("--ppu", default=False, action="store_true", help="Use PPU system cache hierarchies instead of fusion")
-    parser.add_option("--dev-numa-high-bit", type="int", default=0, help="High order address bit to use for device NUMA mapping.")
-    parser.add_option("--num-dev-dirs", default=1, help="In split hierarchies, number of device directories", type="int")
-    parser.add_option("--gpu-mem-size", default='2GB', help="In split hierarchies, amount of GPU memory")
-    parser.add_option("--gpu_mem_ctl_latency", type="int", default=-1, help="GPU memory controller latency in cycles")
-    parser.add_option("--gpu_mem_freq", type="string", default=None, help="GPU memory controller frequency")
-    parser.add_option("--gpu_membus_busy_cycles", type="int", default=-1, help="GPU memory bus busy cycles per data transfer")
-    parser.add_option("--gpu_membank_busy_time", type="string", default=None, help="GPU memory bank busy time in ns (CL+tRP+tRCD+CAS)")
-    parser.add_option("--gpu_warp_size", type="int", default=32, help="Number of threads per warp, also functional units per shader core/SM")
-    parser.add_option("--gpu_atoms_per_subline", type="int", default=None, help="Maximum atomic ops to send per subline per access")
-    parser.add_option("--gpu_threads_per_core", type="int", default=1536, help="Maximum number of threads per GPU core (SM)")
-    parser.add_option("--gpgpusim-config", type="string", default=None, help="Path to the gpgpusim.config to use. This overrides the gpgpusim.config template")
-    parser.add_option("--gpu-l2-resource-stalls", action="store_true", default=False)
-    parser.add_option("--gpu_tlb_entries", type="int", default=0, help="Number of entries in GPU TLB. 0 implies infinite")
-    parser.add_option("--gpu_tlb_assoc", type="int", default=0, help="Associativity of the L1 TLB. 0 implies infinite")
-    parser.add_option("--pwc_size", default="8kB", help="Capacity of the page walk cache")
-    parser.add_option("--ce_buffering", type="int", default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
-    parser.add_option("--cp_buffering", type="int", default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
-    parser.add_option("--cp_firmware", type="string", default=None, help="the zephyr firmware")
+    parser.add_argument("--clusters", default=16, help="Number of shader core clusters in the gpu that GPGPU-sim is simulating", type=int)
+    parser.add_argument("--cores_per_cluster", default=1, help="Number of shader cores per cluster in the gpu that GPGPU-sim is simulating", type=int)
+    parser.add_argument("--ctas_per_shader", default=8, help="Number of simultaneous CTAs that can be scheduled to a single shader", type=int)
+    parser.add_argument("--sc_l1_size", default="64kB", help="size of l1 cache hooked up to each sc")
+    parser.add_argument("--sc_l2_size", default="1MB", help="size of L2 cache divided by num L2 caches")
+    parser.add_argument("--sc_l1_assoc", default=4, help="associativity of l1 cache hooked up to each sc", type=int)
+    parser.add_argument("--sc_l2_assoc", default=16, help="associativity of L2 cache backing SC L1's", type=int)
+    parser.add_argument("--shMemDelay", default=1, help="delay to access shared memory in gpgpu-sim ticks", type=int)
+    parser.add_argument("--gpu_core_config", type=str, choices=gpu_core_configs, default='Ppu', help="configure the GPU cores like %s" % gpu_core_configs)
+    parser.add_argument("--kernel_stats", default=False, action="store_true", help="Dump statistics on GPU kernel boundaries")
+    parser.add_argument("--total-mem-size", default='4GB', help="Total size of memory in system")
+    parser.add_argument("--gpu_l1_buf_depth", type=int, default=96, help="Number of buffered L1 requests per shader")
+    parser.add_argument("--flush_kernel_end", default=False, action="store_true", help="Flush the L1s at the end of each kernel. (Only VI_hammer)")
+    parser.add_argument("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
+    parser.add_argument("--access-host-pagetable", action="store_true", default=False)
+    parser.add_argument("--split", default=False, action="store_true", help="Use split CPU and GPU cache hierarchies instead of fusion")
+    parser.add_argument("--ppu", default=False, action="store_true", help="Use PPU system cache hierarchies instead of fusion")
+    parser.add_argument("--dev-numa-high-bit", type=int, default=0, help="High order address bit to use for device NUMA mapping.")
+    parser.add_argument("--num-dev-dirs", default=1, help="In split hierarchies, number of device directories", type=int)
+    parser.add_argument("--gpu-mem-size", default='2GB', help="In split hierarchies, amount of GPU memory")
+    parser.add_argument("--gpu_mem_ctl_latency", type=int, default=-1, help="GPU memory controller latency in cycles")
+    parser.add_argument("--gpu_mem_freq", type=str, default=None, help="GPU memory controller frequency")
+    parser.add_argument("--gpu_membus_busy_cycles", type=int, default=-1, help="GPU memory bus busy cycles per data transfer")
+    parser.add_argument("--gpu_membank_busy_time", type=str, default=None, help="GPU memory bank busy time in ns (CL+tRP+tRCD+CAS)")
+    parser.add_argument("--gpu_warp_size", type=int, default=32, help="Number of threads per warp, also functional units per shader core/SM")
+    parser.add_argument("--gpu_atoms_per_subline", type=int, default=None, help="Maximum atomic ops to send per subline per access")
+    parser.add_argument("--gpu_threads_per_core", type=int, default=1536, help="Maximum number of threads per GPU core (SM)")
+    parser.add_argument("--gpgpusim-config", type=str, default=None, help="Path to the gpgpusim.config to use. This overrides the gpgpusim.config template")
+    parser.add_argument("--gpu-l2-resource-stalls", action="store_true", default=False)
+    parser.add_argument("--gpu_tlb_entries", type=int, default=0, help="Number of entries in GPU TLB. 0 implies infinite")
+    parser.add_argument("--gpu_tlb_assoc", type=int, default=0, help="Associativity of the L1 TLB. 0 implies infinite")
+    parser.add_argument("--pwc_size", default="8kB", help="Capacity of the page walk cache")
+    parser.add_argument("--ce_buffering", type=int, default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
+    parser.add_argument("--cp_buffering", type=int, default=128, help="Maximum cache lines buffered in the GPU CE. 0 implies infinite")
+    parser.add_argument("--cp_firmware", type=str, default=None, help="the zephyr firmware")
 
 def configureMemorySpaces(options):
     total_mem_range = AddrRange(options.total_mem_size)
@@ -132,7 +131,7 @@ def parseGpgpusimConfig(options):
     f.close()
 
     if usingTemplate:
-        print "Using template and command line options for gpgpusim.config"
+        print("Using template and command line options for gpgpusim.config")
 
         # Modify the GPGPU-Sim configuration template
         config = config.replace("%clusters%", str(options.clusters))
@@ -186,7 +185,7 @@ def parseGpgpusimConfig(options):
         f.write(icnt_config)
         f.close()
     else:
-        print "Using gpgpusim.config for clusters, cores_per_cluster, Frequency, warp size"
+        print("Using gpgpusim.config for clusters, cores_per_cluster, Frequency, warp size")
         config = re.sub(re.compile("#.*?\n"), "", config)
         start = config.find("-gpgpu_n_clusters ") + len("-gpgpu_n_clusters ")
         end = config.find('-', start)
@@ -251,7 +250,7 @@ def createGPU(options, gpu_mem_range, system):
 
     warps_per_core = options.gpu_threads_per_core / options.gpu_warp_size
     gpu.shader_cores = [CudaCore(id = i, warp_contexts = warps_per_core)
-                            for i in xrange(options.num_sc)]
+                            for i in range(0, options.num_sc)]
 
     gpu.ce = GPUCopyEngine(driver_delay = 5000000,
                            buffering = options.ce_buffering
@@ -336,7 +335,7 @@ def connectGPUPorts(gpu, ruby, options):
     num_cpus = options.num_cpus
     for i,sc in enumerate(gpu.shader_cores):
         sc.inst_port = ruby._cpu_ports[num_cpus+i].slave
-        for j in xrange(options.gpu_warp_size):
+        for j in range(0, options.gpu_warp_size):
             sc.lsq_port[j] = sc.lsq.lane_port[j]
         sc.lsq.cache_port = ruby._cpu_ports[num_cpus+i].slave
         sc.lsq_ctrl_port = sc.lsq.control_port

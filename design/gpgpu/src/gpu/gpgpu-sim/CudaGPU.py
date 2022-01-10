@@ -56,7 +56,7 @@ class CudaGPU(ClockedObject):
     dump_kernel_stats = Param.Bool(False, "Dump and reset simulator statistics at the beginning and end of kernels")
 
     # When using a segmented physical address space, the SPA can manage memory
-    manage_gpu_memory = Param.Bool(False, "Handle all GPU memory allocations in this SPA")
+    manage_gpu_memory = Param.Bool(True, "Handle all GPU memory allocations in this SPA")
     access_host_pagetable = Param.Bool(False, \
                 "Whether to allow accesses to host page table")
     gpu_memory_range = Param.AddrRange(AddrRange('1kB'), "The address range for the GPU memory space")

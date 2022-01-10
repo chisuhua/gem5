@@ -41,7 +41,7 @@ class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
 class ProbeFilter(RubyCache): pass
 
-def create_system(options, full_system, system, dma_devices, bootmem, ruby_system):
+def create_system(options, full_system, system, dma_devices, bootmem, ruby_system, cpus):
 
     #if not buildEnv['GPGPU_SIM']:
     #    m5.util.panic("This script requires GPGPU-Sim integration to be built.")

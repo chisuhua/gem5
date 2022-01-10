@@ -37,7 +37,7 @@ from topologies.Cluster import Cluster
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
 
-def create_system(options, full_system, system, dma_devices, bootmem, ruby_system):
+def create_system(options, full_system, system, dma_devices, bootmem, ruby_system, cpus):
 
     #if not buildEnv['GPGPU_SIM']:
     #    m5.util.panic("This script requires GPGPU-Sim integration to be built.")
@@ -49,7 +49,8 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
                                                                 system,
                                                                 dma_devices,
                                                                 bootmem,
-                                                                ruby_system)
+                                                                ruby_system,
+                                                                cpus)
 
     cpu_cntrl_count = len(cpu_cluster) + len(dir_cntrls)
 
@@ -92,7 +93,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     #
     # Caches for GPU cores
     #
-    for i in xrange(options.num_sc):
+    for i in range(0, options.num_sc):
         #
         # First create the Ruby objects associated with the GPU cores
         #
@@ -169,7 +170,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)
 
     l2_clusters = []
-    for i in xrange(options.num_l2caches):
+    for i in range(0, options.num_l2caches):
         #
         # First create the Ruby objects associated with this cpu
         #

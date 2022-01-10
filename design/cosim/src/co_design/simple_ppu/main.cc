@@ -178,6 +178,7 @@ sc_main(int argc, char **argv)
 #define CONFIG_FILE "gem5_settings.ini"
 
 extern "C" {
+void app_direct_call_gpu(uint64_t gpusysno, uint64_t call_params);
 void gem5_main() {
     util::config::ini_loader cfg_loader;
     int argc;

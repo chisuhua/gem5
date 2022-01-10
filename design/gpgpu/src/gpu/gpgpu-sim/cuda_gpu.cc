@@ -809,7 +809,7 @@ Addr CudaGPU::allocateGPUMemory(size_t size)
 
     if (alloc_cp_memory) {
         base_vaddr += cpMemoryBaseSize;
-        commandProcessor->active = true;
+        // FIXME commandProcessor->active = true;
     }
     return base_vaddr;
 }

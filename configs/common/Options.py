@@ -379,7 +379,7 @@ def addCommonOptions(parser):
                         help="CPU Progress Interval")
 
     # TODO schi add for remote gdb
-    parser.add_option('-w', '--wait-for-gdb',
+    parser.add_argument('-w', '--wait-for-gdb',
                         action='store_true',
                         help='Wait for remote gdb connection '
                         'before starting simulation')

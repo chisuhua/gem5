@@ -34,7 +34,6 @@ from m5.defines import buildEnv
 from topologies.Cluster import Cluster
 from ruby.Ruby import create_topology, create_directories
 from ruby.Ruby import send_evicts
-import ipdb
 
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
@@ -42,14 +41,14 @@ class ProbeFilter(RubyCache): pass
 
 def define_options(parser):
     #ipdb.set_trace()
-    parser.add_option("--allow-atomic-migration", action="store_true",
+    parser.add_argument("--allow-atomic-migration", action="store_true",
           help="allow migratory sharing for atomic only accessed blocks")
-    parser.add_option("--pf-on", action="store_true",
+    parser.add_argument("--pf-on", action="store_true",
           help="Hammer: enable Probe Filter")
-    parser.add_option("--dir-on", action="store_true",
+    parser.add_argument("--dir-on", action="store_true",
           help="Hammer: enable Full-bit Directory")
 
-def create_system(options, full_system, system, dma_ports, bootmem, ruby_system):
+def create_system(options, full_system, system, dma_ports, bootmem, ruby_system, cpus):
 
     #ipdb.set_trace()
     if 'VI_hammer' not in buildEnv['PROTOCOL']:
@@ -80,7 +79,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
         l2_bits += 1
     block_size_bits = int(math.log(options.cacheline_size, 2))
 
-    for i in xrange(options.num_cpus):
+    for i in range(0, options.num_cpus):
         #
         # First create the Ruby objects associated with this cpu
         #
@@ -175,7 +174,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system)
     #    dir_cntrl_nodes.append(rom_dir_cntrl_node)
 
     #for dir_cntrl in dir_cntrl_nodes:
-    for i in xrange(options.num_dirs):
+    for i in range(0, options.num_dirs):
         #
         # Create the Ruby objects associated with the directory controller
         #

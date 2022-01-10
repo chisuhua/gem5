@@ -34,8 +34,6 @@ gem5_root = Dir('#../..').srcnode().abspath
 gem5_tlm = gem5_root + '/util/tlm'
 gem5_libcuda = gem5_root + '/design/gpgpu/gpgpu-sim'
 
-env = Environment()
-
 #Make the gem5 root available in SConscripts
 env['GEM5_ROOT'] = gem5_root
 
@@ -142,10 +140,10 @@ print("# of job: %d" % GetOption('num_jobs'))
 design = SConscript(
     'src/SConscript',
     variant_dir=co_build_dir,
-    exports=[ 'env', 'deps', 'linklibs'])
+    exports=['env', 'deps', 'linklibs'])
 
 #build_libgem5_cmd = "scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
-build_libgem5_cmd = "scons -j6 --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu"
+build_libgem5_cmd = "scons -j%d" % num_cpus + " --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_" + gem5_variant + shlibsuffix + " --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu LDFLAGS_EXTRA=-fvisibility=hidden"
 
 env.Command(os.path.join(gem5_root, 'build', gem5_arch, 'libgem5_' + gem5_variant + shlibsuffix), "", 'cd ' + gem5_root + ";" + build_libgem5_cmd)
 

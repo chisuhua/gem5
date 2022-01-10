@@ -43,6 +43,71 @@ import m5.objects
 from common import ObjectList
 from . import HMC
 
+def create_mem_intf(intf, r, i, intlv_bits, intlv_size,
+                    xor_low_bit):
+    """
+    Helper function for creating a single memoy controller from the given
+    options.  This function is invoked multiple times in config_mem function
+    to create an array of controllers.
+    """
+
+    import math
+    intlv_low_bit = int(math.log(intlv_size, 2))
+
+    # Use basic hashing for the channel selection, and preferably use
+    # the lower tag bits from the last level cache. As we do not know
+    # the details of the caches here, make an educated guess. 4 MByte
+    # 4-way associative with 64 byte cache lines is 6 offset bits and
+    # 14 index bits.
+    if (xor_low_bit):
+        xor_high_bit = xor_low_bit + intlv_bits - 1
+    else:
+        xor_high_bit = 0
+
+    # Create an instance so we can figure out the address
+    # mapping and row-buffer size
+    interface = intf()
+
+    # Only do this for DRAMs
+    if issubclass(intf, m5.objects.DRAMInterface):
+        # If the channel bits are appearing after the column
+        # bits, we need to add the appropriate number of bits
+        # for the row buffer size
+        if interface.addr_mapping.value == 'RoRaBaChCo':
+            # This computation only really needs to happen
+            # once, but as we rely on having an instance we
+            # end up having to repeat it for each and every
+            # one
+            rowbuffer_size = interface.device_rowbuffer_size.value * \
+                interface.devices_per_rank.value
+
+            intlv_low_bit = int(math.log(rowbuffer_size, 2))
+
+    # Also adjust interleaving bits for NVM attached as memory
+    # Will have separate range defined with unique interleaving
+    if issubclass(intf, m5.objects.NVMInterface):
+        # If the channel bits are appearing after the low order
+        # address bits (buffer bits), we need to add the appropriate
+        # number of bits for the buffer size
+        if interface.addr_mapping.value == 'RoRaBaChCo':
+            # This computation only really needs to happen
+            # once, but as we rely on having an instance we
+            # end up having to repeat it for each and every
+            # one
+            buffer_size = interface.per_bank_buffer_size.value
+
+            intlv_low_bit = int(math.log(buffer_size, 2))
+
+    # We got all we need to configure the appropriate address
+    # range
+    interface.range = m5.objects.AddrRange(r.start, size = r.size(),
+                                      intlvHighBit = \
+                                          intlv_low_bit + intlv_bits - 1,
+                                      xorHighBit = xor_high_bit,
+                                      intlvBits = intlv_bits,
+                                      intlvMatch = i)
+    return interface
+
 def create_mem_ctrl(cls, r, i, nbr_mem_ctrls, intlv_bits, intlv_size):
     """
     Helper function for creating a single memoy controller from the given

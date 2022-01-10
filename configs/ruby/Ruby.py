@@ -96,7 +96,7 @@ def define_options(parser):
 
     protocol = buildEnv['PROTOCOL']
     #exec("from . import %s" % protocol)
-    exec "import %s" % protocol
+    exec("import %s" % protocol)
     eval("%s.define_options(parser)" % protocol)
     Network.define_options(parser)
 

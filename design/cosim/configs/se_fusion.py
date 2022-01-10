@@ -27,7 +27,7 @@
 #
 # Authors: Jason Power, Joel Hestness
 
-import optparse
+import argparse
 import os
 import sys
 from os.path import join as joinpath
@@ -55,7 +55,7 @@ from common import Simulation
 
 #import ipdb
 
-parser = optparse.OptionParser()
+parser = argparse.ArgumentParser()
 GPUConfig.addGPUOptions(parser)
 GPUMemConfig.addMemCtrlOptions(parser)
 Options.addCommonOptions(parser)
@@ -66,14 +66,14 @@ Options.addSEOptions(parser)
 #
 Ruby.define_options(parser)
 
-(options, args) = parser.parse_args()
+options = parser.parse_args()
 
 options.ruby = True
 
 
-if args:
-    print("Error: script doesn't take any positional arguments")
-    sys.exit(1)
+#if args:
+#    print("Error: script doesn't take any positional arguments")
+#    sys.exit(1)
 
 if buildEnv['TARGET_ISA'] not in ["x86", "arm"]:
     fatal("gem5-gpu SE doesn't currently work with non-x86 or non-ARM system!")
@@ -126,7 +126,7 @@ if options.cacheline_size != 128:
 
 cp_process = Process(pid=1000)
 cp_process.executable = options.cp_firmware
-cp_process.cmd = optons.cp_firmware
+cp_process.cmd = options.cp_firmware
 
 multiprocesses = [process, cp_process]
 options.num_cpus = 2
@@ -141,7 +141,7 @@ system = System(cpu = [CPUClass(cpu_id = i,
                                 workload = multiprocesses[i],
                                 numThreads = num_threads
                                )
-                       for i in xrange(options.num_cpus)],
+                       for i in range(0, options.num_cpus)],
                 multi_thread = multi_thread,
                 mem_mode = test_mem_mode,
                 mem_ranges = [cpu_mem_range],
@@ -212,26 +212,27 @@ system.ruby.block_size_bytes = 128
 
 for (i, cpu) in enumerate(system.cpu):
 #    cpu.wait_for_remote_gdb = options.wait_for_gdb
-    ruby_port = system.ruby
+    ruby_port = system.ruby._cpu_ports[i]
 
     cpu.clk_domain = system.cpu_clk_domain
     cpu.createThreads()
     cpu.createInterruptController()
 
-    cpu.createInterruptController()
+    # Connect the cpu's cache ports to Ruby
+    ruby_port.connectCpuPorts(cpu)
 
-    if buildEnv['TARGET_ISA'] == "x86":
-        cpu.interrupts[0].pio = ruby_port.master
-        cpu.interrupts[0].int_master = ruby_port.slave
-        cpu.interrupts[0].int_slave = ruby_port.master
-    # Tie the cpu port s to correct ruby system ports
-    cpu.icache_port = system.ruby._cpu_ports[i].slave
-    cpu.dcache_port = system.ruby._cpu_ports[i].slave
-    if buildEnv['TARGET_ISA'] == "x86":
-        cpu.itb.walker.port = system.ruby._cpu_ports[i].slave
-        cpu.dtb.walker.port = system.ruby._cpu_ports[i].slave
-    else:
-        fatal("Not sure how to connect TLB walker ports in non-x86 system!")
+    #if buildEnv['TARGET_ISA'] == "x86":
+    #    cpu.interrupts[0].pio = ruby_port.master
+    #    cpu.interrupts[0].int_master = ruby_port.slave
+    #    cpu.interrupts[0].int_slave = ruby_port.master
+    ## Tie the cpu port s to correct ruby system ports
+    #cpu.icache_port = system.ruby._cpu_ports[i].slave
+    #cpu.dcache_port = system.ruby._cpu_ports[i].slave
+    #if buildEnv['TARGET_ISA'] == "x86":
+    #    cpu.itb.walker.port = system.ruby._cpu_ports[i].slave
+    #    cpu.dtb.walker.port = system.ruby._cpu_ports[i].slave
+    #else:
+    #    fatal("Not sure how to connect TLB walker ports in non-x86 system!")
 
 ##########################
 # Connect GPU ports
