@@ -29,11 +29,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Authors: Lisa Hsu
-
-from __future__ import print_function
-from __future__ import absolute_import
-
 # Configure the TLB hierarchy
 # Places which would probably need to be modified if you
 # want a different hierarchy are specified by a <Modify here .. >'
@@ -50,7 +45,7 @@ def TLB_constructor(level):
             maxOutstandingReqs = options.L%(level)dMaxOutstandingReqs,\
             accessDistance = options.L%(level)dAccessDistanceStat,\
             clk_domain = SrcClockDomain(\
-                clock = options.GPUClock,\
+                clock = options.gpu_clock,\
                 voltage_domain = VoltageDomain(\
                     voltage = options.gpu_voltage)))" % locals()
     return constructor_call
@@ -62,17 +57,18 @@ def Coalescer_constructor(level):
                 coalescingWindow = options.L%(level)dCoalescingWindow,\
                 disableCoalescing = options.L%(level)dDisableCoalescing,\
                 clk_domain = SrcClockDomain(\
-                    clock = options.GPUClock,\
+                    clock = options.gpu_clock,\
                     voltage_domain = VoltageDomain(\
                         voltage = options.gpu_voltage)))" % locals()
     return constructor_call
 
-def create_TLB_Coalescer(options, my_level, my_index, TLB_name, Coalescer_name):
-    # arguments: options, TLB level, number of private structures for this Level,
-    # TLB name and  Coalescer name
+def create_TLB_Coalescer(options, my_level, my_index, tlb_name,
+    coalescer_name):
+    # arguments: options, TLB level, number of private structures for this
+    # Level, TLB name and  Coalescer name
     for i in range(my_index):
-        TLB_name.append(eval(TLB_constructor(my_level)))
-        Coalescer_name.append(eval(Coalescer_constructor(my_level)))
+        tlb_name.append(eval(TLB_constructor(my_level)))
+        coalescer_name.append(eval(Coalescer_constructor(my_level)))
 
 def config_tlb_hierarchy(options, system, shader_idx):
     n_cu = options.num_compute_units

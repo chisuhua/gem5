@@ -79,7 +79,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
         l2_bits += 1
     block_size_bits = int(math.log(options.cacheline_size, 2))
 
-    for i in range(0, options.num_cpus):
+    for i in range(options.num_cpus):
         #
         # First create the Ruby objects associated with this cpu
         #
@@ -105,7 +105,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
                                       ruby_system = ruby_system)
 
         cpu_seq = RubySequencer(version = i,
-                                icache = l1i_cache,
+                                #icache = l1i_cache,
                                 dcache = l1d_cache,
                                 ruby_system = ruby_system)
 
@@ -174,7 +174,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
     #    dir_cntrl_nodes.append(rom_dir_cntrl_node)
 
     #for dir_cntrl in dir_cntrl_nodes:
-    for i in range(0, options.num_dirs):
+    for i in range(options.num_dirs):
         #
         # Create the Ruby objects associated with the directory controller
         #
@@ -194,7 +194,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
                                          numa_high_bit = options.numa_high_bit
                            )
         dir_cntrl.ruby_system = ruby_system
-        dir_cntrl.probeFilter = pf
+        #dir_cntrl.probeFilter = pf
 
         dir_cntrl = Directory_Controller(version = i,
                                          directory = \

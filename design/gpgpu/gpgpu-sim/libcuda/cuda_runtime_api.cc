@@ -230,59 +230,59 @@ void register_ptx_function( const char *name, function_info *impl ) {
 struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
   _cuda_device_id *the_device = the_gpgpusim->the_cude_device;
   if (!the_device) {
-    // gem5cudaGetDeviceCount(int *count)
-  // cudaDeviceProp *prop = (cudaDeviceProp *) calloc(sizeof(cudaDeviceProp),1);
-    // gem5cudaGetDeviceProperties(prop, 0);
-    // gem5cudaGetDevice((int*)the_device);
+    gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
+    cudaDeviceProp *prop = (cudaDeviceProp *) calloc(sizeof(cudaDeviceProp),1);
+    if (func_sim->g_ptx_sim_mode) {
 
-    //TODO
-     gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
-#if 0
-    cudaDeviceProp *prop = (cudaDeviceProp *)calloc(sizeof(cudaDeviceProp), 1);
-    snprintf(prop->name, 256, "GPGPU-Sim_v%s", g_gpgpusim_version_string);
-    prop->major = the_gpu->compute_capability_major();
-    prop->minor = the_gpu->compute_capability_minor();
-    prop->totalGlobalMem = 0x80000000 /* 2 GB */;
-    prop->memPitch = 0;
-    if (prop->major >= 2) {
-      prop->maxThreadsPerBlock = 1024;
-      prop->maxThreadsDim[0] = 1024;
-      prop->maxThreadsDim[1] = 1024;
-    } else {
-      prop->maxThreadsPerBlock = 512;
-      prop->maxThreadsDim[0] = 512;
-      prop->maxThreadsDim[1] = 512;
-    }
+      snprintf(prop->name, 256, "GPGPU-Sim_v%s", g_gpgpusim_version_string);
+      prop->major = the_gpu->compute_capability_major();
+      prop->minor = the_gpu->compute_capability_minor();
+      prop->totalGlobalMem = 0x80000000 /* 2 GB */;
+      prop->memPitch = 0;
+      if (prop->major >= 2) {
+        prop->maxThreadsPerBlock = 1024;
+        prop->maxThreadsDim[0] = 1024;
+        prop->maxThreadsDim[1] = 1024;
+      } else {
+        prop->maxThreadsPerBlock = 512;
+        prop->maxThreadsDim[0] = 512;
+        prop->maxThreadsDim[1] = 512;
+      }
 
-    prop->maxThreadsDim[2] = 64;
-    prop->maxGridSize[0] = 0x40000000;
-    prop->maxGridSize[1] = 0x40000000;
-    prop->maxGridSize[2] = 0x40000000;
-    prop->totalConstMem = 0x40000000;
-    prop->textureAlignment = 0;
-    //        * TODO: Update the .config and xml files of all GPU config files
-    //        with new value of sharedMemPerBlock and regsPerBlock
-    prop->sharedMemPerBlock = the_gpu->shared_mem_per_block();
+      prop->maxThreadsDim[2] = 64;
+      prop->maxGridSize[0] = 0x40000000;
+      prop->maxGridSize[1] = 0x40000000;
+      prop->maxGridSize[2] = 0x40000000;
+      prop->totalConstMem = 0x40000000;
+      prop->textureAlignment = 0;
+      //        * TODO: Update the .config and xml files of all GPU config files
+      //        with new value of sharedMemPerBlock and regsPerBlock
+      prop->sharedMemPerBlock = the_gpu->shared_mem_per_block();
 #if (CUDART_VERSION > 5050)
-    prop->regsPerMultiprocessor = the_gpu->num_registers_per_core();
-    prop->sharedMemPerMultiprocessor = the_gpu->shared_mem_size();
+      prop->regsPerMultiprocessor = the_gpu->num_registers_per_core();
+      prop->sharedMemPerMultiprocessor = the_gpu->shared_mem_size();
 #endif
-    prop->sharedMemPerBlock = the_gpu->shared_mem_per_block();
-    prop->regsPerBlock = the_gpu->num_registers_per_block();
-    prop->warpSize = the_gpu->wrp_size();
-    prop->clockRate = the_gpu->shader_clock();
+      prop->sharedMemPerBlock = the_gpu->shared_mem_per_block();
+      prop->regsPerBlock = the_gpu->num_registers_per_block();
+      prop->warpSize = the_gpu->wrp_size();
+      prop->clockRate = the_gpu->shader_clock();
 #if (CUDART_VERSION >= 2010)
-    prop->multiProcessorCount = the_gpu->get_config().num_shader();
+      prop->multiProcessorCount = the_gpu->get_config().num_shader();
 #endif
 #if (CUDART_VERSION >= 4000)
-    prop->maxThreadsPerMultiProcessor = the_gpu->threads_per_core();
+      prop->maxThreadsPerMultiProcessor = the_gpu->threads_per_core();
 #endif
-    the_gpu->set_prop(prop);
-#endif
-    the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
-    the_device = the_gpgpusim->the_cude_device;
+      the_gpu->set_prop(prop);
+      the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
+      the_device = the_gpgpusim->the_cude_device;
+      start_sim_thread(1);
+    } else {
+      int count;
+      gem5cudaGetDeviceCount(&count);
+      gem5cudaGetDeviceProperties(prop, 0);
+      gem5cudaGetDevice((int*)the_device);
+    }
   }
-  // start_sim_thread(1);
   return the_device;
 }
 
@@ -575,42 +575,44 @@ cudaError_t cudaGetDeviceInternal(int *device,
 __host__ cudaError_t CUDARTAPI cudaDeviceGetLimitInternal(
     size_t *pValue, cudaLimit limit, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
-  /* FIXME call gem5cudaGetDeviceProperties instead
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
   const struct cudaDeviceProp *prop = dev->get_prop();
-  const gpgpu_sim_config &config = dev->get_gpgpu()->get_config();
-  switch (limit) {
-    case 0:  // cudaLimitStackSize
-      *pValue = config.stack_limit();
-      break;
-    case 2:  // cudaLimitMallocHeapSize
-      *pValue = config.heap_limit();
-      break;
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    const gpgpu_sim_config &config = dev->get_gpgpu()->get_config();
+    switch (limit) {
+      case 0:  // cudaLimitStackSize
+        *pValue = config.stack_limit();
+        break;
+      case 2:  // cudaLimitMallocHeapSize
+        *pValue = config.heap_limit();
+        break;
 #if (CUDART_VERSION > 5050)
-    case 3:  // cudaLimitDevRuntimeSyncDepth
-      if (prop->major > 2) {
-        *pValue = config.sync_depth_limit();
-        break;
-      } else {
-        printf("ERROR:Limit %d is not supported on this architecture \n",
-               limit);
-        abort();
-      }
-    case 4:  // cudaLimitDevRuntimePendingLaunchCount
-      if (prop->major > 2) {
-        *pValue = config.pending_launch_count_limit();
-        break;
-      } else {
-        printf("ERROR:Limit %d is not supported on this architecture \n",
-               limit);
-        abort();
-      }
+      case 3:  // cudaLimitDevRuntimeSyncDepth
+        if (prop->major > 2) {
+          *pValue = config.sync_depth_limit();
+          break;
+        } else {
+          printf("ERROR:Limit %d is not supported on this architecture \n",
+                 limit);
+          abort();
+        }
+      case 4:  // cudaLimitDevRuntimePendingLaunchCount
+        if (prop->major > 2) {
+          *pValue = config.pending_launch_count_limit();
+          break;
+        } else {
+          printf("ERROR:Limit %d is not supported on this architecture \n",
+                 limit);
+          abort();
+        }
 #endif
-    default:
-      printf("ERROR:Limit %d unimplemented \n", limit);
-      abort();
+      default:
+        printf("ERROR:Limit %d unimplemented \n", limit);
+        abort();
+    }
+  } else {
+    gem5cudaGetDeviceProperties(const_cast<cudaDeviceProp *>(prop), dev->get_id());
   }
-  */
   return g_last_cudaError = cudaSuccess;
 }
 
@@ -748,23 +750,28 @@ __host__ cudaError_t CUDARTAPI
 cudaGetDeviceCountInternal(int *count, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
-  // TODO *count = dev->num_devices();
-  return gem5cudaGetDeviceCount(count);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    *count = dev->num_devices();
+    return g_last_cudaError = cudaSuccess;
+  } else {
+    return gem5cudaGetDeviceCount(count);
+  }
 }
 
 __host__ cudaError_t CUDARTAPI cudaGetDevicePropertiesInternal(
     struct cudaDeviceProp *prop, int device, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
-  return gem5cudaGetDeviceProperties(prop, device);
-  /*
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
-  if (device <= dev->num_devices()) {
-    *prop = *dev->get_prop();
-    return g_last_cudaError = cudaSuccess;
-  } else {
-    return g_last_cudaError = cudaErrorInvalidDevice;
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    if (device <= dev->num_devices()) {
+        *prop = *dev->get_prop();
+        return g_last_cudaError = cudaSuccess;
+    } else {
+        return g_last_cudaError = cudaErrorInvalidDevice;
+    }
+  } else{
+    return gem5cudaGetDeviceProperties(prop, device);
   }
-  */
 }
 
 __host__ cudaError_t CUDARTAPI
@@ -797,8 +804,8 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   GPUCTX
   // TEMP FIXME
   CUctx_st *context = GPGPUSim_Context(ctx);
-  char *mode = getenv("PTX_SIM_MODE_FUNC");
-  if (mode) sscanf(mode, "%u", &(ctx->func_sim->g_ptx_sim_mode));
+  // char *mode = getenv("PTX_SIM_MODE_FUNC");
+  // if (mode) sscanf(mode, "%u", &(ctx->func_sim->g_ptx_sim_mode));
   gpgpusim_ptx_assert(!ctx->api->g_cuda_launch_stack.empty(),
                       "empty launch stack");
   kernel_config config = ctx->api->g_cuda_launch_stack.back();
@@ -836,7 +843,7 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   }
   dim3 gridDim = config.grid_dim();
   dim3 blockDim = config.block_dim();
-/*
+
   gpgpu_t *gpu = context->get_device()->get_gpgpu();
   checkpoint *g_checkpoint;
   g_checkpoint = new checkpoint();
@@ -869,7 +876,7 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
     ctx->api->g_cuda_launch_stack.pop_back();
     return g_last_cudaError = cudaSuccess;
   }
-*/
+
   printf(
       "GPGPU-Sim PTX: pushing kernel \'%s\' to stream %u, gridDim= (%u,%u,%u) "
       "blockDim = (%u,%u,%u) \n",
@@ -888,8 +895,11 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
   CUctx_st *context = GPGPUSim_Context(ctx);
 
   // TODO
-  // *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
-  gem5cudaMalloc(devPtr, size);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
+  } else {
+    gem5cudaMalloc(devPtr, size);
+  }
 
   if (g_debug_execution >= 3){
     printf("GPGPU-Sim PTX: cudaMallocing %zu bytes starting at 0x%llx..\n",
@@ -906,8 +916,11 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
 cudaError_t cudaMallocHostInternal(void **ptr, size_t size,
                                    gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
-  // *ptr = malloc(size);
-  gem5cudaMalloc(ptr, size);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    *ptr = malloc(size);
+  } else {
+    gem5cudaMalloc(ptr, size);
+  }
 
   if ( *ptr  ) {
     // track pinned memory size allocated in the host so that same amount of
@@ -926,9 +939,12 @@ cudaMallocPitchInternal(void **devPtr, size_t *pitch, size_t width,
   unsigned malloc_width_inbytes = width;
   printf("LIBCUDA PTX: cudaMallocPitch (width = %d)\n", malloc_width_inbytes);
   CUctx_st *context = GPGPUSim_Context(ctx);
-  *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(
       malloc_width_inbytes * height);
-  gem5cudaMallocPitch(devPtr, pitch, width, height);
+  } else {
+    gem5cudaMallocPitch(devPtr, pitch, width, height);
+  }
 
   pitch[0] = malloc_width_inbytes;
   if (*devPtr) {
@@ -957,8 +973,11 @@ cudaError_t cudaHostGetDevicePointerInternal(void **pDevice, void *pHost,
       ctx->api->pinned_memory_size.find(pHost);
   assert(i != ctx->api->pinned_memory_size.end());
   size_t size = i->second;
-  // *pDevice = gpu->gpu_malloc(size);
-  gem5cudaMalloc(pDevice, size);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    *pDevice = gpu->gpu_malloc(size);
+  } else {
+    gem5cudaMalloc(pDevice, size);
+  }
   if (g_debug_execution >= 3){
     printf("GPGPU-Sim PTX: cudaMallocing %zu bytes starting at 0x%llx..\n",
            size, (unsigned long long)*pDevice);
@@ -992,9 +1011,12 @@ __host__ cudaError_t CUDARTAPI cudaMallocArrayInternal(
   (array)->dimensions = 2;
   array_ = (struct ::cudaArray**)(&array);
 
-  // ((*array)->devPtr32) =
-  //    (int)(long long)context->get_device()->get_gpgpu()->gpu_mallocarray(size);
-  gem5cudaMallocArray(&array, desc, width, height);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    ((array)->devPtr32) =
+      (int)(long long)context->get_device()->get_gpgpu()->gpu_mallocarray(size);
+  } else {
+    gem5cudaMallocArray(&array, desc, width, height);
+  }
   printf("LIBCUDA PTX: cudaMallocArray: devPtr32 = %d\n",
           ((array)->devPtr32));
   ((array)->devPtr) = (void*) (long long) ((array)->devPtr32);
@@ -1009,9 +1031,44 @@ __host__ cudaError_t CUDARTAPI
 cudaMemcpyInternal(void *dst, const void *src, size_t count,
                    enum cudaMemcpyKind kind, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
-  //CUctx_st *context = GPGPUSim_Context();
-  //gpgpu_t *gpu = context->get_device()->get_gpgpu();
-  gem5cudaMemcpy(dst, src, count, kind);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    // CUctx_st *context = GPGPUSim_Context();
+    // gpgpu_t *gpu = context->get_device()->get_gpgpu();
+    if (kind == cudaMemcpyHostToDevice)
+      ctx->the_gpgpusim->g_stream_manager->push(
+          stream_operation(src, (size_t)dst, count, 0));
+    else if (kind == cudaMemcpyDeviceToHost)
+      ctx->the_gpgpusim->g_stream_manager->push(
+          stream_operation((size_t)src, dst, count, 0));
+    else if (kind == cudaMemcpyDeviceToDevice)
+      ctx->the_gpgpusim->g_stream_manager->push(
+          stream_operation((size_t)src, (size_t)dst, count, 0));
+    else if (kind == cudaMemcpyDefault) {
+      if ((size_t)src >= GLOBAL_HEAP_START) {
+        if ((size_t)dst >= GLOBAL_HEAP_START)
+          ctx->the_gpgpusim->g_stream_manager->push(stream_operation(
+              (size_t)src, (size_t)dst, count, 0));  // device to device
+        else
+          ctx->the_gpgpusim->g_stream_manager->push(
+              stream_operation((size_t)src, dst, count, 0));  // device to host
+      } else {
+        if ((size_t)dst >= GLOBAL_HEAP_START)
+          ctx->the_gpgpusim->g_stream_manager->push(
+              stream_operation(src, (size_t)dst, count, 0));
+        else {
+          printf(
+              "GPGPU-Sim PTX: cudaMemcpy - ERROR : unsupported transfer: host to "
+              "host\n");
+          abort();
+        }
+      }
+    } else {
+      printf("GPGPU-Sim PTX: cudaMemcpy - ERROR : unsupported cudaMemcpyKind\n");
+      abort();
+    }
+  } else {
+    gem5cudaMemcpy(dst, src, count, kind);
+  }
 
   if (g_debug_execution >= 3)
     printf("LIBCUDA PTX: cudaMemcpy(): devPtr = %p\n", dst);
@@ -1224,11 +1281,12 @@ __host__ cudaError_t CUDARTAPI cudaMemsetInternal(
     void *mem, int c, size_t count, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   CUctx_st *context = GPGPUSim_Context(ctx);
-  /*
-  gpgpu_t *gpu = context->get_device()->get_gpgpu();
-  gpu->gpu_memset((size_t)mem, c, count);
-  */
-  gem5cudaMemset(mem, c, count);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    gpgpu_t *gpu = context->get_device()->get_gpgpu();
+    gpu->gpu_memset((size_t)mem, c, count);
+  } else {
+    gem5cudaMemset(mem, c, count);
+  }
   return g_last_cudaError = cudaSuccess;
 }
 
@@ -1241,9 +1299,12 @@ cudaMemsetAsyncInternal(void *mem, int c, size_t count, cudaStream_t stream = 0,
   printf("GPGPU-Sim PTX: WARNING: Asynchronous memset not supported (%s)\n",
          __my_func__);
   CUctx_st *context = GPGPUSim_Context(ctx);
-  // gpgpu_t *gpu = context->get_device()->get_gpgpu();
-  // gpu->gpu_memset((size_t)mem, c, count);
-  gem5cudaMemset(mem, c, count);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    gpgpu_t *gpu = context->get_device()->get_gpgpu();
+    gpu->gpu_memset((size_t)mem, c, count);
+  } else {
+    gem5cudaMemset(mem, c, count);
+  }
   return g_last_cudaError = cudaSuccess;
 }
 
@@ -1680,19 +1741,18 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernelInternal(
 #if CUDART_VERSION < 10000
   cudaConfigureCallInternal(gridDim, blockDim, sharedMem, stream, ctx);
 #endif
-  gem5cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
-
-  /* FIXME all function_info member function should be called in libcuda_syscalls
-  for(unsigned i = 0; i < entry->num_args(); i++){
-    std::pair<size_t, unsigned> p = entry->get_param_config(i);
-      // gem5cudaSetupArgument(args[i], p.first, p.second);
-      cudaSetupArgumentInternal(args[i], p.first, p.second);
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    for(unsigned i = 0; i < entry->num_args(); i++){
+      std::pair<size_t, unsigned> p = entry->get_param_config(i);
+        // gem5cudaSetupArgument(args[i], p.first, p.second);
+        cudaSetupArgumentInternal(args[i], p.first, p.second);
+    }
+    return cudaLaunchInternal(hostFun);
+  } else {
+    gem5cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
+    gem5cudaSetupArgument(entry, args);
+    return gem5cudaLaunch(hostFun);
   }
-  */
-  gem5cudaSetupArgument(entry, args);
-
-  g_last_cudaError = gem5cudaLaunch(hostFun);
-  return g_last_cudaError; // = cudaSuccess;
 }
 
 __host__ cudaError_t CUDARTAPI cudaStreamCreateInternal(
@@ -1828,18 +1888,19 @@ CUresult CUDAAPI cuLaunchKernelInternal(
   const char *hostFun = (const char *)f;
   CUctx_st *context = GPGPUSim_Context(ctx);
   function_info *entry = context->get_kernel(hostFun);
-  gem5cudaConfigureCall(dim3(gridDimX, gridDimY, gridDimZ), 
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    cudaConfigureCallInternal(dim3(gridDimX, gridDimY, gridDimZ),
                             dim3(blockDimX, blockDimY, blockDimZ),
-                            sharedMemBytes, (cudaStream_t)hStream /*, FIXME ctx*/ );
-  /*
-     * for(unsigned i = 0; i < entry->num_args(); i++){
-        std::pair<size_t, unsigned> p = entry->get_param_config(i);
-        gem5cudaSetupArgument(kernelParams[i], p.first, p.second);
+                            sharedMemBytes, (cudaStream_t)hStream, ctx);
+    for (unsigned i = 0; i < entry->num_args(); i++) {
+      std::pair<size_t, unsigned> p = entry->get_param_config(i);
+      cudaSetupArgumentInternal(kernelParams[i], p.first, p.second, ctx);
+    }
+  } else {
+    // cudaLaunchInternal(hostFun, ctx);
+    gem5cudaSetupArgument(entry, (const void**)kernelParams);
+    gem5cudaLaunch(hostFun);
   }
-  */
-  gem5cudaSetupArgument(entry, (const void**)kernelParams);
-  // cudaLaunchInternal(hostFun, ctx);
-  gem5cudaLaunch(hostFun);
   return CUDA_SUCCESS;
 }
 #endif /* CUDART_VERSION >= 4000 */
@@ -1993,18 +2054,32 @@ __host__ cudaError_t CUDARTAPI cudaFree(void *devPtr)
   if (g_debug_execution >= 3){
     announce_call(__my_func__);
   }
-  return gem5cudaFree(devPtr);
-  // TODO...  manage g_global_mem space?
-  // return g_last_cudaError = cudaSuccess;
+  /* FIXME
+  GPUCTX
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    // TODO...  manage g_global_mem space?
+    return g_last_cudaError = cudaSuccess;
+  } else {
+    return gem5cudaFree(devPtr);
+  }
+  */
+  return g_last_cudaError = cudaSuccess;
 }
 __host__ cudaError_t CUDARTAPI cudaFreeHost(void *ptr)
 {
   if (g_debug_execution >= 3){
      announce_call(__my_func__);
   }
-  return gem5cudaFreeHost(ptr);
-  // free (ptr);  // this will crash the system if called twice
-  // return g_last_cudaError = cudaSuccess;
+  /* FIXME
+  GPUCTX
+  if (ctx->func_sim->g_ptx_sim_mode) {
+    free (ptr);  // this will crash the system if called twice
+    return g_last_cudaError = cudaSuccess;
+  } else {
+    return gem5cudaFreeHost(ptr);
+  }
+  */
+  return g_last_cudaError = cudaSuccess;
 }
 
 __host__ cudaError_t CUDARTAPI cudaFreeArray(struct ::cudaArray *array)

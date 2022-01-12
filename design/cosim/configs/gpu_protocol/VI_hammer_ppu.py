@@ -35,7 +35,7 @@ from m5.defines import buildEnv
 from topologies.Cluster import Cluster
 from common import MemConfig
 from common import ObjectList
-import ipdb
+#import ipdb
 
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
@@ -101,7 +101,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     # Caches for GPU cores
     #
     # the last one is for cp
-    for i in xrange(options.num_sc):
+    for i in range(options.num_sc):
         #
         # First create the Ruby objects associated with the GPU cores
         #
@@ -226,7 +226,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)
 
     l2_clusters = []
-    for i in xrange(options.num_l2caches):
+    for i in range(options.num_l2caches):
         #
         # First create the Ruby objects associated with this cpu
         #

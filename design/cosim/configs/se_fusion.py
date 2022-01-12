@@ -52,6 +52,13 @@ import GPUMemConfig
 from common import Options
 from ruby import Ruby
 from common import Simulation
+from common import CacheConfig
+from common import CpuConfig
+from common import ObjectList
+from common import MemConfig
+from common.FileSystemConfig import config_filesystem
+from common.Caches import *
+from common.cpu2000 import *
 
 #import ipdb
 
@@ -176,7 +183,8 @@ Simulation.setWorkCountOptions(system, options)
 ############################
 # Create the GPU
 #
-system.gpu = GPUConfig.createGPU(options, gpu_mem_range, system)
+if options.system_config != 'cpu_only':
+    system.gpu = GPUConfig.createGPU(options, gpu_mem_range, system)
 
 #
 # Setup Ruby
@@ -186,7 +194,8 @@ system.ruby_clk_domain = SrcClockDomain(clock = options.ruby_clock,
 
 Ruby.create_system(options, False, system)
 
-system.gpu.ruby = system.ruby
+if options.system_config != 'cpu_only':
+    system.gpu.ruby = system.ruby
 system.ruby.clk_domain = system.ruby_clk_domain
 system.ruby.block_size_bytes = 128
 
@@ -237,7 +246,8 @@ for (i, cpu) in enumerate(system.cpu):
 ##########################
 # Connect GPU ports
 #
-GPUConfig.connectGPUPorts(system.gpu, system.ruby, options)
+if options.system_config != 'cpu_only':
+    GPUConfig.connectGPUPorts(system.gpu, system.ruby, options)
 
 if options.mem_type == "RubyMemoryControl":
     GPUMemConfig.setMemoryControlOptions(system, options)

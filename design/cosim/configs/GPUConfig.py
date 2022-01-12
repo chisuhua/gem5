@@ -34,6 +34,7 @@ from m5.util.convert import *
 from m5.util import fatal
 
 gpu_core_configs = ['Fermi', 'Maxwell', 'Volta', 'Ppu']
+system_configs = ['cpu_only', 'opu']
 
 def addGPUOptions(parser):
     parser.add_argument("--clusters", default=16, help="Number of shader core clusters in the gpu that GPGPU-sim is simulating", type=int)
@@ -50,9 +51,10 @@ def addGPUOptions(parser):
     parser.add_argument("--gpu_l1_buf_depth", type=int, default=96, help="Number of buffered L1 requests per shader")
     parser.add_argument("--flush_kernel_end", default=False, action="store_true", help="Flush the L1s at the end of each kernel. (Only VI_hammer)")
     parser.add_argument("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
-    parser.add_argument("--access-host-pagetable", action="store_true", default=False)
+    parser.add_argument("--access-host-pagetable", action="store_true", default=True)
     parser.add_argument("--split", default=False, action="store_true", help="Use split CPU and GPU cache hierarchies instead of fusion")
     parser.add_argument("--ppu", default=False, action="store_true", help="Use PPU system cache hierarchies instead of fusion")
+    parser.add_argument("--system-config", type=str, choices=system_configs, default='opu', help="Use PPU system cache hierarchies instead of fusion")
     parser.add_argument("--dev-numa-high-bit", type=int, default=0, help="High order address bit to use for device NUMA mapping.")
     parser.add_argument("--num-dev-dirs", default=1, help="In split hierarchies, number of device directories", type=int)
     parser.add_argument("--gpu-mem-size", default='2GB', help="In split hierarchies, amount of GPU memory")
@@ -100,6 +102,8 @@ def configureMemorySpaces(options):
         options.total_mem_size = long(gpu_segment_base_addr)
         cpu_mem_range = AddrRange(options.total_mem_size)
         options.num_dev_dirs = 1
+    elif options.system_config == 'cpu_only':
+        buildEnv['PROTOCOL'] +=  '_cpu_only'
     else:
         buildEnv['PROTOCOL'] +=  '_fusion'
     return (cpu_mem_range, gpu_mem_range, total_mem_range)

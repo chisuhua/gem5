@@ -99,14 +99,14 @@ fi
 
 #GDB="-w"
 GDB=""
-ENV="-e $DIR/../design/gpgpu/gpgpu-sim/gem5.env"
-CMD="$CMD $ENV"
+#ENV="-e $DIR/../design/gpgpu/gpgpu-sim/gem5.env"
+#CMD="$CMD $ENV"
 #CMD="$CMD --split"
 #CMD="$CMD --ppu"
 #CMD="$CMD --cp_firmware=/work_source/github/sim/zephyrproject/zephyr/build_posix_gem5/zephyr/zephyr.exe"
-CMD="$CMD --cp_firmware=$GEM5_ROOT/tests/test-progs/hello/src/hello_opu
+CMD="$CMD --cp_firmware=$GEM5_ROOT/tests/test-progs/hello/src/hello_opu"
 
-CONF="$DIR/../design/cosim/configs/se_fusion.py"
+CONF="$GEM5_ROOT/design/cosim/configs/se_fusion.py"
 #CONF="design/gpgpu/configs/se_fusion.py"
 
 echo $RUN $OPTION $CONF $GDB -c $CMD

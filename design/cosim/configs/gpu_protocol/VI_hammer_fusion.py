@@ -93,7 +93,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     #
     # Caches for GPU cores
     #
-    for i in range(0, options.num_sc):
+    for i in range(options.num_sc):
         #
         # First create the Ruby objects associated with the GPU cores
         #
@@ -117,7 +117,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
                                   ruby_system = ruby_system)
 
         gpu_seq = RubySequencer(version = options.num_cpus + i,
-                            icache = cache,
+                            #icache = cache,
                             dcache = cache,
                             max_outstanding_requests = options.gpu_l1_buf_depth,
                             ruby_system = ruby_system,
@@ -170,7 +170,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)
 
     l2_clusters = []
-    for i in range(0, options.num_l2caches):
+    for i in range(options.num_l2caches):
         #
         # First create the Ruby objects associated with this cpu
         #
@@ -255,7 +255,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
                                   ruby_system = ruby_system)
 
     cpu_seq = RubySequencer(version = options.num_cpus + options.num_sc,
-                            icache = pwd_cache, # Never get data from pwi_cache
+                            #icache = pwd_cache, # Never get data from pwi_cache
                             dcache = pwd_cache,
                             # TODO the latency value is setting in controller
                             # dcache_hit_latency = 8,

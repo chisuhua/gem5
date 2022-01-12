@@ -23,13 +23,7 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Authors: Ali Saidi
 
-from __future__ import print_function
-from __future__ import absolute_import
-
-from six import string_types
 import os, sys
 
 config_path = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +34,7 @@ class PathSearchFunc(object):
     environment_variable = 'M5_PATH'
 
     def __init__(self, subdirs, sys_paths=None):
-        if isinstance(subdirs, string_types):
+        if isinstance(subdirs, str):
             subdirs = [subdirs]
         self._subdir = os.path.join(*subdirs)
         if sys_paths:
@@ -57,10 +51,10 @@ class PathSearchFunc(object):
                     paths = [ '/dist/m5/system', '/n/poolfs/z/dist/m5/system' ]
 
                 # expand '~' and '~user' in paths
-                paths = map(os.path.expanduser, paths)
+                paths = list(map(os.path.expanduser, paths))
 
                 # filter out non-existent directories
-                paths = filter(os.path.isdir, paths)
+                paths = list(filter(os.path.isdir, paths))
 
                 if not paths:
                     raise IOError(
@@ -76,7 +70,7 @@ class PathSearchFunc(object):
                 return next(p for p in paths if os.path.exists(p))
             except StopIteration:
                 raise IOError("Can't find file '{}' on {}."
-                        .format(filename, self.environment_variable))
+                        .format(filepath, self.environment_variable))
 
 disk = PathSearchFunc('disks')
 binary = PathSearchFunc('binaries')
