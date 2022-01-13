@@ -7,23 +7,24 @@
 //
 // Redistributions of source code must retain the above copyright notice, this
 // list of conditions and the following disclaimer.
-// Redistributions in binary form must reproduce the above copyright notice, this
-// list of conditions and the following disclaimer in the documentation and/or
-// other materials provided with the distribution.
-// Neither the name of The University of British Columbia nor the names of its
-// contributors may be used to endorse or promote products derived from this
-// software without specific prior written permission.
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. Neither the name of
+// The University of British Columbia nor the names of its contributors may be
+// used to endorse or promote products derived from this software without
+// specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef STREAM_MANAGER_H_INCLUDED
 #define STREAM_MANAGER_H_INCLUDED
@@ -84,15 +85,15 @@ public:
 };
 
 enum stream_operation_type {
-    stream_no_op,
-    stream_memcpy_host_to_device,
-    stream_memcpy_device_to_host,
-    stream_memcpy_device_to_device,
-    stream_memcpy_to_symbol,
-    stream_memcpy_from_symbol,
-    stream_kernel_launch,
-    stream_event,
-    stream_wait_event,
+  stream_no_op,
+  stream_memcpy_host_to_device,
+  stream_memcpy_device_to_host,
+  stream_memcpy_device_to_device,
+  stream_memcpy_to_symbol,
+  stream_memcpy_from_symbol,
+  stream_kernel_launch,
+  stream_event,
+  stream_wait_event,
 };
 
 struct CUstream_st;
@@ -249,12 +250,12 @@ public:
   bool empty();
   bool busy();
   void synchronize();
-  void push( const stream_operation &op );
+  void push(const stream_operation &op );
   void record_next_done();
   stream_operation next();
   void cancel_front(); //front operation fails, cancle the pending status
   stream_operation &front() { return m_operations.front(); }
-  void print( FILE *fp );
+  void print(FILE *fp );
   unsigned get_uid() const { return m_uid; }
 
 private:
@@ -269,7 +270,7 @@ private:
 
 class stream_manager {
 public:
-  stream_manager( gpgpu_sim *gpu, bool cuda_launch_blocking );
+  stream_manager(gpgpu_sim *gpu, bool cuda_launch_blocking );
   bool register_finished_kernel(unsigned grid_uid  );
   bool check_finished_kernel(  );
   stream_operation front();
@@ -286,10 +287,12 @@ public:
   void stop_all_running_kernels();
   unsigned size() { return m_streams.size(); };
   bool is_blocking() { return m_cuda_launch_blocking; };
-private:
+
+ private:
   void print_impl( FILE *fp);
 
   bool m_cuda_launch_blocking;
+  bool m_ptx_sim_mode;
   gpgpu_sim *m_gpu;
   std::list<CUstream_st *> m_streams;
   std::map<unsigned,CUstream_st *> m_grid_id_to_stream;

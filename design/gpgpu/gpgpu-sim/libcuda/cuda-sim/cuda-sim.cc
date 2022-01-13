@@ -456,7 +456,6 @@ void *gpgpu_t::gpu_malloc(size_t size) {
   return (void *)result;
 }
 
-#ifndef LIBCUDA
 void *gpgpu_t::gpu_mallocarray(size_t size) {
   unsigned long long result = m_dev_malloc;
   if (g_debug_execution >= 3) {
@@ -545,7 +544,6 @@ void gpgpu_t::gpu_memset(size_t dst_start_addr, int c, size_t count) {
     fflush(stdout);
   }
 }
-#endif // LIBCUDA
 
 void cuda_sim::ptx_print_insn(address_type pc, FILE *fp) {
   std::map<unsigned, function_info *>::iterator f = g_pc_to_finfo.find(pc);
