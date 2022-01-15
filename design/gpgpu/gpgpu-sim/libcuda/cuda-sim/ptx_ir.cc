@@ -40,6 +40,8 @@ typedef void *yyscan_t;
 
 #include "../../libcuda/gpgpu_context.h"
 #include "cuda-sim.h"
+#include "instructions.h"
+#include "instructions_coasm.h"
 
 #define STR_SIZE 1024
 
@@ -638,6 +640,73 @@ void function_info::do_pdom() {
   fflush(stdout);
   m_assembled = true;
 }
+
+void function_info::gen_coasm(FILE *fp) {
+  std::vector<basic_block_t *>::iterator bb_itr;
+  std::vector<basic_block_t *>::iterator bb_target_itr;
+  basic_block_t *exit_bb = m_basic_blocks.back();
+
+  fprintf(fp, "\t.text\n");
+  fprintf(fp, "\t.global %s\n", m_name.c_str());
+  fprintf(fp, "\t.type %s,@function\n", m_name.c_str());
+  fprintf(fp, "%s:\n", m_name.c_str());
+
+  // start from first basic block, which we know is the entry point
+  bb_itr = m_basic_blocks.begin();
+  for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
+       bb_itr++) {
+    if ((*bb_itr)->ptx_begin)
+      fprintf(fp, "bb_%02u:\n", (*bb_itr)->bb_id);
+
+    if ((*bb_itr)->is_exit)  // reached last basic block, no successors to link
+      continue;
+
+    unsigned insn_addr = (*bb_itr)->ptx_begin->get_m_instr_mem_index();
+    while (insn_addr <= (*bb_itr)->ptx_end->get_m_instr_mem_index()) {
+      ptx_instruction *pI = m_instr_mem[insn_addr];
+      insn_addr += 1;
+      if (pI == NULL)
+        continue;  // temporary solution for variable size instructions
+      fprintf(fp, "\t\t");
+      pI->print_coasm(this, fp);
+      fprintf(fp, "\n");
+    }
+  }
+
+  fprintf(fp, "---\n");
+  fprintf(fp, "amdhsa.kernels:\n");
+  fprintf(fp, "  - .args:\n");
+  for (unsigned i=0; i < m_args.size(); i++) {
+    fprintf(fp, "      - .address_space: global\n");
+    const symbol* arg_symbol = get_arg(i);
+    fprintf(fp, "        .name: %s\n", arg_symbol->name().c_str());
+    fprintf(fp, "        .offset: %d\n", m_args_aligned_size*i);
+    fprintf(fp, "        .size: %d\n", m_args_aligned_size);
+    fprintf(fp, "        .value_kind: global_buffer\n");
+  }
+  fprintf(fp, "    .name: %s\n", m_name.c_str());
+  uint32_t kernel_ctrl = 0;
+  if (m_coasm_special_sregs[GRID_DIM_X].second == 1) kernel_ctrl |= 1<< GRID_DIM_X;
+  if (m_coasm_special_sregs[GRID_DIM_Y].second == 1) kernel_ctrl |= 1<< GRID_DIM_Y;
+  if (m_coasm_special_sregs[GRID_DIM_Z].second == 1) kernel_ctrl |= 1<< GRID_DIM_Z;
+  if (m_coasm_special_sregs[BLOCK_DIM_X].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_X;
+  if (m_coasm_special_sregs[BLOCK_DIM_Y].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Y;
+  if (m_coasm_special_sregs[BLOCK_DIM_Z].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Z;
+  if (m_coasm_special_sregs[BLOCK_DIM_X].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_X;
+  if (m_coasm_special_sregs[BLOCK_DIM_Y].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Y;
+  if (m_coasm_special_sregs[BLOCK_DIM_Z].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Z;
+  fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
+  fprintf(fp, "    .kernel_mode: %d\n", 0);
+  fprintf(fp, "amdhsa.version:\n");
+  fprintf(fp, "  - 2\n");
+  fprintf(fp, "  - 0\n");
+  fprintf(fp, "...\n");
+
+  printf("GPGPU-Sim PTX: ... done gen asm for \'%s\'.\n",
+         m_name.c_str());
+}
+
+
 void intersect(std::set<int> &A, const std::set<int> &B) {
   // return intersection of A and B in A
   for (std::set<int>::iterator a = A.begin(); a != A.end();) {
@@ -1461,6 +1530,70 @@ void ptx_instruction::print_insn() const {
 
 void ptx_instruction::print_insn(FILE *fp) const {
   fprintf(fp, "%s", to_string().c_str());
+}
+
+void ptx_instruction::print_coasm(function_info *finfo, FILE *fp) const {
+  switch (get_opcode()) {
+#define OP_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
+  case OP:                                         \
+    FUNC##_coasm(finfo, this, fp);                 \
+    break;
+#define OP_W_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
+  case OP:                                           \
+    FUNC##_coasm(finfo, this, fp);                 \
+    break;
+#include "opcodes.def"
+#undef OP_DEF
+#undef OP_W_DEF
+/*
+    case LD_OP:
+        ld_impl_coasm(finfo, this, fp);
+        break;
+    case MOV_OP:
+        mov_impl_coasm(finfo, this, fp);
+        break;
+    case MUL_OP:
+        mul_impl_coasm(finfo, this, fp);
+        break;
+    case ADD_OP:
+        add_impl_coasm(finfo, this, fp);
+        break;
+    case SETP_OP:
+        setp_impl_coasm(finfo, this, fp);
+        break;
+    case NOT_OP:
+        not_impl_coasm(finfo, this, fp);
+        break;
+    case CVT_OP:
+        cvt_impl_coasm(finfo, this, fp);
+        break;
+    case SHL_OP:
+        shl_impl_coasm(finfo, this, fp);
+        break;
+    case ST_OP:
+        st_impl_coasm(finfo, this, fp);
+        break;
+    case RET_OP:
+        ret_impl_coasm(finfo, this, fp);
+        break;
+        */
+#if 0
+#define OP_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
+  case OP:                                         \
+    FUNC##_coasm(this, fp);                            \
+    break;
+#define OP_W_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
+  case OP:                                           \
+    FUNC##_coasm(this, fp);                      \
+    break;
+#include "opcodes.def"
+#undef OP_DEF
+#undef OP_W_DEF
+#endif
+  default:
+    fprintf(fp, "%s", m_source.c_str());
+    break;
+  }
 }
 
 std::string ptx_instruction::to_string() const {

@@ -29,11 +29,10 @@
 
 
 #include "abstract_hardware_model.h"
-#include "option.h"
-#include <algorithm>
 #include <sys/stat.h>
-#include <sstream>
+#include <algorithm>
 #include <iostream>
+#include <sstream>
 #include "../libcuda/gpgpu_context.h"
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/cuda-sim/memory.h"
@@ -41,6 +40,8 @@
 #include "../libcuda/cuda-sim/ptx_ir.h"
 #include "../libcuda/gpu-sim.h"
 #include "gpgpusim_entrypoint.h"
+#include "option.h"
+
 namespace libcuda {
 
 void mem_access_t::init(gpgpu_context *ctx) {
@@ -129,8 +130,8 @@ void gpgpu_functional_sim_config::reg_options(class OptionParser * opp)
 #else
                  "0"
 #endif
-                 );
-	option_parser_register(opp, "-gpgpu_experimental_lib_support", OPT_BOOL,
+  );
+  option_parser_register(opp, "-gpgpu_experimental_lib_support", OPT_BOOL,
 	                 &m_experimental_lib_support,
 	                 "Try to extract code from cuda libraries [Broken because of unknown cudaGetExportTable]",
 	                 "0");
@@ -147,34 +148,32 @@ void gpgpu_functional_sim_config::reg_options(class OptionParser * opp)
                " resume flag (0 = no resume)",
                "0");
   option_parser_register(opp, "-resume_kernel", OPT_INT32, &resume_kernel,
-               " Resume from which kernel (1= 1st kernel)",
-               "0");
-   option_parser_register(opp, "-resume_CTA", OPT_INT32, &resume_CTA,
-               " resume from which CTA ",
-               "0");
-      option_parser_register(opp, "-checkpoint_CTA_t", OPT_INT32, &checkpoint_CTA_t,
-               " resume from which CTA ",
-               "0");
-         option_parser_register(opp, "-checkpoint_insn_Y", OPT_INT32, &checkpoint_insn_Y,
-               " resume from which CTA ",
-               "0");
+               " Resume from which kernel (1= 1st kernel)", "0");
+  option_parser_register(opp, "-resume_CTA", OPT_INT32, &resume_CTA,
+               " resume from which CTA ", "0");
+  option_parser_register(opp, "-checkpoint_CTA_t", OPT_INT32, &checkpoint_CTA_t,
+               " resume from which CTA ", "0");
+  option_parser_register(opp, "-checkpoint_insn_Y", OPT_INT32, &checkpoint_insn_Y,
+               " resume from which CTA ", "0");
+  option_parser_register(opp, "-gpgpu_ptx_convert_to_ptxplus", OPT_BOOL, &m_ptx_convert_to_ptxplus,
+                 "Convert SASS (native ISA) to ptxplus and run ptxplus", "0");
+  option_parser_register(opp, "-gpgpu_ptx_convert_to_coasm", OPT_BOOL, &m_ptx_convert_to_coasm,
+                 "Convert to coasm and run coassember", "0");
+  option_parser_register(opp, "-gpgpu_ptx_convert_to_coasm_file", OPT_BOOL, &g_ptx_convert_to_coasm_file,
+                 "Convert to coasm and run coassember", "0");
 
-    option_parser_register(opp, "-gpgpu_ptx_convert_to_ptxplus", OPT_BOOL,
-                 &m_ptx_convert_to_ptxplus,
-                 "Convert SASS (native ISA) to ptxplus and run ptxplus",
-                 "0");
-    option_parser_register(opp, "-gpgpu_ptx_force_max_capability", OPT_UINT32,
+  option_parser_register(opp, "-gpgpu_ptx_force_max_capability", OPT_UINT32,
                  &m_ptx_force_max_capability,
                  "Force maximum compute capability",
                  "0");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_to_file", OPT_BOOL,
+  option_parser_register(opp, "-gpgpu_ptx_inst_debug_to_file", OPT_BOOL,
                 &g_ptx_inst_debug_to_file,
                 "Dump executed instructions' debug information to file",
                 "0");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_file", OPT_CSTR, &g_ptx_inst_debug_file,
+  option_parser_register(opp, "-gpgpu_ptx_inst_debug_file", OPT_CSTR, &g_ptx_inst_debug_file,
                   "Executed instructions' debug output file",
                   "inst_debug.txt");
-   option_parser_register(opp, "-gpgpu_ptx_inst_debug_thread_uid", OPT_INT32, &g_ptx_inst_debug_thread_uid,
+  option_parser_register(opp, "-gpgpu_ptx_inst_debug_thread_uid", OPT_INT32, &g_ptx_inst_debug_thread_uid,
                "Thread UID for executed instructions' debug output",
                "1");
 }
@@ -185,8 +184,7 @@ void gpgpu_functional_sim_config::ptx_set_tex_cache_linesize(unsigned linesize)
 }
 
 gpgpu_t::gpgpu_t(const gpgpu_functional_sim_config &config, gpgpu_context *ctx)
-    : m_function_model_config(config)
-{
+    : m_function_model_config(config) {
   gpgpu_ctx = ctx;
   m_global_mem = new memory_space_impl<8192>("global", 64 * 1024);
 
@@ -212,6 +210,10 @@ gpgpu_t::gpgpu_t(const gpgpu_functional_sim_config &config, gpgpu_context *ctx)
   if (m_function_model_config.get_ptx_inst_debug_to_file() != 0)
     ptx_inst_debug_file =
         fopen(m_function_model_config.get_ptx_inst_debug_file(), "w");
+
+  if (m_function_model_config.convert_to_coasm() != 0)
+    ptx_convert_to_coasm_file =
+        fopen(m_function_model_config.get_ptx_convert_to_coasm_file(), "w");
 }
 
 address_type line_size_based_tag_func(new_addr_type address, new_addr_type line_size)

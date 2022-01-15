@@ -234,7 +234,7 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
     cudaDeviceProp *prop = (cudaDeviceProp *) calloc(sizeof(cudaDeviceProp),1);
     if (func_sim->g_ptx_sim_mode) {
 
-      snprintf(prop->name, 256, "GPGPU-Sim_v%s", g_gpgpusim_version_string);
+      snprintf(prop->name, 256, "GPGPU-Sim_v%s", libcuda::g_gpgpusim_version_string);
       prop->major = the_gpu->compute_capability_major();
       prop->minor = the_gpu->compute_capability_minor();
       prop->totalGlobalMem = 0x80000000 /* 2 GB */;
@@ -849,6 +849,10 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   g_checkpoint = new checkpoint();
   class memory_space *global_mem;
   global_mem = gpu->get_global_memory();
+
+  if (context->get_device()->get_gpgpu()->get_config().convert_to_coasm()) {
+    kernel_func_info->gen_coasm(gpu->get_ptx_convert_to_coasm_file());
+  }
 
   if (gpu->resume_option == 1 && (grid->get_uid() == gpu->resume_kernel)) {
     char f1name[2048];
@@ -2579,55 +2583,6 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernel(const char *hostFun,
                                   stream);
 }
 
-
-
-#if CUDART_VERSION >= 10000
-/*
-* CUDA 10 requires a new CUDA kernel launch sequence
-* A call to __cudaPushCallConfiguration() preceeds any call to cudaLaunchKernel()
-* __cudaPushCallConfiguration is undocumented in the API but it simply sets up a buffer with the arguments which is accessed in cudaLaunchKernel()
-* __cudaPopCallConfiguration is undocumented in the API but it simply pops the configuration set in cudaLaunchKernel()
-*
-* pushing more than 1 configuration without popping is currently not implemented in GPGPU-Sim and will result in an assert error
-*/
-namespace g_cudaPushArgsBuffer
-{
-  bool g_is_initialized = false;
-  dim3 g_gridDim;
-  dim3 g_blockDim;
-  size_t g_sharedMem;
-  cudaStream_t g_stream;
-}
-
-__host__ cudaError_t CUDARTAPI __cudaPushCallConfiguration(dim3 gridDim, dim3 blockDim, size_t sharedMem, cudaStream_t stream)
-{
-  assert(g_cudaPushArgsBuffer::g_is_initialized == false);
-  printf("Pushing cuda call configuration \n");
-  g_cudaPushArgsBuffer::g_is_initialized = true;
-  g_cudaPushArgsBuffer::g_gridDim = gridDim;
-  g_cudaPushArgsBuffer::g_blockDim = blockDim;
-  g_cudaPushArgsBuffer::g_sharedMem = sharedMem;
-  g_cudaPushArgsBuffer::g_stream = stream;
-
-  return cudaSuccess;
-}
-
-__host__ cudaError_t CUDARTAPI __cudaPopCallConfiguration()
-{
-  printf("Inside __cudaPopCallConfiguration\n");
-  assert(g_cudaPushArgsBuffer::g_is_initialized == true);
-  printf("Poping cuda call configuration \n");
-  g_cudaPushArgsBuffer::g_is_initialized = false;
-  return cudaSuccess;
-}
-
-#endif // #if CUDART_VERSION >= 10000
-
-
-
-
-
-
 /*******************************************************************************
  *                                                                              *
  *                                                                              *
@@ -2680,8 +2635,6 @@ __host__ cudaError_t CUDARTAPI cudaStreamSynchronize(cudaStream_t stream) {
   return cudaStreamSynchronizeInternal(stream);
 }
 
-#define STREAM2LIBSTREAM  libcuda::CUstream_st *libcuda_stream = reinterpret_cast<libcuda::CUstream_st*>(stream);
-#define EVENT2LIBEVENT  libcuda::CUevent_st *libcuda_event = reinterpret_cast<libcuda::CUevent_st*>(event);
 // #define NEWLIBEVENT(e, f)  libcuda::CUevent_st * #e = new libcuda::CUevent_st(#f);
 
 __host__ cudaError_t CUDARTAPI cudaStreamQuery(cudaStream_t stream) {
@@ -2690,7 +2643,7 @@ __host__ cudaError_t CUDARTAPI cudaStreamQuery(cudaStream_t stream) {
   }
 #if (CUDART_VERSION >= 3000)
   if (stream == NULL) return g_last_cudaError = cudaErrorInvalidResourceHandle;
-  STREAM2LIBSTREAM
+  libcuda::CUstream_st *libcuda_stream = reinterpret_cast<libcuda::CUstream_st*>(stream);
   return g_last_cudaError = libcuda_stream->empty()?cudaSuccess:cudaErrorNotReady;
 #endif
 }
@@ -3299,7 +3252,23 @@ void __cudaRegisterFatBinaryEnd(void **fatCubinHandle) {
   }
 }
 
+unsigned CUDARTAPI __cudaPushCallConfiguration(dim3 gridDim, dim3 blockDim,
+                                               size_t sharedMem = 0,
+                                               struct ::CUstream_st *stream = 0) {
+  if (g_debug_execution >= 3) {
+    announce_call(__my_func__);
+  }
+  cudaConfigureCallInternal(gridDim, blockDim, sharedMem, (cudaStream_t)stream);
+}
 
+cudaError_t CUDARTAPI __cudaPopCallConfiguration(dim3 *gridDim, dim3 *blockDim,
+                                                 size_t *sharedMem,
+                                                 void *stream) {
+  if (g_debug_execution >= 3) {
+    announce_call(__my_func__);
+  }
+  return g_last_cudaError = cudaSuccess;
+}
 
 void CUDARTAPI __cudaRegisterFunction(void **fatCubinHandle,
                                       const char *hostFun, char *deviceFun,
@@ -3670,14 +3639,6 @@ int CUDARTAPI __cudaSynchronizeThreads(void**, void*)
 
 }
 
-////////
-extern int ptx_parse();
-extern int ptxinfo_parse();
-extern int ptx__scan_string(const char*);
-extern FILE *ptx_in;
-extern int ptxinfo_debug;
-extern FILE *ptxinfo_in;
-
 /// static functions
 int cuda_runtime_api::load_static_globals(symbol_table *symtab,
                                           unsigned min_gaddr,
@@ -3710,9 +3671,12 @@ int cuda_runtime_api::load_static_globals(symbol_table *symtab,
         ptx_reg_t value = op.get_literal_value();
         assert((addr + offset + nbytes) <
                min_gaddr);  // min_gaddr is start of "heap" for cudaMalloc
-        gpu->get_global_memory()->write(addr + offset, nbytes, &value, NULL,
+        if (gpu->gpgpu_ctx->func_sim->g_ptx_sim_mode) {
+          gpu->get_global_memory()->write(addr + offset, nbytes, &value, NULL,
                                         NULL);  // assuming little endian here
-        // FIXME        cudaMemcpy((void*)(addr+offset), &value, nbytes, cudaMemcpyHostToDevice);
+        } else {
+          cudaMemcpy((void*)(addr+offset), &value, nbytes, cudaMemcpyHostToDevice);
+        }
         offset += nbytes;
         ng_bytes += nbytes;
       }
@@ -3725,7 +3689,6 @@ int cuda_runtime_api::load_static_globals(symbol_table *symtab,
   return ng_bytes;
 }
 
-// static int load_constants( symbol_table *symtab, addr_t min_gaddr, gpgpu_t *gpu )
 int cuda_runtime_api::load_constants(symbol_table *symtab, addr_t min_gaddr,
                                      gpgpu_t *gpu) {
   if (g_debug_execution >= 3){

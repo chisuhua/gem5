@@ -2176,6 +2176,19 @@ void   __cudaTextureFetch(const void *tex, void *index, int integer, void *val)
     cuda_not_implemented(__FILE__, __my_func__, __LINE__);
 }
 */
+cudaError_t  gem5gpu_finish_kernel() {
+    return g_last_cudaError = cudaErrorUnknown;
+}
+
+cudaError_t  gem5gpu_stop_all_running_kernels() {
+    return g_last_cudaError = cudaErrorUnknown;
+}
+
+cudaError_t  gem5gpu_print_stats() {
+    return g_last_cudaError = cudaErrorUnknown;
+}
+
+
 
 bool  gem5gpu_active()
 {

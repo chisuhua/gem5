@@ -123,37 +123,33 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
       // another kernel, the gpu is not re-initialized and the inter-kernel
       // behaviour may be incorrect. Check that a kernel has finished and
       // no other kernel is currently running.
-            // FIXME
-            // if(g_stream_manager->operation(&sim_cycles) && !g_the_gpu->active())
       if (ctx->the_gpgpusim->g_stream_manager->operation(&sim_cycles) &&
           !ctx->the_gpgpusim->g_the_gpu->active())
         break;
 
-            //functional simulation
-            /* TODO i assume it is not used
-      if (ctx->the_gpgpusim->g_the_gpu->is_functional_sim()) {
+      //functional simulation
+      if (ctx->func_sim->g_ptx_sim_mode) {
         kernel_info_t *kernel =
             ctx->the_gpgpusim->g_the_gpu->get_functional_kernel();
-        assert(kernel);
+        // assert(kernel);
+        if (!kernel) break;
         ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
             *kernel);
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
-      }
-            */
-
-      //performance simulation
-      // if (ctx->the_gpgpusim->g_the_gpu->active()) {
-      if( gem5gpu_active() ) {
-        // TODO schi ctx->the_gpgpusim->g_the_gpu->cycle();
-        sim_cycles = true;
-        // ctx->the_gpgpusim->g_the_gpu->deadlock_check();
-        // FIXME   gem5gpu_deadlock_check();
-      }else {
-        //if (ctx->the_gpgpusim->g_the_gpu->cycle_insn_cta_max_hit()) {
-        if(gem5gpu_cycle_insn_cta_max_hit()){
-          ctx->the_gpgpusim->g_stream_manager->stop_all_running_kernels();
-          ctx->the_gpgpusim->g_sim_done = true;
-          ctx->the_gpgpusim->break_limit = true;
+      } else {
+        //performance simulation
+        if ( gem5gpu_active() ) {
+          // TODO schi ctx->the_gpgpusim->g_the_gpu->cycle();
+          sim_cycles = true;
+          // ctx->the_gpgpusim->g_the_gpu->deadlock_check();
+          // FIXME   gem5gpu_deadlock_check();
+        } else {
+          //if (ctx->the_gpgpusim->g_the_gpu->cycle_insn_cta_max_hit()) {
+          if(gem5gpu_cycle_insn_cta_max_hit()){
+            ctx->the_gpgpusim->g_stream_manager->stop_all_running_kernels();
+            ctx->the_gpgpusim->g_sim_done = true;
+            ctx->the_gpgpusim->break_limit = true;
+          }
         }
       }
 
@@ -166,11 +162,9 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
       fflush(stdout);
     }
     if(sim_cycles) {
-      /* TODO
       ctx->the_gpgpusim->g_the_gpu->print_stats();
       ctx->the_gpgpusim->g_the_gpu->update_stats();
       ctx->print_simulation_time();
-      */
     }
     pthread_mutex_lock(&(ctx->the_gpgpusim->g_sim_lock));
     ctx->the_gpgpusim->g_sim_active = false;

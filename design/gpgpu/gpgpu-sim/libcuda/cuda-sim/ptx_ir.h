@@ -37,6 +37,7 @@
 #include <map>
 #include <vector>
 #include <assert.h>
+#include <sstream>
 
 //#include "ptx.tab.h"
 #include "ptx_sim.h"
@@ -46,6 +47,7 @@
 namespace libcuda {
 
 class gpgpu_context;
+unsigned get_operand_nbits(const operand_info &op) ;
 
 class type_info_key {
  public:
@@ -948,6 +950,7 @@ class ptx_instruction : public warp_inst_t {
 
   void print_insn() const;
   virtual void print_insn(FILE *fp) const;
+  virtual void print_coasm(function_info* finfo, FILE *fp) const;
   std::string to_string() const;
   unsigned inst_size() const { return m_inst_size; }
   unsigned uid() const { return m_uid; }
@@ -1296,6 +1299,7 @@ class function_info {
   void find_ipostdominators();
   void print_ipostdominators();
   void do_pdom();  // function to call pdom analysis
+  void gen_coasm(FILE* fp);  // function to convert ptx to coasm
 
   unsigned get_num_reconvergence_pairs();
 
@@ -1420,6 +1424,188 @@ class function_info {
   int m_args_aligned_size;
 
   addr_t m_n;  // offset in m_instr_mem (used in do_pdom)
+
+  std::map<std::string, unsigned> m_coasm_regs;
+  unsigned m_coasm_reg_max {3};
+
+  std::map<std::string, unsigned> m_coasm_tcc;
+  unsigned m_coasm_tcc_max {0};
+
+  // to be match with src/model/gpu/Compute.cpp
+  enum coasm_sregs {
+      GRID_DIM_X = 0,
+      GRID_DIM_Y,
+      GRID_DIM_Z,
+      BLOCK_DIM_X,
+      BLOCK_DIM_Y,
+      BLOCK_DIM_Z,
+      BLOCK_IDX_X,
+      BLOCK_IDX_Y,
+      BLOCK_IDX_Z,
+      SPECIAL_SREG_MAX
+  };
+
+  enum coasm_vregs {
+      THREAD_IDX_X = 0,
+      THREAD_IDX_Y,
+      THREAD_IDX_Z,
+      SPECIAL_VREG_MAX
+  };
+
+  std::vector<std::pair<std::string, int>> m_coasm_special_sregs {
+      {"grid_dim_x", 0},
+      {"grid_dim_y", 0},
+      {"grid_dim_z", 0},
+      {"block_dim_x", 0},
+      {"block_dim_y", 0},
+      {"block_dim_z", 0},
+      {"block_idx_x", 0},
+      {"block_idx_y", 0},
+      {"block_idx_z", 0}
+  };
+
+  std::vector<std::pair<std::string, int>> m_coasm_special_vregs {
+      {"thread_idx_x", 0},
+      {"thread_idx_y", 0},
+      {"thread_idx_z", 0}
+  };
+
+ public:
+  ptx_instruction* get_target_pI(addr_t addr) {
+      return m_instr_mem[addr];
+  }
+
+  unsigned get_label_addr(std::string label) {
+      return labels[label];
+  }
+
+  std::string get_coasm_reg(const operand_info &operand, int reg_size = 1) {
+      std::string operand_name = operand.name();
+      if (m_coasm_regs.find(operand_name) == m_coasm_regs.end()) {
+          m_coasm_regs.insert(std::make_pair(operand_name, m_coasm_reg_max));
+          m_coasm_reg_max += reg_size;
+      }
+      std::stringstream ss;
+      unsigned reg_num = m_coasm_regs[operand_name];
+      unsigned size;
+      if (reg_size != 1) size = reg_size;
+      else size = (get_operand_nbits(operand) + 31) / 32;
+      if (size <= 1)
+        ss << "v" << reg_num;
+      else
+        ss << "v[" << reg_num << ":" << (reg_num + size -1) << "]";
+      return ss.str();
+  };
+
+  std::string get_coasm_tcc(const operand_info &operand) {
+      std::string operand_name = operand.name();
+      if (m_coasm_tcc.find(operand_name) == m_coasm_tcc.end()) {
+          m_coasm_tcc.insert(std::make_pair(operand_name, m_coasm_tcc_max));
+          m_coasm_tcc_max += 1;
+      }
+      std::stringstream ss;
+      unsigned reg_num = m_coasm_tcc[operand_name];
+      ss << "tcc" << reg_num;
+      return ss.str();
+  };
+
+  std::string get_coasm_buildin(int buildin_id, unsigned dim_mod) {
+      switch (buildin_id &= 0xFFFF) {
+        case CLOCK_REG:
+        case CLOCK64_REG:
+        case HALFCLOCK_ID:
+        case ENVREG_REG: {
+            assert("unsupported special reg");
+          // GPGPUSim clock is 4 times slower - multiply by 4
+          // Hardware clock counter is incremented at half the shader clock
+          // frequency - divide by 2 (Henry '10)
+          break;
+        }
+        case CTAID_REG:
+          assert(dim_mod < 3);
+          if (dim_mod == 0) {
+              m_coasm_special_sregs[BLOCK_IDX_X].second = 1;
+              return m_coasm_special_sregs[BLOCK_IDX_X].first;
+          }
+          if (dim_mod == 1) {
+              m_coasm_special_sregs[BLOCK_IDX_Y].second = 1;
+              return m_coasm_special_sregs[BLOCK_IDX_Y].first;
+          }
+          if (dim_mod == 2) {
+              m_coasm_special_sregs[BLOCK_IDX_Z].second = 1;
+              return m_coasm_special_sregs[BLOCK_IDX_Z].first;
+          }
+          abort();
+          break;
+        case GRIDID_REG:
+        case LANEID_REG:
+            assert("unsupported special reg");
+          return 0;
+        case LANEMASK_EQ_REG:
+        case LANEMASK_LE_REG:
+        case LANEMASK_LT_REG:
+        case LANEMASK_GE_REG:
+        case LANEMASK_GT_REG:
+            assert("unsupported special reg");
+          return 0;
+        case NCTAID_REG:
+          assert(dim_mod < 3);
+          if (dim_mod == 0) {
+              m_coasm_special_sregs[GRID_DIM_X].second = 1;
+              return m_coasm_special_sregs[GRID_DIM_X].first;
+          }
+          if (dim_mod == 1) {
+              m_coasm_special_sregs[GRID_DIM_Y].second = 1;
+              return m_coasm_special_sregs[GRID_DIM_Y].first;
+          }
+          if (dim_mod == 2) {
+              m_coasm_special_sregs[GRID_DIM_Z].second = 1;
+              return m_coasm_special_sregs[GRID_DIM_Z].first;
+          }
+          break;
+        case NTID_REG:
+          assert(dim_mod < 3);
+          if (dim_mod == 0) {
+              m_coasm_special_sregs[BLOCK_DIM_X].second = 1;
+              return m_coasm_special_sregs[BLOCK_DIM_X].first;
+          }
+          if (dim_mod == 1) {
+              m_coasm_special_sregs[BLOCK_DIM_Y].second = 1;
+              return m_coasm_special_sregs[BLOCK_DIM_Y].first;
+          }
+          if (dim_mod == 2) {
+              m_coasm_special_sregs[BLOCK_DIM_Z].second = 1;
+              return m_coasm_special_sregs[BLOCK_DIM_Z].first;
+          }
+          abort();
+          break;
+        case NWARPID_REG:
+        case PM_REG:
+        case SMID_REG:
+            assert("unsupported special reg");
+          return 0;
+        case TID_REG:
+          assert(dim_mod < 3);
+          if (dim_mod == 0) {
+              m_coasm_special_vregs[THREAD_IDX_X].second = 1;
+              return m_coasm_special_vregs[THREAD_IDX_X].first;
+          }
+          if (dim_mod == 1) {
+              m_coasm_special_vregs[THREAD_IDX_Y].second = 1;
+              return m_coasm_special_vregs[THREAD_IDX_Y].first;
+          }
+          if (dim_mod == 2) {
+              m_coasm_special_vregs[THREAD_IDX_Z].second = 1;
+              return m_coasm_special_vregs[THREAD_IDX_Z].first;
+          }
+          abort();
+          break;
+        case WARPSZ_REG:
+          // return m_core->get_warp_size();
+        default:
+          assert(0);
+      }
+  };
 };
 
 class arg_buffer_t {

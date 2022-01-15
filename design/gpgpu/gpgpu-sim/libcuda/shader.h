@@ -1411,14 +1411,13 @@ struct shader_core_config : public core_config {
 
   void init()
   {
-#if 0
-        int ntok = sscanf(gpgpu_shader_core_pipeline_opt,"%d:%d",
+    int ntok = sscanf(gpgpu_shader_core_pipeline_opt,"%d:%d",
                           &n_thread_per_shader,
                           &warp_size);
-        if(ntok != 2) {
-           printf("GPGPU-Sim uArch: error while parsing configuration string gpgpu_shader_core_pipeline_opt\n");
-           abort();
-	     }
+    if(ntok != 2) {
+        printf("GPGPU-Sim uArch: error while parsing configuration string gpgpu_shader_core_pipeline_opt\n");
+        abort();
+	}
 
 	char* toks = new char[100];
 	char* tokd = toks;
@@ -1441,32 +1440,32 @@ struct shader_core_config : public core_config {
 
 	delete[] tokd;
 
-        if (n_thread_per_shader > MAX_THREAD_PER_SM) {
-           printf("GPGPU-Sim uArch: Error ** increase MAX_THREAD_PER_SM in abstract_hardware_model.h from %u to %u\n",
+    if (n_thread_per_shader > MAX_THREAD_PER_SM) {
+       printf("GPGPU-Sim uArch: Error ** increase MAX_THREAD_PER_SM in abstract_hardware_model.h from %u to %u\n",
                   MAX_THREAD_PER_SM, n_thread_per_shader);
-           abort();
-        }
-        max_warps_per_shader =  n_thread_per_shader/warp_size;
-        assert( !(n_thread_per_shader % warp_size) );
-
-        // set_pipeline_latency();
-
-	m_L1I_config.init(m_L1I_config.m_config_string,FuncCachePreferNone);
-        m_L1T_config.init(m_L1T_config.m_config_string,FuncCachePreferNone);
-        m_L1C_config.init(m_L1C_config.m_config_string,FuncCachePreferNone);
-        m_L1D_config.init(m_L1D_config.m_config_string,FuncCachePreferNone);
-        gpgpu_cache_texl1_linesize = m_L1T_config.get_line_sz();
-        gpgpu_cache_constl1_linesize = m_L1C_config.get_line_sz();
-#endif
-        m_valid = true;
+       abort();
     }
-    void reg_options(class OptionParser * opp );
-    unsigned max_cta( const kernel_info_t &k ) const;
-    unsigned num_shader() const { return n_simt_clusters*n_simt_cores_per_cluster; }
-    unsigned sid_to_cluster( unsigned sid ) const { return sid / n_simt_cores_per_cluster; }
-    unsigned sid_to_cid( unsigned sid )     const { return sid % n_simt_cores_per_cluster; }
-    unsigned cid_to_sid( unsigned cid, unsigned cluster_id ) const { return cluster_id*n_simt_cores_per_cluster + cid; }
-    // void set_pipeline_latency();
+    max_warps_per_shader =  n_thread_per_shader/warp_size;
+    assert( !(n_thread_per_shader % warp_size) );
+
+    // set_pipeline_latency();
+#if 0
+	m_L1I_config.init(m_L1I_config.m_config_string,FuncCachePreferNone);
+    m_L1T_config.init(m_L1T_config.m_config_string,FuncCachePreferNone);
+    m_L1C_config.init(m_L1C_config.m_config_string,FuncCachePreferNone);
+    m_L1D_config.init(m_L1D_config.m_config_string,FuncCachePreferNone);
+    gpgpu_cache_texl1_linesize = m_L1T_config.get_line_sz();
+    gpgpu_cache_constl1_linesize = m_L1C_config.get_line_sz();
+#endif
+    m_valid = true;
+  }
+  void reg_options(class OptionParser * opp );
+  unsigned max_cta( const kernel_info_t &k ) const;
+  unsigned num_shader() const { return n_simt_clusters*n_simt_cores_per_cluster; }
+  unsigned sid_to_cluster( unsigned sid ) const { return sid / n_simt_cores_per_cluster; }
+  unsigned sid_to_cid( unsigned sid )     const { return sid % n_simt_cores_per_cluster; }
+  unsigned cid_to_sid( unsigned cid, unsigned cluster_id ) const { return cluster_id*n_simt_cores_per_cluster + cid; }
+  // void set_pipeline_latency();
 
   // backward pointer
   class gpgpu_context *gpgpu_ctx;

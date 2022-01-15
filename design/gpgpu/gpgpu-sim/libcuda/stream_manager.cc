@@ -299,7 +299,6 @@ bool stream_manager::register_finished_kernel(unsigned grid_uid) {
     CUstream_st *stream = m_grid_id_to_stream[grid_uid];
     kernel_info_t *kernel = stream->front().get_kernel();
     assert( grid_uid == kernel->get_uid() );
-    if (!m_ptx_sim_mode) {
     // Jin: should check children kernels for CDP
     if (kernel->is_finished()) {
       //            std::ofstream kernel_stat("kernel_stat.txt",
@@ -320,7 +319,6 @@ bool stream_manager::register_finished_kernel(unsigned grid_uid) {
       kernel->notify_parent_finished();
       delete kernel;
       return true;
-    }
     }
   }
 

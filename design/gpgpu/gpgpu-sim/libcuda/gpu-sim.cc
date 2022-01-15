@@ -96,7 +96,6 @@ tr1_hash_map<new_addr_type,unsigned> address_random_interleaving;
 
 void shader_core_config::reg_options(class OptionParser * opp)
 {
-#if 0
     option_parser_register(opp, "-gpgpu_simd_model", OPT_INT32, &model,
                    "1 = post-dominator", "1");
     option_parser_register(opp, "-gpgpu_shader_core_pipeline", OPT_CSTR, &gpgpu_shader_core_pipeline_opt,
@@ -114,6 +113,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
                    "shader L1 instruction cache config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>} ",
                    "4:256:4,L:R:f:N,A:2:32,4" );
+#if 0
     option_parser_register(opp, "-gpgpu_cache:dl1", OPT_CSTR, &m_L1D_config.m_config_string,
                    "per-shader L1 data cache config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}",
@@ -139,6 +139,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_perfect_mem", OPT_BOOL, &gpgpu_perfect_mem,
                  "enable perfect memory mode (no cache miss)",
                  "0");
+#endif
     option_parser_register(opp, "-n_regfile_gating_group", OPT_UINT32, &n_regfile_gating_group,
                  "group of lanes that should be read/written together)",
                  "4");
@@ -181,9 +182,11 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_shmem_size", OPT_UINT32, &gpgpu_shmem_size,
                  "Size of shared memory per shader core (default 16kB)",
                  "16384");
+#if 0
     option_parser_register(opp, "-adaptive_volta_cache_config", OPT_BOOL, &adaptive_volta_cache_config,
                  "adaptive_volta_cache_config",
                  "0");
+#endif
     option_parser_register(opp, "-gpgpu_shmem_size", OPT_UINT32, &gpgpu_shmem_sizeDefault,
                  "Size of shared memory per shader core (default 16kB)",
                  "16384");
@@ -223,6 +226,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_reg_bank_use_warp_id", OPT_BOOL, &gpgpu_reg_bank_use_warp_id,
              "Use warp ID in mapping registers to banks (default = off)",
              "0");
+#if 0
     option_parser_register(opp, "-sub_core_model", OPT_BOOL, &sub_core_model,
              "Sub Core Volta/Pascal model (default = off)",
              "0");
@@ -298,6 +302,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_num_sched_per_core", OPT_INT32, &gpgpu_num_sched_per_core,
                             "Number of warp schedulers per core",
                             "1");
+#endif
     option_parser_register(opp, "-gpgpu_max_insn_issue_per_warp", OPT_INT32, &gpgpu_max_insn_issue_per_warp,
     		            "Max number of instructions that can be issued per warp in one cycle by scheduler (either 1 or 2)",
 			    "2");
@@ -332,6 +337,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_num_mem_units", OPT_INT32, &gpgpu_num_mem_units,
                             "Number if ldst units (default=1) WARNING: not hooked up to anything",
                              "1");
+#if 0
     option_parser_register(opp, "-gpgpu_scheduler", OPT_CSTR, &gpgpu_scheduler_string,
                                 "Scheduler configuration: < lrr | gto | two_level_active > "
                                 "If two_level_active:<num_active_warps>:<inner_prioritization>:<outer_prioritization>"
@@ -351,7 +357,6 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
     m_shader_config.reg_options(opp);
     m_memory_config.reg_options(opp);
     // power_config::reg_options(opp);
-#if 0
   option_parser_register(opp, "-gpgpu_max_cycle", OPT_INT64, &gpu_max_cycle_opt,
                          "terminates gpu simulation early (0 = no limit)", "0");
   option_parser_register(opp, "-gpgpu_max_insn", OPT_INT64, &gpu_max_insn_opt,
@@ -361,6 +366,7 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
   option_parser_register(opp, "-gpgpu_max_completed_cta", OPT_INT32,
                          &gpu_max_completed_cta_opt,
                          "terminates gpu simulation early (0 = no limit)", "0");
+#if 0
   option_parser_register(
       opp, "-gpgpu_runtime_stat", OPT_CSTR, &gpgpu_runtime_stat,
       "display runtime statistics such as dram utilization {<freq>:<flag>}",
@@ -606,8 +612,7 @@ kernel_info_t *gpgpu_sim::select_kernel()
 
 unsigned gpgpu_sim::finished_kernel()
 {
-    // This should never be called now
-    assert(0);
+  // This should never be called now
   if (m_finished_kernel.empty()) return 0;
   unsigned result = m_finished_kernel.front();
   m_finished_kernel.pop_front();
@@ -616,9 +621,9 @@ unsigned gpgpu_sim::finished_kernel()
 
 void gpgpu_sim::set_kernel_done( kernel_info_t *kernel )
 {
-    unsigned uid = kernel->get_uid();
-    // TODO schi
-    // m_finished_kernel.push_back(uid);
+  unsigned uid = kernel->get_uid();
+  // TODO schi
+  m_finished_kernel.push_back(uid);
   std::vector<kernel_info_t *>::iterator k;
   for (k = m_running_kernels.begin(); k != m_running_kernels.end(); k++) {
     if (*k == kernel) {
@@ -795,11 +800,6 @@ void gpgpu_sim::reinit_clock_domains(void)
    l2_time = 0;
 }
 
-bool gpgpu_sim::active() {
-    assert(false || "not here");
-    return true;
-}
-/*
 bool gpgpu_sim::active()
 {
     if (m_config.gpu_max_cycle_opt && (gpu_tot_sim_cycle + gpu_sim_cycle) >= m_config.gpu_max_cycle_opt)
@@ -810,6 +810,7 @@ bool gpgpu_sim::active()
        return false;
     if (m_config.gpu_deadlock_detect && gpu_deadlock)
        return false;
+    /*
     for (unsigned i=0;i<m_shader_config->n_simt_clusters;i++)
        if( m_cluster[i]->get_not_completed()>0 )
            return true;;
@@ -818,11 +819,11 @@ bool gpgpu_sim::active()
            return true;;
     if( icnt_busy() )
         return true;
+           */
     if( get_more_cta_left() )
         return true;
     return false;
 }
-*/
 
 void gpgpu_sim::init()
 {

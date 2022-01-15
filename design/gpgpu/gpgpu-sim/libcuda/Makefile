@@ -118,7 +118,7 @@ LEXFLAGS	= -B
 YACC		= bison
 YFLAGS		= -t -d -v --report=all
 
-.PHONY: clean
+.PHONY: clean cuda-sim
 
 #OUTPUT_DIR=$(SIM_OBJ_FILES_DIR)/libcuda
 OUTPUT_DIR=.
@@ -176,13 +176,13 @@ cuda-sim:
 	$(MAKE) -C ./cuda-sim/
 
 clean:
+	make -C cuda-sim clean
 	rm -f $(PROG)
 	rm -f *.o
 	rm -f lib$(PROG).a
 	rm -f *_parser.*
 	rm -f *_lexer.*
 	rm -f Makefile.makedepend Makefile.makedepend.bak
-	make -C cuda-sim clean
 
 include $(OUTPUT_DIR)/Makefile.makedepend
 

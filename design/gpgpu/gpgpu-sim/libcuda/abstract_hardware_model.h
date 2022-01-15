@@ -574,21 +574,23 @@ struct textureReferenceAttr {
 
 class gpgpu_functional_sim_config {
 public:
-    void reg_options(class OptionParser * opp);
+  void reg_options(class OptionParser * opp);
 
   void ptx_set_tex_cache_linesize(unsigned linesize);
 
   unsigned get_forced_max_capability() const { return m_ptx_force_max_capability; }
-    bool convert_to_ptxplus() const { return m_ptx_convert_to_ptxplus; }
+  bool convert_to_ptxplus() const { return m_ptx_convert_to_ptxplus; }
+  bool convert_to_coasm() const { return m_ptx_convert_to_coasm; }
   bool use_cuobjdump() const { return m_ptx_use_cuobjdump; }
   bool experimental_lib_support() const { return m_experimental_lib_support; }
 
-  int         get_ptx_inst_debug_to_file() const { return g_ptx_inst_debug_to_file; }
+  int get_ptx_inst_debug_to_file() const { return g_ptx_inst_debug_to_file; }
   const char* get_ptx_inst_debug_file() const  { return g_ptx_inst_debug_file; }
+  const char *get_ptx_convert_to_coasm_file() const { return g_ptx_convert_to_coasm_file; }
   int get_ptx_inst_debug_thread_uid() const {
     return g_ptx_inst_debug_thread_uid;
   }
-  unsigned    get_texcache_linesize() const { return m_texcache_linesize; }
+  unsigned get_texcache_linesize() const { return m_texcache_linesize; }
   int get_checkpoint_option() const {return checkpoint_option; }
   int get_checkpoint_kernel() const {return checkpoint_kernel; }
   int get_checkpoint_CTA() const {return checkpoint_CTA; }
@@ -601,6 +603,7 @@ public:
 private:
   // PTX options
   int m_ptx_convert_to_ptxplus;
+  int m_ptx_convert_to_coasm;
   int m_ptx_use_cuobjdump;
   int m_experimental_lib_support;
   unsigned m_ptx_force_max_capability;
@@ -614,6 +617,7 @@ private:
   int checkpoint_insn_Y;
   int g_ptx_inst_debug_to_file;
   char *g_ptx_inst_debug_file;
+  char *g_ptx_convert_to_coasm_file;
   int g_ptx_inst_debug_thread_uid;
 
   unsigned m_texcache_linesize;
@@ -697,6 +701,7 @@ public:
     return m_function_model_config;
   }
   FILE* get_ptx_inst_debug_file() { return ptx_inst_debug_file; }
+  FILE* get_ptx_convert_to_coasm_file() { return ptx_convert_to_coasm_file; }
 
   //  These maps return the current texture mappings for the GPU at any given time.
   std::map<std::string, const struct cudaArray *> getNameArrayMapping() {
@@ -711,6 +716,7 @@ public:
 protected:
   const gpgpu_functional_sim_config &m_function_model_config;
   FILE* ptx_inst_debug_file;
+  FILE* ptx_convert_to_coasm_file;
 
   class memory_space *m_global_mem;
   class memory_space *m_tex_mem;
