@@ -5,6 +5,10 @@ typedef void *yyscan_t;
 class ptx_recognizer;
 #include "ptx.tab.h"
 
+#include "../../libcuda/gpgpu_context.h"
+
+namespace libcuda {
+
 void coasm_not_impl(const ptx_instruction *pI) {
   printf(
       "GPGPU-Sim PTX: ERROR (%s:%u) instruction \"%s\" not (yet) implemented\n",
@@ -29,7 +33,7 @@ void print_dst(function_info *finfo, const operand_info &dst, FILE* fp, uint32_t
     if (dst.is_reg()) {
         fprintf(fp, "%s", finfo->get_coasm_reg(dst, size).c_str());
     } else {
-        fprintf(fp, "FIXME on dst operand: %s", __FUNCTION__);
+        fprintf(fp, "FIXME on dst operand: %s\n", __FUNCTION__);
     }
 }
 
@@ -339,10 +343,10 @@ void bar_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       if (pI->get_num_operands() == 2) {
         print_type_2op("bar_sync", finfo, pI, fp);  // bar_sync bar_id, bar_count
       } else if (pI->get_num_operands() == 1) {
-        fprintf(fp, "FIXME bar_sync op on sync_option %s", __FUNCTION__);  // bar_sync bar_id
+        fprintf(fp, "FIXME bar_sync op on sync_option %s\n", __FUNCTION__);  // bar_sync bar_id
         // print_type_1op("bar_sync", finfo, pI, fp);  // bar_sync bar_id
       } else {
-        fprintf(fp, "FIXME bar_sync op on sync_option %s", __FUNCTION__);  // bar_sync bar_id
+        fprintf(fp, "FIXME bar_sync op on sync_option %s\n", __FUNCTION__);  // bar_sync bar_id
       }
       break;
     }
@@ -1559,10 +1563,11 @@ unsigned dtype_size(unsigned type) {
 }
 
 void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  fprintf(fp, "Debug: ld_exec: \n");
+  bool debug = false;
+  if (debug) fprintf(fp, "Debug: ld_exec:\n");
   const operand_info &dst = pI->dst();
   const operand_info &src1 = pI->src1();
-  fprintf(fp, " operand num %d \n", pI->get_num_operands());
+  if (debug) fprintf(fp, "Debug: operand num %d\n", pI->get_num_operands());
 
   unsigned type = pI->get_type();
   unsigned dsize = dtype_size(type);
@@ -1597,7 +1602,7 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned kernel_param_num;
   if (space_type == param_space_kernel) {
       std::string param_name = src1.get_symbol()->name();
-      fprintf(fp, "DEBUG param str is: %s\n", param_name.c_str());
+      if (debug) fprintf(fp, "DEBUG param str is: %s\n", param_name.c_str());
       std::string::size_type pos = param_name.rfind("param_");
       if (pos != std::string::npos) {
         std::string param_num = param_name.substr(pos + 6);
@@ -1607,7 +1612,7 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
             // if (param_name[pos+8] == '+') {
             param_num = param_name.substr(pos + 1);
             kernel_param_num = std::atoi(param_num.c_str());
-            fprintf(fp, "Debug: %s", param_name.c_str());
+            if (debug) fprintf(fp, "Debug: %s", param_name.c_str());
         } else {
             kernel_param_num = std::atoi(param_num.c_str());
         }
@@ -1706,7 +1711,7 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
             unsigned dst_reg_num = dst.reg_num();
             fprintf(fp, "x2\t%s", finfo->get_coasm_reg(dst, nelem).c_str());
         } else {
-            fprintf(fp, "\tFIXME on st dst %s", __FUNCTION__);
+            fprintf(fp, "\tFIXME on st dst %s\n", __FUNCTION__);
         }
     } else if (vector_spec == V3_TYPE || vector_spec == V4_TYPE) {  // either V3 or V4
         if (dst.is_vector()) {
@@ -1727,10 +1732,10 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     // fprintf(fp, ",\tv%u", src1.reg_num());
     fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
   } else {
-    fprintf(fp, "\tFIXME on st src1 %s", __FUNCTION__);
+    fprintf(fp, "\tFIXME on st src1 %s\n", __FUNCTION__);
   }
 
-  fprintf(fp, "Debug: ld_exec_end \n");
+  if (debug) fprintf(fp, "Debug: ld_exec_end \n");
   //    fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1));
 }
 
@@ -2289,7 +2294,7 @@ void mov_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE* fp)  
         fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1).c_str());
     } else {
         // FIXME
-        fprintf(fp, ",\tFIXME");
+        fprintf(fp, ",\tFIXME\n");
         // fprintf(fp, ",\t%s", src1.get_name().c_str());
     }
   }
@@ -3394,4 +3399,4 @@ void xor_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 
-
+}

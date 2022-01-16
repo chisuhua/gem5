@@ -700,6 +700,7 @@ public:
   const gpgpu_functional_sim_config &get_config() const {
     return m_function_model_config;
   }
+
   FILE* get_ptx_inst_debug_file() { return ptx_inst_debug_file; }
   FILE* get_ptx_convert_to_coasm_file() { return ptx_convert_to_coasm_file; }
 
@@ -707,6 +708,7 @@ public:
   std::map<std::string, const struct cudaArray *> getNameArrayMapping() {
     return m_NameToCudaArray;
   }
+
   std::map<std::string, const struct textureInfo *> getNameInfoMapping() {
     return m_NameToTextureInfo;
   }

@@ -159,8 +159,8 @@ void gpgpu_functional_sim_config::reg_options(class OptionParser * opp)
                  "Convert SASS (native ISA) to ptxplus and run ptxplus", "0");
   option_parser_register(opp, "-gpgpu_ptx_convert_to_coasm", OPT_BOOL, &m_ptx_convert_to_coasm,
                  "Convert to coasm and run coassember", "0");
-  option_parser_register(opp, "-gpgpu_ptx_convert_to_coasm_file", OPT_BOOL, &g_ptx_convert_to_coasm_file,
-                 "Convert to coasm and run coassember", "0");
+  option_parser_register(opp, "-gpgpu_ptx_convert_to_coasm_file", OPT_CSTR, &g_ptx_convert_to_coasm_file,
+                 "Convert to coasm and run coassember", "ptx.asm");
 
   option_parser_register(opp, "-gpgpu_ptx_force_max_capability", OPT_UINT32,
                  &m_ptx_force_max_capability,
