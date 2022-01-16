@@ -165,7 +165,7 @@ namespace m5op {
 #endif
 
 #include "gem5cuda_runtime_util.h"
-#include "../libcuda/abstract_hardware_model.h"
+#include "../abstract_hardware_model.h"
 // #include "../src/cuda-sim/ptx_ir.h"
 
 extern "C" void app_direct_call_gpu(uint64_t gpusysno, uint64_t call_params);

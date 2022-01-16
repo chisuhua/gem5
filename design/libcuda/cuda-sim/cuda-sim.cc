@@ -42,6 +42,7 @@ typedef void *yyscan_t;
 #include "../libcuda/abstract_hardware_model.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
 #include "../libcuda/gpu-sim.h"
+#include "../libcuda/gpu-misc.h"
 #include "../stream_manager.h"
 #include "cuda_device_runtime.h"
 #include "decuda_pred_table/decuda_pred_table.h"

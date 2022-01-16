@@ -38,7 +38,8 @@ ifeq ($(INTEL),1)
 	CC = icc
 endif
 
-include ../../version_detection.mk
+#include ../../version_detection.mk
+CUDART_VERSION=$(CUDA_VERSION_NUMBER)
 
 #OUTPUT_DIR=$(SIM_OBJ_FILES_DIR)/cuda-sim
 SIM_OBJ_FILES_DIR=..
@@ -158,7 +159,7 @@ endif
 $(OUTPUT_DIR)/instructions.o: $(OUTPUT_DIR)/instructions.h $(OUTPUT_DIR)/ptx.tab.c
 $(OUTPUT_DIR)/instructions_coasm.o: $(OUTPUT_DIR)/instructions_coasm.h $(OUTPUT_DIR)/ptx.tab.c
 $(OUTPUT_DIR)/cuda_device_printf.o: $(OUTPUT_DIR)/ptx.tab.c
-$(OUTPUT_DIR)/ptx_ir.o: $(OUTPUT_DIR)/ptx.tab.c $(OUTPUT_DIR)/ptx_parser_decode.def
+$(OUTPUT_DIR)/ptx_ir.o: $(OUTPUT_DIR)/ptx.tab.c $(OUTPUT_DIR)/ptx_parser_decode.def $(OUTPUT_DIR)/instructions_coasm.h $(OUTPUT_DIR)/instructions.h
 $(OUTPUT_DIR)/ptx_loader.o: $(OUTPUT_DIR)/ptx.tab.c $(OUTPUT_DIR)/ptx_parser_decode.def
 $(OUTPUT_DIR)/ptx_parser.o: $(OUTPUT_DIR)/ptx.tab.c $(OUTPUT_DIR)/ptx_parser_decode.def
 $(OUTPUT_DIR)/ptxinfo.tab.o: $(OUTPUT_DIR)/ptx.tab.c

@@ -143,7 +143,7 @@
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/cuda-sim/ptx_ir.h"
 
-#include "../libgem5cuda/gem5cuda_runtime_api.h"
+#include "gem5cuda/gem5cuda_runtime_api.h"
 
 #include <pthread.h>
 #include <semaphore.h>

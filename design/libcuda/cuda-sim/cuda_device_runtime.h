@@ -51,7 +51,6 @@ class cuda_device_runtime {
 
   // backward pointer
   class gpgpu_context* gpgpu_ctx;
-#if (CUDART_VERSION >= 5000)
 #pragma once
   void gpgpusim_cuda_launchDeviceV2(const ptx_instruction* pI,
                                     ptx_thread_info* thread,
@@ -64,7 +63,6 @@ class cuda_device_runtime {
                                           const function_info* target_func);
   void launch_all_device_kernels();
   void launch_one_device_kernel();
-#endif
 };
 }
 

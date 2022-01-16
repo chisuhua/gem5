@@ -51,7 +51,7 @@
 // #include "scoreboard.h"
 // #include "mem_fetch.h"
 #include "../libcuda/stats.h"
-#include "../libcuda/gpu-cache.h"
+//#include "../libcuda/gpu-cache.h"
 // #include "traffic_breakdown.h"
 
 
@@ -1485,10 +1485,11 @@ struct shader_core_config : public core_config {
   unsigned gpgpu_registers_per_block;
   char* pipeline_widths_string;
   int pipe_widths[N_PIPELINE_STAGES];
-
+/*
   mutable cache_config m_L1I_config;
   mutable cache_config m_L1T_config;
   mutable cache_config m_L1C_config;
+  */
   // mutable l1d_cache_config m_L1D_config;
 
   bool gpgpu_dwf_reg_bankconflict;
@@ -1893,8 +1894,9 @@ public:
   // accessors
   std::list<unsigned> get_regs_written( const inst_t &fvt ) const;
   const shader_core_config *get_config() const { return m_config; }
-  void print_cache_stats( FILE *fp, unsigned& dl1_accesses, unsigned& dl1_misses );
+  // void print_cache_stats( FILE *fp, unsigned& dl1_accesses, unsigned& dl1_misses );
 
+#if 0
   void get_cache_stats(cache_stats &cs);
   void get_L1I_sub_stats(struct cache_sub_stats &css) const;
   void get_L1D_sub_stats(struct cache_sub_stats &css) const;
@@ -2010,7 +2012,7 @@ public:
 
 	 void inc_simt_to_mem(unsigned n_flits){ m_stats->n_simt_to_mem[m_sid] += n_flits; }
 	 bool check_if_non_released_reduction_barrier(warp_inst_t &inst);
-
+#endif
 	private:
 	 unsigned inactive_lanes_accesses_sfu(unsigned active_count,double latency){
     return  ( ((32-active_count)>>1)*latency) + ( ((32-active_count)>>3)*latency) + ( ((32-active_count)>>3)*latency);
@@ -2075,7 +2077,7 @@ public:
   shader_core_mem_fetch_allocator *m_mem_fetch_allocator;
 
   // fetch
-  read_only_cache *m_L1I; // instruction cache
+  // read_only_cache *m_L1I; // instruction cache
   int  m_last_warp_fetched;
 
   // decode/dispatch
@@ -2166,7 +2168,7 @@ public:
 
   void display_pipeline( unsigned sid, FILE *fout, int print_mem, int mask );
   void print_cache_stats( FILE *fp, unsigned& dl1_accesses, unsigned& dl1_misses ) const;
-
+#if 0
   void get_cache_stats(cache_stats &cs) const;
   void get_L1I_sub_stats(struct cache_sub_stats &css) const;
   void get_L1D_sub_stats(struct cache_sub_stats &css) const;
@@ -2177,6 +2179,7 @@ public:
   float get_current_occupancy( unsigned long long& active, unsigned long long & total ) const;
 
   shader_core_ctx *get_core(int id_in_cluster) { return m_core[id_in_cluster]; }
+#endif
 
 private:
   unsigned m_cluster_id;

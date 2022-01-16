@@ -140,9 +140,9 @@ endif
 # m5op.h, m5ops.h, and the m5op_<arch>.S assembly files
 #M5OP_PATH = ../../gem5/util/m5
 # we assume the depot dir is gem5
-M5OP_PATH = ../../../../util/m5
-GEM5_PATH = ../../../../
-INCLUDES = -I./ -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I../../../../include -I$(GEM5_PATH)/src
+M5OP_PATH = $(GEM5_ROOT)/util/m5
+GEM5_PATH = $(GEM5_ROOT)
+INCLUDES = -I./ -I$(CUDA_INSTALL_PATH)/include -I$(M5OP_PATH) -I$(GEM5_PATH)/include -I$(GEM5_PATH)/src
 
 PROG = gem5cuda
 M5OP = m5op_x86

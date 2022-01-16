@@ -60,7 +60,7 @@
 # Vancouver, BC V6T 1Z4
 
 
-include ../version_detection.mk
+#include ../version_detection.mk
 
 ifeq ($(OPENGL_SUPPORT),1)
 	GL = -DOPENGL_SUPPORT
@@ -90,14 +90,15 @@ PROG     =cuda
 M5OP = m5op_x86
 INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer
 
-CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc shader.cc \
+CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc \
 	    gpu-sim.cc \
 	    addrdec.cc \
 	    gpu-misc.cc \
 		debug.cc \
-	    mem_latency_stat.cc \
 	    option.cc \
+	    shader.cc
 
+	#   mem_latency_stat.cc \
 	#	gpu-cache.cc \
 	#    ../src/gpgpu-sim/dram.cc \
 #            ../src/cuda-sim/cuda_device_printf.cc \
@@ -110,15 +111,15 @@ CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstrac
 
 LEX_SRCS = cuobjdump.l
 YACC_SRCS = cuobjdump.y
-CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
-CCFLAGS += -DCUDART_VERSION=$(CUDART_VERSION) -DLIBCUDA
+CXXFLAGS += -DCUDART_VERSION=$(CUDA_VERSION_NUMBER) -DLIBCUDA
+CCFLAGS += -DCUDART_VERSION=$(CUDA_VERSION_NUMBER) -DLIBCUDA
 CUDA_SIM_OBJS = $(shell ls cuda-sim/*.o cuda-sim/decuda_pred_table/*.o)
 LEX			= flex
 LEXFLAGS	= -B
 YACC		= bison
 YFLAGS		= -t -d -v --report=all
 
-.PHONY: clean cuda-sim
+.PHONY: clean cuda-sim gem5cuda
 
 #OUTPUT_DIR=$(SIM_OBJ_FILES_DIR)/libcuda
 OUTPUT_DIR=.
@@ -136,11 +137,11 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 #	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
 all: libcudart.so libcudart_static.a
 
-libcudart.so: cuda-sim $(OBJS)
-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=../linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) ../libgem5cuda/m5op_x86.o ../libgem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -o $(OUTPUT_DIR)/libcudart.so
+libcudart.so: cuda-sim gem5cuda $(OBJS)
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=./linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) gem5cuda/m5op_x86.o gem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -o $(OUTPUT_DIR)/libcudart.so
 
 libcudart_static.a: $(OBJS)
-	$(AR) rcs libcudart_static.a $(OBJS) ../libgem5cuda/gem5cuda_runtime_api.o ../libgem5cuda/m5op_x86.o
+	$(AR) rcs libcudart_static.a $(OBJS) ./gem5cuda/gem5cuda_runtime_api.o ./gem5cuda/m5op_x86.o
 
 $(OUTPUT_DIR)/%.o: %.cc
 	$(CPP) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
@@ -174,6 +175,9 @@ depend: cuda-sim
 cuda-sim:
 	$(MAKE) -C ./cuda-sim/ depend
 	$(MAKE) -C ./cuda-sim/
+
+gem5cuda:
+	$(MAKE) -C ./gem5cuda/
 
 clean:
 	make -C cuda-sim clean

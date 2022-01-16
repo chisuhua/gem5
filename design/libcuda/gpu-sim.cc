@@ -49,7 +49,7 @@
 #include "../libcuda/shader.h"
 // #include "addrdec.h"
 // #include "stat-tool.h"
-#include "../libcuda/l2cache.h"
+//#include "../libcuda/l2cache.h"
 
 #include "../libcuda/gpgpu_context.h"
 #include "../libcuda/cuda-sim/ptx-stats.h"
@@ -101,6 +101,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
     option_parser_register(opp, "-gpgpu_shader_core_pipeline", OPT_CSTR, &gpgpu_shader_core_pipeline_opt,
                    "shader core pipeline config, i.e., {<nthread>:<warpsize>}",
                    "1024:32");
+#if 0
     option_parser_register(opp, "-gpgpu_tex_cache:l1", OPT_CSTR, &m_L1T_config.m_config_string,
                    "per-shader L1 texture cache  (READ-ONLY) config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>:<rf>}",
@@ -113,7 +114,6 @@ void shader_core_config::reg_options(class OptionParser * opp)
                    "shader L1 instruction cache config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>} ",
                    "4:256:4,L:R:f:N,A:2:32,4" );
-#if 0
     option_parser_register(opp, "-gpgpu_cache:dl1", OPT_CSTR, &m_L1D_config.m_config_string,
                    "per-shader L1 data cache config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}",
@@ -132,6 +132,7 @@ void shader_core_config::reg_options(class OptionParser * opp)
                    "per-shader L1 data cache config "
                    " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}",
                    "none" );
+
     option_parser_register(opp, "-gmem_skip_L1D", OPT_BOOL, &gmem_skip_L1D,
                    "global memory access skip L1D cache (implements -Xptxas -dlcm=cg, default=no skip)",
                    "0");

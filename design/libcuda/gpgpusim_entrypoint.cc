@@ -37,7 +37,7 @@
 // #include "gpgpu-sim/icnt_wrapper.h"
 #include "../libcuda/stream_manager.h"
 
-#include "../libgem5cuda/gem5cuda_runtime_api.h"
+#include "gem5cuda/gem5cuda_runtime_api.h"
 
 
 #define MAX(a,b) (((a)>(b))?(a):(b))

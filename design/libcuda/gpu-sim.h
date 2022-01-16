@@ -30,10 +30,11 @@
 
 #include "../libcuda/option.h"
 #include "../libcuda/abstract_hardware_model.h"
-#include "../libcuda/gpu-cache.h"
+//#include "../libcuda/gpu-cache.h"
 #include "../libcuda/shader.h"
 // #include "../trace.h"
-// #include "../src/gpgpu-sim/addrdec.h"
+#include "../libcuda/addrdec.h"
+#include "../libcuda/tr1_hash_map.h"
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -112,7 +113,7 @@ struct memory_config {
  }
    void init()
    {
-      m_n_mem_sub_partition = m_n_mem * m_n_sub_partition_per_memory_channel; 
+      m_n_mem_sub_partition = m_n_mem * m_n_sub_partition_per_memory_channel;
       m_valid = true;
    }
    void reg_options(class OptionParser * opp) {};
@@ -138,7 +139,7 @@ struct memory_config {
    bool elimnate_rw_turnaround;
 
    unsigned data_command_freq_ratio; // frequency ratio between DRAM data bus and command bus (2 for GDDR3, 4 for GDDR5)
-   unsigned dram_atom_size; // number of bytes transferred per read or write command 
+   unsigned dram_atom_size; // number of bytes transferred per read or write command
 
    linear_to_raw_address_translation m_address_mapping;
    bool m_perf_sim_memcpy;
@@ -166,7 +167,7 @@ public:
     m_shader_config.init();
         // ptx_set_tex_cache_linesize(m_shader_config.m_L1T_config.get_line_sz());
         // m_memory_config.init();
-        // init_clock_domains(); 
+        // init_clock_domains();
         // power_config::init();
         // Trace_gpgpu::init();
     m_valid = true;
@@ -183,7 +184,7 @@ public:
   size_t pending_launch_count_limit() const {return runtime_pending_launch_count_limit;}
 
 private:
-    void init_clock_domains(void ); 
+    void init_clock_domains(void );
 
   // backward pointer
   class gpgpu_context *gpgpu_ctx;
@@ -209,7 +210,7 @@ private:
     bool  gpgpu_flush_l1_cache;
     bool  gpgpu_flush_l2_cache;
     bool  gpu_deadlock_detect;
-    int   gpgpu_frfcfs_dram_sched_queue_size; 
+    int   gpgpu_frfcfs_dram_sched_queue_size;
     int   gpgpu_cflog_interval;
     char * gpgpu_clock_domains;
     unsigned max_concurrent_kernel;
@@ -223,12 +224,12 @@ private:
     size_t stack_size_limit;
     size_t heap_size_limit;
     size_t runtime_sync_depth_limit;
-    size_t runtime_pending_launch_count_limit;	
+    size_t runtime_pending_launch_count_limit;
 
  //gpu compute capability options
     unsigned int gpgpu_compute_capability_major;
     unsigned int gpgpu_compute_capability_minor;
-    unsigned long long liveness_message_freq; 
+    unsigned long long liveness_message_freq;
 
     friend class gpgpu_sim;
 };
@@ -315,21 +316,21 @@ public:
 
 
    //The next three functions added to be used by the functional simulation function
-   
+
    //! Get shader core configuration
    /*!
     * Returning the configuration of the shader core, used by the functional simulation only so far
     */
    const struct shader_core_config * getShaderCoreConfig();
-   
-   
+
+
    //! Get shader core Memory Configuration
     /*!
     * Returning the memory configuration of the shader core, used by the functional simulation only so far
     */
    const struct memory_config * getMemoryConfig();
-   
-   
+
+
    //! Get shader core SIMT cluster
    /*!
     * Returning the cluster of of the shader core, used by the functional simulation so far

@@ -6,6 +6,8 @@ then
 	PPFLOW_ROOT=$DIR/../../mixlang
 fi
 
+export DESIGN_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 export GEM5_ROOT=$DIR
 #export GEM5_VARIANT=debug
 export GEM5_VARIANT=opt
@@ -36,16 +38,17 @@ export CMDIO_PATH=/mnt/d/source/github/sim/mixlang/mlvm/src/cmdio
 export LD_LIBRARY_PATH=/mnt/d/source/github/sim/mixlang/build/lib:$LD_LIBRARY_PATH
 
 export CUDA_VERSION_NUMBER=${CUDA_VERSION}00
+#export CUDART_VERSION=${CUDA_VERSION}00
 
 export PTX_SIM_USE_PTX_FILE=1.ptx
 export PTX_SIM_KERNELFILE=_1.ptx
-export PTX_SIM_MODE_FUNC=0
+export PTX_SIM_MODE_FUNC=1
 export PTX_SIM_DEBUG=3
 export PYTORCH_BIN=
 export CUOBJDUMP_SIM_FILE=jj
 export PTX_JIT_PATH=
 export GPGPUSIM_ROOT=$GEM5_ROOT/design/gpgpu/gpgpu-sim/
-export LD_LIBRARY_PATH=$GEM5_ROOT/design/gpgpu/gpgpu-sim/libcuda:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$GEM5_ROOT/design/libcuda:$LD_LIBRARY_PATH
 
 # then update-alternative --config gcc/g++ to 4.7
 # cd benchmarks/rodinia/vectorAdd or

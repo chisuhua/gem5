@@ -83,6 +83,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
         #
         # First create the Ruby objects associated with this cpu
         #
+        clk_domain = cpus[i].clk_domain
         l1i_cache = L1Cache(size = options.l1i_size,
                             assoc = options.l1i_assoc,
                             start_index_bit = block_size_bits,
@@ -102,11 +103,13 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
                                         options.allow_atomic_migration,
                                       send_evictions = send_evicts(options),
                                       transitions_per_cycle = options.ports,
-                                      ruby_system = ruby_system)
+                                      ruby_system = ruby_system,
+                                      clk_domain = clk_domain)
 
         cpu_seq = RubySequencer(version = i,
                                 #icache = l1i_cache,
                                 dcache = l1d_cache,
+                                clk_domain = clk_domain,
                                 ruby_system = ruby_system)
 
         l1_cntrl.sequencer = cpu_seq
@@ -139,7 +142,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
         l1_cntrl.mandatoryQueue = MessageBuffer()
         l1_cntrl.triggerQueue = MessageBuffer()
 
-    cpu_mem_range = AddrRange(options.total_mem_size)
+    cpu_mem_range = AddrRange(options.mem_size)
     mem_module_size = cpu_mem_range.size() / options.num_dirs
 
     #

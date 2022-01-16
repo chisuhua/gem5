@@ -47,7 +47,7 @@ def addGPUOptions(parser):
     parser.add_argument("--shMemDelay", default=1, help="delay to access shared memory in gpgpu-sim ticks", type=int)
     parser.add_argument("--gpu_core_config", type=str, choices=gpu_core_configs, default='Ppu', help="configure the GPU cores like %s" % gpu_core_configs)
     parser.add_argument("--kernel_stats", default=False, action="store_true", help="Dump statistics on GPU kernel boundaries")
-    parser.add_argument("--total-mem-size", default='4GB', help="Total size of memory in system")
+    #parser.add_argument("--total-mem-size", default='4GB', help="Total size of memory in system")
     parser.add_argument("--gpu_l1_buf_depth", type=int, default=96, help="Number of buffered L1 requests per shader")
     parser.add_argument("--flush_kernel_end", default=False, action="store_true", help="Flush the L1s at the end of each kernel. (Only VI_hammer)")
     parser.add_argument("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
@@ -75,7 +75,8 @@ def addGPUOptions(parser):
     parser.add_argument("--cp_firmware", type=str, default=None, help="the zephyr firmware")
 
 def configureMemorySpaces(options):
-    total_mem_range = AddrRange(options.total_mem_size)
+    #total_mem_range = AddrRange(options.total_mem_size)
+    total_mem_range = AddrRange()
     cpu_mem_range = total_mem_range
     gpu_mem_range = total_mem_range
 

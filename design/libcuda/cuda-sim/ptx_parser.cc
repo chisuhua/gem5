@@ -33,11 +33,13 @@ typedef void *yyscan_t;
 #include <stdarg.h>
 #include "ptx.tab.h"
 
+/*
 namespace m5op {
     extern "C" {
-#include "../libgem5cuda/m5op.h"
+#include "../gem5cuda/m5op.h"
     }
 }
+*/
 
 extern int ptx_get_lineno(yyscan_t yyscanner);
 extern YYSTYPE *ptx_get_lval(yyscan_t yyscanner);

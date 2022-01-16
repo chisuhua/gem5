@@ -32,11 +32,11 @@
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
 // TODO schi #include "gpgpu-sim/gpu-sim.h"
-#include "../libgem5cuda/gem5cuda_runtime_api.h"
+#include "gem5cuda/gem5cuda_runtime_api.h"
 
 namespace m5op {
     extern "C" {
-#include "../libgem5cuda/m5op.h"
+#include "gem5cuda/m5op.h"
     }
 }
 
