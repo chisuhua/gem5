@@ -1562,24 +1562,12 @@ unsigned dtype_size(unsigned type) {
   }
 }
 
-void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  bool debug = false;
-  if (debug) fprintf(fp, "Debug: ld_exec:\n");
-  const operand_info &dst = pI->dst();
-  const operand_info &src1 = pI->src1();
-  if (debug) fprintf(fp, "Debug: operand num %d\n", pI->get_num_operands());
-
-  unsigned type = pI->get_type();
-  unsigned dsize = dtype_size(type);
-
-  // ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
-  // ptx_reg_t data;
-  memory_space_t space = pI->get_space();
+void decode_space(memory_space_t &space, const operand_info &op) {
 
   if (space == param_space_unclassified) {
     // need to op to determine whether it refers to a kernel param or local
     // param
-    const symbol *s = src1.get_symbol();
+    const symbol *s = op.get_symbol();
     const type_info *t = s->type();
     type_info_key ti = t->get_key();
     if (ti.is_param_kernel())
@@ -1596,9 +1584,28 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       abort();
     }
   }
+}
+
+void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
+  bool debug = false;
+  if (debug) fprintf(fp, "Debug: ld_exec:\n");
+  const operand_info &dst = pI->dst();
+  const operand_info &src1 = pI->src1();
+  if (debug) fprintf(fp, "Debug: operand num %d\n", pI->get_num_operands());
+
+  unsigned type = pI->get_type();
+  unsigned dsize = dtype_size(type);
+
+  // ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
+  // ptx_reg_t data;
+  memory_space_t space = pI->get_space();
+  unsigned vector_spec = pI->get_vector();
+
+  decode_space(space, src1);
 
   _memory_space_t space_type = space.get_type();
 
+#if 0
   unsigned kernel_param_num;
   if (space_type == param_space_kernel) {
       std::string param_name = src1.get_symbol()->name();
@@ -1624,12 +1631,17 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   } else {
       fprintf(fp, "FIXME on space type is not kernel\n");
   }
+#endif
 
   switch (space_type) {
     case global_space:
       fprintf(fp, "flat_load");
       break;
     case param_space_local:
+      symbol *param = src1.get_symbol();
+      addr_t param_addr = param->get_address();
+      fprintf(fp, "param_load");
+      break;
     case local_space:
       fprintf(fp, "s_load");
       // addr += thread->get_local_mem_stack_pointer();
