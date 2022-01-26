@@ -1562,6 +1562,40 @@ unsigned dtype_size(unsigned type) {
   }
 }
 
+void print_mspace(memory_space_t &space, FILE *fp) {
+  switch (space.get_type()) {
+    case global_space:
+      fprintf(fp, " %% mspace:global");
+      break;
+    case param_space_local:
+    case param_space_kernel:
+      // FIXME on local
+      fprintf(fp, " %% mspace:param");
+      break;
+    case local_space:
+      fprintf(fp, " %% mspace:private");
+      break;
+    case tex_space:
+    case surf_space:
+      fprintf(fp, " %% mspace:surface");
+      break;
+    case shared_space:
+      fprintf(fp, " %% mspace:shared");
+      break;
+    case const_space:
+      fprintf(fp, " %% mspace:const");
+      break;
+    case generic_space:
+      fprintf(fp, " %% mspace:flat");
+      break;
+    case sstarr_space:
+    case param_space_unclassified:
+    case undefined_space:
+    default:
+      abort();
+  }
+}
+
 void decode_space(memory_space_t &space, const operand_info &op) {
 
   if (space == param_space_unclassified) {
@@ -1605,9 +1639,12 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 
   _memory_space_t space_type = space.get_type();
 
-#if 0
   unsigned kernel_param_num;
   if (space_type == param_space_kernel) {
+      const symbol *param = src1.get_symbol();
+      addr_t param_addr = param->get_address();
+      kernel_param_num = param_addr;
+#if 0
       std::string param_name = src1.get_symbol()->name();
       if (debug) fprintf(fp, "DEBUG param str is: %s\n", param_name.c_str());
       std::string::size_type pos = param_name.rfind("param_");
@@ -1630,71 +1667,10 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       fprintf(fp, "s_load_dwordx2 s[%d:%d], s[0:1], %d\n", num*2+2, num*2+3, num*2);
   } else {
       fprintf(fp, "FIXME on space type is not kernel\n");
-  }
 #endif
-
-  switch (space_type) {
-    case global_space:
-      fprintf(fp, "flat_load");
-      break;
-    case param_space_local:
-      symbol *param = src1.get_symbol();
-      addr_t param_addr = param->get_address();
-      fprintf(fp, "param_load");
-      break;
-    case local_space:
-      fprintf(fp, "s_load");
-      // addr += thread->get_local_mem_stack_pointer();
-      break;
-    case tex_space:
-    case surf_space:
-      fprintf(fp, "tbuffer_load");
-      break;
-    case param_space_kernel:
-      fprintf(fp, "flat_load");
-      // mem = thread->get_param_memory();
-      break;
-    case shared_space:
-      fprintf(fp, "local_load");
-      break;
-    case sstarr_space:
-      // mem = thread->m_sstarr_mem;
-      break;
-    case const_space:
-      fprintf(fp, "const_load");
-      break;
-    case generic_space:
-      // convert generic address to memory space address
-      // space = whichspace(addr);
-      fprintf(fp, "flat_load");
-      break;
-      /*
-      switch (space.get_type()) {
-          case global_space:
-            // mem = thread->get_global_memory();
-            addr = generic_to_global(addr);
-            break;
-          case local_space:
-            // mem = thread->m_local_mem;
-            addr = generic_to_local(smid, hwtid, addr);
-            break;
-          case shared_space:
-            // mem = thread->m_shared_mem;
-            addr = generic_to_shared(smid, addr);
-            break;
-          default:
-            abort();
-      }
-      break;
-      */
-    case param_space_unclassified:
-    case undefined_space:
-    default:
-      abort();
   }
 
-
-  unsigned vector_spec = pI->get_vector();
+  fprintf(fp, "v_load");
 
   if (dsize == 1)
     fprintf(fp, "_byte");
@@ -1739,13 +1715,17 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 
   if (space_type == param_space_kernel) {
     unsigned num = kernel_param_num;
-    fprintf(fp, ",\ts[%d:%d]", num*2+2, num*2+3);
+    fprintf(fp, ",\tkernel_param_base, %d", num);
   } else if (src1.is_reg()) {
     // fprintf(fp, ",\tv%u", src1.reg_num());
     fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
+  } else if(src1.is_memory_operand()) {
+    fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
   } else {
-    fprintf(fp, "\tFIXME on st src1 %s\n", __FUNCTION__);
+    fprintf(fp, "\tFIXME on operand src1 %s", __FUNCTION__);
   }
+
+  print_mspace(space, fp);
 
   if (debug) fprintf(fp, "Debug: ld_exec_end \n");
   //    fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1));
@@ -3248,7 +3228,7 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   size_t size;
   int t;
   type_info_key::type_decode(type, size, t);
-  fprintf(fp, "flat_store");
+  fprintf(fp, "v_store");
 
   unsigned dsize = dtype_size(type);
 
@@ -3269,10 +3249,9 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     if (dst.is_reg()) {
         fprintf(fp, ",\t%s", finfo->get_coasm_reg(dst, 2).c_str());
     } else if (dst.is_memory_operand()) {
-        // FIXME
-        //fprintf(fp, ",\t%x", dst.get_literal_value());
-        fprintf(fp, ",\t0x%x", dst.get_int());
+        fprintf(fp, ",\t%s", finfo->get_coasm_reg(dst, 2).c_str());
     } else {
+        fprintf(fp, "\tFIXME on dst operand %s ", __func__);
     }
     // data = thread->get_operand_value(src1, dst, type, thread, 1);
     // mem->write(addr, size / 8, &data.s64, thread, pI);
@@ -3308,6 +3287,8 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // delete[] ptx_regs;
     }
   }
+
+  print_mspace(space, fp);
   // thread->m_last_effective_address = addr;
   // thread->m_last_memory_space = space;
 }

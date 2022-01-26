@@ -27,6 +27,7 @@ class gpgpu_context {
     ptx_parser = new ptx_recognizer(this);
     the_gpgpusim = new GPGPUsim_ctx(this);
     func_sim = new cuda_sim(this);
+    // opufunc_sim = new opu_sim(this);
     device_runtime = new cuda_device_runtime(this);
     stats = new ptx_stats(this);
   }
@@ -51,6 +52,7 @@ class gpgpu_context {
   ptx_recognizer *ptx_parser;
   GPGPUsim_ctx *the_gpgpusim;
   cuda_sim *func_sim;
+  // opu_sim *opufunc_sim;
   cuda_device_runtime *device_runtime;
   ptx_stats *stats;
   // member function list

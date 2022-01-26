@@ -136,6 +136,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
         ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
             *kernel);
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
+      //} else if (ctx->opufunc_sim->g_sim_mode) {
       } else {
         //performance simulation
         if ( gem5gpu_active() ) {

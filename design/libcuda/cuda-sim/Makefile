@@ -29,7 +29,7 @@
 default: libgpgpu_ptx_sim.a
 
 INTEL=0
-DEBUG?=0
+DEBUG?=1
 TRACE?=0
 
 CPP = g++ $(SNOW)

@@ -692,9 +692,9 @@ void function_info::gen_coasm(FILE *fp) {
   if (m_coasm_special_sregs[BLOCK_DIM_X].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_X;
   if (m_coasm_special_sregs[BLOCK_DIM_Y].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Y;
   if (m_coasm_special_sregs[BLOCK_DIM_Z].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Z;
-  if (m_coasm_special_sregs[BLOCK_DIM_X].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_X;
-  if (m_coasm_special_sregs[BLOCK_DIM_Y].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Y;
-  if (m_coasm_special_sregs[BLOCK_DIM_Z].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Z;
+  if (m_coasm_special_sregs[BLOCK_IDX_X].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_X;
+  if (m_coasm_special_sregs[BLOCK_IDX_Y].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Y;
+  if (m_coasm_special_sregs[BLOCK_IDX_Z].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Z;
   fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
   fprintf(fp, "    .kernel_mode: %d\n", 0);
   fprintf(fp, "amdhsa.version:\n");
