@@ -7,6 +7,7 @@
 #include "../libcuda/cuda-sim/ptx_parser.h"
 #include "../libcuda/gpgpusim_entrypoint.h"
 #include "cuda_api_object.h"
+class IsaSim;
 
 namespace libcuda {
 class gpgpu_context {
@@ -52,7 +53,7 @@ class gpgpu_context {
   ptx_recognizer *ptx_parser;
   GPGPUsim_ctx *the_gpgpusim;
   cuda_sim *func_sim;
-  // opu_sim *opufunc_sim;
+  IsaSim *isa_sim;
   cuda_device_runtime *device_runtime;
   ptx_stats *stats;
   // member function list

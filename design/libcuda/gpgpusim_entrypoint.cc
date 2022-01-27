@@ -133,8 +133,12 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
             ctx->the_gpgpusim->g_the_gpu->get_functional_kernel();
         // assert(kernel);
         if (!kernel) break;
-        ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
-            *kernel);
+        if (ctx->func_sim->g_ptx_sim_mode > 1) {
+            ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_isa_sim_main_func(
+                *kernel);
+        } else {
+            ctx->the_gpgpusim->gpgpu_ctx->isa_sim->launch(*kernel);
+        }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
       //} else if (ctx->opufunc_sim->g_sim_mode) {
       } else {
