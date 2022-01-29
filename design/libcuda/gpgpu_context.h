@@ -57,6 +57,7 @@ class gpgpu_context {
   cuda_device_runtime *device_runtime;
   ptx_stats *stats;
   // member function list
+  IsaSim *get_isasim();
   void synchronize();
   void exit_simulation();
   void print_simulation_time();

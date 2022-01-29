@@ -36,8 +36,10 @@
 #include "option.h"
 // #include "gpgpu-sim/icnt_wrapper.h"
 #include "../libcuda/stream_manager.h"
+#include "../opu/isasim/executor/inc/IsaSim.h"
 
 #include "gem5cuda/gem5cuda_runtime_api.h"
+#include <dlfcn.h>
 
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -133,11 +135,11 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
             ctx->the_gpgpusim->g_the_gpu->get_functional_kernel();
         // assert(kernel);
         if (!kernel) break;
-        if (ctx->func_sim->g_ptx_sim_mode > 1) {
-            ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_isa_sim_main_func(
+        if (ctx->func_sim->g_ptx_sim_mode == 1) {
+            ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
                 *kernel);
         } else {
-            ctx->the_gpgpusim->gpgpu_ctx->isa_sim->launch(*kernel);
+            ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(*kernel);
         }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
       //} else if (ctx->opufunc_sim->g_sim_mode) {
@@ -188,6 +190,27 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
 
   sem_post(&(ctx->the_gpgpusim->g_sim_signal_exit));
   return NULL;
+}
+
+typedef IsaSim* (*pfn_make_isasim)();
+
+IsaSim* gpgpu_context::get_isasim() {
+    static IsaSim* isasim = nullptr;
+    if (isasim == nullptr) {
+        void* lib_handle = dlopen("libisasim.so", RTLD_NOW | RTLD_GLOBAL);
+        if (lib_handle == nullptr) {
+            printf("Failed to load libisasim.so, error - %sn\n", dlerror());
+            exit(-1);
+        }
+        pfn_make_isasim make_isasim = (pfn_make_isasim)dlsym(lib_handle, "make_isasim");
+
+        if (make_isasim == nullptr) {
+            printf("Failed to dlsym make_isasim, error - %sn\n", dlerror());
+            exit(-1);
+        }
+        isasim = make_isasim();
+    }
+    return isasim;
 }
 
 void gpgpu_context::synchronize() {
