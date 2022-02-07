@@ -32,7 +32,7 @@
 #include "ptx_ir.h"
 
 namespace libcuda {
-// class type_info;
+class type_info;
 // class symbol;
 class gpgpu_context;
 }
@@ -77,7 +77,7 @@ class ptx_recognizer {
   int g_add_identifier_cached__array_ident;
   int g_alignment_spec;
   // variable declaration stuff:
-  type_info *g_var_type;
+  libcuda::type_info *g_var_type;
   // instruction definition stuff:
   const symbol *g_pred;
   int g_neg_pred;

@@ -142,6 +142,7 @@
 #include "../libcuda/cuda-sim/ptx_loader.h"
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/cuda-sim/ptx_ir.h"
+#include "../opu/umd/Umd.h"
 
 #include "gem5cuda/gem5cuda_runtime_api.h"
 
@@ -851,7 +852,28 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   global_mem = gpu->get_global_memory();
 
   if (context->get_device()->get_gpgpu()->get_config().convert_to_coasm()) {
-    kernel_func_info->gen_coasm(gpu->get_ptx_convert_to_coasm_file());
+    FILE *fp_coasm = fopen(kname.c_str(), "w");
+    kernel_func_info->gen_coasm(fp_coasm);
+    fclose(fp_coasm);
+  }
+
+  if (ctx->func_sim->g_ptx_sim_mode == 2) {
+    FILE *fp_coasm;
+    if (fp_coasm = fopen(kname.c_str(), "r")) {
+    } else {
+      fp_coasm = fopen(kname.c_str(), "w");
+      kernel_func_info->gen_coasm(fp_coasm);
+    }
+    fclose(fp_coasm);
+    char command[1000];
+    snprintf(command, 1000,
+            "python $DESIGN_ROOT/opu/coasm/assembler.py %s", kname.c_str());
+    printf("LIBCUDA INFO: running coasm assembler: %s\n", command);
+    if (system(command) != 0) {
+      printf("WARNING: Failed to execute assembler to get codeobject\n");
+      exit(0);
+    }
+    auto exec = Umd::get(context)->load_program(kname + ".so", context);
   }
 
   if (gpu->resume_option == 1 && (grid->get_uid() == gpu->resume_kernel)) {
@@ -899,7 +921,9 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
   CUctx_st *context = GPGPUSim_Context(ctx);
 
   // TODO
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->func_sim->g_ptx_sim_mode == 2) {
+    Umd::get(context)->memory_allocate(size, devPtr);
+  } else if (ctx->func_sim->g_ptx_sim_mode == 1) {
     *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
   } else {
     gem5cudaMalloc(devPtr, size);

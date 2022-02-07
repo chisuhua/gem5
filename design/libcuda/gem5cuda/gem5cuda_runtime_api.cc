@@ -185,7 +185,7 @@ static void set_run_in_gem5() {
     } else {
         app_run_in_gem5 = -1;
         void* libgem5_sc_handle = dlopen("libgem5_sc.so", RTLD_LAZY | RTLD_GLOBAL);
-        if (libgem5_sc_handle = nullptr) {
+        if (libgem5_sc_handle == nullptr) {
             printf("dlopen error - %s\n", dlerror());
             assert(false);
         }

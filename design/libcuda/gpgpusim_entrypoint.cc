@@ -36,7 +36,7 @@
 #include "option.h"
 // #include "gpgpu-sim/icnt_wrapper.h"
 #include "../libcuda/stream_manager.h"
-#include "../opu/isasim/executor/inc/IsaSim.h"
+#include "inc/IsaSim.h"
 
 #include "gem5cuda/gem5cuda_runtime_api.h"
 #include <dlfcn.h>
@@ -138,7 +138,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
         if (ctx->func_sim->g_ptx_sim_mode == 1) {
             ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
                 *kernel);
-        } else {
+        } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
             ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(*kernel);
         }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);

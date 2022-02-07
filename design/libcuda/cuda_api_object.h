@@ -12,6 +12,7 @@
 #include "../libcuda/cuda-sim/ptx_ir.h"
 #include "../libcuda/gpu-sim.h"
 #include "cuobjdump.h"
+#include "../libcuda/CUctx.h"
 
 using namespace libcuda;
 
@@ -30,48 +31,23 @@ struct glbmap_entry {
 
 typedef struct glbmap_entry glbmap_entry_t;
 
-struct _cuda_device_id {
-  _cuda_device_id(gpgpu_sim *gpu) {
-    m_id = 0;
-    m_next = NULL;
-    m_gpgpu = gpu;
+struct _cuda_device_id : public device_id {
+  _cuda_device_id(gpgpu_sim *gpu) :
+      device_id(gpu)
+  {
   }
-  struct _cuda_device_id *next() {
-    return m_next;
-  }
+
   unsigned num_shader() const { return m_gpgpu->get_config().num_shader(); }
-  int num_devices() const {
-    if (m_next == NULL)
-      return 1;
-    else
-      return 1 + m_next->num_devices();
-  }
-  struct _cuda_device_id *get_device(unsigned n) {
-    assert(n < (unsigned)num_devices());
-    struct _cuda_device_id *p = this;
-    for (unsigned i = 0; i < n; i++) p = p->m_next;
-    return p;
-  }
   const struct cudaDeviceProp *get_prop() const { return m_gpgpu->get_prop(); }
-  unsigned get_id() const { return m_id; }
-
-  gpgpu_sim *get_gpgpu() { return m_gpgpu; }
-
- private:
-  unsigned m_id;
-  class gpgpu_sim *m_gpgpu;
-  struct _cuda_device_id *m_next;
 };
 
-struct CUctx_st {
-  CUctx_st(_cuda_device_id *gpu) {
-    m_gpu = gpu;
+struct CUctx_st : public CUctx {
+  CUctx_st(_cuda_device_id *gpu) :
+      CUctx(gpu) {
     m_binary_info.cmem = 0;
     m_binary_info.gmem = 0;
     no_of_ptx = 0;
   }
-
-  _cuda_device_id *get_device() { return m_gpu; }
 
   void add_binary(symbol_table *symtab, unsigned fat_cubin_handle) {
     m_code[fat_cubin_handle] = symtab;
@@ -126,7 +102,6 @@ struct CUctx_st {
   int no_of_ptx;
 
  private:
-  _cuda_device_id *m_gpu;  // selected gpu
   std::map<unsigned, symbol_table *>
       m_code;  // fat binary handle => global symbol table
   unsigned m_last_fat_cubin_handle;
