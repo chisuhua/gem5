@@ -194,7 +194,7 @@ static kernel_info_t *gpgpu_cuda_ptx_sim_init_grid( const char *kernel_key,
     gpgpu_ptx_sim_arg_list_t args,
     struct dim3 gridDim,
     struct dim3 blockDim,
-    struct CUctx_st* context );
+    struct CUctx_st* context, char** buffer = nullptr );
 
 
 #if !defined(__dv)
@@ -800,6 +800,10 @@ cudaError_t cudaSetupArgumentInternal(const void *arg, size_t size,
   return g_last_cudaError = cudaSuccess;
 }
 
+extern "C" cudaError_t CUDARTAPI cudaMemcpy(void *dst, const void *src,
+                                          size_t count,
+                                          enum cudaMemcpyKind kind) ;
+
 cudaError_t cudaLaunchInternal(const char *hostFun,
                                gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
@@ -827,9 +831,11 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
          (ctx->func_sim->g_ptx_sim_mode) ? "functional simulation"
                                          : "performance simulation",
          stream ? stream->get_uid() : 0);
+
+  char* buffer;
   kernel_info_t *grid = ctx->api->gpgpu_cuda_ptx_sim_init_grid(
       hostFun, config.get_args(), config.grid_dim(), config.block_dim(),
-      context);
+      context, &buffer);
   // do dynamic PDOM analysis for performance simulation scenario
   std::string kname = grid->name();
   function_info *kernel_func_info = grid->entry();
@@ -873,7 +879,16 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       printf("WARNING: Failed to execute assembler to get codeobject\n");
       exit(0);
     }
-    auto exec = Umd::get(context)->load_program(kname + ".so", context);
+    auto exec = Umd::get(context)->load_program(kname + ".so");
+    DispatchInfo *disp_info = grid->disp_info();
+
+    void* param_addr;
+    // cudaMallocInternal(&param_addr, size);
+    Umd::get(context)->memory_allocate(1000, &param_addr);
+    Umd::get(context)->set_kernel_disp(kname, exec, disp_info, gridDim, blockDim, (uint64_t)param_addr);
+    // disp_info->kernel_param_addr = ptr;
+
+    cudaMemcpy(param_addr, buffer, kernel_func_info->get_args_aligned_size(), cudaMemcpyHostToDevice);
   }
 
   if (gpu->resume_option == 1 && (grid->get_uid() == gpu->resume_kernel)) {
@@ -3772,7 +3787,7 @@ int cuda_runtime_api::load_constants(symbol_table *symtab, addr_t min_gaddr,
 
 kernel_info_t *cuda_runtime_api::gpgpu_cuda_ptx_sim_init_grid(
     const char *hostFun, gpgpu_ptx_sim_arg_list_t args, struct dim3 gridDim,
-    struct dim3 blockDim, CUctx_st *context) {
+    struct dim3 blockDim, CUctx_st *context, char** buffer) {
   if (g_debug_execution >= 3) {
     announce_call(__my_func__);
   }
@@ -3785,6 +3800,7 @@ kernel_info_t *cuda_runtime_api::gpgpu_cuda_ptx_sim_init_grid(
   kernel_info_t *result =
       new kernel_info_t(gridDim,blockDim,entry,gpu->getNameArrayMapping(),
                         gpu->getNameInfoMapping());
+  result->m_hostFun = hostFun;
   if( entry == NULL ) {
     printf(
         "GPGPU-Sim PTX: ERROR launching kernel -- no PTX implementation found "
@@ -3800,7 +3816,9 @@ kernel_info_t *cuda_runtime_api::gpgpu_cuda_ptx_sim_init_grid(
     argn++;
   }
 
-  entry->finalize(result->get_param_memory());
+  *buffer = (char*)malloc(entry->get_args_aligned_size());
+
+  entry->finalize(result->get_param_memory(), *buffer);
   gpgpu_ctx->func_sim->g_ptx_kernel_count++;
   fflush(stdout);
 

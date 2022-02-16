@@ -31,6 +31,7 @@
 #include <string>
 #include "builtin_types.h"
 
+class DispatchInfo;
 namespace libcuda {
 // Forward declarations
 class gpgpu_sim;
@@ -248,6 +249,7 @@ public:
     return m_kernel_entry;
   }
   const class function_info *entry() const { return m_kernel_entry; }
+  DispatchInfo *disp_info() const { return m_disp_info; }
 
   size_t num_blocks() const {
     return m_grid_dim.x * m_grid_dim.y * m_grid_dim.z;
@@ -321,6 +323,7 @@ private:
   void operator=(const kernel_info_t & ); // disable copy operator
 
   class function_info *m_kernel_entry;
+  class DispatchInfo *m_disp_info;
 
   unsigned m_uid;
   static unsigned m_next_uid;
@@ -358,6 +361,8 @@ public:
   void destroy_cta_streams();
   void print_parent_info();
   kernel_info_t *get_parent() { return m_parent_kernel; }
+
+  const char* m_hostFun;
 
 private:
   kernel_info_t * m_parent_kernel;

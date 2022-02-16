@@ -186,7 +186,7 @@ class cuda_runtime_api {
                                               gpgpu_ptx_sim_arg_list_t args,
                                               struct dim3 gridDim,
                                               struct dim3 blockDim,
-                                              struct CUctx_st *context);
+                                              struct CUctx_st *context, char** buffer = nullptr);
   int load_static_globals(symbol_table *symtab, unsigned min_gaddr,
                           unsigned max_gaddr, gpgpu_t *gpu);
   int load_constants(symbol_table *symtab, addr_t min_gaddr, gpgpu_t *gpu);

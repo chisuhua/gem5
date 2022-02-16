@@ -1338,7 +1338,7 @@ class function_info {
   }
   addr_t get_start_PC() const { return m_start_PC; }
 
-  void finalize(memory_space *param_mem);
+  void finalize(memory_space *param_mem, char* buffer = nullptr);
   void param_to_shared(memory_space *shared_mem, symbol_table *symtab);
   void list_param(FILE *fout) const;
   void ptx_jit_config(std::map<unsigned long long, size_t> mallocPtr_Size,

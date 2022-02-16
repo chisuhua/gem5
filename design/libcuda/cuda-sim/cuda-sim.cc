@@ -1416,7 +1416,7 @@ unsigned function_info::get_args_aligned_size() {
   return m_args_aligned_size;
 }
 
-void function_info::finalize(memory_space *param_mem) {
+void function_info::finalize(memory_space *param_mem, char *buffer) {
   unsigned param_address = 0;
   for (std::map<unsigned, param_info>::iterator i =
            m_ptx_kernel_param_info.begin();
@@ -1458,6 +1458,9 @@ void function_info::finalize(memory_space *param_mem) {
       const char *pdata = reinterpret_cast<const char *>(param_value.pdata) +
                           idx;  // cast to char * for ptr arithmetic
       param_mem->write(param_address + idx, word_size, pdata, NULL, NULL);
+      if (buffer != nullptr) {
+          *(uint64_t*)(buffer + param_address +idx) = *(uint64_t*)(pdata);
+      }
     }
     unsigned offset = p.get_offset();
     assert(offset == param_address);

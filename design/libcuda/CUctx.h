@@ -1,5 +1,10 @@
 // #include "../libcuda/gpu-sim.h"
 #include <cassert>
+#include <map>
+
+class KernelSymbol;
+class KernelInfo;
+class IAgent;
 
 namespace libcuda {
 class gpgpu_sim;
@@ -41,7 +46,39 @@ struct CUctx {
   CUctx(device_id *gpu) {
     m_gpu = gpu;
   }
+#if 0
+  void add_codeobject(KernelSymbol *sym, unsigned fat_cubin_handle) {
+    m_codeobject[fat_cubin_handle] = sym;
+  }
+#endif
   device_id *get_device() { return m_gpu; }
+
+#if 0
+  void register_executable(const char *hostFun, KernelInfo *f) {
+    m_executable_lookup[hostFun] = f;
+  }
+  KernelInfo *get_executable(const char *hostFun) {
+    std::map<const char *, KernelInfo*>::iterator i =
+        m_executable_lookup.find(hostFun);
+    assert(i != m_executable_lookup.end());
+    return i->second;
+  }
+#endif
+
+  IAgent* get_agent() {
+    return m_agent;
+  }
+
+  void set_agent(IAgent* agent) {
+    m_agent = agent;
+  }
+
+private:
+#if 0
+  std::map<unsigned, KernelSymbol *> m_codeobject; // fab binary handle -> global symbol table
+  std::map<const void*, KernelInfo *> m_executable_lookup; // unique id (CUDA app function address) -> kernel exec
+#endif
+  IAgent* m_agent;
 
   device_id *m_gpu;  // selected gpu
 };
