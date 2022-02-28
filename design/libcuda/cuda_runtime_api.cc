@@ -879,7 +879,7 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       printf("WARNING: Failed to execute assembler to get codeobject\n");
       exit(0);
     }
-    auto exec = Umd::get(context)->load_program(kname + ".so");
+    auto exec = Umd::get(context)->load_program(kname + ".o");
     DispatchInfo *disp_info = grid->disp_info();
 
     void* param_addr;
