@@ -825,6 +825,7 @@ kernel_info_t::~kernel_info_t() {
   assert(m_active_threads.empty());
   destroy_cta_streams();
   delete m_param_mem;
+  if (m_disp_info != nullptr) delete m_disp_info;
 }
 
 std::string kernel_info_t::name() const { return m_kernel_entry->get_name(); }

@@ -249,6 +249,7 @@ public:
     return m_kernel_entry;
   }
   const class function_info *entry() const { return m_kernel_entry; }
+  DispatchInfo **ptr_to_disp_info() { return &m_disp_info; }
   DispatchInfo *disp_info() const { return m_disp_info; }
 
   size_t num_blocks() const {

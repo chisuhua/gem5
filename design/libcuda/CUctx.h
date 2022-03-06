@@ -1,3 +1,4 @@
+#pragma once
 // #include "../libcuda/gpu-sim.h"
 #include <cassert>
 #include <map>

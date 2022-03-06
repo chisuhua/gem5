@@ -141,8 +141,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
                 *kernel);
         } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
             DispatchInfo *dispinfo = kernel->disp_info();
-            KernelInfo kinfo(*dispinfo);
-            ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(kinfo, *dispinfo);
+            ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(*dispinfo);
         }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
       //} else if (ctx->opufunc_sim->g_sim_mode) {
@@ -195,7 +194,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
   return NULL;
 }
 
-typedef IsaSim* (*pfn_make_isasim)();
+typedef IsaSim* (*pfn_make_isasim)(libcuda::gpgpu_t* gpu, libcuda::gpgpu_context *ctx);
 
 IsaSim* gpgpu_context::get_isasim() {
     static IsaSim* isasim = nullptr;
@@ -211,7 +210,7 @@ IsaSim* gpgpu_context::get_isasim() {
             printf("Failed to dlsym make_isasim, error - %sn\n", dlerror());
             exit(-1);
         }
-        isasim = make_isasim();
+        isasim = make_isasim(this->the_gpgpusim->g_the_gpu, this);
     }
     return isasim;
 }

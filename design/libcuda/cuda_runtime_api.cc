@@ -880,12 +880,12 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       exit(0);
     }
     auto exec = Umd::get(context)->load_program(kname + ".o");
-    DispatchInfo *disp_info = grid->disp_info();
+    DispatchInfo **ptr_to_disp_info = grid->ptr_to_disp_info();
 
     void* param_addr;
     // cudaMallocInternal(&param_addr, size);
     Umd::get(context)->memory_allocate(1000, &param_addr);
-    Umd::get(context)->set_kernel_disp(kname, exec, disp_info, gridDim, blockDim, (uint64_t)param_addr);
+    Umd::get(context)->set_kernel_disp(kname, exec, ptr_to_disp_info, gridDim, blockDim, (uint64_t)param_addr);
     // disp_info->kernel_param_addr = ptr;
 
     cudaMemcpy(param_addr, buffer, kernel_func_info->get_args_aligned_size(), cudaMemcpyHostToDevice);
