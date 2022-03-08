@@ -279,9 +279,14 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
       start_sim_thread(1);
     } else {
       int count;
+      Umd::get(nullptr)->getDeviceCount(&count);
+      Umd::get(nullptr)->getDeviceProperties((void*)prop, 0);
+      Umd::get(nullptr)->getDevice((int*)the_device);
+      /*
       gem5cudaGetDeviceCount(&count);
       gem5cudaGetDeviceProperties(prop, 0);
       gem5cudaGetDevice((int*)the_device);
+      */
     }
   }
   return the_device;
@@ -612,7 +617,8 @@ __host__ cudaError_t CUDARTAPI cudaDeviceGetLimitInternal(
         abort();
     }
   } else {
-    gem5cudaGetDeviceProperties(const_cast<cudaDeviceProp *>(prop), dev->get_id());
+    Umd::get(nullptr)->getDeviceProperties((void*)prop, dev->get_id());
+    // gem5cudaGetDeviceProperties(const_cast<cudaDeviceProp *>(prop), dev->get_id());
   }
   return g_last_cudaError = cudaSuccess;
 }
@@ -755,7 +761,9 @@ cudaGetDeviceCountInternal(int *count, gpgpu_context *gpgpu_ctx = NULL) {
     *count = dev->num_devices();
     return g_last_cudaError = cudaSuccess;
   } else {
-    return gem5cudaGetDeviceCount(count);
+    Umd::get(nullptr)->getDeviceCount(count);
+    return g_last_cudaError = cudaSuccess;
+    // return gem5cudaGetDeviceCount(count);
   }
 }
 
@@ -771,7 +779,9 @@ __host__ cudaError_t CUDARTAPI cudaGetDevicePropertiesInternal(
         return g_last_cudaError = cudaErrorInvalidDevice;
     }
   } else{
-    return gem5cudaGetDeviceProperties(prop, device);
+    Umd::get(nullptr)->getDeviceProperties(prop, device);
+    return g_last_cudaError = cudaSuccess;
+    // return gem5cudaGetDeviceProperties(prop, device);
   }
 }
 
@@ -941,7 +951,8 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
   } else if (ctx->func_sim->g_ptx_sim_mode == 1) {
     *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
   } else {
-    gem5cudaMalloc(devPtr, size);
+    Umd::get(context)->memory_allocate(size, devPtr);
+    // gem5cudaMalloc(devPtr, size);
   }
 
   if (g_debug_execution >= 3){
@@ -959,10 +970,12 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
 cudaError_t cudaMallocHostInternal(void **ptr, size_t size,
                                    gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
+  CUctx_st *context = GPGPUSim_Context(ctx);
   if (ctx->func_sim->g_ptx_sim_mode) {
     *ptr = malloc(size);
   } else {
-    gem5cudaMalloc(ptr, size);
+    Umd::get(context)->memory_allocate(size, ptr);
+    // gem5cudaMalloc(ptr, size);
   }
 
   if ( *ptr  ) {
@@ -1019,7 +1032,8 @@ cudaError_t cudaHostGetDevicePointerInternal(void **pDevice, void *pHost,
   if (ctx->func_sim->g_ptx_sim_mode) {
     *pDevice = gpu->gpu_malloc(size);
   } else {
-    gem5cudaMalloc(pDevice, size);
+    Umd::get(context)->memory_allocate(size, pDevice);
+    // gem5cudaMalloc(pDevice, size);
   }
   if (g_debug_execution >= 3){
     printf("GPGPU-Sim PTX: cudaMallocing %zu bytes starting at 0x%llx..\n",
@@ -1110,7 +1124,18 @@ cudaMemcpyInternal(void *dst, const void *src, size_t count,
       abort();
     }
   } else {
-    gem5cudaMemcpy(dst, src, count, kind);
+    // gem5cudaMemcpy(dst, src, count, kind);
+    CUctx_st *context = GPGPUSim_Context(ctx);
+    UmdMemcpyKind umd_kind;
+    if (kind == cudaMemcpyHostToDevice)
+        umd_kind = UmdMemcpyKind::HostToDevice;
+    else if (kind == cudaMemcpyDeviceToHost)
+        umd_kind = UmdMemcpyKind::DeviceToHost;
+    else if (kind == cudaMemcpyDeviceToDevice)
+        umd_kind = UmdMemcpyKind::DeviceToDevice;
+    else if (kind == cudaMemcpyDefault)
+        umd_kind = UmdMemcpyKind::Default;
+    Umd::get(context)->memory_copy(dst, src, count, umd_kind);
   }
 
   if (g_debug_execution >= 3)

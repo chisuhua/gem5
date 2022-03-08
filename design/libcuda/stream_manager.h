@@ -271,7 +271,7 @@ private:
 class stream_manager {
 public:
   stream_manager(gpgpu_sim *gpu, bool cuda_launch_blocking );
-  bool register_finished_kernel(unsigned grid_uid  );
+  bool register_finished_kernel(unsigned grid_uid , bool check_no_more_ctas_to_run = true );
   bool check_finished_kernel(  );
   stream_operation front();
   bool ready();

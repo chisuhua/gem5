@@ -244,7 +244,12 @@ public:
     m_num_cores_running--;
   }
   bool running() const { return m_num_cores_running > 0; }
-  bool done() const { return no_more_ctas_to_run() && !running(); }
+  bool done(bool check_no_more_ctas_to_run = true) const {
+    if (check_no_more_ctas_to_run)
+      return no_more_ctas_to_run() && !running();
+    else
+      return !running();
+  }
   class function_info *entry() {
     return m_kernel_entry;
   }
@@ -353,7 +358,7 @@ public:
   void set_parent(kernel_info_t * parent, dim3 parent_ctaid, dim3 parent_tid);
   void set_child(kernel_info_t * child);
   void remove_child(kernel_info_t * child);
-  bool is_finished();
+  bool is_finished(bool check_no_more_ctas_to_run = true);
   bool children_all_finished();
   void notify_parent_finished();
   CUstream_st *create_stream_cta(dim3 ctaid);

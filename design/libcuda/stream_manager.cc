@@ -293,14 +293,14 @@ bool stream_manager::check_finished_kernel() {
   return check;
 }
 
-bool stream_manager::register_finished_kernel(unsigned grid_uid) {
+bool stream_manager::register_finished_kernel(unsigned grid_uid, bool check_no_more_ctas_to_run) {
   // called by gpu simulation thread
   if (grid_uid > 0) {
     CUstream_st *stream = m_grid_id_to_stream[grid_uid];
     kernel_info_t *kernel = stream->front().get_kernel();
     assert( grid_uid == kernel->get_uid() );
     // Jin: should check children kernels for CDP
-    if (kernel->is_finished()) {
+    if (kernel->is_finished(check_no_more_ctas_to_run)) {
       //            std::ofstream kernel_stat("kernel_stat.txt",
       //            std::ofstream::out | std::ofstream::app); kernel_stat<< "
       //            kernel " << grid_uid << ": " << kernel->name();

@@ -850,8 +850,8 @@ void kernel_info_t::remove_child(kernel_info_t * child) {
   m_child_kernels.remove(child);
 }
 
-bool kernel_info_t::is_finished() {
-  if(done() && children_all_finished())
+bool kernel_info_t::is_finished(bool check_no_more_ctas_to_run) {
+  if(done(check_no_more_ctas_to_run) && children_all_finished())
      return true;
   else
      return false;

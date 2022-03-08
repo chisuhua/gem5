@@ -141,7 +141,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
                 *kernel);
         } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
             DispatchInfo *dispinfo = kernel->disp_info();
-            ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(*dispinfo);
+            ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(*dispinfo, kernel->get_uid());
         }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
       //} else if (ctx->opufunc_sim->g_sim_mode) {
