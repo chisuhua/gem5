@@ -358,4 +358,4 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     for cluster in l2_clusters:
         complete_cluster.add(cluster)
 
-    return (all_sequencers, dir_cntrls, complete_cluster)
+    return (all_sequencers, dir_cntrls, dma_cntrls, complete_cluster)

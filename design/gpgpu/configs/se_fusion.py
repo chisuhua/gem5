@@ -175,7 +175,7 @@ if options.split:
         #
         # Reset Ruby's phys_mem to add the device memory range
         #
-        system.ruby.phys_mem = SimpleMemory(range=total_mem_range,
+        system.ruby.physmem = SimpleMemory(range=total_mem_range,
                                             in_addr_map=False)
 
 #

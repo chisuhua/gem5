@@ -94,7 +94,7 @@ RubySystem::RubySystem(const Params &p)
     statistics::registerDumpCallback([this]() { collateStats(); });
     // Create the profiler
     m_profiler = new Profiler(p, this);
-    m_phys_mem = p.phys_mem;
+    m_physmem = p.physmem;
 }
 
 void

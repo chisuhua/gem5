@@ -76,7 +76,7 @@ def addGPUOptions(parser):
 
 def configureMemorySpaces(options):
     #total_mem_range = AddrRange(options.total_mem_size)
-    total_mem_range = AddrRange()
+    total_mem_range = AddrRange(options.gpu_mem_size)
     cpu_mem_range = total_mem_range
     gpu_mem_range = total_mem_range
 
@@ -104,7 +104,7 @@ def configureMemorySpaces(options):
         cpu_mem_range = AddrRange(options.total_mem_size)
         options.num_dev_dirs = 1
     elif options.system_config == 'cpu_only':
-        buildEnv['PROTOCOL'] +=  '_cpu_only'
+        buildEnv['PROTOCOL'] +=  ''
     else:
         buildEnv['PROTOCOL'] +=  '_fusion'
     return (cpu_mem_range, gpu_mem_range, total_mem_range)

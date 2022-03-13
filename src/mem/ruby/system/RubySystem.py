@@ -43,7 +43,7 @@ class RubySystem(ClockedObject):
     memory_size_bits = Param.UInt32(64,
         "number of bits that a memory address requires");
 
-    phys_mem = Param.SimpleMemory(NULL, "")
+    physmem = Param.SimpleMemory(NULL, "")
     system = Param.System(Parent.any, "system object")
 
     access_backing_store = Param.Bool(False, "Use phys_mem as the functional \

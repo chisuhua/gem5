@@ -75,7 +75,7 @@ class RubySystem : public ClockedObject
     static bool getWarmupEnabled() { return m_warmup_enabled; }
     static bool getCooldownEnabled() { return m_cooldown_enabled; }
 
-    memory::SimpleMemory *getPhysMem() { return m_phys_mem; }
+    memory::SimpleMemory *getPhysMem() { return m_physmem; }
     Cycles getStartCycle() { return m_start_cycle; }
     bool getAccessBackingStore() { return m_access_backing_store; }
 
@@ -142,7 +142,7 @@ class RubySystem : public ClockedObject
     static bool m_warmup_enabled;
     static unsigned m_systems_to_warmup;
     static bool m_cooldown_enabled;
-    memory::SimpleMemory *m_phys_mem;
+    memory::SimpleMemory *m_physmem;
     const bool m_access_backing_store;
 
     //std::vector<Network *> m_networks;

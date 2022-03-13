@@ -252,6 +252,7 @@ if options.system_config != 'cpu_only':
 if options.mem_type == "RubyMemoryControl":
     GPUMemConfig.setMemoryControlOptions(system, options)
 
+system.workload = SEWorkload.init_compatible(process.executable)
 #
 # Finalize setup and run
 #

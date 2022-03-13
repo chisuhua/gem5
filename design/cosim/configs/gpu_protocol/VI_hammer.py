@@ -54,8 +54,8 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
     if 'VI_hammer' not in buildEnv['PROTOCOL']:
         panic("This script requires the VI_hammer protocol to be built.")
 
-    options.access_backing_store = True
-    #options.access_backing_store = False
+    #options.access_backing_store = True
+    options.access_backing_store = False
 
     cpu_sequencers = []
     #
@@ -217,6 +217,7 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
 
         exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
         dir_cntrl_nodes.append(dir_cntrl)
+        topology.add(dir_cntrl)
 
         # Connect the directory controller to the network
         dir_cntrl.forwardFromDir = MessageBuffer()
@@ -290,3 +291,4 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
     ruby_system.network.number_of_virtual_networks = 10
 
     return (cpu_sequencers, dir_cntrl_nodes, dma_cntrl_nodes, topology)
+    #return (cpu_sequencers, dir_cntrl_nodes, topology)

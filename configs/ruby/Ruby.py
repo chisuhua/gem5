@@ -95,8 +95,10 @@ def define_options(parser):
         help="Recycle latency for ruby controller input buffers")
 
     protocol = buildEnv['PROTOCOL']
-    #exec("from . import %s" % protocol)
-    exec("import %s" % protocol)
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), protocol + ".py")):
+        exec("from . import %s" % protocol)
+    else:
+        exec("from gpu_protocol import %s" % protocol)
     eval("%s.define_options(parser)" % protocol)
     Network.define_options(parser)
 
@@ -198,9 +200,12 @@ def create_system(options, full_system, system, piobus = None, dma_ports = [],
 
     protocol = buildEnv['PROTOCOL']
     #TODO fix for gpgpu exec("from . import %s" % protocol)
-    exec("import %s" % protocol)
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), protocol + ".py")):
+        exec("from . import %s" % protocol)
+    else:
+        exec("from gpu_protocol import %s" % protocol)
     try:
-        (cpu_sequencers, dir_cntrls, topology) = \
+        (cpu_sequencers, dir_cntrls, dma_cntrls, topology) = \
              eval("%s.create_system(options, full_system, system, dma_ports,\
                                     bootmem, ruby, cpus)"
                   % protocol)
@@ -223,7 +228,8 @@ def create_system(options, full_system, system, piobus = None, dma_ports = [],
     # Create a port proxy for connecting the system port. This is
     # independent of the protocol and kept in the protocol-agnostic
     # part (i.e. here).
-    if options.ppu != None and (not options.ppu):
+    #if options.ppu != None and (not options.ppu):
+    if True:
         sys_port_proxy = RubyPortProxy(ruby_system = ruby)
         if piobus is not None:
             sys_port_proxy.pio_master_port = piobus.slave
@@ -249,6 +255,8 @@ def create_system(options, full_system, system, piobus = None, dma_ports = [],
     # Create a backing copy of physical memory in case required
     if options.access_backing_store:
         ruby.access_backing_store = True
+        # FIXME
+        #ruby.phys_mem = SimpleMemory(range=system.mem_ranges[0],
         ruby.phys_mem = SimpleMemory(range=system.mem_ranges[0],
                                      in_addr_map=False)
 
