@@ -37,7 +37,6 @@
 // #include "gpgpu-sim/icnt_wrapper.h"
 #include "../libcuda/stream_manager.h"
 #include "inc/IsaSim.h"
-#include "../opu/umd/Umd.h"
 
 #include "gem5cuda/gem5cuda_runtime_api.h"
 #include <dlfcn.h>

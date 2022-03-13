@@ -142,7 +142,7 @@
 #include "../libcuda/cuda-sim/ptx_loader.h"
 #include "../libcuda/cuda-sim/cuda-sim.h"
 #include "../libcuda/cuda-sim/ptx_ir.h"
-#include "../opu/umd/Umd.h"
+#include "../opu/umd/driver/cuda/api.h"
 
 #include "gem5cuda/gem5cuda_runtime_api.h"
 
@@ -279,9 +279,9 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
       start_sim_thread(1);
     } else {
       int count;
-      Umd::get(nullptr)->getDeviceCount(&count);
-      Umd::get(nullptr)->getDeviceProperties((void*)prop, 0);
-      Umd::get(nullptr)->getDevice((int*)the_device);
+      drv::getDeviceCount(&count);
+      drv::getDeviceProperties((void*)prop, 0);
+      drv::getDevice((int*)the_device);
       /*
       gem5cudaGetDeviceCount(&count);
       gem5cudaGetDeviceProperties(prop, 0);
@@ -299,6 +299,7 @@ CUctx_st *GPGPUSim_Context(gpgpu_context *ctx) {
     _cuda_device_id *the_gpu = ctx->GPGPUSim_Init();
     ctx->the_gpgpusim->the_context = new CUctx_st(the_gpu);
     the_context = ctx->the_gpgpusim->the_context;
+    drv::setDefaultCtx(the_context);
   }
   return the_context;
 }
@@ -617,7 +618,7 @@ __host__ cudaError_t CUDARTAPI cudaDeviceGetLimitInternal(
         abort();
     }
   } else {
-    Umd::get(nullptr)->getDeviceProperties((void*)prop, dev->get_id());
+    drv::getDeviceProperties((void*)prop, dev->get_id());
     // gem5cudaGetDeviceProperties(const_cast<cudaDeviceProp *>(prop), dev->get_id());
   }
   return g_last_cudaError = cudaSuccess;
@@ -761,7 +762,7 @@ cudaGetDeviceCountInternal(int *count, gpgpu_context *gpgpu_ctx = NULL) {
     *count = dev->num_devices();
     return g_last_cudaError = cudaSuccess;
   } else {
-    Umd::get(nullptr)->getDeviceCount(count);
+    drv::getDeviceCount(count);
     return g_last_cudaError = cudaSuccess;
     // return gem5cudaGetDeviceCount(count);
   }
@@ -779,7 +780,7 @@ __host__ cudaError_t CUDARTAPI cudaGetDevicePropertiesInternal(
         return g_last_cudaError = cudaErrorInvalidDevice;
     }
   } else{
-    Umd::get(nullptr)->getDeviceProperties(prop, device);
+    drv::getDeviceProperties(prop, device);
     return g_last_cudaError = cudaSuccess;
     // return gem5cudaGetDeviceProperties(prop, device);
   }
@@ -889,14 +890,18 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       printf("WARNING: Failed to execute assembler to get codeobject\n");
       exit(0);
     }
-    auto exec = Umd::get(context)->load_program(kname + ".o");
+    auto exec = drv::load_program(kname + ".o");
     DispatchInfo **ptr_to_disp_info = grid->ptr_to_disp_info();
 
     void* param_addr;
     // cudaMallocInternal(&param_addr, size);
-    Umd::get(context)->memory_allocate(1000, &param_addr);
-    Umd::get(context)->set_kernel_disp(kname, exec, ptr_to_disp_info, gridDim, blockDim, (uint64_t)param_addr);
-    // disp_info->kernel_param_addr = ptr;
+    drv::memory_allocate(1000, &param_addr);
+    drv::set_kernel_disp(kname, exec, ptr_to_disp_info,
+            gridDim,
+            blockDim,
+            (uint64_t)param_addr);
+    //Umd::get(context)->memory_allocate(1000, &param_addr);
+    //Umd::get(context)->set_kernel_disp(kname, exec, ptr_to_disp_info, gridDim, blockDim, (uint64_t)param_addr);
 
     cudaMemcpy(param_addr, buffer, kernel_func_info->get_args_aligned_size(), cudaMemcpyHostToDevice);
   }
@@ -947,11 +952,13 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
 
   // TODO
   if (ctx->func_sim->g_ptx_sim_mode == 2) {
-    Umd::get(context)->memory_allocate(size, devPtr);
+    drv::memory_allocate(size, devPtr);
+    // Umd::get(context)->memory_allocate(size, devPtr);
   } else if (ctx->func_sim->g_ptx_sim_mode == 1) {
     *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
   } else {
-    Umd::get(context)->memory_allocate(size, devPtr);
+    drv::memory_allocate(size, devPtr);
+    // Umd::get(context)->memory_allocate(size, devPtr);
     // gem5cudaMalloc(devPtr, size);
   }
 
@@ -974,7 +981,8 @@ cudaError_t cudaMallocHostInternal(void **ptr, size_t size,
   if (ctx->func_sim->g_ptx_sim_mode) {
     *ptr = malloc(size);
   } else {
-    Umd::get(context)->memory_allocate(size, ptr);
+    drv::memory_allocate(size, ptr);
+    // Umd::get(context)->memory_allocate(size, ptr);
     // gem5cudaMalloc(ptr, size);
   }
 
@@ -1032,7 +1040,8 @@ cudaError_t cudaHostGetDevicePointerInternal(void **pDevice, void *pHost,
   if (ctx->func_sim->g_ptx_sim_mode) {
     *pDevice = gpu->gpu_malloc(size);
   } else {
-    Umd::get(context)->memory_allocate(size, pDevice);
+    drv::memory_allocate(size, pDevice);
+    // Umd::get(context)->memory_allocate(size, pDevice);
     // gem5cudaMalloc(pDevice, size);
   }
   if (g_debug_execution >= 3){
@@ -1125,17 +1134,7 @@ cudaMemcpyInternal(void *dst, const void *src, size_t count,
     }
   } else {
     // gem5cudaMemcpy(dst, src, count, kind);
-    CUctx_st *context = GPGPUSim_Context(ctx);
-    UmdMemcpyKind umd_kind;
-    if (kind == cudaMemcpyHostToDevice)
-        umd_kind = UmdMemcpyKind::HostToDevice;
-    else if (kind == cudaMemcpyDeviceToHost)
-        umd_kind = UmdMemcpyKind::DeviceToHost;
-    else if (kind == cudaMemcpyDeviceToDevice)
-        umd_kind = UmdMemcpyKind::DeviceToDevice;
-    else if (kind == cudaMemcpyDefault)
-        umd_kind = UmdMemcpyKind::Default;
-    Umd::get(context)->memory_copy(dst, src, count, umd_kind);
+    drv::memory_copy(dst, src, count, kind);
   }
 
   if (g_debug_execution >= 3)
@@ -1209,7 +1208,7 @@ __host__ cudaError_t CUDARTAPI cudaMemcpy2DToArrayInternal(
     gpgpu_context *gpgpu_ctx = NULL) {
   libcuda::cudaArray* dst = (struct libcuda::cudaArray*) dst_;
   GPUCTX
-  /* TODO gptpu_t 
+  /* TODO gptpu_t
   CUctx_st *context = GPGPUSim_Context(ctx);
   gpgpu_t *gpu = context->get_device()->get_gpgpu();
   */
@@ -1817,9 +1816,20 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernelInternal(
     }
     return cudaLaunchInternal(hostFun);
   } else {
-    gem5cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
+    drv::launchKernel(hostFun,
+            gridDim.x,
+            gridDim.y,
+            gridDim.z,
+            blockDim.x,
+            blockDim.y,
+            blockDim.z,
+            sharedMem,
+            stream);
+    /*
+    gem5cudaConfigureCall(gridDim, blockDim, args, sharedMem, stream);
     gem5cudaSetupArgument(entry, args);
     return gem5cudaLaunch(hostFun);
+    */
   }
 }
 

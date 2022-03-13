@@ -170,13 +170,22 @@ env.AlwaysBuild(buildumd)
 
 env.Command(libumd_dst, libumd_src, Copy("$TARGET", "$SOURCE"))
 
-##### libumd.so
-libumdcuda_src=os.path.join(design_root, 'opu/umd/build/libumdcuda.so')
-libumdcuda_dst=os.path.join(design_root, 'cosim/libumdcuda.so')
-buildumdcuda = env.Command(libumdcuda_src, [], "cd {} && ./build.sh libumdcuda.so".format(os.path.join(design_root, 'opu/umd')))
-env.AlwaysBuild(buildumdcuda)
+##### libplatlibcuda.so
+libplatlibcuda_src=os.path.join(design_root, 'opu/umd/build/libplatlibcuda.so')
+libplatlibcuda_dst=os.path.join(design_root, 'cosim/libplatlibcuda.so')
+buildplatlibcuda = env.Command(libplatlibcuda_src, [], "cd {} && ./build.sh libplatlibcuda.so".format(os.path.join(design_root, 'opu/umd')))
+env.AlwaysBuild(buildplatlibcuda)
 
-env.Command(libumdcuda_dst, libumdcuda_src, Copy("$TARGET", "$SOURCE"))
+env.Command(libplatlibcuda_dst, libplatlibcuda_src, Copy("$TARGET", "$SOURCE"))
+
+##### libplatlibgem5cuda.so
+libplatlibgem5cuda_src=os.path.join(design_root, 'opu/umd/build/libplatlibgem5cuda.so')
+libplatlibgem5cuda_dst=os.path.join(design_root, 'cosim/libplatlibgem5cuda.so')
+buildplatlibgem5cuda = env.Command(libplatlibgem5cuda_src, [], "cd {} && ./build.sh libplatlibgem5cuda.so".format(os.path.join(design_root, 'opu/umd')))
+env.AlwaysBuild(buildplatlibgem5cuda)
+
+env.Command(libplatlibgem5cuda_dst, libplatlibgem5cuda_src, Copy("$TARGET", "$SOURCE"))
+
 
 ##### libisasim.so
 libisasim_src=os.path.join(design_root, 'opu/isasim/build/libisasim.so')
@@ -189,9 +198,11 @@ env.Command(libisasim_dst, libisasim_src, Copy("$TARGET", "$SOURCE"))
 #### Dependency
 Depends(libcudart_src, libumd_dst)
 Depends(libisasim_src, libcudart_dst)
-Depends(libumdcuda_src, libcudart_dst)
+Depends(libplatlibcuda_src, libcudart_dst)
+Depends(libplatlibgem5cuda_src, libcudart_dst)
 Depends(design, libcudart_dst)
-Depends(design, libumdcuda_dst)
+Depends(design, libplatlibcuda_dst)
+Depends(design, libplatlibgem5cuda_dst)
 Depends(design, libisasim_dst)
 
 #Default(ex_master + ex_slave + design)
