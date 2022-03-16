@@ -33,6 +33,7 @@ import VI_hammer
 from m5.objects import *
 from m5.defines import buildEnv
 from topologies.Cluster import Cluster
+import pdb
 
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
@@ -42,6 +43,7 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     #if not buildEnv['GPGPU_SIM']:
     #    m5.util.panic("This script requires GPGPU-Sim integration to be built.")
 
+    #pdb.set_trace()
     # Run the protocol script to setup CPU cluster, directory and DMA
     (all_sequencers, dir_cntrls, dma_cntrls, cpu_cluster) = \
                                         VI_hammer.create_system(options,

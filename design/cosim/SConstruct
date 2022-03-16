@@ -28,8 +28,9 @@ env.Append(CCFLAGS=['-Wall', '-Wundef', '-Wextra',
 # We always compile using C++17
 env.Append(CXXFLAGS=['-std=c++17'])
 
-gem5_variant = 'opt'
+#gem5_variant = 'opt'
 #gem5_variant = 'debug'
+gem5_variant = os.environ.get('GEM5_VARIANT')
 
 gem5_root = Dir('#../..').srcnode().abspath
 gem5_tlm = gem5_root + '/util/tlm'

@@ -281,7 +281,11 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
       int count;
       drv::getDeviceCount(&count);
       drv::getDeviceProperties((void*)prop, 0);
-      drv::getDevice((int*)the_device);
+      // drv::getDevice((int*)&the_device);
+      gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
+      the_gpu->set_prop(prop);
+      the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
+      the_device = the_gpgpusim->the_cude_device;
       /*
       gem5cudaGetDeviceCount(&count);
       gem5cudaGetDeviceProperties(prop, 0);

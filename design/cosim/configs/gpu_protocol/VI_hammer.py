@@ -34,6 +34,7 @@ from m5.defines import buildEnv
 from topologies.Cluster import Cluster
 from ruby.Ruby import create_topology, create_directories
 from ruby.Ruby import send_evicts
+import pdb
 
 class L1Cache(RubyCache): pass
 class L2Cache(RubyCache): pass
@@ -217,7 +218,9 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
 
         exec("ruby_system.dir_cntrl%d = dir_cntrl" % i)
         dir_cntrl_nodes.append(dir_cntrl)
-        topology.add(dir_cntrl)
+        # FIXME
+        # for fusion verion only 1 dir_cntrl
+        #topology.add(dir_cntrl)
 
         # Connect the directory controller to the network
         dir_cntrl.forwardFromDir = MessageBuffer()
@@ -288,7 +291,8 @@ def create_system(options, full_system, system, dma_ports, bootmem, ruby_system,
         dma_cntrl_nodes.append(io_controller)
 
     # TODO fix me 5 or 10, why need to specifiy
-    ruby_system.network.number_of_virtual_networks = 10
+    ruby_system.network.number_of_virtual_networks = 8
 
+    #pdb.set_trace()
     return (cpu_sequencers, dir_cntrl_nodes, dma_cntrl_nodes, topology)
     #return (cpu_sequencers, dir_cntrl_nodes, topology)

@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     int loop = 1000000;
     while(loop--) {
         printf("Hello world OPU!\n");
-        sleep(1);
+        // sleep(1);
     }
     return 0;
 }

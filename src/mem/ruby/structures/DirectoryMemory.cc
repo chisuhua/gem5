@@ -67,6 +67,7 @@ int DirectoryMemory::m_num_dev_directories_bits = 0;
 
 DirectoryMemory::DirectoryMemory(const Params &p)
     : SimObject(p), addrRanges(p.addr_ranges.begin(), p.addr_ranges.end())
+    , m_size(p.size)
 {
     m_size_bytes = 0;
 

@@ -158,6 +158,7 @@ class CudaGPU : public ClockedObject
 {
   private:
     static std::vector<CudaGPU*> gpuArray;
+    // static Tick os_tick;
 
   public:
     /**
@@ -167,6 +168,12 @@ class CudaGPU : public ClockedObject
     static CudaGPU *getCudaGPU(unsigned id) {
         if (id >= gpuArray.size()) {
             panic("CUDA GPU ID not found: %u. Only %u GPUs registered!\n", id, gpuArray.size());
+        }
+        static EventQueue *event_queue = nullptr;
+        if (event_queue == nullptr) {
+            event_queue = new EventQueue("CudaGPUEventQueue");
+            curEventQueue(event_queue);
+            event_queue->setCurTick(0);
         }
         return gpuArray[id];
     }
