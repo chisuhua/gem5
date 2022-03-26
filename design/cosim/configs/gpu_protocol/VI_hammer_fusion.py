@@ -309,16 +309,14 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     if max_out_reqs == 0:
         max_out_reqs = 1024
 
-    gpu_ce_seq = RubySequencer(version = options.num_cpus + options.num_sc+1,
-                               icache = cache,
-                               dcache = cache,
+    gpu_ce_seq = DMASequencer(version = 0,
                                max_outstanding_requests = max_out_reqs,
                                support_inst_reqs = False,
                                ruby_system = ruby_system)
                                #connect_to_io = False)
 
     gpu_ce_cntrl = GPUCopyDMA_Controller(version = 0,
-                                  sequencer = gpu_ce_seq,
+                                  dma_sequencer = gpu_ce_seq,
                                   transitions_per_cycle = options.ports,
                                   number_of_TBEs = max_out_reqs,
                                   ruby_system = ruby_system)

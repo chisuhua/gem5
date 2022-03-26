@@ -103,14 +103,18 @@ GDB=""
 #CMD="$CMD $ENV"
 #CMD="$CMD --split"
 #CMD="$CMD --system-config=cpu_only"
+CMD="$CMD --system-config=opu_libgem5"
 #CMD="$CMD --ppu"
 #CMD="$CMD --cp_firmware=/work_source/github/sim/zephyrproject/zephyr/build_posix_gem5/zephyr/zephyr.exe"
 CMD="$CMD --cp_firmware=$GEM5_ROOT/tests/test-progs/hello/src/hello_opu"
 
+#CMD="$CMD --list-mem-type"
+CMD="$CMD --mem-type=SimpleMemory"
+
 CONF="$GEM5_ROOT/design/cosim/configs/se_fusion.py"
 #CONF="design/gpgpu/configs/se_fusion.py"
 
-echo $RUN $OPTION $CONF $GDB -c $CMD
+echo $RUN $OPTION $CONF $GDB -c $CMD |tee run_gem5gpu.cmd
 $RUN $OPTION $CONF $GDB -c $CMD
 
 #$RUN $OPTION design/gpgpu/configs/my_fusion.py -c /mnt/d/source/github/sim/gem5-gpu/benchmarks/rodinia/vectoradd/gem5_fusion_vectorAdd

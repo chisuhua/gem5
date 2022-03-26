@@ -89,8 +89,15 @@ ShaderTLB::beginTranslateTiming(RequestPtr req,
             req->setPaddr(page_paddr + offset);
             translation->finish(NoFault, req, NULL, mode);
         } else {
-            panic("ShaderTLB missing translation for vaddr: %p! @pc: %p",
-                    vaddr, req->getPC());
+            // panic("ShaderTLB missing translation for vaddr: %p! @pc: %p",
+            //        vaddr, req->getPC());
+            // FIXME 1. need to figure out fake MMU for AppThreadContext, 
+            //       2. how to seperate address space for normal GPUTable and AppContext
+            page_paddr = page_vaddr;
+            DPRINTF(ShaderTLB, "AppThreadContext Translation found for vaddr %x = paddr %x\n",
+                                vaddr, page_paddr + offset);
+            req->setPaddr(page_paddr + offset);
+            translation->finish(NoFault, req, NULL, mode);
         }
     }
 }
@@ -120,7 +127,7 @@ ShaderTLB::translateTiming(const RequestPtr &req, ThreadContext *tc,
     if ((flags & SegmentFlagMask) == SEGMENT_REG_MS) {
         panic("GPU TLB cannot deal with non-memory addresses");
     }
-
+/*
     // Cannot deal with unprotected mode
     assert(((HandyM5Reg)tc->readMiscRegNoEffect(MISCREG_M5_REG)).prot);
     // must be in long mode
@@ -129,7 +136,7 @@ ShaderTLB::translateTiming(const RequestPtr &req, ThreadContext *tc,
     assert(((HandyM5Reg)tc->readMiscRegNoEffect(MISCREG_M5_REG)).submode == SixtyFourBitMode);
     // Paging better be enabled!
     assert(((HandyM5Reg)tc->readMiscRegNoEffect(MISCREG_M5_REG)).paging);
-
+*/
 #endif
 
     Addr vaddr = req->getVaddr();

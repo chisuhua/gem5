@@ -54,13 +54,13 @@ TARGET_SIZE := 64
 # internal flags
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -L../../../libcuda -lcudart.so.10.0 -Xcompiler "-Wl\,-rpath=."
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
-NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${DESIGN_ROOT}/libcuda -L${DESIGN_ROOT}/libcuda"
+NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${DESIGN_ROOT}/cosim -L${DESIGN_ROOT}/cosim"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
-LDFLAGS     :=
+LDFLAGS     := -lisasim
 #LDFLAGS     := "-lcuda -Wl,-rpath=."
 
 # Install directory of different arch

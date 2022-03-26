@@ -1,6 +1,8 @@
 #rm build/variables.global
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+cd $GEM5_ROOT
+
 # cd gem5
 #scons build/X86_VI_hammer_GPU/gem5.opt --default=../../../gem5-gpu/build_opts/X86_VI_hammer_GPU EXTRAS=../gem5-gpu/src:../gpgpu-sim/
 
@@ -45,6 +47,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # for GPGPU
 #rm build/variables/X86_VI_hammer
 #scons -j$GEM5_CPU_CORES build/X86_VI_hammer/gem5.opt --verbose BUILD_PPU=yes --default=$DIR/../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
-scons -j$GEM5_CPU_CORES build/X86_VI_hammer/gem5.$GEM5_VARIANT --without-tcmalloc --verbose --default=$DIR/../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
+scons -j$GEM5_CPU_CORES $GEM5_ROOT/build/X86_VI_hammer/gem5.$GEM5_VARIANT --without-tcmalloc --verbose --default=$GEM5_ROOT/design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
 
 #scons --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_debug.so --verbose BUILD_PPU=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu

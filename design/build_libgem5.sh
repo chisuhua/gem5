@@ -1,4 +1,6 @@
 rm build/variables.global
+
+cd $GEM5_ROOT
 # cd gem5
 #scons build/X86_VI_hammer_GPU/gem5.opt --default=../../../gem5-gpu/build_opts/X86_VI_hammer_GPU EXTRAS=../gem5-gpu/src:../gpgpu-sim/
 

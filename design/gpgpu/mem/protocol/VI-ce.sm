@@ -1,6 +1,6 @@
 
 machine(MachineType:GPUCopyDMA, "VI Copy Engine Controller")
-: Sequencer * sequencer;
+: DMASequencer * dma_sequencer;
   Cycles request_latency := 6;
 
   MessageBuffer * responseFromDir, network="From", virtual_network="1",
@@ -80,12 +80,12 @@ machine(MachineType:GPUCopyDMA, "VI Copy Engine Controller")
 
   out_port(reqToDirectory_out, DMARequestMsg, reqToDirectory, desc="...");
 
-  in_port(dmaRequestQueue_in, RubyRequest, mandatoryQueue, desc="...") {
+  in_port(dmaRequestQueue_in, SequencerMsg, mandatoryQueue, desc="...") {
     if (dmaRequestQueue_in.isReady(clockEdge())) {
-      peek(dmaRequestQueue_in, RubyRequest, block_on="LineAddress") {
-        if (in_msg.Type == RubyRequestType:LD || in_msg.Type == RubyRequestType:LD_Bypass) {
+      peek(dmaRequestQueue_in, SequencerMsg, block_on="LineAddress") {
+        if (in_msg.Type == SequencerRequestType:LD ) {
           trigger(Event:ReadRequest, in_msg.LineAddress, TBEs[in_msg.LineAddress]);
-        } else if (in_msg.Type == RubyRequestType:ST) {
+        } else if (in_msg.Type == SequencerRequestType:ST) {
           trigger(Event:WriteRequest, in_msg.LineAddress, TBEs[in_msg.LineAddress]);
         } else {
           error("Invalid request type");
@@ -109,14 +109,14 @@ machine(MachineType:GPUCopyDMA, "VI Copy Engine Controller")
   }
 
   action(s_sendReadRequest, "r", desc="Send a DMA read request to memory") {
-    peek(dmaRequestQueue_in, RubyRequest) {
+    peek(dmaRequestQueue_in, SequencerMsg) {
       enqueue(reqToDirectory_out, DMARequestMsg, request_latency) {
         out_msg.PhysicalAddress := in_msg.PhysicalAddress;
         out_msg.LineAddress := in_msg.LineAddress;
         out_msg.Type := DMARequestType:READ;
         out_msg.Requestor := machineID;
-        out_msg.DataBlk := tbe.DataBlk;
-        out_msg.Len := in_msg.Size;
+        out_msg.DataBlk := in_msg.DataBlk;
+        out_msg.Len := in_msg.Len;
         // TODO hack schi out_msg.Destination.add(map_Address_to_Directory(address));
         out_msg.Destination.add(mapAddressToMachine(address, MachineType:Directory));
         out_msg.MessageSize := MessageSizeType:Writeback_Control;
@@ -126,14 +126,14 @@ machine(MachineType:GPUCopyDMA, "VI Copy Engine Controller")
 
   action(s_sendWriteRequest, "\s", desc="Send a DMA write request to memory") {
     assert(is_valid(tbe));
-    peek(dmaRequestQueue_in, RubyRequest) {
+    peek(dmaRequestQueue_in, SequencerMsg) {
       enqueue(reqToDirectory_out, DMARequestMsg, request_latency) {
           out_msg.PhysicalAddress := in_msg.PhysicalAddress;
           out_msg.LineAddress := in_msg.LineAddress;
           out_msg.Type := DMARequestType:WRITE;
           out_msg.Requestor := machineID;
-          out_msg.Len := in_msg.Size;
-          out_msg.DataBlk := tbe.DataBlk;
+          out_msg.Len := in_msg.Len;
+          out_msg.DataBlk := in_msg.DataBlk;
           // TODO hach schi out_msg.Destination.add(map_Address_to_Directory(address));
           out_msg.Destination.add(mapAddressToMachine(address, MachineType:Directory));
           out_msg.MessageSize := MessageSizeType:Writeback_Control;
@@ -144,16 +144,18 @@ machine(MachineType:GPUCopyDMA, "VI Copy Engine Controller")
   action(s_ackCallback, "s", desc="Notify controller of store complete") {
     assert(is_valid(tbe));
     peek(dmaResponseQueue_in, DMAResponseMsg) {
-      sequencer.writeCallback(in_msg.LineAddress, tbe.DataBlk, false,
-                              MachineType:GPUCopyDMA);
+      // sequencer.writeCallback(in_msg.LineAddress, tbe.DataBlk, false,
+      //                        MachineType:GPUCopyDMA);
+	  dma_sequencer.ackCallback(in_msg.LineAddress);
     }
   }
 
   action(d_dataCallback, "d", desc="Write data to dma sequencer") {
     peek(dmaResponseQueue_in, DMAResponseMsg) {
       DataBlock db := in_msg.DataBlk;
-      sequencer.readCallback(in_msg.LineAddress, db, false,
-                             MachineType:GPUCopyDMA);
+      // sequencer.readCallback(in_msg.LineAddress, db, false,
+      //                       MachineType:GPUCopyDMA);
+	  dma_sequencer.dataCallback(db, in_msg.LineAddress);
     }
   }
 

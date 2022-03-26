@@ -44,3 +44,23 @@ PseudoInst::gpu
 
 其中调用的函数gpgpu_funcs
 
+## mmu
+
+since app run outside gem5, it use AppThreadContext as faked context to run gem5 cuda api 
+we use setting
+- manageGPUMemory is true for libgem5cuda
+- accessHostPage is false
+	we use hdp to read/write app allocated memory data
+	and hack ShaderTLB::beginTranslating to use paddr same as vaddr
+
+## config.ini setup procedure
+
+### se_fusion.py
+  - GPUConfig.craeteGPU (design/cosim/configs/GPUConfigs.py) to setup gpu
+  - Ruby.create_system (
+		config/Ruby
+		design/cosim/configs/gpu_protocal/VI_hammer_fusion.py
+		design/cosim/configs/gpu_protocal/VI_hammer.py
+	  )
+  - GPUConfig.connectGPUPorts
+

@@ -42,8 +42,8 @@ struct _cuda_device_id : public device_id {
 };
 
 struct CUctx_st : public CUctx {
-  CUctx_st(_cuda_device_id *gpu) :
-      CUctx(gpu) {
+  CUctx_st(_cuda_device_id *gpu, int umd_mode = 0) :
+      CUctx(gpu, umd_mode) {
     m_binary_info.cmem = 0;
     m_binary_info.gmem = 0;
     no_of_ptx = 0;
@@ -136,6 +136,9 @@ class kernel_config {
   gpgpu_ptx_sim_arg_list_t get_args() { return m_args; }
   struct libcuda::CUstream_st *get_stream() {
     return m_stream;
+  }
+  size_t get_sharedMem() {
+    return m_sharedMem;
   }
 
  private:

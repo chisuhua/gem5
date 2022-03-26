@@ -1589,7 +1589,7 @@ void gem5cudaRegisterPtxInfo(const char *ptxinfo_kname, gpgpu_ptx_sim_info ptxin
 *                                                                              *
 *******************************************************************************/
 // void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle, char *ptxinfo_kname, gpgpu_ptx_sim_info ptxinfo_kinfo)
-#if 0
+class symbol_table;
 void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
 {
     // Now, tell gem5 + GPGPU-Sim to register the binary
@@ -1721,7 +1721,6 @@ void**  gem5cudaRegisterFatBinary(symbol_table *symtab, unsigned int handle)
 
     return ret;
 }
-#endif
 
 void  gem5cudaRegisterFunction(void *fatCubinHandle,
         const char *hostFun, const char *deviceFun )

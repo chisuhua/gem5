@@ -154,6 +154,8 @@ libcudart_src=os.path.join(design_root, 'libcuda', 'libcudart.so')
 libcudart_dst=os.path.join(design_root, 'cosim', 'libcudart.so')
 
 #env.Command(os.path.join(design_root, 'libgem5cuda', 'libgem5cuda.a'), os.path.join(design_root, 'libgem5cuda', 'gem5cuda_runtime_api.cc'), 'make -C ' + os.path.join(design_root, 'libgem5cuda'))
+libcuda_csrc = glob.glob(os.path.join(design_root, 'libcuda/*.cc'))
+libcuda_csrc = glob.glob(os.path.join(design_root, 'libcuda/*.h'))
 libcuda_csrc = glob.glob(os.path.join(design_root, 'libcuda/*/*.cc'))
 libcuda_csrc += glob.glob(os.path.join(design_root, 'libcuda/*/*.h'))
 libcuda_csrc += glob.glob(os.path.join(design_root, 'libcuda/*/Makefile'))

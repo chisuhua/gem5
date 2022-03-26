@@ -228,13 +228,13 @@ void register_ptx_function( const char *name, function_info *impl ) {
 #endif
 #endif
 
-struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
+struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = nullptr) {
   _cuda_device_id *the_device = the_gpgpusim->the_cude_device;
+  static CUctx_st *the_context;
   if (!the_device) {
     gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
     cudaDeviceProp *prop = (cudaDeviceProp *) calloc(sizeof(cudaDeviceProp),1);
-    if (func_sim->g_ptx_sim_mode) {
-
+    if (umd_mode == 0) {
       snprintf(prop->name, 256, "GPGPU-Sim_v%s", libcuda::g_gpgpusim_version_string);
       prop->major = the_gpu->compute_capability_major();
       prop->minor = the_gpu->compute_capability_minor();
@@ -277,21 +277,35 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init() {
       the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
       the_device = the_gpgpusim->the_cude_device;
       start_sim_thread(1);
+      if (pCUctx_st != nullptr) {
+          *pCUctx_st = new CUctx_st(the_device, this->umd_mode); // umd_mode is 0, load_program will use platlibcuda
+          the_context = *pCUctx_st;
+          drv::setDefaultCtx(*pCUctx_st);
+      }
     } else {
-      int count;
-      drv::getDeviceCount(&count);
-      drv::getDeviceProperties((void*)prop, 0);
       // drv::getDevice((int*)&the_device);
       gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
       the_gpu->set_prop(prop);
       the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
       the_device = the_gpgpusim->the_cude_device;
+
+      if (pCUctx_st != nullptr) {
+        *pCUctx_st = new CUctx_st(the_device, this->umd_mode);
+        the_context = *pCUctx_st;
+        drv::setDefaultCtx(*pCUctx_st);
+      }
+      int count;
+      drv::getDeviceCount(&count);
+      drv::getDeviceProperties((void*)prop, 0);
       /*
       gem5cudaGetDeviceCount(&count);
       gem5cudaGetDeviceProperties(prop, 0);
       gem5cudaGetDevice((int*)the_device);
       */
     }
+  }
+  if (pCUctx_st != nullptr) {
+    *pCUctx_st = the_context;
   }
   return the_device;
 }
@@ -300,10 +314,7 @@ CUctx_st *GPGPUSim_Context(gpgpu_context *ctx) {
   // static CUctx_st *the_context = NULL;
   CUctx_st *the_context = ctx->the_gpgpusim->the_context;
   if (the_context == NULL) {
-    _cuda_device_id *the_gpu = ctx->GPGPUSim_Init();
-    ctx->the_gpgpusim->the_context = new CUctx_st(the_gpu);
-    the_context = ctx->the_gpgpusim->the_context;
-    drv::setDefaultCtx(the_context);
+    _cuda_device_id *the_gpu = ctx->GPGPUSim_Init(&the_context);
   }
   return the_context;
 }
@@ -588,7 +599,7 @@ __host__ cudaError_t CUDARTAPI cudaDeviceGetLimitInternal(
   GPUCTX
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
   const struct cudaDeviceProp *prop = dev->get_prop();
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     const gpgpu_sim_config &config = dev->get_gpgpu()->get_config();
     switch (limit) {
       case 0:  // cudaLimitStackSize
@@ -713,6 +724,7 @@ void cudaRegisterFunctionInternal(void **fatCubinHandle, const char *hostFun,
   if (context->get_device()->get_gpgpu()->get_config().use_cuobjdump())
     ctx->cuobjdumpParseBinary(fat_cubin_handle);
   context->register_function(fat_cubin_handle, hostFun, deviceFun);
+  gem5cudaRegisterFunction((void*)fat_cubin_handle, hostFun, deviceFun);
 }
 
 void cudaRegisterVarInternal(
@@ -755,6 +767,10 @@ cudaError_t cudaConfigureCallInternal(dim3 gridDim, dim3 blockDim,
   struct libcuda::CUstream_st *s = (struct libcuda::CUstream_st *)stream;
   ctx->api->g_cuda_launch_stack.push_back(
       kernel_config(gridDim, blockDim, sharedMem, s));
+  if (ctx->umd_mode) {
+    // TODO  move to drver api call
+    gem5cudaConfigureCall(gridDim, blockDim, sharedMem, stream);
+  }
   return g_last_cudaError = cudaSuccess;
 }
 
@@ -762,7 +778,7 @@ __host__ cudaError_t CUDARTAPI
 cudaGetDeviceCountInternal(int *count, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     *count = dev->num_devices();
     return g_last_cudaError = cudaSuccess;
   } else {
@@ -776,7 +792,7 @@ __host__ cudaError_t CUDARTAPI cudaGetDevicePropertiesInternal(
     struct cudaDeviceProp *prop, int device, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   _cuda_device_id *dev = ctx->GPGPUSim_Init();
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     if (device <= dev->num_devices()) {
         *prop = *dev->get_prop();
         return g_last_cudaError = cudaSuccess;
@@ -865,12 +881,17 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   }
   dim3 gridDim = config.grid_dim();
   dim3 blockDim = config.block_dim();
+  size_t sharedMem = config.get_sharedMem();
 
-  gpgpu_t *gpu = context->get_device()->get_gpgpu();
+  gpgpu_t *gpu;
   checkpoint *g_checkpoint;
-  g_checkpoint = new checkpoint();
   class memory_space *global_mem;
-  global_mem = gpu->get_global_memory();
+
+  if (ctx->umd_mode == 0) {
+    gpu = context->get_device()->get_gpgpu();
+    g_checkpoint = new checkpoint();
+    global_mem = gpu->get_global_memory();
+  }
 
   if (context->get_device()->get_gpgpu()->get_config().convert_to_coasm()) {
     FILE *fp_coasm = fopen(kname.c_str(), "w");
@@ -910,31 +931,33 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
     cudaMemcpy(param_addr, buffer, kernel_func_info->get_args_aligned_size(), cudaMemcpyHostToDevice);
   }
 
-  if (gpu->resume_option == 1 && (grid->get_uid() == gpu->resume_kernel)) {
-    char f1name[2048];
-    snprintf(f1name, 2048, "checkpoint_files/global_mem_%d.txt",
-             grid->get_uid());
+  if (ctx->umd_mode == 0) {
+    if (gpu->resume_option == 1 && (grid->get_uid() == gpu->resume_kernel)) {
+      char f1name[2048];
+      snprintf(f1name, 2048, "checkpoint_files/global_mem_%d.txt",
+               grid->get_uid());
 
-    g_checkpoint->load_global_mem(global_mem, f1name);
-    for (int i = 0; i < gpu->resume_CTA; i++) grid->increment_cta_id();
-  }
-  if (gpu->resume_option == 1 && (grid->get_uid() < gpu->resume_kernel)) {
-    char f1name[2048];
-    snprintf(f1name, 2048, "checkpoint_files/global_mem_%d.txt",
-             grid->get_uid());
+      g_checkpoint->load_global_mem(global_mem, f1name);
+      for (int i = 0; i < gpu->resume_CTA; i++) grid->increment_cta_id();
+    }
+    if (gpu->resume_option == 1 && (grid->get_uid() < gpu->resume_kernel)) {
+      char f1name[2048];
+      snprintf(f1name, 2048, "checkpoint_files/global_mem_%d.txt",
+               grid->get_uid());
 
-    g_checkpoint->load_global_mem(global_mem, f1name);
-    printf("Skipping kernel %d as resuming from kernel %d\n", grid->get_uid(),
-           gpu->resume_kernel);
-    ctx->api->g_cuda_launch_stack.pop_back();
-    return g_last_cudaError = cudaSuccess;
-  }
-  if (gpu->checkpoint_option == 1 &&
-      (grid->get_uid() > gpu->checkpoint_kernel)) {
-    printf("Skipping kernel %d as checkpoint from kernel %d\n", grid->get_uid(),
-           gpu->checkpoint_kernel);
-    ctx->api->g_cuda_launch_stack.pop_back();
-    return g_last_cudaError = cudaSuccess;
+      g_checkpoint->load_global_mem(global_mem, f1name);
+      printf("Skipping kernel %d as resuming from kernel %d\n", grid->get_uid(),
+             gpu->resume_kernel);
+      ctx->api->g_cuda_launch_stack.pop_back();
+      return g_last_cudaError = cudaSuccess;
+    }
+    if (gpu->checkpoint_option == 1 &&
+        (grid->get_uid() > gpu->checkpoint_kernel)) {
+      printf("Skipping kernel %d as checkpoint from kernel %d\n", grid->get_uid(),
+             gpu->checkpoint_kernel);
+      ctx->api->g_cuda_launch_stack.pop_back();
+      return g_last_cudaError = cudaSuccess;
+    }
   }
 
   printf(
@@ -943,8 +966,12 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       kname.c_str(), stream ? stream->get_uid() : 0, gridDim.x, gridDim.y,
       gridDim.z, blockDim.x, blockDim.y, blockDim.z);
 
-  stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
-  ctx->the_gpgpusim->g_stream_manager->push(op);
+  if (ctx->umd_mode) {
+    drv::launchKernel(hostFun);
+  } else {
+    stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
+    ctx->the_gpgpusim->g_stream_manager->push(op);
+  }
   ctx->api->g_cuda_launch_stack.pop_back();
   return g_last_cudaError = cudaSuccess;
 }
@@ -955,15 +982,11 @@ cudaError_t cudaMallocInternal(void **devPtr, size_t size,
   CUctx_st *context = GPGPUSim_Context(ctx);
 
   // TODO
-  if (ctx->func_sim->g_ptx_sim_mode == 2) {
+  if (ctx->umd_mode) {
     drv::memory_allocate(size, devPtr);
     // Umd::get(context)->memory_allocate(size, devPtr);
-  } else if (ctx->func_sim->g_ptx_sim_mode == 1) {
-    *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
   } else {
-    drv::memory_allocate(size, devPtr);
-    // Umd::get(context)->memory_allocate(size, devPtr);
-    // gem5cudaMalloc(devPtr, size);
+    *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(size);
   }
 
   if (g_debug_execution >= 3){
@@ -982,7 +1005,7 @@ cudaError_t cudaMallocHostInternal(void **ptr, size_t size,
                                    gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   CUctx_st *context = GPGPUSim_Context(ctx);
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     *ptr = malloc(size);
   } else {
     drv::memory_allocate(size, ptr);
@@ -1007,7 +1030,7 @@ cudaMallocPitchInternal(void **devPtr, size_t *pitch, size_t width,
   unsigned malloc_width_inbytes = width;
   printf("LIBCUDA PTX: cudaMallocPitch (width = %d)\n", malloc_width_inbytes);
   CUctx_st *context = GPGPUSim_Context(ctx);
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     *devPtr = context->get_device()->get_gpgpu()->gpu_malloc(
       malloc_width_inbytes * height);
   } else {
@@ -1041,7 +1064,7 @@ cudaError_t cudaHostGetDevicePointerInternal(void **pDevice, void *pHost,
       ctx->api->pinned_memory_size.find(pHost);
   assert(i != ctx->api->pinned_memory_size.end());
   size_t size = i->second;
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     *pDevice = gpu->gpu_malloc(size);
   } else {
     drv::memory_allocate(size, pDevice);
@@ -1081,7 +1104,7 @@ __host__ cudaError_t CUDARTAPI cudaMallocArrayInternal(
   (array)->dimensions = 2;
   array_ = (struct ::cudaArray**)(&array);
 
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     ((array)->devPtr32) =
       (int)(long long)context->get_device()->get_gpgpu()->gpu_mallocarray(size);
   } else {
@@ -1101,7 +1124,7 @@ __host__ cudaError_t CUDARTAPI
 cudaMemcpyInternal(void *dst, const void *src, size_t count,
                    enum cudaMemcpyKind kind, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     // CUctx_st *context = GPGPUSim_Context();
     // gpgpu_t *gpu = context->get_device()->get_gpgpu();
     if (kind == cudaMemcpyHostToDevice)
@@ -1352,7 +1375,7 @@ __host__ cudaError_t CUDARTAPI cudaMemsetInternal(
     void *mem, int c, size_t count, gpgpu_context *gpgpu_ctx = NULL) {
   GPUCTX
   CUctx_st *context = GPGPUSim_Context(ctx);
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     gpgpu_t *gpu = context->get_device()->get_gpgpu();
     gpu->gpu_memset((size_t)mem, c, count);
   } else {
@@ -1370,7 +1393,7 @@ cudaMemsetAsyncInternal(void *mem, int c, size_t count, cudaStream_t stream = 0,
   printf("GPGPU-Sim PTX: WARNING: Asynchronous memset not supported (%s)\n",
          __my_func__);
   CUctx_st *context = GPGPUSim_Context(ctx);
-  if (ctx->func_sim->g_ptx_sim_mode) {
+  if (ctx->umd_mode == 0) {
     gpgpu_t *gpu = context->get_device()->get_gpgpu();
     gpu->gpu_memset((size_t)mem, c, count);
   } else {
@@ -1812,23 +1835,34 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernelInternal(
 #if CUDART_VERSION < 10000
   cudaConfigureCallInternal(gridDim, blockDim, sharedMem, stream, ctx);
 #endif
-  if (ctx->func_sim->g_ptx_sim_mode) {
-    for(unsigned i = 0; i < entry->num_args(); i++){
-      std::pair<size_t, unsigned> p = entry->get_param_config(i);
-        // gem5cudaSetupArgument(args[i], p.first, p.second);
+  // if (ctx->func_sim->g_ptx_sim_mode) {
+  for(unsigned i = 0; i < entry->num_args(); i++){
+    std::pair<size_t, unsigned> p = entry->get_param_config(i);
+    if (ctx->umd_mode == 0) {
         cudaSetupArgumentInternal(args[i], p.first, p.second);
+    } else {
+        if (ctx->func_sim->g_ptx_sim_mode <= 1) {
+            drv::setupKernelArgument(args[i], p.first, p.second);
+        }
     }
+
+  }
+#if 0
+  if (ctx->umd_mode) {
+      if (ctx->func_sim->g_ptx_sim_mode == 1) {
+        drv::setupPtxSimArgument(entry, args);
+      } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
+        // drv::setupKernelArgument(entry, args);
+        assert(false && "Unimplemented.");
+      } else {
+        assert(false && "Unimplemented.");
+      }
+  }
+#endif
+  if (ctx->umd_mode == 0) {
     return cudaLaunchInternal(hostFun);
   } else {
-    drv::launchKernel(hostFun,
-            gridDim.x,
-            gridDim.y,
-            gridDim.z,
-            blockDim.x,
-            blockDim.y,
-            blockDim.z,
-            sharedMem,
-            stream);
+    drv::launchKernel(hostFun);
     /*
     gem5cudaConfigureCall(gridDim, blockDim, args, sharedMem, stream);
     gem5cudaSetupArgument(entry, args);
@@ -1970,18 +2004,40 @@ CUresult CUDAAPI cuLaunchKernelInternal(
   const char *hostFun = (const char *)f;
   CUctx_st *context = GPGPUSim_Context(ctx);
   function_info *entry = context->get_kernel(hostFun);
-  if (ctx->func_sim->g_ptx_sim_mode) {
-    cudaConfigureCallInternal(dim3(gridDimX, gridDimY, gridDimZ),
+  cudaConfigureCallInternal(dim3(gridDimX, gridDimY, gridDimZ),
                             dim3(blockDimX, blockDimY, blockDimZ),
                             sharedMemBytes, (cudaStream_t)hStream, ctx);
-    for (unsigned i = 0; i < entry->num_args(); i++) {
-      std::pair<size_t, unsigned> p = entry->get_param_config(i);
-      cudaSetupArgumentInternal(kernelParams[i], p.first, p.second, ctx);
-    }
-  } else {
+  for (unsigned i = 0; i < entry->num_args(); i++) {
+    std::pair<size_t, unsigned> p = entry->get_param_config(i);
+    // gem5cudaSetupArgument(entry, (const void**)kernelParams);
+    // cudaSetupArgumentInternal(kernelParams[i], p.first, p.second, ctx);
     // cudaLaunchInternal(hostFun, ctx);
-    gem5cudaSetupArgument(entry, (const void**)kernelParams);
-    gem5cudaLaunch(hostFun);
+    // gem5cudaSetupArgument(entry, (const void**)kernelParams);
+    // gem5cudaLaunch(hostFun);
+    if (ctx->umd_mode == 0) {
+        cudaSetupArgumentInternal(kernelParams[i], p.first, p.second, ctx);
+    } else {
+        if (ctx->func_sim->g_ptx_sim_mode <= 1) {
+            drv::setupKernelArgument(kernelParams[i], p.first, p.second);
+        }
+    }
+  }
+#if 0
+  if (ctx->umd_mode) {
+    if (ctx->func_sim->g_ptx_sim_mode <= 1) {
+      drv::setupPtxSimArgument(entry, (const void**)kernelParams);
+    } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
+      // drv::setupKernelArgument(entry, (const void**)kernelParams[i]);
+      assert(false && "Unimplemented.");
+    } else {
+      assert(false && "Unimplemented.");
+    }
+  }
+#endif
+  if (ctx->umd_mode == 0) {
+    cudaLaunchInternal(hostFun, ctx);
+  } else {
+    drv::launchKernel(hostFun);
   }
   return CUDA_SUCCESS;
 }
@@ -2657,6 +2713,8 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernel(const char *hostFun,
   if (g_debug_execution >= 3){
     announce_call(__my_func__);
   }
+  //FIXME
+  stream = 0;
   return cudaLaunchKernelInternal(hostFun, gridDim, blockDim, args, sharedMem,
                                   stream);
 }
@@ -3270,7 +3328,7 @@ void gpgpu_context::cuobjdumpParseBinary(unsigned int handle) {
     symbol_table *symtab = api->name_symtab[fname];
     context->add_binary(symtab, handle);
     // FIXME schi add
-    // gem5cudaRegisterFatBinary(symtab, handle);
+    gem5cudaRegisterFatBinary(symtab, handle);
     return;
   }
   symbol_table *symtab;
@@ -3289,7 +3347,7 @@ void gpgpu_context::cuobjdumpParseBinary(unsigned int handle) {
   api->name_symtab[fname] = symtab;
   context->add_binary(symtab, handle);
   // FIXME schi add
-  // gem5cudaRegisterFatBinary(symtab, handle);
+  gem5cudaRegisterFatBinary(symtab, handle);
   // FIXME checkout libcuda_syscalls on load_global_const
   api->load_static_globals(symtab, STATIC_ALLOC_LIMIT, 0xFFFFFFFF,
                            context->get_device()->get_gpgpu());

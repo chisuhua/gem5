@@ -1094,8 +1094,8 @@ extern  cudaError_t  gem5cudaConfigureCall(dim3 gridDim, dim3 blockDim, size_t s
  * ::cudaSetDoubleForHost,
  * \ref ::cudaSetupArgument(T, size_t) "cudaSetupArgument (C++ API)",
  */
-// extern  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset);
-extern  cudaError_t  gem5cudaSetupArgument(function_info* f, const void **args);
+extern  cudaError_t  gem5cudaSetupArgument(const void *arg, size_t size, size_t offset);
+// extern  cudaError_t  gem5cudaSetupArgument(function_info* f, const void **args);
 
 /**
  * \brief Sets the preferred cache configuration for a device function

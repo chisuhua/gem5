@@ -35,6 +35,7 @@ from os.path import join as joinpath
 import m5
 from m5.defines import buildEnv
 from m5.objects import *
+from m5.objects.Platform import Platform
 #from m5.util import addToPath, fatal
 from m5.util import *
 
@@ -151,7 +152,7 @@ system = System(cpu = [CPUClass(cpu_id = i,
                        for i in range(0, options.num_cpus)],
                 multi_thread = multi_thread,
                 mem_mode = test_mem_mode,
-                mem_ranges = [cpu_mem_range],
+                mem_ranges = [total_mem_range],
                 cache_line_size = options.cacheline_size)
 
 if ObjectList.is_kvm_cpu(CPUClass) or ObjectList.is_kvm_cpu(FutureClass):
@@ -217,6 +218,27 @@ system.ruby.block_size_bytes = 128
 # IOXbar is non-coherent , it run little faster in gem5
 #system.membus = SystemXBar()
 #system.membus = IOXBar()
+class MemBus(SystemXBar):
+    badaddr_responder = BadAddr()
+    default = Self.badaddr_responder.pio
+
+def connectX86ClassicSystem(x86_sys, numCPUs):
+    x86_sys.membus = MemBus()
+    # North Bridge
+    x86_sys.iobus = IOXBar()
+    x86_sys.pc.atttachIO(x86_sys.iobus)
+
+# for fs
+# system.pc = Pc()
+# connectX86ClassicSystem(system, numCPUs)
+# systgem.pci_host = GenericPciHost()
+# system.pci_host.pio = system.membus.mem_side_ports
+# system.pci_device = OpuPciDevice()
+# system.pci_device.host = system.pci_host
+# system.pci_device.pio = system.membus.mem_side_ports
+# system.pci_device.dma = system.membus.slave
+
+system.hdp = HostDataPath()
 
 
 for (i, cpu) in enumerate(system.cpu):
@@ -247,7 +269,7 @@ for (i, cpu) in enumerate(system.cpu):
 # Connect GPU ports
 #
 if options.system_config != 'cpu_only':
-    GPUConfig.connectGPUPorts(system.gpu, system.ruby, options)
+    GPUConfig.connectGPUPorts(system.gpu, system.ruby, options, system)
 
 if options.mem_type == "RubyMemoryControl":
     GPUMemConfig.setMemoryControlOptions(system, options)

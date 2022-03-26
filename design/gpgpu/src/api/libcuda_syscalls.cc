@@ -182,11 +182,12 @@ cudaError_t g_last_cudaError = cudaSuccess;
 extern stream_manager *g_stream_manager;
 
 using namespace gem5;
-
+/*
 class AppSystem {
 public:
     AppSystem() {}
 };
+*/
 
 class AppThreadContext : public ThreadState, public ThreadContext {
 public:
@@ -208,11 +209,11 @@ public:
     ::gem5::X86ISA::VecElem vecElem;
     ::gem5::X86ISA::VecPredRegContainer vecPredReg;
     ThreadStatus status_;
-    AppSystem    *system_;
+    gem5::System    *system_;
     AppThreadContext() : ThreadState(nullptr, 1, nullptr)
     {
         status_ = ThreadStatus();
-        system_ = new AppSystem();
+        // system_ = new AppSystem();
     }
     BaseCPU *getCpuPtr() {return nullptr;};
     int cpuId() const {return 0;};
@@ -1018,8 +1019,9 @@ void libgem5cudaConfigureCall(ThreadContext *tc, gpusyscall_t *call_params)
     g_cuda_launch_stack.push_back(kernel_config(sim_gridDim, sim_blockDim, sim_sharedMem, sim_stream));
     g_last_cudaError = cudaSuccess;
 }
-/*
-void gem5cudaSetupArgument_(ThreadContext *tc, gpusyscall_t *call_params){
+
+// void gem5cudaSetupArgument_(ThreadContext *tc, gpusyscall_t *call_params){
+void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
     GPUSyscallHelper helper(tc, call_params);
     CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
 
@@ -1038,7 +1040,8 @@ void gem5cudaSetupArgument_(ThreadContext *tc, gpusyscall_t *call_params){
 
     g_last_cudaError = cudaSuccess;
 }
-*/
+
+/*
 void gem5cudaSetupArgument_(GPUSyscallHelper &helper, Addr sim_arg, size_t sim_size, size_t sim_offset)
 {
     const void* arg = new uint8_t[sim_size];
@@ -1073,6 +1076,7 @@ void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
 
     g_last_cudaError = cudaSuccess;
 }
+*/
 /*
 #define CACHE_BLOCK_SIZE_BYTES 128
 #define PAGE_SIZE_BYTES 4096

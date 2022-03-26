@@ -28,7 +28,7 @@ class gpgpu_context {
     ptx_parser = new ptx_recognizer(this);
     the_gpgpusim = new GPGPUsim_ctx(this);
     func_sim = new cuda_sim(this);
-    // opufunc_sim = new opu_sim(this);
+    umd_mode = 0;     // 0: not use umd 1: umd_libcuda 2: umd_libgem5cuda 3: umd_se
     device_runtime = new cuda_device_runtime(this);
     stats = new ptx_stats(this);
   }
@@ -53,6 +53,7 @@ class gpgpu_context {
   ptx_recognizer *ptx_parser;
   GPGPUsim_ctx *the_gpgpusim;
   cuda_sim *func_sim;
+  int umd_mode;     // 0: not use umd 1: umd_libcuda 2: umd_libgem5cuda 3: umd_se
   IsaSim *isa_sim;
   cuda_device_runtime *device_runtime;
   ptx_stats *stats;
@@ -77,7 +78,7 @@ class gpgpu_context {
   class symbol_table *init_parser(const char *);
   class gpgpu_sim *gpgpu_ptx_sim_init_perf();
   void start_sim_thread(int api);
-  struct _cuda_device_id *GPGPUSim_Init();
+  struct _cuda_device_id *GPGPUSim_Init(CUctx_st **);
   void ptx_reg_options(option_parser_t opp);
   const ptx_instruction *pc_to_instruction(unsigned pc);
   const warp_inst_t *ptx_fetch_inst(address_type pc);

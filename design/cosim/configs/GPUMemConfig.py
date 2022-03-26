@@ -74,7 +74,7 @@ def setMemoryControlOptions(system, options):
     # Add 1 so that 2 consecutive cache lines are in the same bank
     low_bank_bit = low_dir_bit + dev_dir_bits + 1
 
-    if options.split or option.ppu:
+    if options.system_config == "opu_fs":
         if options.num_dev_dirs > 0:
             for mem_ctrl in system.dev_mem_ctrls:
                 if options.gpu_mem_freq:

@@ -38,6 +38,7 @@
 #include "arch/x86/regs/misc.hh"
 #include "base/chunk_generator.hh"
 #include "base/statistics.hh"
+#include "base/intmath.hh"
 #include "cpu/thread_context.hh"
 #include "cuda-sim/cuda-sim.h"
 #include "cuda-sim/ptx-stats.h"
@@ -783,13 +784,23 @@ Addr CudaGPU::allocateGPUMemory(size_t size)
     size_t block_part = size % ruby->getBlockSizeBytes();
     size_t aligned_size = size + (block_part ? (ruby->getBlockSizeBytes() - block_part) : 0);
 
+    aligned_size = roundUp(aligned_size, TheISA::PageBytes);
+
     Addr base_vaddr = virtualGPUBrkAddr;
     virtualGPUBrkAddr += aligned_size;
-    Addr base_paddr = physicalGPUBrkAddr;
-    physicalGPUBrkAddr += aligned_size;
+    // Addr base_paddr = physicalGPUBrkAddr;
+    // physicalGPUBrkAddr += aligned_size;
 
     if (virtualGPUBrkAddr > gpuMemoryRange.size()) {
         panic("Ran out of GPU memory!");
+    }
+
+    int aligned_pages = divCeil(aligned_size, TheISA::PageBytes);
+    Addr base_paddr = system->allocPhysPages(aligned_pages);
+
+    Addr page_vaddr = pageTable.addrToPage(base_vaddr);
+    if (page_vaddr < base_vaddr) {
+        base_paddr = base_paddr + (base_vaddr - page_vaddr);
     }
 
     // Map pages to physical pages

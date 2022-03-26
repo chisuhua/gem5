@@ -169,11 +169,12 @@ class CudaGPU : public ClockedObject
         if (id >= gpuArray.size()) {
             panic("CUDA GPU ID not found: %u. Only %u GPUs registered!\n", id, gpuArray.size());
         }
-        static EventQueue *event_queue = nullptr;
-        if (event_queue == nullptr) {
-            event_queue = new EventQueue("CudaGPUEventQueue");
-            curEventQueue(event_queue);
-            event_queue->setCurTick(0);
+        static bool initialized = false;
+        if (not initialized) {
+            // event_queue = new EventQueue("CudaGPUEventQueue");
+            curEventQueue(gpuArray[id]->eventQueue());
+            initialized = true;
+            // event_queue->setCurTick(0);
         }
         return gpuArray[id];
     }

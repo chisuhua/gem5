@@ -402,6 +402,10 @@ void gpgpu_sim_config::reg_options(option_parser_t opp)
       "kernels now)",
       "0");
   option_parser_register(
+     opp, "-gpgpu_umd_mode", OPT_INT32,
+      &(gpgpu_ctx->umd_mode),
+      "Select between libcuda (default) or umd driver (1)", "0");
+  option_parser_register(
      opp, "-gpgpu_ptx_sim_mode", OPT_INT32,
       &(gpgpu_ctx->func_sim->g_ptx_sim_mode),
       "Select between Performance (default) or Functional simulation (1)", "0");

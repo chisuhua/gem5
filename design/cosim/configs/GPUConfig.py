@@ -34,7 +34,7 @@ from m5.util.convert import *
 from m5.util import fatal
 
 gpu_core_configs = ['Fermi', 'Maxwell', 'Volta', 'Ppu']
-system_configs = ['cpu_only', 'opu']
+system_configs = ['cpu_only', 'opu_libgem5', 'opu_se', 'opu_fs']
 
 def addGPUOptions(parser):
     parser.add_argument("--clusters", default=16, help="Number of shader core clusters in the gpu that GPGPU-sim is simulating", type=int)
@@ -47,14 +47,14 @@ def addGPUOptions(parser):
     parser.add_argument("--shMemDelay", default=1, help="delay to access shared memory in gpgpu-sim ticks", type=int)
     parser.add_argument("--gpu_core_config", type=str, choices=gpu_core_configs, default='Ppu', help="configure the GPU cores like %s" % gpu_core_configs)
     parser.add_argument("--kernel_stats", default=False, action="store_true", help="Dump statistics on GPU kernel boundaries")
-    #parser.add_argument("--total-mem-size", default='4GB', help="Total size of memory in system")
+    parser.add_argument("--total-mem-size", default='8GB', help="Total size of memory in system")
     parser.add_argument("--gpu_l1_buf_depth", type=int, default=96, help="Number of buffered L1 requests per shader")
     parser.add_argument("--flush_kernel_end", default=False, action="store_true", help="Flush the L1s at the end of each kernel. (Only VI_hammer)")
     parser.add_argument("--gpu-core-clock", default='700MHz', help="The frequency of GPU clusters (note: shaders operate at double this frequency when modeling Fermi)")
-    parser.add_argument("--access-host-pagetable", action="store_true", default=True)
+    parser.add_argument("--access-host-pagetable", action="store_true", default=False)
     parser.add_argument("--split", default=False, action="store_true", help="Use split CPU and GPU cache hierarchies instead of fusion")
     parser.add_argument("--ppu", default=False, action="store_true", help="Use PPU system cache hierarchies instead of fusion")
-    parser.add_argument("--system-config", type=str, choices=system_configs, default='opu', help="Use PPU system cache hierarchies instead of fusion")
+    parser.add_argument("--system-config", type=str, choices=system_configs, default='opu_libgem5', help="Use PPU system cache hierarchies instead of fusion")
     parser.add_argument("--dev-numa-high-bit", type=int, default=0, help="High order address bit to use for device NUMA mapping.")
     parser.add_argument("--num-dev-dirs", default=1, help="In split hierarchies, number of device directories", type=int)
     parser.add_argument("--gpu-mem-size", default='2GB', help="In split hierarchies, amount of GPU memory")
@@ -75,36 +75,46 @@ def addGPUOptions(parser):
     parser.add_argument("--cp_firmware", type=str, default=None, help="the zephyr firmware")
 
 def configureMemorySpaces(options):
-    #total_mem_range = AddrRange(options.total_mem_size)
-    total_mem_range = AddrRange(options.gpu_mem_size)
+    total_mem_range = AddrRange(options.total_mem_size)
     cpu_mem_range = total_mem_range
     gpu_mem_range = total_mem_range
 
     #ipdb.set_trace()
 
-    if options.split:
-        buildEnv['PROTOCOL'] +=  '_split'
-        total_mem_size = total_mem_range.size()
-        gpu_mem_range = AddrRange(options.gpu_mem_size)
-        if gpu_mem_range.size() >= total_mem_size:
-            fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
-        gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
-        gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
-        options.total_mem_size = long(gpu_segment_base_addr)
-        cpu_mem_range = AddrRange(options.total_mem_size)
-    elif options.ppu:
-        buildEnv['PROTOCOL'] +=  '_ppu'
-        total_mem_size = total_mem_range.size()
-        gpu_mem_range = AddrRange(options.gpu_mem_size)
-        if gpu_mem_range.size() >= total_mem_size:
-            fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
-        gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
-        gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
-        options.total_mem_size = long(gpu_segment_base_addr)
-        cpu_mem_range = AddrRange(options.total_mem_size)
-        options.num_dev_dirs = 1
-    elif options.system_config == 'cpu_only':
+    #if options.split:
+    #    buildEnv['PROTOCOL'] +=  '_split'
+    #    total_mem_size = total_mem_range.size()
+    #    gpu_mem_range = AddrRange(options.gpu_mem_size)
+    #    if gpu_mem_range.size() >= total_mem_size:
+    #        fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
+    #    gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
+    #    gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
+    #    options.total_mem_size = long(gpu_segment_base_addr)
+    #    cpu_mem_range = AddrRange(options.total_mem_size)
+    #elif options.ppu:
+    #    buildEnv['PROTOCOL'] +=  '_ppu'
+    #    total_mem_size = total_mem_range.size()
+    #    gpu_mem_range = AddrRange(options.gpu_mem_size)
+    #    if gpu_mem_range.size() >= total_mem_size:
+    #        fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
+    #    gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
+    #    gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
+    #    options.total_mem_size = long(gpu_segment_base_addr)
+    #    cpu_mem_range = AddrRange(options.total_mem_size)
+    #    options.num_dev_dirs = 1
+    if options.system_config == 'cpu_only':
         buildEnv['PROTOCOL'] +=  ''
+    elif options.system_config == 'opu_libgem5':
+        buildEnv['PROTOCOL'] +=  '_fusion'
+        total_mem_size = total_mem_range.size()
+        gpu_mem_range = AddrRange(options.gpu_mem_size)
+        if gpu_mem_range.size() >= total_mem_size:
+            fatal("GPU memory size (%s) won't fit within total memory size (%s)!" % (options.gpu_mem_size, options.total_mem_size))
+        gpu_segment_base_addr = Addr(total_mem_size - gpu_mem_range.size())
+        gpu_mem_range = AddrRange(gpu_segment_base_addr, size = options.gpu_mem_size)
+        options.total_mem_size = gpu_segment_base_addr
+        options.mem_size = total_mem_size
+        cpu_mem_range = AddrRange(options.total_mem_size)
     else:
         buildEnv['PROTOCOL'] +=  '_fusion'
     return (cpu_mem_range, gpu_mem_range, total_mem_range)
@@ -236,7 +246,7 @@ def createGPU(options, gpu_mem_range, system):
     # GPU. By making it a SrcClkDomain, it can be directly referenced to change
     # the GPU clock frequency dynamically.
     gpu = CudaGPU(warp_size = options.gpu_warp_size,
-                  manage_gpu_memory = options.split or options.ppu,
+                  manage_gpu_memory = options.system_config == "opu_libgem5",
                   clk_domain = SrcClockDomain(clock = options.gpu_core_clock,
                                               voltage_domain = VoltageDomain()),
                   gpu_memory_range = gpu_mem_range)
@@ -336,7 +346,7 @@ def createGPU(options, gpu_mem_range, system):
 
     return gpu
 
-def connectGPUPorts(gpu, ruby, options):
+def connectGPUPorts(gpu, ruby, options, system):
     num_cpus = options.num_cpus
     for i,sc in enumerate(gpu.shader_cores):
         sc.inst_port = ruby._cpu_ports[num_cpus+i].slave
@@ -366,11 +376,9 @@ def connectGPUPorts(gpu, ruby, options):
                     ruby._cpu_ports[num_cpus+options.num_sc+1].slave,
                     options.gpu_tlb_bypass_l1)
 
-    if options.split:
-        # NOTE: In split address space architectures, the MMU only provides the
-        # copy engine host-side TLB access to a page walker. This should
-        # probably be changed so that the copy engine doesn't manage
-        # translations, but only the data handling
+    if options.system_config == "opu_libgem5":
+        # NOTE: In opu_libgem5 address space architectures, the MMU is not used
+        # copy engine host-side TLB access is faked to return vaddr as paddr
 
         # If inappropriately used, crash to inform MMU config problems to user:
         if options.access_host_pagetable:
@@ -379,34 +387,33 @@ def connectGPUPorts(gpu, ruby, options):
                   'only one of --split or --access-host-pagetable')
 
         # Tie copy engine ports to appropriate sequencers
-        gpu.ce.host_port = \
-            ruby._cpu_ports[num_cpus+options.num_sc].slave
-        gpu.ce.device_port = \
-            ruby._cpu_ports[num_cpus+options.num_sc+1].slave
-        gpu.ce.device_dtb.access_host_pagetable = False
-    elif options.ppu:
-        # Tie copy engine ports to appropriate sequencers
-        # the host-side is connect to Membus , and device-side is connect to caches
-        #gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
-        #gpu.ce.host_port = membus.slave
-        gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+        gpu.ce.host_port = system.hdp.data_port
         gpu.ce.device_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+        gpu.ce.device_dtb.access_host_pagetable = False
+        gpu.ce.host_dtb.access_host_pagetable = False
+    #elif options.ppu:
+    #    # Tie copy engine ports to appropriate sequencers
+    #    # the host-side is connect to Membus , and device-side is connect to caches
+    #    #gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc].slave
+    #    #gpu.ce.host_port = membus.slave
+    #    gpu.ce.host_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+    #    gpu.ce.device_port = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
 
-        # Tie cp command processor ports to appropriate sequencers
+    #    # Tie cp command processor ports to appropriate sequencers
 
-        #gpu.cp.pio_port = ruby._cpu_ports[num_cpus+options.num_sc].master
+    #    #gpu.cp.pio_port = ruby._cpu_ports[num_cpus+options.num_sc].master
 
-        #gpu.cp_membus = IOXBar()
-        #gpu.cp.port = gpu.cp_membus.slave
+    #    #gpu.cp_membus = IOXBar()
+    #    #gpu.cp.port = gpu.cp_membus.slave
 
-        #gpu.cp_membus.master = membus.slave
-        #gpu.cp_membus.master = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
-        #gpu.cp.device_dtb.access_host_pagetable = False
+    #    #gpu.cp_membus.master = membus.slave
+    #    #gpu.cp_membus.master = ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+    #    #gpu.cp.device_dtb.access_host_pagetable = False
     else:
         # With a unified address space, tie both copy engine ports to the same
         # copy engine controller. NOTE: The copy engine is often unused in the
         # unified address space
         gpu.ce.host_port = \
-            ruby._cpu_ports[num_cpus+options.num_sc+1].slave
+            ruby._cpu_ports[num_cpus+options.num_sc].slave
         gpu.ce.device_port = \
             ruby._cpu_ports[num_cpus+options.num_sc+1].slave

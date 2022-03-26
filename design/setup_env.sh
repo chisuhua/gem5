@@ -9,8 +9,8 @@ fi
 export DESIGN_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export GEM5_ROOT=$DIR
-#export GEM5_VARIANT=debug
-export GEM5_VARIANT=opt
+export GEM5_VARIANT=debug
+#export GEM5_VARIANT=opt
 export GEM5_ARCH=X86_VI_hammer
 #export CUDAHOME=/usr/local/cuda/
 #export CUDAHOME=$DIR/cuda3.2
