@@ -27,6 +27,17 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+%{
+typedef void * yyscan_t;
+#include "ptx_loader.h"
+%}
+
+%define api.pure full
+%parse-param {yyscan_t scanner}
+%parse-param {ptxinfo_data* ptxinfo}
+%lex-param {yyscan_t scanner}
+%lex-param {ptxinfo_data* ptxinfo}
+
 %union {
   int    int_value;
   char * string_value;
@@ -58,7 +69,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %token DUPLICATE
 %token <string_value> FUNCTION
 %token <string_value> VARIABLE
-%token FATAL
+%token FATAL_GPGPU
 
 %{
 	#include <stdlib.h>
@@ -66,15 +77,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 	static unsigned g_declared;
 	static unsigned g_system;
-	int ptxinfo_lex(void);
-	void ptxinfo_addinfo();
+	int ptxinfo_lex(YYSTYPE * yylval_param, yyscan_t yyscanner, ptxinfo_data* ptxinfo);
+	void yyerror(yyscan_t yyscanner, ptxinfo_data* ptxinfo, const char* msg);
 	void ptxinfo_function(const char *fname );
 	void ptxinfo_regs( unsigned nregs );
 	void ptxinfo_lmem( unsigned declared, unsigned system );
 	void ptxinfo_gmem( unsigned declared, unsigned system );
 	void ptxinfo_smem( unsigned declared, unsigned system );
 	void ptxinfo_cmem( unsigned nbytes, unsigned bank );
-	int ptxinfo_error(const char*);
 	void ptxinfo_linenum( unsigned );
 	void ptxinfo_dup_type( const char* );
 %}
@@ -89,11 +99,11 @@ line: 	HEADER INFO COLON line_info
 	| HEADER IDENTIFIER COMMA LINE INT_OPERAND SEMICOLON WARNING
 	| HEADER WARNING { printf("GPGPU-Sim: ptxas %s\n", $2); }
 	| HEADER IDENTIFIER COMMA LINE INT_OPERAND SEMICOLON DUPLICATE duplicate { ptxinfo_linenum($5); }
-	| HEADER FATAL
+	| HEADER FATAL_GPGPU
 	;
 
 line_info: function_name
-	| function_info { ptxinfo_addinfo(); }
+	| function_info { ptxinfo->ptxinfo_addinfo(); }
 	| gmem_info
 	;
 

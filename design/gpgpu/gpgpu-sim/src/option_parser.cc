@@ -239,7 +239,7 @@ public:
          }
          if (optionFound == false) {
             fprintf(stderr, "\n\nGPGPU-Sim ** ERROR: Unknown Option: '%s' \n", argv[i]);
-            exit(1);
+            // exit(1);
          }
       }
    }

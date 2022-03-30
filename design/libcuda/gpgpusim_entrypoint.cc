@@ -241,7 +241,7 @@ void gpgpu_context::exit_simulation() {
   fflush(stdout);
 }
 
-gpgpu_sim *gpgpu_context::gpgpu_ptx_sim_init_perf() {
+void gpgpu_context::gpgpusim_config_init() {
   srand(1);
   print_splash();
   func_sim->read_sim_environment_variables();
@@ -269,6 +269,38 @@ gpgpu_sim *gpgpu_context::gpgpu_ptx_sim_init_perf() {
   // so it does the parsing correctly independent of the system environment variables
   assert(setlocale(LC_NUMERIC,"C"));
   the_gpgpusim->g_the_gpu_config->init();
+}
+
+gpgpu_sim *gpgpu_context::gpgpu_ptx_sim_init_perf() {
+#if 0
+  srand(1);
+  print_splash();
+  func_sim->read_sim_environment_variables();
+  ptx_parser->read_parser_environment_variables();
+  option_parser_t opp = option_parser_create();
+
+  ptx_reg_options(opp);
+  func_sim->ptx_opcocde_latency_options(opp);
+
+
+  // FIXME
+  // icnt_reg_options(opp);
+  //
+  the_gpgpusim->g_the_gpu_config = new gpgpu_sim_config(this);
+  the_gpgpusim->g_the_gpu_config->reg_options(
+      opp);  // register GPU microrachitecture options
+
+  option_parser_cmdline(opp, sg_argc, sg_argv);  // parse configuration options
+  fprintf(stdout, "GPGPU-Sim: Configuration options:\n\n");
+  option_parser_print(opp, stdout);
+
+  func_sim->read_sim_environment_variables();
+
+  // Set the Numeric locale to a standard locale where a decimal point is a "dot" not a "comma"
+  // so it does the parsing correctly independent of the system environment variables
+  assert(setlocale(LC_NUMERIC,"C"));
+  the_gpgpusim->g_the_gpu_config->init();
+#endif
 
   the_gpgpusim->g_the_gpu =
       new exec_gpgpu_sim(*(the_gpgpusim->g_the_gpu_config), this);

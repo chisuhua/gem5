@@ -35,7 +35,10 @@
 /*******************************
        CUDA API MEMBERS
 ********************************/
-
+#if !defined(__DRIVER_TYPES_H__)
+#include "driver_types.h"
+#endif
+/*
 enum cudaError
 {
     cudaSuccess                           =      0,   // No errors
@@ -103,6 +106,7 @@ enum cudaMemcpyKind
     cudaMemcpyDeviceToHost        =   2,      // Device -> Host
     cudaMemcpyDeviceToDevice      =   3       // Device -> Device
 };
+*/
 
 const char* cudaMemcpyKindStrings[] =
 {
@@ -160,13 +164,15 @@ typedef struct __cudaFatCudaBinaryRec {
 } __cudaFatCudaBinary;
 
 /*DEVICE_BUILTIN*/
+/*
 struct uint3
 {
   unsigned int x, y, z;
 };
+*/
 
 typedef struct CUevent_st *cudaEvent_t;
-
+/*
 typedef struct cudaFuncAttributes {
    size_t sharedSizeBytes;
    size_t constSizeBytes;
@@ -177,6 +183,7 @@ typedef struct cudaFuncAttributes {
    int binaryVersion;
    int __cudaReserved[6];
 } cudaFuncAttributes;
+*/
 
 /*******************************
      CUDA API GEM5 HANDLERS
@@ -242,9 +249,9 @@ void cudaThreadExit(ThreadContext *tc, gpusyscall_t *call_params);
 void cudaThreadSynchronize(ThreadContext *tc, gpusyscall_t *call_params);
 void __cudaSynchronizeThreads(ThreadContext *tc, gpusyscall_t *call_params);
 void libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params);
-void libgem5cudaRegisterPtxInfo(ThreadContext *tc, gpusyscall_t *call_params);
-void sysgem5gpu_active(ThreadContext *tc, gpusyscall_t *call_params);
-void sysgem5gpu_system_call(ThreadContext *tc, gpusyscall_t *call_params);
+// void libgem5cudaRegisterPtxInfo(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_active(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_system_call(ThreadContext *tc, gpusyscall_t *call_params);
 void libcudaRegisterFatBinaryFinalize(ThreadContext *tc, gpusyscall_t *call_params);
 void __cudaCheckAllocateLocal(ThreadContext *tc, gpusyscall_t *call_params);
 void __cudaSetLocalAllocation(ThreadContext *tc, gpusyscall_t *call_params);
@@ -259,10 +266,10 @@ void cudaGLMapBufferObject(ThreadContext *tc, gpusyscall_t *call_params);
 void cudaGLUnmapBufferObject(ThreadContext *tc, gpusyscall_t *call_params);
 void cudaGLUnregisterBufferObject(ThreadContext *tc, gpusyscall_t *call_params);
 
-void sysgem5gpu_extract_ptx_files_using_cuobjdump(ThreadContext *tc, gpusyscall_t *call_params);
-void sysgem5gpu_cuobjdumpParseBinary(ThreadContext *tc, gpusyscall_t *call_params);
-void sysgem5gpu_symbol_lookup(ThreadContext *tc, gpusyscall_t *call_params);
-void sysgem5gpu_symbol_get_function(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_extract_ptx_files_using_cuobjdump(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_cuobjdumpParseBinary(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_symbol_lookup(ThreadContext *tc, gpusyscall_t *call_params);
+// void sysgem5gpu_symbol_get_function(ThreadContext *tc, gpusyscall_t *call_params);
 
 #if (CUDART_VERSION >= 2010)
 
@@ -378,14 +385,16 @@ cudaFunc_t gpgpu_funcs[] = {
         libcudaRegisterDeviceMemory,    /* 82 */
         cudaBlockThread,    /* 83 */
         __cudaCheckAllocateLocal,    /* 84 */
-        __cudaSetLocalAllocation,    /* 85 */
-        libgem5cudaRegisterPtxInfo,    /* 86 */
+        __cudaSetLocalAllocation    /* 85 */
+#if 0
+        libgem5cudaRegisterPtxInfo    /* 86 */
         sysgem5gpu_active,    /* 87 */
         sysgem5gpu_system_call,    /* 88 */
         sysgem5gpu_extract_ptx_files_using_cuobjdump,    /* 89 */
         sysgem5gpu_cuobjdumpParseBinary,    /* 90 */
         sysgem5gpu_symbol_lookup,        /* 91 */
         sysgem5gpu_symbol_get_function  /* 92 */
+#endif
 };
 
 #endif

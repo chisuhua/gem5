@@ -18,7 +18,8 @@ l1icache_gem5::access(new_addr_type addr, mem_fetch *mf, unsigned time,
     assert(!mf->get_is_write());
     new_addr_type block_addr = m_config.block_addr(addr);
     unsigned cache_index = (unsigned)-1;
-    enum cache_request_status status = m_tag_array->probe(block_addr,cache_index, mf);
+    // TODO schi , not write?
+    enum cache_request_status status = m_tag_array->probe(block_addr,cache_index, mf, false);
     if ( status == HIT ) {
         m_tag_array->access(block_addr,time,cache_index, mf); // update LRU state
         return HIT;

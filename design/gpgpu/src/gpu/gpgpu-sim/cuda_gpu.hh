@@ -189,6 +189,14 @@ class CudaGPU : public ClockedObject
         return new_id;
     }
 
+    gpgpu_context * getGPGPUCtx() {
+        return gpgpu_ctx;
+    }
+
+    stream_manager * getStreamManager () {
+        return streamManager;
+    };
+
     struct CudaDeviceProperties
     {
         char   name[256];                 // ASCII string identifying device
@@ -361,6 +369,7 @@ class CudaGPU : public ClockedObject
     /// Pointers to GPGPU-Sim objects
     gpgpu_sim *theGPU;
     stream_manager *streamManager;
+    gpgpu_context *gpgpu_ctx;
 
     /// Flag to make sure we don't schedule twice in the same tick
     bool streamScheduled;

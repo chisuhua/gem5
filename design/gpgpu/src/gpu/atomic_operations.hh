@@ -34,10 +34,10 @@ class AtomicOpRequest {
 
     // The data type on which the atomic operates
     enum DataType { INVALID_TYPE,
-                    S32_TYPE,
-                    U32_TYPE,
-                    F32_TYPE,
-                    B32_TYPE };
+                    S32_TYPE_,
+                    U32_TYPE_,
+                    F32_TYPE_,
+                    B32_TYPE_ };
 
     // An identifier for the requester (e.g. GPU lane ID)
     unsigned uniqueId;
@@ -57,10 +57,10 @@ class AtomicOpRequest {
 
     int dataSizeBytes() {
         switch (dataType) {
-          case S32_TYPE:
-          case U32_TYPE:
-          case F32_TYPE:
-          case B32_TYPE:
+          case S32_TYPE_:
+          case U32_TYPE_:
+          case F32_TYPE_:
+          case B32_TYPE_:
             return 4;
           default:
             panic("Unknown atomic type: %s\n", atomicOp);

@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,8 +31,11 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_PTX_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTX_TAB_H_INCLUDED
-# define YY_PTX_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTX_TAB_H_INCLUDED
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
+
+#ifndef YY_PTX_PTX_TAB_H_INCLUDED
+# define YY_PTX_PTX_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -220,13 +224,186 @@ extern int ptx_debug;
     PRMT_ECR_MODE = 430
   };
 #endif
+/* Tokens.  */
+#define STRING 258
+#define OPCODE 259
+#define WMMA_DIRECTIVE 260
+#define LAYOUT 261
+#define CONFIGURATION 262
+#define ALIGN_DIRECTIVE 263
+#define BRANCHTARGETS_DIRECTIVE 264
+#define BYTE_DIRECTIVE 265
+#define CALLPROTOTYPE_DIRECTIVE 266
+#define CALLTARGETS_DIRECTIVE 267
+#define CONST_DIRECTIVE 268
+#define CONSTPTR_DIRECTIVE 269
+#define PTR_DIRECTIVE 270
+#define ENTRY_DIRECTIVE 271
+#define EXTERN_DIRECTIVE 272
+#define FILE_DIRECTIVE 273
+#define FUNC_DIRECTIVE 274
+#define GLOBAL_DIRECTIVE 275
+#define LOCAL_DIRECTIVE 276
+#define LOC_DIRECTIVE 277
+#define MAXNCTAPERSM_DIRECTIVE 278
+#define MAXNNREG_DIRECTIVE 279
+#define MAXNTID_DIRECTIVE 280
+#define MINNCTAPERSM_DIRECTIVE 281
+#define PARAM_DIRECTIVE 282
+#define PRAGMA_DIRECTIVE 283
+#define REG_DIRECTIVE 284
+#define REQNTID_DIRECTIVE 285
+#define SECTION_DIRECTIVE 286
+#define SHARED_DIRECTIVE 287
+#define SREG_DIRECTIVE 288
+#define SSTARR_DIRECTIVE 289
+#define STRUCT_DIRECTIVE 290
+#define SURF_DIRECTIVE 291
+#define TARGET_DIRECTIVE 292
+#define TEX_DIRECTIVE 293
+#define UNION_DIRECTIVE 294
+#define VERSION_DIRECTIVE 295
+#define ADDRESS_SIZE_DIRECTIVE 296
+#define VISIBLE_DIRECTIVE 297
+#define WEAK_DIRECTIVE 298
+#define IDENTIFIER 299
+#define INT_OPERAND 300
+#define FLOAT_OPERAND 301
+#define DOUBLE_OPERAND 302
+#define S8_TYPE 303
+#define S16_TYPE 304
+#define S32_TYPE 305
+#define S64_TYPE 306
+#define U8_TYPE 307
+#define U16_TYPE 308
+#define U32_TYPE 309
+#define U64_TYPE 310
+#define F16_TYPE 311
+#define F32_TYPE 312
+#define F64_TYPE 313
+#define FF64_TYPE 314
+#define B8_TYPE 315
+#define B16_TYPE 316
+#define B32_TYPE 317
+#define B64_TYPE 318
+#define BB64_TYPE 319
+#define BB128_TYPE 320
+#define PRED_TYPE 321
+#define TEXREF_TYPE 322
+#define SAMPLERREF_TYPE 323
+#define SURFREF_TYPE 324
+#define V2_TYPE 325
+#define V3_TYPE 326
+#define V4_TYPE 327
+#define COMMA 328
+#define PRED 329
+#define HALF_OPTION 330
+#define EXTP_OPTION 331
+#define EQ_OPTION 332
+#define NE_OPTION 333
+#define LT_OPTION 334
+#define LE_OPTION 335
+#define GT_OPTION 336
+#define GE_OPTION 337
+#define LO_OPTION 338
+#define LS_OPTION 339
+#define HI_OPTION 340
+#define HS_OPTION 341
+#define EQU_OPTION 342
+#define NEU_OPTION 343
+#define LTU_OPTION 344
+#define LEU_OPTION 345
+#define GTU_OPTION 346
+#define GEU_OPTION 347
+#define NUM_OPTION 348
+#define NAN_OPTION 349
+#define CF_OPTION 350
+#define SF_OPTION 351
+#define NSF_OPTION 352
+#define LEFT_SQUARE_BRACKET 353
+#define RIGHT_SQUARE_BRACKET 354
+#define WIDE_OPTION 355
+#define SPECIAL_REGISTER 356
+#define MINUS 357
+#define PLUS 358
+#define COLON 359
+#define SEMI_COLON 360
+#define EXCLAMATION 361
+#define PIPE 362
+#define RIGHT_BRACE 363
+#define LEFT_BRACE 364
+#define EQUALS 365
+#define PERIOD 366
+#define BACKSLASH 367
+#define DIMENSION_MODIFIER 368
+#define RN_OPTION 369
+#define RZ_OPTION 370
+#define RM_OPTION 371
+#define RP_OPTION 372
+#define RNI_OPTION 373
+#define RZI_OPTION 374
+#define RMI_OPTION 375
+#define RPI_OPTION 376
+#define UNI_OPTION 377
+#define GEOM_MODIFIER_1D 378
+#define GEOM_MODIFIER_2D 379
+#define GEOM_MODIFIER_3D 380
+#define SAT_OPTION 381
+#define FTZ_OPTION 382
+#define NEG_OPTION 383
+#define SYNC_OPTION 384
+#define RED_OPTION 385
+#define ARRIVE_OPTION 386
+#define ATOMIC_POPC 387
+#define ATOMIC_AND 388
+#define ATOMIC_OR 389
+#define ATOMIC_XOR 390
+#define ATOMIC_CAS 391
+#define ATOMIC_EXCH 392
+#define ATOMIC_ADD 393
+#define ATOMIC_INC 394
+#define ATOMIC_DEC 395
+#define ATOMIC_MIN 396
+#define ATOMIC_MAX 397
+#define LEFT_ANGLE_BRACKET 398
+#define RIGHT_ANGLE_BRACKET 399
+#define LEFT_PAREN 400
+#define RIGHT_PAREN 401
+#define APPROX_OPTION 402
+#define FULL_OPTION 403
+#define ANY_OPTION 404
+#define ALL_OPTION 405
+#define BALLOT_OPTION 406
+#define GLOBAL_OPTION 407
+#define CTA_OPTION 408
+#define SYS_OPTION 409
+#define EXIT_OPTION 410
+#define ABS_OPTION 411
+#define TO_OPTION 412
+#define CA_OPTION 413
+#define CG_OPTION 414
+#define CS_OPTION 415
+#define LU_OPTION 416
+#define CV_OPTION 417
+#define WB_OPTION 418
+#define WT_OPTION 419
+#define NC_OPTION 420
+#define UP_OPTION 421
+#define DOWN_OPTION 422
+#define BFLY_OPTION 423
+#define IDX_OPTION 424
+#define PRMT_F4E_MODE 425
+#define PRMT_B4E_MODE 426
+#define PRMT_RC8_MODE 427
+#define PRMT_RC16_MODE 428
+#define PRMT_ECL_MODE 429
+#define PRMT_ECR_MODE 430
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 30 "ptx.y" /* yacc.c:1909  */
+#line 42 "ptx.y"
 
   double double_value;
   float  float_value;
@@ -234,18 +411,16 @@ union YYSTYPE
   char * string_value;
   void * ptr_value;
 
-#line 238 "ptx.tab.h" /* yacc.c:1909  */
-};
+#line 415 "ptx.tab.h"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
 
-extern YYSTYPE ptx_lval;
 
-// extern "C" int ptx_parse(void);
-// extern "C" int ptx_parse();
+// int ptx_parse (yyscan_t scanner, ptx_recognizer* recognizer);
 
-#endif /* !YY_PTX_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTX_TAB_H_INCLUDED  */
+#endif /* !YY_PTX_PTX_TAB_H_INCLUDED  */

@@ -47,6 +47,7 @@
 #include "debug/CudaGPUPageTable.hh"
 #include "debug/CudaGPUTick.hh"
 #include "gpgpusim_entrypoint.h"
+#include "../libcuda_sim/gpgpu_context.h"
 #include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "mem/ruby/system/RubySystem.hh"
 #include "params/CudaGPU.hh"
@@ -57,7 +58,7 @@ using namespace std;
 
 // FIXME
 int no_of_ptx = 0;
-extern char *ptx_line_stats_filename;
+char *ptx_line_stats_filename = "ptx_line_stats.rpt";
 namespace gem5 {
 
 vector<CudaGPU*> CudaGPU::gpuArray;
@@ -66,6 +67,8 @@ vector<CudaGPU*> CudaGPU::gpuArray;
 void registerFatBinaryTop(GPUSyscallHelper *helper, Addr sim_fatCubin, size_t sim_binSize);
 unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_ptr);
 void register_var(Addr sim_deviceAddress, const char* deviceName, int sim_size, int sim_constant, int sim_global, int sim_ext, Addr sim_hostVar);
+
+static std::mutex tick_mutex;
 
 CudaGPU::CudaGPU(const CudaGPUParams &p) :
     ClockedObject(p), _params(&p), streamTickEvent(this),
@@ -111,8 +114,11 @@ CudaGPU::CudaGPU(const CudaGPUParams &p) :
     cpMemoryBaseVaddr = virtualGPUBrkAddr;
     cpMemoryBaseSize = TheISA::PageBytes * 10;  // reserve 10 page for cp scratch
 
+    // Initiaalize default gpgpu_context
+    gpgpu_ctx = new gpgpu_context();
+
     // Initialize GPGPU-Sim
-    theGPU = gem5_ptx_sim_init_perf(&streamManager, this, getConfigPath());
+    theGPU = gpgpu_ctx->gem5_ptx_sim_init_perf(&streamManager, this, getConfigPath());
     theGPU->init();
 
     // Set up the component wrappers in order to cycle the GPGPU-Sim
@@ -344,21 +350,32 @@ void CudaGPU::registerCommandProcessor(CommandProcessor *cp)
 }
 
 void CudaGPU::streamTick() {
+    std::lock_guard<std::mutex> lock(tick_mutex);
     DPRINTF(CudaGPUTick, "Stream Tick\n");
 
     streamScheduled = false;
 
     // launch operation on device if one is pending and can be run
     stream_operation op = streamManager->front();
-    op.do_operation(theGPU);
+    bool kickoff = op.do_operation(theGPU);
 
-    if (streamManager->ready()) {
+    if (!kickoff) {
+        //cancel operation
+        //if( op.is_kernel() ) {
+        //    unsigned grid_uid = op.get_kernel()->get_uid();
+        //    m_grid_id_to_stream.erase(grid_uid);
+        //}
+        op.get_stream()->cancel_front();
+    }
+
+    if (!kickoff || streamManager->ready()) {
         schedule(streamTickEvent, curTick() + streamDelay);
         streamScheduled = true;
     }
 }
 
 void CudaGPU::scheduleStreamEvent() {
+    std::lock_guard<std::mutex> lock(tick_mutex);
     if (streamScheduled) {
         DPRINTF(CudaGPUTick, "Already scheduled a tick, ignoring\n");
         return;
@@ -483,11 +500,13 @@ void CudaGPU::gpuPrintStats(std::ostream& out) {
 
 
 void CudaGPU::printPTXFileLineStats() {
+#if 1
     char *temp_ptx_line_stats_filename = ptx_line_stats_filename;
     std::string outfile = simout.directory() + ptx_line_stats_filename;
     ptx_line_stats_filename = (char*)outfile.c_str();
-    ptx_file_line_stats_write_file();
+    gpgpu_ctx->stats->ptx_file_line_stats_write_file();
     ptx_line_stats_filename = temp_ptx_line_stats_filename;
+#endif
 }
 
 void CudaGPU::memcpy(void *src, void *dst, size_t count, struct CUstream_st *_stream, stream_operation_type type) {
@@ -499,8 +518,10 @@ void CudaGPU::memcpy_to_symbol(const char *hostVar, const void *src, size_t coun
     // First, initialize the stream operation
     beginStreamOperation(_stream);
 
+    unsigned dst = gpgpu_ctx->func_sim->gpgpu_ptx_hostvar_to_sym_address(hostVar, theGPU);
+#if 0
     // Lookup destination address for transfer:
-    std::string sym_name = gpgpu_ptx_sim_hostvar_to_sym_name(hostVar);
+    std::string sym_name = gpgpu_ctx->gpgpu_ptx_sim_hostvar_to_sym_name(hostVar);
     std::map<std::string,symbol_table*>::iterator st = g_sym_name_to_symbol_table.find(sym_name.c_str());
     assert(st != g_sym_name_to_symbol_table.end());
     symbol_table *symtab = st->second;
@@ -510,6 +531,7 @@ void CudaGPU::memcpy_to_symbol(const char *hostVar, const void *src, size_t coun
     unsigned dst = sym->get_address() + offset;
     printf("GPGPU-Sim PTX: gpgpu_ptx_sim_memcpy_symbol: copying %zu bytes to symbol %s+%zu @0x%x ...\n",
            count, sym_name.c_str(), offset, dst);
+#endif
 
     copyEngine->memcpy((Addr)src, (Addr)dst, count, stream_memcpy_host_to_device);
 }
@@ -517,7 +539,8 @@ void CudaGPU::memcpy_to_symbol(const char *hostVar, const void *src, size_t coun
 void CudaGPU::memcpy_from_symbol(void *dst, const char *hostVar, size_t count, size_t offset, struct CUstream_st *_stream) {
     // First, initialize the stream operation
     beginStreamOperation(_stream);
-
+    unsigned src = gpgpu_ctx->func_sim->gpgpu_ptx_hostvar_to_sym_address(hostVar, theGPU);
+#if 0
     // Lookup destination address for transfer:
     std::string sym_name = gpgpu_ptx_sim_hostvar_to_sym_name(hostVar);
     std::map<std::string,symbol_table*>::iterator st = g_sym_name_to_symbol_table.find(sym_name.c_str());
@@ -529,6 +552,8 @@ void CudaGPU::memcpy_from_symbol(void *dst, const char *hostVar, size_t count, s
     unsigned src = sym->get_address() + offset;
     printf("GPGPU-Sim PTX: gpgpu_ptx_sim_memcpy_symbol: copying %zu bytes from symbol %s+%zu @0x%x ...\n",
            count, sym_name.c_str(), offset, src);
+#endif
+
 
     copyEngine->memcpy((Addr)src, (Addr)dst, count, stream_memcpy_device_to_host);
 }
@@ -646,6 +671,9 @@ void CudaGPU::register_function( unsigned fat_cubin_handle, const char *hostFun,
         assert( s != NULL );
         function_info *f = s->get_pc();
         assert( f != NULL );
+        // TODO schi hack reset gpgpu_ctx to cuda_gpu
+        f->gpgpu_ctx = gpgpu_ctx;
+        f->ptx_assemble();
         m_kernel_lookup[hostFun] = f;
     } else {
         m_kernel_lookup[hostFun] = NULL;

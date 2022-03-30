@@ -79,8 +79,8 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
       case ATOMIC_CAS_OP: {
 
         switch (dataType) {
-        case B32_TYPE:
-        case U32_TYPE: {
+        case B32_TYPE_:
+        case U32_TYPE_: {
             unsigned int mem_data = *((unsigned int*)read_data);
             unsigned int reg_b_data = *((unsigned int*)&data[0]);
             unsigned int reg_c_data = *((unsigned int*)&data[8]);
@@ -109,7 +109,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
       case ATOMIC_ADD_OP: {
 
         switch (dataType) {
-          case S32_TYPE: {
+          case S32_TYPE_: {
             int mem_data = *((int*)read_data);
             int reg_data = *((int*)&data[0]);
             int new_mem_data = reg_data + mem_data;
@@ -121,7 +121,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
             break;
           }
 
-          case U32_TYPE: {
+          case U32_TYPE_: {
             unsigned int mem_data = *((unsigned int*)read_data);
             unsigned int reg_data = *((unsigned int*)&data[0]);
             unsigned int new_mem_data = reg_data + mem_data;
@@ -133,7 +133,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
             break;
           }
 
-          case F32_TYPE: {
+          case F32_TYPE_: {
             float mem_data = *((float*)read_data);
             float reg_data = *((float*)&data[0]);
             float new_mem_data = reg_data + mem_data;
@@ -160,7 +160,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
       case ATOMIC_INC_OP: {
 
         switch (dataType) {
-          case U32_TYPE: {
+          case U32_TYPE_: {
             unsigned int mem_data = *((unsigned int*)read_data);
             unsigned int reg_data = *((unsigned int*)&data[0]);
             unsigned int new_mem_data =
@@ -188,7 +188,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
       case ATOMIC_MAX_OP: {
 
         switch (dataType) {
-          case U32_TYPE: {
+          case U32_TYPE_: {
             unsigned int mem_data = *((unsigned int*)read_data);
             unsigned int reg_data = *((unsigned int*)&data[0]);
             unsigned int new_mem_data =
@@ -201,7 +201,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
             break;
           }
 
-          case S32_TYPE: {
+          case S32_TYPE_: {
             int mem_data = *((int*)read_data);
             int reg_data = *((int*)&data[0]);
             int new_mem_data =
@@ -229,7 +229,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
       case ATOMIC_MIN_OP: {
 
         switch (dataType) {
-          case S32_TYPE: {
+          case S32_TYPE_: {
             int mem_data = *((int*)read_data);
             int reg_data = *((int*)&data[0]);
             int new_mem_data =
@@ -242,7 +242,7 @@ AtomicOpRequest::doAtomicOperation(uint8_t *read_data, uint8_t *write_data)
             break;
           }
 
-          case U32_TYPE: {
+          case U32_TYPE_: {
             unsigned int mem_data = *((unsigned int*)read_data);
             unsigned int reg_data = *((unsigned int*)&data[0]);
             unsigned int new_mem_data =

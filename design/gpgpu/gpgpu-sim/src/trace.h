@@ -31,9 +31,6 @@
 #ifndef __TRACE_H__
 #define __TRACE_H__
 
-extern unsigned long long  gpu_sim_cycle;
-extern unsigned long long  gpu_tot_sim_cycle;
-
 namespace Trace_gpgpu {
 
 #define TS_TUP_BEGIN(X) enum X {
@@ -44,37 +41,49 @@ namespace Trace_gpgpu {
 #undef TS_TUP
 #undef TS_TUP_END
 
-    extern bool enabled;
-    extern int sampling_core;
-    extern int sampling_memory_partition;
-    extern const char* trace_streams_str[];
-    extern bool trace_streams_enabled[NUM_TRACE_STREAMS];
-    extern const char* config_str;
+extern bool enabled;
+extern int sampling_core;
+extern int sampling_memory_partition;
+extern const char* trace_streams_str[];
+extern bool trace_streams_enabled[NUM_TRACE_STREAMS];
+extern const char* config_str;
 
-    void init();
+void init();
 
-} // namespace Trace_gpgpu
-
+}  // namespace Trace
 
 #if TRACING_ON
 
 #define SIM_PRINT_STR "GPGPU-Sim Cycle %llu: %s - "
 #define GPGPUSIM_DTRACE(x) ((Trace_gpgpu::trace_streams_enabled[Trace_gpgpu::x]) && Trace_gpgpu::enabled)
-#define GPGPUSIM_DPRINTF(x, ...) do {\
-    if (GPGPUSIM_DTRACE(x)) {\
-        printf( SIM_PRINT_STR,\
-                gpu_sim_cycle + gpu_tot_sim_cycle,\
-                Trace_gpgpu::trace_streams_str[Trace_gpgpu::x] );\
-        printf(__VA_ARGS__);\
-    }\
-} while (0)
+#define GPGPUSIM_DPRINTF(x, ...)                                                      \
+  do {                                                                       \
+    if (GPGPUSIM_DTRACE(x)) {                                                         \
+      printf(SIM_PRINT_STR, m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle, \
+             Trace_gpgpu::trace_streams_str[Trace_gpgpu::x]);                            \
+      printf(__VA_ARGS__);                                                   \
+    }                                                                        \
+  } while (0)
 
+#define GPGPUSIM_DPRINTFG(x, ...)                                       \
+  do {                                                         \
+    if (GPGPUSIM_DTRACE(x)) {                                           \
+      printf(SIM_PRINT_STR, gpu_sim_cycle + gpu_tot_sim_cycle, \
+             Trace_gpgpu::trace_streams_str[Trace_gpgpu::x]);              \
+      printf(__VA_ARGS__);                                     \
+    }                                                          \
+  } while (0)
 
-#else 
+#else
 
 #define GPGPUSIM_DTRACE(x) (false)
-#define GPGPUSIM_DPRINTF(x, ...) do {} while (0)
+#define GPGPUSIM_DPRINTF(x, ...) \
+  do {                  \
+  } while (0)
+#define GPGPUSIM_DPRINTFG(x, ...) \
+  do {                   \
+  } while (0)
 
-#endif  
+#endif
 
-#endif 
+#endif

@@ -39,25 +39,25 @@
 
 // Intended to be called from inside components of a memory partition
 // Depends on a get_mpid() function
-#define MEMPART_DPRINTF(...) do {\
-    if (MEMPART_DTRACE(MEMORY_PARTITION_UNIT)) {\
-        printf( MEMPART_PRINT_STR,\
-                gpu_sim_cycle + gpu_tot_sim_cycle,\
-                Trace_gpgpu::trace_streams_str[Trace_gpgpu::MEMORY_PARTITION_UNIT],\
-                get_mpid() );\
-        printf(__VA_ARGS__);\
-    }\
-} while (0)
+#define MEMPART_DPRINTF(...)                                                   \
+  do {                                                                         \
+    if (MEMPART_DTRACE(MEMORY_PARTITION_UNIT)) {                               \
+      printf(                                                                  \
+          MEMPART_PRINT_STR, m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle,  \
+          Trace_gpgpu::trace_streams_str[Trace_gpgpu::MEMORY_PARTITION_UNIT], get_mpid()); \
+      printf(__VA_ARGS__);                                                     \
+    }                                                                          \
+  } while (0)
 
-#define MEM_SUBPART_DPRINTF(...) do {\
-    if (MEM_SUBPART_DTRACE(MEMORY_PARTITION_UNIT)) {\
-        printf( MEM_SUBPART_PRINT_STR,\
-                gpu_sim_cycle + gpu_tot_sim_cycle,\
-                Trace_gpgpu::trace_streams_str[Trace_gpgpu::MEMORY_SUBPARTITION_UNIT],\
-                m_id );\
-        printf(__VA_ARGS__);\
-    }\
-} while (0)
+#define MEM_SUBPART_DPRINTF(...)                                               \
+  do {                                                                         \
+    if (MEM_SUBPART_DTRACE(MEMORY_PARTITION_UNIT)) {                           \
+      printf(MEM_SUBPART_PRINT_STR,                                            \
+             m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle,                  \
+             Trace_gpgpu::trace_streams_str[Trace_gpgpu::MEMORY_SUBPARTITION_UNIT], m_id); \
+      printf(__VA_ARGS__);                                                     \
+    }                                                                          \
+  } while (0)
 
 #else
 

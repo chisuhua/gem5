@@ -91,7 +91,7 @@ namespace cuda_math {
    struct float2 {
       float x, y;
    };
-    
+
 
 // DEVICE_BUILTIN
    typedef struct int4 int4;
@@ -275,15 +275,24 @@ float __ull2float_rd(unsigned long long int a) {
 // float to integer conversion 
 int float2int(float a, enum cudaRoundMode mode)
 {
-   int tmp;
-   switch (mode) {
-   case cuda_math::cudaRoundZero: tmp = truncf(a);     break;
-   case cuda_math::cudaRoundNearest: tmp = nearbyintf(a); break;
-   case cuda_math::cudaRoundMinInf: tmp = floorf(a);     break;
-   case cuda_math::cudaRoundPosInf: tmp = ceilf(a);      break;
-   default: abort();
-   }
-   return tmp; 
+  int tmp;
+  switch (mode) {
+    case cudaRoundZero:
+      tmp = truncf(a);
+      break;
+    case cudaRoundNearest:
+      tmp = nearbyintf(a);
+      break;
+    case cudaRoundMinInf:
+      tmp = floorf(a);
+      break;
+    case cudaRoundPosInf:
+      tmp = ceilf(a);
+      break;
+    default:
+      abort();
+  }
+  return tmp;
 }
 
 int __internal_float2int(float a, enum cudaRoundMode mode) 
@@ -294,15 +303,24 @@ int __internal_float2int(float a, enum cudaRoundMode mode)
 // float to unsigned integer conversion 
 unsigned int float2uint(float a, enum cudaRoundMode mode)
 {
-   unsigned int tmp;
-   switch (mode) {
-   case cuda_math::cudaRoundZero: tmp = truncf(a);     break;
-   case cuda_math::cudaRoundNearest: tmp = nearbyintf(a); break;
-   case cuda_math::cudaRoundMinInf: tmp = floorf(a);     break;
-   case cuda_math::cudaRoundPosInf: tmp = ceilf(a);      break;
-   default: abort();
-   }
-   return tmp; 
+  unsigned int tmp;
+  switch (mode) {
+    case cudaRoundZero:
+      tmp = truncf(a);
+      break;
+    case cudaRoundNearest:
+      tmp = nearbyintf(a);
+      break;
+    case cudaRoundMinInf:
+      tmp = floorf(a);
+      break;
+    case cudaRoundPosInf:
+      tmp = ceilf(a);
+      break;
+    default:
+      abort();
+  }
+  return tmp;
 }
 
 unsigned int __internal_float2uint(float a, enum cudaRoundMode mode) 

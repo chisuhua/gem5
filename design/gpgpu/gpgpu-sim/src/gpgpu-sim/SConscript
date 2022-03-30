@@ -54,6 +54,7 @@ Source('stack.cc')
 Source('stat-tool.cc', append={'CXXFLAGS': '-Wno-error=format'})
 Source('traffic_breakdown.cc')
 Source('visualizer.cc')
+Source('hashing.cc')
 
 #Source('fq_push_m5.cc')
 

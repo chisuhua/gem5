@@ -26,10 +26,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "stream_manager.h"
-#include "gpgpusim_entrypoint.h"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
 #include "cuda-sim/cuda-sim.h"
 #include "gpgpu-sim/gpu-sim.h"
+#include "gpgpusim_entrypoint.h"
+#include "gpu/gpgpu-sim/cuda_gpu.hh"
+#include "../libcuda_sim/gpgpu_context.h"
 
 unsigned CUstream_st::sm_next_stream_uid = 0;
 
@@ -184,8 +185,9 @@ bool stream_operation::do_operation( gpgpu_sim *gpu )
     case stream_event: {
         printf("event update\n");
         time_t wallclock = time((time_t *)NULL);
+        // TODO
         // m_event->update( gpu_tot_sim_cycle, wallclock );
-        m_event->update( gpu_tot_sim_cycle, wallclock, gpu->gem5CudaGPU->getCurTick() );
+        m_event->update( gpu->gpu_tot_sim_cycle, wallclock, gpu->gem5CudaGPU->getCurTick() );
         if (m_event->needs_unblock()) {
             gpu->gem5CudaGPU->unblockThread(NULL);
             m_event->reset();
@@ -306,19 +308,19 @@ bool stream_manager::register_finished_kernel(unsigned grid_uid)
 }
 
 void stream_manager::stop_all_running_kernels(){
-    // pthread_mutex_lock(&m_lock);
+  // pthread_mutex_lock(&m_lock);
 
-    // Signal m_gpu to stop all running kernels
-    m_gpu->stop_all_running_kernels();
+  // Signal m_gpu to stop all running kernels
+  m_gpu->stop_all_running_kernels();
 
-    // Clean up all streams waiting on running kernels
-    int count=0;
-    while(check_finished_kernel()){
-        count++;
-    }
+  // Clean up all streams waiting on running kernels
+  int count=0;
+  while(check_finished_kernel()){
+    count++;
+  }
 
-    // If any kernels completed, print out the current stats
-    if(count > 0)
+  // If any kernels completed, print out the current stats
+  if(count > 0)
         m_gpu->print_stats();
 
     // pthread_mutex_unlock(&m_lock);
@@ -326,20 +328,20 @@ void stream_manager::stop_all_running_kernels(){
 
 stream_operation stream_manager::front()
 {
-    // called by gpu simulation thread
-    stream_operation result;
+  // called by gpu simulation thread
+  stream_operation result;
 //    if( concurrent_streams_empty() )
-    m_service_stream_zero = true;
-    if( m_service_stream_zero ) {
-        if( !m_stream_zero.empty() && !m_stream_zero.busy() ) {
-                result = m_stream_zero.next();
-                if( result.is_kernel() ) {
-                    unsigned grid_id = result.get_kernel()->get_uid();
-                    m_grid_id_to_stream[grid_id] = &m_stream_zero;
-                }
-        } else {
-            m_service_stream_zero = false;
-        }
+  m_service_stream_zero = true;
+  if( m_service_stream_zero ) {
+    if( !m_stream_zero.empty() && !m_stream_zero.busy() ) {
+      result = m_stream_zero.next();
+      if( result.is_kernel() ) {
+        unsigned grid_id = result.get_kernel()->get_uid();
+        m_grid_id_to_stream[grid_id] = &m_stream_zero;
+      }
+    } else {
+      m_service_stream_zero = false;
+      }
     }
     if(!m_service_stream_zero)
     {
@@ -362,7 +364,7 @@ stream_operation stream_manager::front()
             }
         }
     }
-    return result;
+  return result;
 }
 
 bool stream_manager::ready()
@@ -476,30 +478,38 @@ void stream_manager::print_impl( FILE *fp)
         m_stream_zero.print(fp);
 }
 
-void stream_manager::push( stream_operation op )
-{
-    struct CUstream_st *stream = op.get_stream();
+void stream_manager::push( stream_operation op ) {
+  struct CUstream_st *stream = op.get_stream();
 
-    // pthread_mutex_lock(&m_lock);
-    if(!m_gpu->cycle_insn_cta_max_hit()) {
-        // Accept the stream operation if the maximum cycle/instruction/cta counts are not triggered
-        if( stream && !m_cuda_launch_blocking ) {
-            stream->push(op);
-        } else {
-            op.set_stream(&m_stream_zero);
-            m_stream_zero.push(op);
-        }
-    }else {
-        // Otherwise, ignore operation and continue
-        printf("GPGPU-Sim API: Maximum cycle, instruction, or CTA count hit. Skipping:");
+  // block if stream 0 (or concurrency disabled) and pending concurrent
+  // operations exist
+  bool block = !stream || m_cuda_launch_blocking;
+  while (block) {
+    pthread_mutex_lock(&m_lock);
+    block = !concurrent_streams_empty();
+    pthread_mutex_unlock(&m_lock);
+  };
+
+  // pthread_mutex_lock(&m_lock);
+  if(!m_gpu->cycle_insn_cta_max_hit()) {
+    // Accept the stream operation if the maximum cycle/instruction/cta counts
+    // are not triggered
+    if ( stream && !m_cuda_launch_blocking ) {
+      stream->push(op);
+    } else {
+      op.set_stream(&m_stream_zero);
+      m_stream_zero.push(op);
+    }
+  }else {
+    // Otherwise, ignore operation and continue
+    printf("GPGPU-Sim API: Maximum cycle, instruction, or CTA count hit. Skipping:");
         op.print(stdout);
         printf("\n");
-    }
-    if(g_debug_execution >= 3)
-       print_impl(stdout);
+  }
+  if(g_debug_execution >= 3) print_impl(stdout);
 
-    // TODO schi fixme
-    if (ready()) {
+  // TODO schi fixme
+  if (ready()) {
         m_gpu->gem5CudaGPU->scheduleStreamEvent();
     }
 }

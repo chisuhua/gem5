@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,8 +31,11 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
-# define YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
+
+#ifndef YY_PTXINFO_PTXINFO_TAB_H_INCLUDED
+# define YY_PTXINFO_PTXINFO_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -47,7 +51,7 @@ extern int ptxinfo_debug;
   {
     INT_OPERAND = 258,
     HEADER = 259,
-    INFO = 260,
+    INFO_GPGPU = 260,
     FUNC = 261,
     USED = 262,
     REGS = 263,
@@ -71,31 +75,57 @@ extern int ptxinfo_debug;
     DUPLICATE = 281,
     FUNCTION = 282,
     VARIABLE = 283,
-    FATAL = 284
+    FATAL_GPGPU = 284
   };
 #endif
+/* Tokens.  */
+#define INT_OPERAND 258
+#define HEADER 259
+#define INFO_GPGPU 260
+#define FUNC 261
+#define USED 262
+#define REGS 263
+#define BYTES 264
+#define LMEM 265
+#define SMEM 266
+#define CMEM 267
+#define GMEM 268
+#define IDENTIFIER 269
+#define PLUS 270
+#define COMMA 271
+#define LEFT_SQUARE_BRACKET 272
+#define RIGHT_SQUARE_BRACKET 273
+#define COLON 274
+#define SEMICOLON 275
+#define QUOTE 276
+#define LINE 277
+#define WARNING 278
+#define FOR 279
+#define TEXTURES 280
+#define DUPLICATE 281
+#define FUNCTION 282
+#define VARIABLE 283
+#define FATAL_GPGPU 284
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 30 "ptxinfo.y" /* yacc.c:1909  */
+#line 41 "ptxinfo.y"
 
   int    int_value;
   char * string_value;
 
-#line 89 "/mnt/d/source/github/sim/gpgpu-sim_distribution-1/build/gcc-7.4.0/cuda-10000/debug/cuda-sim/ptxinfo.tab.h" /* yacc.c:1909  */
-};
+#line 120 "ptxinfo.tab.h"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
 
-extern YYSTYPE ptxinfo_lval;
 
-int ptxinfo_parse (void);
+int ptxinfo_parse (yyscan_t scanner, ptxinfo_data* ptxinfo);
 
-#endif /* !YY_PTXINFO_MNT_D_SOURCE_GITHUB_SIM_GPGPU_SIM_DISTRIBUTION_1_BUILD_GCC_7_4_0_CUDA_10000_DEBUG_CUDA_SIM_PTXINFO_TAB_H_INCLUDED  */
+#endif /* !YY_PTXINFO_PTXINFO_TAB_H_INCLUDED  */

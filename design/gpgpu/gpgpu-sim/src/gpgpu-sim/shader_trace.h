@@ -40,28 +40,29 @@
 
 // Intended to be called from inside components of a shader core.
 // Depends on a get_sid() function
-#define SHADER_DPRINTF(x, ...) do {\
-    if (SHADER_DTRACE(x)) {\
-        printf( SHADER_PRINT_STR,\
-                gpu_sim_cycle + gpu_tot_sim_cycle,\
-                Trace_gpgpu::trace_streams_str[Trace_gpgpu::x],\
-                get_sid() );\
-        printf(__VA_ARGS__);\
-    }\
-} while (0)
+#define SHADER_DPRINTF(x, ...)                                \
+  do {                                                        \
+    if (SHADER_DTRACE(x)) {                                   \
+      printf(SHADER_PRINT_STR,                                \
+             m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle, \
+             Trace_gpgpu::trace_streams_str[Trace_gpgpu::x], get_sid());  \
+      printf(__VA_ARGS__);                                    \
+    }                                                         \
+  } while (0)
 
 // Intended to be called from inside a scheduler_unit.
 // Depends on a m_id member
-#define SCHED_DPRINTF(...) do {\
-    if (SHADER_DTRACE(WARP_SCHEDULER)) {\
-        printf( SCHED_PRINT_STR,\
-                gpu_sim_cycle + gpu_tot_sim_cycle,\
-                Trace_gpgpu::trace_streams_str[Trace_gpgpu::WARP_SCHEDULER],\
-                get_sid(),\
-                m_id );\
-        printf(__VA_ARGS__);\
-    }\
-} while (0)
+#define SCHED_DPRINTF(...)                                               \
+  do {                                                                   \
+    if (SHADER_DTRACE(WARP_SCHEDULER)) {                                 \
+      printf(SCHED_PRINT_STR,                                            \
+             m_shader->get_gpu()->gpu_sim_cycle +                        \
+                 m_shader->get_gpu()->gpu_tot_sim_cycle,                 \
+             Trace_gpgpu::trace_streams_str[Trace_gpgpu::WARP_SCHEDULER], get_sid(), \
+             m_id);                                                      \
+      printf(__VA_ARGS__);                                               \
+    }                                                                    \
+  } while (0)
 
 #else
 

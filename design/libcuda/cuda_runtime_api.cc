@@ -232,9 +232,10 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = null
   _cuda_device_id *the_device = the_gpgpusim->the_cude_device;
   static CUctx_st *the_context;
   if (!the_device) {
-    gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
     cudaDeviceProp *prop = (cudaDeviceProp *) calloc(sizeof(cudaDeviceProp),1);
+    gpgpusim_config_init();
     if (umd_mode == 0) {
+      gpgpu_sim *the_gpu = gpgpu_ptx_sim_init_perf();
       snprintf(prop->name, 256, "GPGPU-Sim_v%s", libcuda::g_gpgpusim_version_string);
       prop->major = the_gpu->compute_capability_major();
       prop->minor = the_gpu->compute_capability_minor();
@@ -724,7 +725,9 @@ void cudaRegisterFunctionInternal(void **fatCubinHandle, const char *hostFun,
   if (context->get_device()->get_gpgpu()->get_config().use_cuobjdump())
     ctx->cuobjdumpParseBinary(fat_cubin_handle);
   context->register_function(fat_cubin_handle, hostFun, deviceFun);
-  gem5cudaRegisterFunction((void*)fat_cubin_handle, hostFun, deviceFun);
+  if (ctx->umd_mode) {
+    gem5cudaRegisterFunction((void*)fat_cubin_handle, hostFun, deviceFun);
+  }
 }
 
 void cudaRegisterVarInternal(
@@ -3328,7 +3331,9 @@ void gpgpu_context::cuobjdumpParseBinary(unsigned int handle) {
     symbol_table *symtab = api->name_symtab[fname];
     context->add_binary(symtab, handle);
     // FIXME schi add
-    gem5cudaRegisterFatBinary(symtab, handle);
+    if (umd_mode) {
+      gem5cudaRegisterFatBinary(symtab, handle);
+    }
     return;
   }
   symbol_table *symtab;
@@ -3347,7 +3352,9 @@ void gpgpu_context::cuobjdumpParseBinary(unsigned int handle) {
   api->name_symtab[fname] = symtab;
   context->add_binary(symtab, handle);
   // FIXME schi add
-  gem5cudaRegisterFatBinary(symtab, handle);
+  if (umd_mode) {
+    gem5cudaRegisterFatBinary(symtab, handle);
+  }
   // FIXME checkout libcuda_syscalls on load_global_const
   api->load_static_globals(symtab, STATIC_ALLOC_LIMIT, 0xFFFFFFFF,
                            context->get_device()->get_gpgpu());

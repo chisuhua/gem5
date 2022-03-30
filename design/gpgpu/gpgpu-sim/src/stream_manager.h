@@ -28,11 +28,11 @@
 #ifndef STREAM_MANAGER_H_INCLUDED
 #define STREAM_MANAGER_H_INCLUDED
 
-#include "abstract_hardware_model.h"
 #include "cpu/thread_context.hh"
-#include <list>
 #include <pthread.h>
 #include <time.h>
+#include <list>
+#include "abstract_hardware_model.h"
 
 using namespace gem5;
 
@@ -48,15 +48,14 @@ using namespace gem5;
 
 struct CUevent_st {
 public:
-   CUevent_st( bool blocking )
-   {
-      m_uid = ++m_next_event_uid;
-      m_blocking = blocking;
-      m_updates = 0;
-      m_wallclock = 0;
-      m_gpu_tot_sim_cycle = 0;
-      m_issued = 0;
-      m_done = false;
+  CUevent_st(bool blocking) {
+    m_uid = ++m_next_event_uid;
+    m_blocking = blocking;
+    m_updates = 0;
+    m_wallclock = 0;
+    m_gpu_tot_sim_cycle = 0;
+    m_issued = 0;
+    m_done = false;
 
       // TODO schi
       m_needs_unblock = false;
@@ -97,16 +96,16 @@ private:
 };
 
 enum stream_operation_type {
-    stream_no_op,
-    stream_memcpy_host_to_device,
-    stream_memcpy_device_to_host,
-    stream_memcpy_device_to_device,
-    stream_memcpy_to_symbol,
-    stream_memcpy_from_symbol,
-    stream_kernel_launch,
-    stream_event,
-    stream_wait_event,
-    stream_memset
+  stream_no_op,
+  stream_memcpy_host_to_device,
+  stream_memcpy_device_to_host,
+  stream_memcpy_device_to_device,
+  stream_memcpy_to_symbol,
+  stream_memcpy_from_symbol,
+  stream_kernel_launch,
+  stream_event,
+  stream_wait_event,
+  stream_memset
 };
 
 class stream_operation {
@@ -230,107 +229,110 @@ public:
         launchTime = curTick();
     }
 
-    bool is_kernel() const { return m_type == stream_kernel_launch; }
-    bool is_mem() const {
-        return m_type == stream_memcpy_host_to_device ||
-               m_type == stream_memcpy_device_to_host ||
-               m_type == stream_memcpy_host_to_device;
-    }
-    bool is_noop() const { return m_type == stream_no_op; }
-    bool is_done() const { return m_done; }
-    kernel_info_t *get_kernel() { return m_kernel; }
-    bool do_operation( gpgpu_sim *gpu );
-    void print( FILE *fp ) const;
-    struct CUstream_st *get_stream() { return m_stream; }
-    void set_stream( CUstream_st *stream ) { m_stream = stream; }
+  bool is_kernel() const { return m_type == stream_kernel_launch; }
+  bool is_mem() const {
+    return m_type == stream_memcpy_host_to_device ||
+           m_type == stream_memcpy_device_to_host ||
+           m_type == stream_memcpy_host_to_device;
+  }
+  bool is_noop() const { return m_type == stream_no_op; }
+  bool is_done() const { return m_done; }
+  kernel_info_t *get_kernel() { return m_kernel; }
+  bool do_operation( gpgpu_sim *gpu );
+  void print( FILE *fp ) const;
+  struct CUstream_st *get_stream() { return m_stream; }
+  void set_stream( CUstream_st *stream ) { m_stream = stream; }
 
-    // TODO schi remove it in next step
-    // For handling the gem5 thread context
-    void setThreadContext(ThreadContext *_tc) { tc = _tc; }
+  // TODO schi remove it in next step
+  // For handling the gem5 thread context
+  void setThreadContext(ThreadContext *_tc) { tc = _tc; }
 
 private:
-    struct CUstream_st *m_stream;
+  struct CUstream_st *m_stream;
 
-    bool m_done;
+  bool m_done;
 
-    stream_operation_type m_type;
-    size_t      m_device_address_dst;
-    size_t      m_device_address_src;
-    void       *m_host_address_dst;
-    const void *m_host_address_src;
-    size_t      m_cnt;
+  stream_operation_type m_type;
+  size_t      m_device_address_dst;
+  size_t      m_device_address_src;
+  void       *m_host_address_dst;
+  const void *m_host_address_src;
+  size_t      m_cnt;
 
-    const char *m_symbol;
-    size_t m_offset;
-    int m_write_value;
+  const char *m_symbol;
+  size_t m_offset;
+  int m_write_value;
 
-    bool m_sim_mode;
-    kernel_info_t *m_kernel;
-    struct CUevent_st *m_event;
-    Tick launchTime;
+  bool m_sim_mode;
+  kernel_info_t *m_kernel;
+  struct CUevent_st *m_event;
+  Tick launchTime;
 
-    // TODO schi remove it 
-    // The gem5 thread context executing this stream
-    ThreadContext *tc;
+  // TODO schi remove it 
+  // The gem5 thread context executing this stream
+  ThreadContext *tc;
 
 };
 struct CUstream_st {
 public:
-    CUstream_st(); 
-    bool empty();
-    bool busy();
-    void synchronize();
-    void push( const stream_operation &op );
-    void record_next_done();
-    stream_operation next();
-    void cancel_front(); //front operation fails, cancle the pending status
-    stream_operation &front() { return m_operations.front(); }
-    void print( FILE *fp );
-    unsigned get_uid() const { return m_uid; }
+  CUstream_st(); 
+  bool empty();
+  bool busy();
+  void synchronize();
+  void push(const stream_operation &op );
+  void record_next_done();
+  stream_operation next();
+  void cancel_front(); //front operation fails, cancle the pending status
+  stream_operation &front() { return m_operations.front(); }
+  void print( FILE *fp );
+  unsigned get_uid() const { return m_uid; }
     // For handling the gem5 thread context
     void setThreadContext(ThreadContext *_tc) { tc = _tc; }
     ThreadContext *getThreadContext() { return tc; }
 
 private:
-    unsigned m_uid;
-    static unsigned sm_next_stream_uid;
+  unsigned m_uid;
+  static unsigned sm_next_stream_uid;
 
-    std::list<stream_operation> m_operations;
-    bool m_pending; // front operation has started but not yet completed
+  std::list<stream_operation> m_operations;
+  bool m_pending; // front operation has started but not yet completed
 
-    pthread_mutex_t m_lock; // ensure only one host or gpu manipulates stream operation at one time
+  pthread_mutex_t m_lock; // ensure only one host or gpu manipulates stream operation at one time
     // The gem5 thread context executing this stream
-    ThreadContext *tc;
+  ThreadContext *tc;
 };
 
 class stream_manager {
 public:
-    stream_manager( gpgpu_sim *gpu, bool cuda_launch_blocking );
-    bool register_finished_kernel(unsigned grid_uid  );
-    bool check_finished_kernel(  );
-    stream_operation front();
-    bool ready();
-    void add_stream( CUstream_st *stream );
-    void destroy_stream( CUstream_st *stream );
-    bool concurrent_streams_empty();
-    bool empty_protected();
-    bool empty();
-    void print( FILE *fp);
-    void push( stream_operation op );
-    void pushCudaStreamWaitEventToAllStreams( CUevent_st *e, unsigned int flags );
-    bool operation(bool * sim);
-    void stop_all_running_kernels();
-private:
-    void print_impl( FILE *fp);
+  stream_manager( gpgpu_sim *gpu, bool cuda_launch_blocking );
+  bool register_finished_kernel(unsigned grid_uid  );
+  bool check_finished_kernel(  );
+  stream_operation front();
+  bool ready();
+  void add_stream( CUstream_st *stream );
+  void destroy_stream( CUstream_st *stream );
+  bool concurrent_streams_empty();
+  bool empty_protected();
+  bool empty();
+  void print( FILE *fp);
+  void push( stream_operation op );
+  void pushCudaStreamWaitEventToAllStreams( CUevent_st *e, unsigned int flags );
+  bool operation(bool * sim);
+  void stop_all_running_kernels();
+  unsigned size() { return m_streams.size(); };
+  bool is_blocking() { return m_cuda_launch_blocking; };
 
-    bool m_cuda_launch_blocking;
-    gpgpu_sim *m_gpu;
-    std::list<CUstream_st *> m_streams;
-    std::map<unsigned,CUstream_st *> m_grid_id_to_stream;
-    CUstream_st m_stream_zero;
-    bool m_service_stream_zero;
-    pthread_mutex_t m_lock;
-    std::list<struct CUstream_st*>::iterator m_last_stream;
+private:
+  void print_impl( FILE *fp);
+
+  bool m_cuda_launch_blocking;
+  gpgpu_sim *m_gpu;
+  std::list<CUstream_st *> m_streams;
+  std::map<unsigned,CUstream_st *> m_grid_id_to_stream;
+  CUstream_st m_stream_zero;
+  bool m_service_stream_zero;
+  pthread_mutex_t m_lock;
+  std::list<struct CUstream_st*>::iterator m_last_stream;
 };
 
 #endif

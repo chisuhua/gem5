@@ -87,13 +87,13 @@ class CudaCore : public ClockedObject
     getDataType(unsigned gpgpu_sim_value) {
         switch (gpgpu_sim_value) {
           case S32_TYPE:
-            return AtomicOpRequest::S32_TYPE;
+            return AtomicOpRequest::S32_TYPE_;
           case U32_TYPE:
-            return AtomicOpRequest::U32_TYPE;
+            return AtomicOpRequest::U32_TYPE_;
           case F32_TYPE:
-            return AtomicOpRequest::F32_TYPE;
+            return AtomicOpRequest::F32_TYPE_;
           case B32_TYPE:
-            return AtomicOpRequest::B32_TYPE;
+            return AtomicOpRequest::B32_TYPE_;
           default:
             panic("Unknown atomic data type: %llu\n", gpgpu_sim_value);
             break;

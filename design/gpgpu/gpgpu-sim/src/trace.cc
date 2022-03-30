@@ -30,27 +30,27 @@
 
 namespace Trace_gpgpu {
 
-
 #define TS_TUP_BEGIN(X) const char* trace_streams_str[] = {
 #define TS_TUP(X) #X
-#define TS_TUP_END(X) };
+#define TS_TUP_END(X) \
+  }                   \
+  ;
 #include "trace_streams.tup"
 #undef TS_TUP_BEGIN
 #undef TS_TUP
 #undef TS_TUP_END
 
-    bool enabled = false;
-    int sampling_core = 0;
-    int sampling_memory_partition = -1;
-    bool trace_streams_enabled[NUM_TRACE_STREAMS] = {false};
-    const char* config_str;
+bool enabled = false;
+int sampling_core = 0;
+int sampling_memory_partition = -1;
+bool trace_streams_enabled[NUM_TRACE_STREAMS] = {false};
+const char* config_str;
 
-    void init()
-    {
-        for ( unsigned i = 0; i < NUM_TRACE_STREAMS; ++i ) {
-            if ( strstr( config_str, trace_streams_str[i] ) != NULL ) {
-                trace_streams_enabled[ i ] = true;
-            }
-        }
+void init() {
+  for (unsigned i = 0; i < NUM_TRACE_STREAMS; ++i) {
+    if (strstr(config_str, trace_streams_str[i]) != NULL) {
+      trace_streams_enabled[i] = true;
     }
-} 
+  }
+}
+}  // namespace Trace
