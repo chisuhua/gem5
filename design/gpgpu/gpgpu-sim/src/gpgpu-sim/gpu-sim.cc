@@ -84,6 +84,8 @@ class gpgpu_sim_wrapper {};
 
 bool g_interactive_debugger_enabled = false;
 
+gpgpu_sim* g_the_gpu;
+
 tr1_hash_map<new_addr_type, unsigned> address_random_interleaving;
 
 /* Clock Domains */

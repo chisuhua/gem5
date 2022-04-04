@@ -38,22 +38,22 @@ CUstream_st::CUstream_st()
 {
     m_pending = false;
     m_uid = sm_next_stream_uid++;
-    // pthread_mutex_init(&m_lock,NULL);
+    pthread_mutex_init(&m_lock,NULL);
 }
 
 bool CUstream_st::empty()
 {
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     bool empty = m_operations.empty();
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
     return empty;
 }
 
 bool CUstream_st::busy()
 {
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     bool pending = m_pending;
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
     return pending;
 }
 
@@ -62,53 +62,53 @@ void CUstream_st::synchronize()
     // called by host thread
     bool done=false;
     do{
-        // pthread_mutex_lock(&m_lock);
+        pthread_mutex_lock(&m_lock);
         done = m_operations.empty();
-        // pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_lock);
     } while ( !done );
 }
 
 void CUstream_st::push( const stream_operation &op )
 {
     // called by host thread
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     m_operations.push_back( op );
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 }
 
 void CUstream_st::record_next_done()
 {
     // called by gpu thread
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     assert(m_pending);
     m_operations.pop_front();
     m_pending=false;
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 }
 
 
 stream_operation CUstream_st::next()
 {
     // called by gpu thread
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     m_pending = true;
     stream_operation result = m_operations.front();
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
     return result;
 }
 
 void CUstream_st::cancel_front()
 {
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     assert(m_pending);
     m_pending = false;
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 
 }
 
 void CUstream_st::print(FILE *fp)
 {
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     fprintf(fp,"GPGPU-Sim API:    stream %u has %zu operations\n", m_uid, m_operations.size() );
     std::list<stream_operation>::iterator i;
     unsigned n=0;
@@ -118,7 +118,7 @@ void CUstream_st::print(FILE *fp)
         op.print(fp);
         fprintf(fp,"\n");
     }
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 }
 
 
@@ -243,14 +243,14 @@ stream_manager::stream_manager( gpgpu_sim *gpu, bool cuda_launch_blocking )
     m_gpu = gpu;
     m_service_stream_zero = false;
     m_cuda_launch_blocking = cuda_launch_blocking;
-    // pthread_mutex_init(&m_lock,NULL);
+    pthread_mutex_init(&m_lock,NULL);
     m_last_stream = m_streams.begin();
 }
 
 bool stream_manager::operation( bool * sim)
 {
     bool check=check_finished_kernel();
-//    pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
 //    if(check)m_gpu->print_stats();
     stream_operation op =front();
     if(!op.do_operation( m_gpu )) //not ready to execute
@@ -263,7 +263,7 @@ bool stream_manager::operation( bool * sim)
         op.get_stream()->cancel_front();
 
     }
-    //pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
     //pthread_mutex_lock(&m_lock);
     // simulate a clock cycle on the GPU
     return check;
@@ -308,7 +308,7 @@ bool stream_manager::register_finished_kernel(unsigned grid_uid)
 }
 
 void stream_manager::stop_all_running_kernels(){
-  // pthread_mutex_lock(&m_lock);
+  pthread_mutex_lock(&m_lock);
 
   // Signal m_gpu to stop all running kernels
   m_gpu->stop_all_running_kernels();
@@ -323,7 +323,7 @@ void stream_manager::stop_all_running_kernels(){
   if(count > 0)
         m_gpu->print_stats();
 
-    // pthread_mutex_unlock(&m_lock);
+  pthread_mutex_unlock(&m_lock);
 }
 
 stream_operation stream_manager::front()
@@ -395,15 +395,15 @@ bool stream_manager::ready()
 void stream_manager::add_stream( struct CUstream_st *stream )
 {
     // called by host thread
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     m_streams.push_back(stream);
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 }
 
 void stream_manager::destroy_stream( CUstream_st *stream )
 {
     // called by host thread
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     while( !stream->empty() )
         ;
     std::list<CUstream_st *>::iterator s;
@@ -415,7 +415,7 @@ void stream_manager::destroy_stream( CUstream_st *stream )
     }
     delete stream;
     m_last_stream = m_streams.begin();
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
 }
 
 bool stream_manager::concurrent_streams_empty()
@@ -439,12 +439,12 @@ bool stream_manager::concurrent_streams_empty()
 bool stream_manager::empty_protected()
 {
     bool result = true;
-    // pthread_mutex_lock(&m_lock);
+    pthread_mutex_lock(&m_lock);
     if( !concurrent_streams_empty() )
         result = false;
     if( !m_stream_zero.empty() )
         result = false;
-    // pthread_mutex_unlock(&m_lock);
+    pthread_mutex_unlock(&m_lock);
     return result;
 }
 

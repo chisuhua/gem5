@@ -119,6 +119,8 @@ cudaLaunchDeviceV2_init_perWarp, cudaLaunchDevicV2_perKernel>"
                          "7200,8000,100,12000,1600");
 }
 
+void sign_extend( ptx_reg_t &data, unsigned src_size, const operand_info &dst );
+
 void gpgpu_t::gpgpu_ptx_sim_bindNameToTexture(
     const char *name, const struct textureReference *texref, int dim,
     int readmode, int ext) {
@@ -298,6 +300,8 @@ void function_info::ptx_assemble() {
   gpgpu_ctx->s_g_pc_to_insn.reserve(MAX_INST_SIZE * m_instructions.size());
   for (i = m_instructions.begin(); i != m_instructions.end(); i++) {
     ptx_instruction *pI = *i;
+    pI->gpgpu_ctx = gpgpu_ctx;
+    pI->m_config = gpgpu_ctx->the_gpgpusim->g_the_gpu_config->get_shader_config();
     if (pI->is_label()) {
       const symbol *l = pI->get_label();
       labels[l->name()] = n;
@@ -342,7 +346,7 @@ void function_info::ptx_assemble() {
   fflush(stdout);
 
   // disable pdom analysis  here and do it at runtime
-#if 0
+#if 1
    printf("GPGPU-Sim PTX: finding reconvergence points for \'%s\'...\n", m_name.c_str() );
    create_basic_blocks();
    connect_basic_blocks();
@@ -1747,9 +1751,122 @@ static unsigned get_tex_datasize(const ptx_instruction *pI,
    */
   kernel_info_t &k = thread->get_kernel();
   const struct textureInfo *texInfo = k.get_texinfo(texname);
+  // TODO schi
+  // const struct textureInfo* texInfo = NULL; // k.get_texinfo(texname);
 
   unsigned data_size = texInfo->texel_size;
   return data_size;
+}
+
+int ptx_thread_info::readRegister(const warp_inst_t &inst, unsigned lane_id, char *data, unsigned reg_id)
+{
+   const ptx_instruction *pI = m_func_info->get_instruction(inst.pc);
+
+   const operand_info &dst = pI->dst();
+   const operand_info &src = pI->operand_lookup(reg_id);
+   unsigned type = pI->get_type();
+   unsigned vector_spec = pI->get_vector();
+
+   // SIZE IS IN BITS
+   size_t size;
+   int basic_type;
+   type_info_key::type_decode(pI->get_type(), size, basic_type);
+
+   // NOTE: converting the register values like below (casting to ull) may not
+   // work. It might keep some upper bits that are stale. see ptx_sim.h line 56
+
+   int offset = 0;
+   int bytes = size/8;
+
+   if (vector_spec) {
+      if (vector_spec == V2_TYPE) {
+         ptx_reg_t ptx_regs[2];
+         get_vector_operand_values(src, ptx_regs, 2);
+         memcpy(data+offset, &ptx_regs[0], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[1], bytes);
+         return 2;
+      } else if (vector_spec == V3_TYPE) {
+         ptx_reg_t ptx_regs[3];
+         get_vector_operand_values(src, ptx_regs, 3);
+         memcpy(data+offset, &ptx_regs[0], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[1], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[2], bytes);
+         offset += bytes;
+         return 3;
+      } else {
+         assert(vector_spec == V4_TYPE);
+         ptx_reg_t ptx_regs[4];
+         get_vector_operand_values(src, ptx_regs, 4);
+         memcpy(data+offset, &ptx_regs[0], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[1], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[2], bytes);
+         offset += bytes;
+         memcpy(data+offset, &ptx_regs[3], bytes);
+         offset += bytes;
+         return 4;
+      }
+   } else {
+      ptx_reg_t ptx_reg = this->get_operand_value(src, dst, type, this, 1);
+      memcpy(data+offset, &ptx_reg, bytes);
+      offset += bytes;
+      return 1;
+   }
+}
+
+void ptx_thread_info::writeRegister(const warp_inst_t &inst, unsigned lane_id, char *data)
+{
+   const ptx_instruction *pI = m_func_info->get_instruction(inst.pc);
+
+   const operand_info &dst = pI->dst();
+
+   unsigned type = pI->get_type();
+
+   ptx_reg_t reg;
+   memory_space_t space = pI->get_space();
+   unsigned vector_spec = pI->get_vector();
+
+   size_t size;
+   int t;
+   type_info_key::type_decode(type,size,t);
+
+   // NOTE: converting the register values like below (casting to ull) may not
+   // work. It might keep some upper bits that are stale. see ptx_sim.h line 56
+
+   int offset = 0;
+   int bytes = size/8;
+
+   //reg.u64 = data[0];
+   memcpy(&reg, data, bytes);
+   if (!vector_spec) {
+      if ( type == S16_TYPE || type == S32_TYPE ) {
+         sign_extend(reg,size,dst);
+      }
+      set_operand_value(dst,reg, type, this, pI);
+   } else {
+      ptx_reg_t data1, data2, data3, data4;
+      memcpy(&data1, data+offset, bytes);
+      offset += bytes;
+      memcpy(&data2, data+offset, bytes);
+      offset += bytes;
+      if (vector_spec != V2_TYPE) { //either V3 or V4
+         memcpy(&data3, data+offset, bytes);
+         offset += bytes;
+         if (vector_spec != V3_TYPE) { //v4
+            memcpy(&data4, data+offset, bytes);
+            offset += bytes;
+            set_vector_operand_values(dst,data1,data2,data3,data4);
+         } else { //v3
+            set_vector_operand_values(dst,data1,data2,data3,data3);
+         }
+      } else { //v2
+         set_vector_operand_values(dst,data1,data2,data2,data2);
+      }
+   }
 }
 
 int tensorcore_op(int inst_opcode) {
@@ -1768,6 +1885,21 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
   const ptx_instruction *pI = m_func_info->get_instruction(pc);
 
   set_npc(pc + pI->inst_size());
+
+  // TODO add for vectorLength used by gpu/gpgpu-sim/cude_core.cc
+  unsigned vector_spec = pI->get_vector();
+  if (vector_spec) {
+     if (vector_spec == V2_TYPE) {
+        inst.vectorLength = 2;
+     } else if (vector_spec == V3_TYPE) {
+        inst.vectorLength = 3;
+     } else {
+        assert(vector_spec == V4_TYPE);
+        inst.vectorLength = 4;
+     }
+  } else {
+     inst.vectorLength = 1;
+  }
 
   try {
     clearRPC();
@@ -2005,9 +2137,26 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
         inst.set_addr(lane_id, insn_memaddr);
         inst.data_size = insn_data_size;  // simpleAtomicIntrinsics
         assert(inst.memory_op == insn_memory_op);
+        // TODO schi why need below code?
+          if (insn_memory_op == memory_store && (insn_space == global_space || insn_space == const_space || insn_space == local_space)) {
+              // Need to save data to be written for stores
+              uint8_t data[MAX_DATA_BYTES_PER_INSN_PER_THREAD];
+              if ( pI->get_opcode() == ATOM_OP ) {
+                  unsigned data_src_reg = 2; // Use the second operand as data source
+                  readRegister(inst, lane_id, (char*)&data[0], data_src_reg);
+                  if (pI->get_atomic() == ATOMIC_CAS) {
+                      data_src_reg = 3; // Third operand is second data source
+                      // There can be at most 2 atomic inst operands of at most
+                      // 64b or 8B each. Store second operand at byte offet 8
+                      readRegister(inst, lane_id, (char*)&data[8], data_src_reg);
+                  }
+              } else {
+                  readRegister(inst, lane_id, (char*)&data[0]);
+              }
+              inst.set_data(lane_id, data);
+         }
       }
     }
-
   } catch (int x) {
     printf("GPGPU-Sim PTX: ERROR (%d) executing intruction (%s:%u)\n", x,
            pI->source_file(), pI->source_line());

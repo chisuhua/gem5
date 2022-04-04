@@ -56,8 +56,8 @@ main(void)
     cudaError_t err = cudaSuccess;
 
     // Print the vector length to be used, and compute its size
-    // int numElements = 50000;
-    int numElements = 32;
+    int numElements = 5000;
+    // int numElements = 32;
     size_t size = numElements * sizeof(float);
     printf("[Vector addition of %d elements]\n", numElements);
 
@@ -134,7 +134,7 @@ main(void)
     }
 
     // Launch the Vector Add CUDA Kernel
-    int threadsPerBlock = 256;
+    int threadsPerBlock = numElements < 256 ? numElements : 256;
     int blocksPerGrid =(numElements + threadsPerBlock - 1) / threadsPerBlock;
     printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
     vectorAdd<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, numElements);

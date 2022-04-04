@@ -59,6 +59,7 @@ using namespace std;
 // FIXME
 int no_of_ptx = 0;
 char *ptx_line_stats_filename = "ptx_line_stats.rpt";
+extern gpgpu_sim* g_the_gpu;
 namespace gem5 {
 
 vector<CudaGPU*> CudaGPU::gpuArray;
@@ -120,6 +121,8 @@ CudaGPU::CudaGPU(const CudaGPUParams &p) :
     // Initialize GPGPU-Sim
     theGPU = gpgpu_ctx->gem5_ptx_sim_init_perf(&streamManager, this, getConfigPath());
     theGPU->init();
+
+    g_the_gpu = theGPU;
 
     // Set up the component wrappers in order to cycle the GPGPU-Sim
     // shader cores, interconnect, L2 cache and DRAM
@@ -673,6 +676,8 @@ void CudaGPU::register_function( unsigned fat_cubin_handle, const char *hostFun,
         assert( f != NULL );
         // TODO schi hack reset gpgpu_ctx to cuda_gpu
         f->gpgpu_ctx = gpgpu_ctx;
+        symbol_table *f_symtab = f->get_symtab();
+        f_symtab->update_gpgpu_ctx(gpgpu_ctx);
         f->ptx_assemble();
         m_kernel_lookup[hostFun] = f;
     } else {

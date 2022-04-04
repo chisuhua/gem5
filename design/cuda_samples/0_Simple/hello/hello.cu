@@ -30,6 +30,17 @@
 
 #include <stdio.h>
 
+__global__ void
+vectorCopy(const int *A, int *C, int numElements)
+{
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if (i < numElements)
+    {
+        C[i] = A[i];
+    }
+}
+
 int main(int argc, char* argv[])
 {
     printf("Starting:!\n");
@@ -39,11 +50,20 @@ int main(int argc, char* argv[])
 
     int *h_A = (int *)malloc(size);
     int *h_A_from_d = (int *)malloc(size);
+    int *h_C = (int *)malloc(size);
+
+    // Verify that allocations succeeded
+    if (h_A == NULL || h_A_from_d == NULL || h_C == NULL)
+    {
+        fprintf(stderr, "Failed to allocate host vectors!\n");
+        exit(EXIT_FAILURE);
+    }
 
     for (int i = 0; i < numElements; ++i)
     {
         h_A[i] = i;
         h_A_from_d[i] = 0;
+        h_C[i] = 0;
     }
 
 
@@ -55,6 +75,15 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+    int *d_C = NULL;
+    err = cudaMalloc((void **)&d_C, size);
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to allocate device vector A (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Allocate d_A %p, d_C %p!\n", d_A, d_C);
 
     err = cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
     if (err != cudaSuccess)
@@ -63,7 +92,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-
+#if 1
     err = cudaMemcpy(h_A_from_d, d_A, size, cudaMemcpyDeviceToHost);
     if (err != cudaSuccess)
     {
@@ -82,10 +111,62 @@ int main(int argc, char* argv[])
     }
 
     if (compare_ret != true) {
-        printf("compare failed!\n");
+        printf("h_A copy compare failed!\n");
+        exit(EXIT_FAILURE);
     } else {
-        printf("compare pass!\n");
+        printf("h_A copy compare pass!\n");
     }
+#endif
+    // Launch the Vector Add CUDA Kernel
+    int threadsPerBlock = 32;
+    int blocksPerGrid =(numElements + threadsPerBlock - 1) / threadsPerBlock;
+    printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+    vectorCopy<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_C, numElements);
+    err = cudaGetLastError();
+
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to launch vectorAdd kernel (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+#if 1
+    // Copy the device result vector in device memory to the host result vector
+    // in host memory.
+    printf("Copy output data from the CUDA device to the host memory\n");
+    err = cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to copy device vector C (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+
+    bool fail = false;
+    // Verify that the result vector is correct
+    for (int i = 0; i < numElements; ++i)
+    {
+        printf("%d: A %d, C %d\n", i, h_A[i], h_C[i]);
+        if (h_A[i] != h_C[i])
+        {
+            // fprintf(stderr, "Result verification failed at element %d!\n", i);
+            fail = true;
+            //exit(EXIT_FAILURE);
+        }
+    }
+
+    if (fail) {
+        fprintf(stderr, "Result verification failed at element\n");
+    } else {
+        printf("Test PASSED\n");
+    }
+#endif
+    free(h_A);
+    free(h_A_from_d);
+    free(h_C);
+
+    printf("Done\n");
+
     return 0;
 }
 

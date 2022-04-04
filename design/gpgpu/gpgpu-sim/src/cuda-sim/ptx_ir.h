@@ -267,6 +267,9 @@ class symbol {
   }
   void print_info(FILE *fp) const;
   unsigned uid() const { return m_uid; }
+  void update_gpgpu_ctx(gpgpu_context *ctx) {
+      gpgpu_ctx = ctx;
+  }
 
  private:
   gpgpu_context *gpgpu_ctx;
@@ -351,6 +354,7 @@ class symbol_table {
 
   // backward pointer
   class gpgpu_context *gpgpu_ctx;
+  void update_gpgpu_ctx(gpgpu_context *ctx);
 
  private:
   unsigned m_reg_allocator;

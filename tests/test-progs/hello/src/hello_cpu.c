@@ -31,9 +31,9 @@
 
 int main(int argc, char* argv[])
 {
-    int loop = 1000000;
+    int loop = 9;
     while(loop--) {
-        printf("Hello world!\n");
+        printf("Hello world CPU!\n");
         // usleep(1);
     }
     return 0;

@@ -1210,7 +1210,6 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId) {
 void core_t::writeRegister(const warp_inst_t &inst, unsigned warpSize, unsigned lane_id, char *data) {
     assert(inst.active(lane_id));
     int warpId = inst.warp_id();
-    assert(false);
     m_thread[warpSize*warpId+lane_id]->writeRegister(inst, lane_id, data);
 }
 

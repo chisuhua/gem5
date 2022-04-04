@@ -408,6 +408,9 @@ class gpgpu_sim_config : public power_config,
   }
 
   bool flush_l1() const { return gpgpu_flush_l1_cache; }
+  shader_core_config *get_shader_config() {
+      return &m_shader_config;
+  }
 
  private:
   void init_clock_domains(void);

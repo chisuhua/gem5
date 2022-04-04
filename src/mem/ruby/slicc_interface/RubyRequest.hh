@@ -94,6 +94,9 @@ class RubyRequest : public Message
           m_htmTransactionUid(0)
     {
         m_LineAddress = makeLineAddress(m_PhysicalAddress);
+        if (m_pkt->isWrite()) {
+            m_WTData.assign(m_pkt->getPtr<uint8_t>());
+        }
     }
 
     RubyRequest(Tick curTime, uint64_t _paddr, int _len,
@@ -161,6 +164,7 @@ class RubyRequest : public Message
     const int& getSize() const { return m_Size; }
     const PrefetchBit& getPrefetch() const { return m_Prefetch; }
     RequestPtr getRequestPtr() const { return m_pkt->req; }
+
 /*
     void
     writeData(DataBlock& block) const
