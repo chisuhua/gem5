@@ -138,7 +138,7 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 all: libcudart.so libcudart_static.a
 
 libcudart.so: cuda-sim gem5cuda $(OBJS)
-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=./linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) gem5cuda/m5op_x86.o gem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -L$(DESIGN_ROOT)/cosim -lumd -o $(OUTPUT_DIR)/libcudart.so
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=./linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) gem5cuda/m5op_x86.o gem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -L$(DESIGN_ROOT)/cosim -lumd -lisasim -o $(OUTPUT_DIR)/libcudart.so
 
 libcudart_static.a: $(OBJS)
 	$(AR) rcs libcudart_static.a $(OBJS) ./gem5cuda/gem5cuda_runtime_api.o ./gem5cuda/m5op_x86.o

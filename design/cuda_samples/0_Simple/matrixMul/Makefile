@@ -59,8 +59,8 @@ NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${DESIGN
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
-LDFLAGS     :=
-#LDFLAGS     := "-lcuda -Wl,-rpath=."
+LDFLAGS     := -lisasim
+
 
 # Install directory of different arch
 CUDA_INSTALL_TARGET_DIR :=
@@ -93,7 +93,7 @@ LIBRARIES :=
 ################################################################################
 
 # Gencode arguments
-#SMS ?= 30 35 37 50 52 60 61 70 75
+#SMS ?= 35 37 50 52 60 61 70 75 80
 SMS ?= 70
 
 ifeq ($(SMS),)
@@ -121,7 +121,7 @@ endif
 # Target rules
 all: build
 
-build: vectorAdd
+build: matrixMul
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -130,19 +130,19 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-vectorAdd.o:vectorAdd.cu
+matrixMul.o:matrixMul.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-vectorAdd: vectorAdd.o
+matrixMul: matrixMul.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	#$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	#$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 run: build
-	$(EXEC) ./vectorAdd
+	$(EXEC) ./matrixMul
 
 clean:
-	rm -f vectorAdd vectorAdd.o
-	#rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/vectorAdd
+	rm -f matrixMul matrixMul.o
+	#rm -rf ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/matrixMul
 
 clobber: clean

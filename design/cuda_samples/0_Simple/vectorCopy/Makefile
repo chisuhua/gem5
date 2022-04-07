@@ -60,7 +60,7 @@ NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${DESIGN
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=shared -Xcompiler "-Wl\,-rpath=${GPGPUSIM_ROOT}/libcuda"
 #NVCCFLAGS   := -m${TARGET_SIZE} --cudart=static -L../../../libcuda -lcudart -lcudart_static -Xcompiler "-Wl\,-rpath=."
 CCFLAGS     :=
-LDFLAGS     := -lisasim
+LDFLAGS     :=
 #LDFLAGS     := "-lcuda -Wl,-rpath=."
 
 # Install directory of different arch
@@ -122,7 +122,7 @@ endif
 # Target rules
 all: build
 
-build: hello
+build: vectorCopy
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -131,18 +131,18 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-hello.o:hello.cu
+vectorCopy.o:vectorCopy.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-hello: hello.o
+vectorCopy: vectorCopy.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	#$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	#$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 run: build
-	$(EXEC) ./hello
+	$(EXEC) ./vectorCopy
 
 clean:
-	rm -f hello hello.o
+	rm -f vectorCopy vectorCopy.o
 
 clobber: clean
