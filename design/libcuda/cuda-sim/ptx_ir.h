@@ -29,6 +29,7 @@
 #define ptx_ir_INCLUDED
 
 #include "../libcuda/abstract_hardware_model.h"
+#include "../../opu/coasm/coasm_define.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -1432,26 +1433,29 @@ class function_info {
   unsigned m_coasm_tcc_max {0};
 
   // to be match with src/model/gpu/Compute.cpp
+#if 0
   enum coasm_sregs {
-      GRID_DIM_X = 0,
-      GRID_DIM_Y,
-      GRID_DIM_Z,
-      BLOCK_DIM_X,
-      BLOCK_DIM_Y,
-      BLOCK_DIM_Z,
-      BLOCK_IDX_X,
-      BLOCK_IDX_Y,
-      BLOCK_IDX_Z,
+      CTRL_BIT_GRID_DIM_X = KERNEL_CTRL_BIT_GRID_DIM_X,
+      CTRL_BIT_GRID_DIM_Y = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_GRID_DIM_Z = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_DIM_X = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_DIM_Y = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_DIM_Z = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_IDX_X = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_IDX_Y = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_BLOCK_IDX_Z = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_THREAD_IDX_X = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_THREAD_IDX_Y = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_THREAD_IDX_Z = KERNEL_CTRL_BIT_GRID_DIM_Y,
       SPECIAL_SREG_MAX
   };
 
   enum coasm_vregs {
-      THREAD_IDX_X = 0,
-      THREAD_IDX_Y,
-      THREAD_IDX_Z,
+      CTRL_BIT_THREAD_IDX_X,
+      CTRL_BIT_THREAD_IDX_Y,
+      CTRL_BIT_THREAD_IDX_Z,
       SPECIAL_VREG_MAX
   };
-
   std::vector<std::pair<std::string, int>> m_coasm_special_sregs {
       {"grid_dim_x", 0},
       {"grid_dim_y", 0},
@@ -1463,13 +1467,29 @@ class function_info {
       {"block_idx_y", 0},
       {"block_idx_z", 0}
   };
-
+#endif
+  // it is const regs instead
+  std::map<int, int> m_coasm_special_sregs;// {
+#if 0
+      {CTRL_BIT_GRID_DIM_X, 0},
+      {CTRL_BIT_GRID_DIM_Y, 0},
+      {CTRL_BIT_GRID_DIM_Z, 0},
+      {CTRL_BIT_BLOCK_DIM_X, 0},
+      {CTRL_BIT_BLOCK_DIM_Y, 0},
+      {CTRL_BIT_BLOCK_DIM_Z, 0},
+      {CTRL_BIT_BLOCK_IDX_X, 0},
+      {CTRL_BIT_BLOCK_IDX_Y, 0},
+      {CTRL_BIT_BLOCK_IDX_Z, 0},
+      {CTRL_BIT_THREAD_IDX_X, 0},
+      {CTRL_BIT_THREAD_IDX_Y, 0},
+      {CTRL_BIT_THREAD_IDX_Z, 0}
+  };
   std::vector<std::pair<std::string, int>> m_coasm_special_vregs {
       {"thread_idx_x", 0},
       {"thread_idx_y", 0},
       {"thread_idx_z", 0}
   };
-
+#endif
  public:
   ptx_instruction* get_target_pI(addr_t addr) {
       return m_instr_mem[addr];
@@ -1509,7 +1529,7 @@ class function_info {
       return ss.str();
   };
 
-  std::string get_coasm_buildin(int buildin_id, unsigned dim_mod) {
+  int get_coasm_buildin(int buildin_id, unsigned dim_mod) {
       switch (buildin_id &= 0xFFFF) {
         case CLOCK_REG:
         case CLOCK64_REG:
@@ -1524,16 +1544,22 @@ class function_info {
         case CTAID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
-              m_coasm_special_sregs[BLOCK_IDX_X].second = 1;
-              return m_coasm_special_sregs[BLOCK_IDX_X].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X];
           }
           if (dim_mod == 1) {
-              m_coasm_special_sregs[BLOCK_IDX_Y].second = 1;
-              return m_coasm_special_sregs[BLOCK_IDX_Y].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y];
           }
           if (dim_mod == 2) {
-              m_coasm_special_sregs[BLOCK_IDX_Z].second = 1;
-              return m_coasm_special_sregs[BLOCK_IDX_Z].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z];
           }
           abort();
           break;
@@ -1551,31 +1577,43 @@ class function_info {
         case NCTAID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
-              m_coasm_special_sregs[GRID_DIM_X].second = 1;
-              return m_coasm_special_sregs[GRID_DIM_X].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X];
           }
           if (dim_mod == 1) {
-              m_coasm_special_sregs[GRID_DIM_Y].second = 1;
-              return m_coasm_special_sregs[GRID_DIM_Y].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y];
           }
           if (dim_mod == 2) {
-              m_coasm_special_sregs[GRID_DIM_Z].second = 1;
-              return m_coasm_special_sregs[GRID_DIM_Z].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z];
           }
           break;
         case NTID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
-              m_coasm_special_sregs[BLOCK_DIM_X].second = 1;
-              return m_coasm_special_sregs[BLOCK_DIM_X].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X];
           }
           if (dim_mod == 1) {
-              m_coasm_special_sregs[BLOCK_DIM_Y].second = 1;
-              return m_coasm_special_sregs[BLOCK_DIM_Y].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z];
           }
           if (dim_mod == 2) {
-              m_coasm_special_sregs[BLOCK_DIM_Z].second = 1;
-              return m_coasm_special_sregs[BLOCK_DIM_Z].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z];
           }
           abort();
           break;
@@ -1587,16 +1625,22 @@ class function_info {
         case TID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
-              m_coasm_special_vregs[THREAD_IDX_X].second = 1;
-              return m_coasm_special_vregs[THREAD_IDX_X].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X];
           }
           if (dim_mod == 1) {
-              m_coasm_special_vregs[THREAD_IDX_Y].second = 1;
-              return m_coasm_special_vregs[THREAD_IDX_Y].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y];
           }
           if (dim_mod == 2) {
-              m_coasm_special_vregs[THREAD_IDX_Z].second = 1;
-              return m_coasm_special_vregs[THREAD_IDX_Z].first;
+              if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] < 0) {
+                m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] = -2;
+              }
+              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z];
           }
           abort();
           break;

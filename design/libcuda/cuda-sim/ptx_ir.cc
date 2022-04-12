@@ -651,8 +651,90 @@ void function_info::gen_coasm(FILE *fp) {
   fprintf(fp, "\t.type %s,@function\n", m_name.c_str());
   fprintf(fp, "%s:\n", m_name.c_str());
 
-  // start from first basic block, which we know is the entry point
+  // just get builin reg setting
   bb_itr = m_basic_blocks.begin();
+  for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
+       bb_itr++) {
+    if ((*bb_itr)->is_exit)  // reached last basic block, no successors to link
+      continue;
+    unsigned insn_addr = (*bb_itr)->ptx_begin->get_m_instr_mem_index();
+    while (insn_addr <= (*bb_itr)->ptx_end->get_m_instr_mem_index()) {
+      ptx_instruction *pI = m_instr_mem[insn_addr];
+      insn_addr += 1;
+      if (pI == NULL)
+        continue;  // temporary solution for variable size instructions
+      if (pI->get_opcode() == MOV_OP)
+        pI->print_coasm(this, stdout);
+    }
+  }
+  uint32_t kernel_ctrl = 0;
+  uint32_t kernel_const_reg_num = KERNEL_CONST_REG_BASE_KERNEL_VIEW;
+  // below is encode as vreg, in isasim kernel const redirect to const,
+  // block const redirect to sreg
+  // uint32_t block_const_reg_num = BLOCK_CONST_REG_BASE;
+  uint32_t thread_reg_num = THREAD_REG_BASE;
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_GRID_DIM_X;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_GRID_DIM_Y;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_GRID_DIM_Z;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_DIM_X;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_DIM_Y;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_DIM_Z;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_IDX_X;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] = thread_reg_num;
+    thread_reg_num++;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_IDX_Y;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] = thread_reg_num;
+    thread_reg_num++;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_BLOCK_IDX_Z;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] = thread_reg_num;
+    thread_reg_num++;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_THREAD_IDX_X;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] = thread_reg_num;
+    thread_reg_num++;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_THREAD_IDX_Y;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] = thread_reg_num;
+    thread_reg_num++;
+  }
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_THREAD_IDX_Z;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] = thread_reg_num;
+    thread_reg_num++;
+  }
+
+  // start from first basic block, which we know is the entry point
   for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
        bb_itr++) {
     if ((*bb_itr)->ptx_begin)
@@ -685,16 +767,6 @@ void function_info::gen_coasm(FILE *fp) {
     fprintf(fp, "        .value_kind: global_buffer\n");
   }
   fprintf(fp, "    .name: %s\n", m_name.c_str());
-  uint32_t kernel_ctrl = 0;
-  if (m_coasm_special_sregs[GRID_DIM_X].second == 1) kernel_ctrl |= 1<< GRID_DIM_X;
-  if (m_coasm_special_sregs[GRID_DIM_Y].second == 1) kernel_ctrl |= 1<< GRID_DIM_Y;
-  if (m_coasm_special_sregs[GRID_DIM_Z].second == 1) kernel_ctrl |= 1<< GRID_DIM_Z;
-  if (m_coasm_special_sregs[BLOCK_DIM_X].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_X;
-  if (m_coasm_special_sregs[BLOCK_DIM_Y].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Y;
-  if (m_coasm_special_sregs[BLOCK_DIM_Z].second == 1) kernel_ctrl |= 1<< BLOCK_DIM_Z;
-  if (m_coasm_special_sregs[BLOCK_IDX_X].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_X;
-  if (m_coasm_special_sregs[BLOCK_IDX_Y].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Y;
-  if (m_coasm_special_sregs[BLOCK_IDX_Z].second == 1) kernel_ctrl |= 1<< BLOCK_IDX_Z;
   fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
   fprintf(fp, "    .kernel_mode: %d\n", 0);
   fprintf(fp, "amdhsa.version:\n");
@@ -1631,6 +1703,18 @@ function_info::function_info(int entry_point, gpgpu_context *ctx) {
   m_local_mem_framesize = 0;
   m_args_aligned_size = -1;
   pdom_done = false;  // initialize it to false
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_X, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_Y, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_Z, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_DIM_X, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_DIM_Y, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_DIM_Z, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_IDX_X, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_IDX_Y, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_BLOCK_IDX_Z, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_THREAD_IDX_X, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_THREAD_IDX_Y, -1));
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_THREAD_IDX_Z, -1));
 }
 
 unsigned function_info::print_insn(unsigned pc, FILE *fp) const {

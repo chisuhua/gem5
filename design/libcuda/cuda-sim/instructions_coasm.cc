@@ -6,6 +6,8 @@ class ptx_recognizer;
 #include "ptx.tab.h"
 
 #include "../../libcuda/gpgpu_context.h"
+#include "../../libcuda/gpgpu_context.h"
+#include "../../opu/coasm/coasm_define.h"
 
 namespace libcuda {
 
@@ -1639,11 +1641,11 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 
   _memory_space_t space_type = space.get_type();
 
-  unsigned kernel_param_num;
+  unsigned kernel_param_addr_in_bytes;
   if (space_type == param_space_kernel) {
       const symbol *param = src1.get_symbol();
       addr_t param_addr = param->get_address();
-      kernel_param_num = param_addr;
+      kernel_param_addr_in_bytes = param_addr;
 #if 0
       std::string param_name = src1.get_symbol()->name();
       if (debug) fprintf(fp, "DEBUG param str is: %s\n", param_name.c_str());
@@ -1714,8 +1716,10 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   }
 
   if (space_type == param_space_kernel) {
-    unsigned num = kernel_param_num;
-    fprintf(fp, ",\tkernel_param_base, %d", num);
+    unsigned num = kernel_param_addr_in_bytes / 4;
+    // we asume each param is 4bytes align
+    assert(num * 4 == kernel_param_addr_in_bytes);
+    fprintf(fp, ",\tv[%d:%d], %d", KERNEL_PARAM_BASE, KERNEL_PARAM_BASE+1, num);
   } else if (src1.is_reg()) {
     // fprintf(fp, ",\tv%u", src1.reg_num());
     fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
@@ -2279,7 +2283,7 @@ void mov_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE* fp)  
     if (src1.is_builtin()) {
         int buildin_id = src1.get_int();
         int dim = src1.get_addr_offset();
-        fprintf(fp, ",\t%s", finfo->get_coasm_buildin(buildin_id, dim).c_str());
+        fprintf(fp, ",\tv%d", finfo->get_coasm_buildin(buildin_id, dim));
     } else if (src1.is_literal()) {
         fprintf(fp, ",\t%d", src1.get_literal_value());
     } else if (src1.is_reg()) {
