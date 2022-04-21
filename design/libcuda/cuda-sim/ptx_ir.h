@@ -1301,6 +1301,10 @@ class function_info {
   void print_ipostdominators();
   void do_pdom();  // function to call pdom analysis
   void gen_coasm(FILE* fp);  // function to convert ptx to coasm
+  unsigned get_kernel_ctrl();
+  std::map<int, int> &get_coasm_special_sregs() {
+      return m_coasm_special_sregs;
+  };
 
   unsigned get_num_reconvergence_pairs();
 
@@ -1529,7 +1533,7 @@ class function_info {
       return ss.str();
   };
 
-  int get_coasm_buildin(int buildin_id, unsigned dim_mod) {
+  std::pair<std::string, int> get_coasm_buildin(int buildin_id, unsigned dim_mod) {
       switch (buildin_id &= 0xFFFF) {
         case CLOCK_REG:
         case CLOCK64_REG:
@@ -1547,52 +1551,52 @@ class function_info {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X];
+              return std::make_pair("block_idx_x", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_X]);
           }
           if (dim_mod == 1) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y];
+              return std::make_pair("block_idx_y", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Y]);
           }
           if (dim_mod == 2) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z];
+              return std::make_pair("block_idx_z", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_IDX_Z]);
           }
           abort();
           break;
         case GRIDID_REG:
         case LANEID_REG:
             assert("unsupported special reg");
-          return 0;
+          return std::make_pair("unknow", 0);
         case LANEMASK_EQ_REG:
         case LANEMASK_LE_REG:
         case LANEMASK_LT_REG:
         case LANEMASK_GE_REG:
         case LANEMASK_GT_REG:
             assert("unsupported special reg");
-          return 0;
+          return std::make_pair("unknow", 0);
         case NCTAID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X];
+              return std::make_pair("grid_dim_x", m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X]);
           }
           if (dim_mod == 1) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y];
+              return std::make_pair("grid_dim_y", m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Y]);
           }
           if (dim_mod == 2) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z];
+              return std::make_pair("grid_dim_z", m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_Z]);
           }
           break;
         case NTID_REG:
@@ -1601,19 +1605,19 @@ class function_info {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X];
+              return std::make_pair("block_dim_x", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_X]);
           }
           if (dim_mod == 1) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z];
+              return std::make_pair("block_dim_y", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Y]);
           }
           if (dim_mod == 2) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z];
+              return std::make_pair("block_dim_z", m_coasm_special_sregs[KERNEL_CTRL_BIT_BLOCK_DIM_Z]);
           }
           abort();
           break;
@@ -1621,26 +1625,26 @@ class function_info {
         case PM_REG:
         case SMID_REG:
             assert("unsupported special reg");
-          return 0;
+          return std::make_pair("unknow", 0);
         case TID_REG:
           assert(dim_mod < 3);
           if (dim_mod == 0) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X];
+              return std::make_pair("thread_idx_x", m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_X]);
           }
           if (dim_mod == 1) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y];
+              return std::make_pair("thread_idx_y", m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Y]);
           }
           if (dim_mod == 2) {
               if (m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] < 0) {
                 m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] = -2;
               }
-              return m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z];
+              return std::make_pair("thread_idx_z", m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z]);
           }
           abort();
           break;

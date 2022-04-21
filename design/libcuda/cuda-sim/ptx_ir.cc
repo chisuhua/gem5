@@ -641,38 +641,18 @@ void function_info::do_pdom() {
   m_assembled = true;
 }
 
-void function_info::gen_coasm(FILE *fp) {
-  std::vector<basic_block_t *>::iterator bb_itr;
-  std::vector<basic_block_t *>::iterator bb_target_itr;
-  basic_block_t *exit_bb = m_basic_blocks.back();
-
-  fprintf(fp, "\t.text\n");
-  fprintf(fp, "\t.global %s\n", m_name.c_str());
-  fprintf(fp, "\t.type %s,@function\n", m_name.c_str());
-  fprintf(fp, "%s:\n", m_name.c_str());
-
-  // just get builin reg setting
-  bb_itr = m_basic_blocks.begin();
-  for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
-       bb_itr++) {
-    if ((*bb_itr)->is_exit)  // reached last basic block, no successors to link
-      continue;
-    unsigned insn_addr = (*bb_itr)->ptx_begin->get_m_instr_mem_index();
-    while (insn_addr <= (*bb_itr)->ptx_end->get_m_instr_mem_index()) {
-      ptx_instruction *pI = m_instr_mem[insn_addr];
-      insn_addr += 1;
-      if (pI == NULL)
-        continue;  // temporary solution for variable size instructions
-      if (pI->get_opcode() == MOV_OP)
-        pI->print_coasm(this, stdout);
-    }
-  }
+uint32_t function_info::get_kernel_ctrl() {
   uint32_t kernel_ctrl = 0;
   uint32_t kernel_const_reg_num = KERNEL_CONST_REG_BASE_KERNEL_VIEW;
   // below is encode as vreg, in isasim kernel const redirect to const,
   // block const redirect to sreg
   // uint32_t block_const_reg_num = BLOCK_CONST_REG_BASE;
   uint32_t thread_reg_num = THREAD_REG_BASE;
+  if (m_coasm_special_sregs[KERNEL_CTRL_BIT_PARAM_BASE] == -2) {
+    kernel_ctrl |= 1<< KERNEL_CTRL_BIT_PARAM_BASE;
+    m_coasm_special_sregs[KERNEL_CTRL_BIT_PARAM_BASE] = kernel_const_reg_num;
+    kernel_const_reg_num--;
+  }
   if (m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] == -2) {
     kernel_ctrl |= 1<< KERNEL_CTRL_BIT_GRID_DIM_X;
     m_coasm_special_sregs[KERNEL_CTRL_BIT_GRID_DIM_X] = kernel_const_reg_num;
@@ -733,7 +713,38 @@ void function_info::gen_coasm(FILE *fp) {
     m_coasm_special_sregs[KERNEL_CTRL_BIT_THREAD_IDX_Z] = thread_reg_num;
     thread_reg_num++;
   }
+  return kernel_ctrl;
+}
 
+void function_info::gen_coasm(FILE *fp) {
+  std::vector<basic_block_t *>::iterator bb_itr;
+  std::vector<basic_block_t *>::iterator bb_target_itr;
+  basic_block_t *exit_bb = m_basic_blocks.back();
+
+  fprintf(fp, "\t.text\n");
+  fprintf(fp, "\t.global %s\n", m_name.c_str());
+  fprintf(fp, "\t.type %s,@function\n", m_name.c_str());
+  fprintf(fp, "%s:\n", m_name.c_str());
+#ifndef COASM_BUILTIN_USE
+  // just get builin reg setting
+  bb_itr = m_basic_blocks.begin();
+  for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
+       bb_itr++) {
+    if ((*bb_itr)->is_exit)  // reached last basic block, no successors to link
+      continue;
+    unsigned insn_addr = (*bb_itr)->ptx_begin->get_m_instr_mem_index();
+    while (insn_addr <= (*bb_itr)->ptx_end->get_m_instr_mem_index()) {
+      ptx_instruction *pI = m_instr_mem[insn_addr];
+      insn_addr += 1;
+      if (pI == NULL)
+        continue;  // temporary solution for variable size instructions
+      if (pI->get_opcode() == MOV_OP)
+        pI->print_coasm(this, stdout);
+    }
+  }
+
+  uint32_t kernel_ctrl = get_kernel_ctrl();
+#endif
   // start from first basic block, which we know is the entry point
   for (bb_itr = m_basic_blocks.begin(); bb_itr != m_basic_blocks.end();
        bb_itr++) {
@@ -755,21 +766,31 @@ void function_info::gen_coasm(FILE *fp) {
     }
   }
 
+#ifdef COASM_BUILTIN_USE
+  uint32_t kernel_ctrl = get_kernel_ctrl();
+#endif
+
   fprintf(fp, "---\n");
-  fprintf(fp, "amdhsa.kernels:\n");
+  fprintf(fp, "opu.kernels:\n");
   fprintf(fp, "  - .args:\n");
+  // int offset = 0;
   for (unsigned i=0; i < m_args.size(); i++) {
     fprintf(fp, "      - .address_space: global\n");
     const symbol* arg_symbol = get_arg(i);
     fprintf(fp, "        .name: %s\n", arg_symbol->name().c_str());
-    fprintf(fp, "        .offset: %d\n", m_args_aligned_size*i);
-    fprintf(fp, "        .size: %d\n", m_args_aligned_size);
+    //fprintf(fp, "        .offset: %d\n", m_args_aligned_size*i);
+    //fprintf(fp, "        .size: %d\n", m_args_aligned_size);
+    addr_t param_addr = arg_symbol->get_address();
+    unsigned size = arg_symbol->get_size_in_bytes();
+    fprintf(fp, "        .offset: %d\n", param_addr);
+    fprintf(fp, "        .size: %d\n", size);
     fprintf(fp, "        .value_kind: global_buffer\n");
+    // offset += param_addr;
   }
   fprintf(fp, "    .name: %s\n", m_name.c_str());
   fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
   fprintf(fp, "    .kernel_mode: %d\n", 0);
-  fprintf(fp, "amdhsa.version:\n");
+  fprintf(fp, "opu.version:\n");
   fprintf(fp, "  - 2\n");
   fprintf(fp, "  - 0\n");
   fprintf(fp, "...\n");
@@ -1703,6 +1724,7 @@ function_info::function_info(int entry_point, gpgpu_context *ctx) {
   m_local_mem_framesize = 0;
   m_args_aligned_size = -1;
   pdom_done = false;  // initialize it to false
+  m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_PARAM_BASE, -1));
   m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_X, -1));
   m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_Y, -1));
   m_coasm_special_sregs.emplace(std::make_pair(KERNEL_CTRL_BIT_GRID_DIM_Z, -1));

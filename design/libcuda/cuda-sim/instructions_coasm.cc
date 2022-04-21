@@ -161,7 +161,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   // performs addition. Sets carry and overflow if needed.
   switch (i_type) {
     case S8_TYPE:
-      fprintf(fp, "v_add_s32_s8");
+      fprintf(fp, "v_add_i32_s8");
       // data.s64 = (src1_data.s64 & 0x0000000FF) + (src2_data.s64 & 0x0000000FF);
       // if (((src1_data.s64 & 0x80) - (src2_data.s64 & 0x80)) == 0) {
       //   overflow = ((src1_data.s64 & 0x80) - (data.s64 & 0x80)) == 0 ? 0 : 1;
@@ -169,7 +169,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // carry = (data.u64 & 0x000000100) >> 8;
       break;
     case S16_TYPE:
-      fprintf(fp, "v_add_s32_s16");
+      fprintf(fp, "v_add_i32_i16");
       // data.s64 = (src1_data.s64 & 0x00000FFFF) + (src2_data.s64 & 0x00000FFFF);
       // if (((src1_data.s64 & 0x8000) - (src2_data.s64 & 0x8000)) == 0) {
       //   overflow =
@@ -178,7 +178,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // carry = (data.u64 & 0x000010000) >> 16;
       break;
     case S32_TYPE:
-      fprintf(fp, "v_add_s32_s32");
+      fprintf(fp, "v_add_i32_i32");
       // data.s64 = (src1_data.s64 & 0x0FFFFFFFF) + (src2_data.s64 & 0x0FFFFFFFF);
       // if (((src1_data.s64 & 0x80000000) - (src2_data.s64 & 0x80000000)) == 0) {
       //   overflow = ((src1_data.s64 & 0x80000000) - (data.s64 & 0x80000000)) == 0
@@ -189,7 +189,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
     case S64_TYPE:
       size = 2;
-      fprintf(fp, "v_add_s64_s64");
+      fprintf(fp, "v_add_i64_i64");
       // data.s64 = src1_data.s64 + src2_data.s64;
       break;
     case U8_TYPE:
@@ -645,15 +645,15 @@ void sext(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
 /*
   switch (from_width) {
     case 8:
-      fprintf(fp, "_sext_s32_s8");
+      fprintf(fp, "_sext_i32_s8");
       // if (x.get_bit(7)) x.mask_or(0xFFFFFFFF, 0xFFFFFF00);
       break;
     case 16:
-      fprintf(fp, "_sext_s32_s16");
+      fprintf(fp, "_sext_i32_i16");
       // if (x.get_bit(15)) x.mask_or(0xFFFFFFFF, 0xFFFF0000);
       break;
     case 32:
-      fprintf(fp, "_sext_s32_s32");
+      fprintf(fp, "_sext_i32_i32");
       // if (x.get_bit(31)) x.mask_or(0xFFFFFFFF, 0x00000000);
       break;
     case 64:
@@ -674,15 +674,15 @@ void sexd(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
   /*
   switch (to_width) {
     case 8:
-      fprintf(fp, "_sext_s32_s8");
+      fprintf(fp, "_sext_i32_s8");
       // if (x.get_bit(7)) x.mask_or(0xFFFFFFFF, 0xFFFFFF00);
       break;
     case 16:
-      fprintf(fp, "_sext_s32_s16");
+      fprintf(fp, "_sext_i32_i16");
       // if (x.get_bit(15)) x.mask_or(0xFFFFFFFF, 0xFFFF0000);
       break;
     case 32:
-      fprintf(fp, "_sext_s32_s32");
+      fprintf(fp, "_sext_i32_i32");
       // if (x.get_bit(31)) x.mask_or(0xFFFFFFFF, 0x00000000);
       break;
     case 64:
@@ -928,19 +928,19 @@ void s2f(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
       case 32:
         switch (rounding_mode) {
           case RZ_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rz", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rz", to_width, from_width);
             // y.f32 = cuda_math::__int2float_rz(y.s32);
             break;
           case RN_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rn", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rn", to_width, from_width);
             // y.f32 = cuda_math::__int2float_rn(y.s32);
             break;
           case RM_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rm", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rm", to_width, from_width);
             // y.f32 = cuda_math::__int2float_rd(y.s32);
             break;
           case RP_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rp", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rp", to_width, from_width);
             // y.f32 = cuda_math::__int2float_ru(y.s32);
             break;
           default:
@@ -948,7 +948,7 @@ void s2f(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
         }
         break;
       case 64:
-        fprintf(fp, "_s2f_f%u_s%u", to_width, from_width);
+        fprintf(fp, "_s2f_f%u_i%u", to_width, from_width);
         // y.f64 = y.s32;
         break;  // no rounding needed
       default:
@@ -1716,10 +1716,16 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   }
 
   if (space_type == param_space_kernel) {
-    unsigned num = kernel_param_addr_in_bytes / 4;
+    // unsigned num = kernel_param_addr_in_bytes / 4;
     // we asume each param is 4bytes align
-    assert(num * 4 == kernel_param_addr_in_bytes);
-    fprintf(fp, ",\tv[%d:%d], %d", KERNEL_PARAM_BASE, KERNEL_PARAM_BASE+1, num);
+    // assert(num * 4 == kernel_param_addr_in_bytes);
+#ifdef COASM_BUILTIN_USE
+    const symbol *param = src1.get_symbol();
+    fprintf(fp, ",\t%s", param->name().c_str());
+    finfo->get_coasm_special_sregs()[KERNEL_CTRL_BIT_PARAM_BASE] = -2;
+#else
+    fprintf(fp, ",\tv[%d:%d]", KERNEL_PARAM_BASE, KERNEL_PARAM_BASE+1);
+#endif
   } else if (src1.is_reg()) {
     // fprintf(fp, ",\tv%u", src1.reg_num());
     fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
@@ -1930,13 +1936,13 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
     case S16_TYPE:
       // t.s32 = a.s16 * b.s16;
       if (pI->is_wide())
-        fprintf(fp, "_s32_s16");
+        fprintf(fp, "_i32_i16");
         // d.s32 = t.s32 + c.s32 + carry_bit.pred;
       else if (pI->is_hi())
-        fprintf(fp, "hi_s16_s16");
+        fprintf(fp, "hi_i16_i16");
         // d.s16 = (t.s32 >> 16) + c.s16 + carry_bit.pred;
       else if (pI->is_lo())
-        fprintf(fp, "lo_s16_s16");
+        fprintf(fp, "lo_i16_i16");
         // d.s16 = t.s16 + c.s16 + carry_bit.pred;
       else
         assert(0);
@@ -1945,13 +1951,13 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
     case S32_TYPE:
       // t.s64 = a.s32 * b.s32;
       if (pI->is_wide())
-        fprintf(fp, "_s64_s32");
+        fprintf(fp, "_i64_i32");
         // d.s64 = t.s64 + c.s64 + carry_bit.pred;
       else if (pI->is_hi())
-        fprintf(fp, "hi_s32_s32");
+        fprintf(fp, "hi_i32_i32");
         // d.s32 = (t.s64 >> 32) + c.s32 + carry_bit.pred;
       else if (pI->is_lo())
-        fprintf(fp, "lo_s32_s32");
+        fprintf(fp, "lo_i32_i32");
         // d.s32 = t.s32 + c.s32 + carry_bit.pred;
       else
         assert(0);
@@ -1962,7 +1968,7 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       assert(!pI->is_hi());
       assert(use_carry == false);
       if (pI->is_lo())
-        fprintf(fp, "lo_s64_s64");
+        fprintf(fp, "lo_i64_i64");
         // d.s64 = t.s64 + c.s64 + carry_bit.pred;
       else
         assert(0);
@@ -2132,15 +2138,15 @@ void max_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // d.u64 = MY_MAX_I(a.u64, b.u64);
       break;
     case S16_TYPE:
-      fprintf(fp, "v_max_s16\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
+      fprintf(fp, "v_max_i16\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
       // d.s16 = MY_MAX_I(a.s16, b.s16);
       break;
     case S32_TYPE:
-      fprintf(fp, "v_max_s32\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
+      fprintf(fp, "v_max_i32\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
       // d.s32 = MY_MAX_I(a.s32, b.s32);
       break;
     case S64_TYPE:
-      fprintf(fp, "v_max_s64\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1, 2).c_str(), finfo->get_coasm_reg(src2, 2).c_str());
+      fprintf(fp, "v_max_i64\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1, 2).c_str(), finfo->get_coasm_reg(src2, 2).c_str());
       // d.s64 = MY_MAX_I(a.s64, b.s64);
       break;
     case F32_TYPE:
@@ -2189,15 +2195,15 @@ void min_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // d.u64 = MY_MIN_I(a.u64, b.u64);
       break;
     case S16_TYPE:
-      fprintf(fp, "v_min_s16\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
+      fprintf(fp, "v_min_i16\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
       // d.s16 = MY_MIN_I(a.s16, b.s16);
       break;
     case S32_TYPE:
-      fprintf(fp, "v_min_s32\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
+      fprintf(fp, "v_min_i32\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
       // d.s32 = MY_MIN_I(a.s32, b.s32);
       break;
     case S64_TYPE:
-      fprintf(fp, "v_min_s64\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
+      fprintf(fp, "v_min_i64\t%s,\t%s,\t%s", finfo->get_coasm_reg(dst).c_str(), finfo->get_coasm_reg(src1).c_str(), finfo->get_coasm_reg(src2).c_str());
       // d.s64 = MY_MIN_I(a.s64, b.s64);
       break;
     case F32_TYPE:
@@ -2283,7 +2289,11 @@ void mov_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE* fp)  
     if (src1.is_builtin()) {
         int buildin_id = src1.get_int();
         int dim = src1.get_addr_offset();
-        fprintf(fp, ",\tv%d", finfo->get_coasm_buildin(buildin_id, dim));
+        if (finfo->get_coasm_buildin(buildin_id, dim).second >= 0) {
+            fprintf(fp, ",\tv%d", finfo->get_coasm_buildin(buildin_id, dim).second);
+        } else {
+            fprintf(fp, ",\t%s", finfo->get_coasm_buildin(buildin_id, dim).first.c_str());
+        }
     } else if (src1.is_literal()) {
         fprintf(fp, ",\t%d", src1.get_literal_value());
     } else if (src1.is_reg()) {
@@ -2321,13 +2331,13 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     case S16_TYPE:
       // t.s32 = ((int)a.s16) * ((int)b.s16);
       if (pI->is_wide())
-        fprintf(fp, "v_mul_s32_s16");
+        fprintf(fp, "v_mul_i32_i16");
         // d.s32 = t.s32;
       else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_s16_s16");
+        fprintf(fp, "v_mulhi_i16_i16");
         // d.s16 = (t.s32 >> 16);
       else if (pI->is_lo())
-        fprintf(fp, "v_mullo_s16_s16");
+        fprintf(fp, "v_mullo_i16_i16");
         // d.s16 = t.s16;
       else
         assert(0);
@@ -2335,13 +2345,13 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     case S32_TYPE:
       // t.s64 = ((long long)a.s32) * ((long long)b.s32);
       if (pI->is_wide())
-        fprintf(fp, "v_mul_s64_s32");
+        fprintf(fp, "v_mul_i64_i32");
         // d.s64 = t.s64;
       else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_s32_s32");
+        fprintf(fp, "v_mulhi_i32_i32");
         // d.s32 = (t.s64 >> 32);
       else if (pI->is_lo())
-        fprintf(fp, "v_mullo_s32_s32");
+        fprintf(fp, "v_mullo_i32_i32");
         // d.s32 = t.s32;
       else
         assert(0);
@@ -2352,7 +2362,7 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       assert(!pI->is_wide());
       assert(!pI->is_hi());
       if (pI->is_lo())
-        fprintf(fp, "v_mullo_s64_s64");
+        fprintf(fp, "v_mullo_i64_i64");
         // d.s64 = t.s64;
       else
         assert(0);
@@ -2664,26 +2674,26 @@ bool CmpOp(int type, ptx_reg_t a, ptx_reg_t b, unsigned cmpop, FILE* fp) {
       switch (cmpop) {
         case EQ_OPTION:
           // t = (a.s16 == b.s16);
-          fprintf(fp, "_eq_s16");
+          fprintf(fp, "_eq_i16");
           break;
         case NE_OPTION:
-          fprintf(fp, "_ne_s16");
+          fprintf(fp, "_ne_i16");
           // t = (a.s16 != b.s16);
           break;
         case LT_OPTION:
-          fprintf(fp, "_lt_s16");
+          fprintf(fp, "_lt_i16");
           // t = (a.s16 < b.s16);
           break;
         case LE_OPTION:
-          fprintf(fp, "_le_s16");
+          fprintf(fp, "_le_i16");
           // t = (a.s16 <= b.s16);
           break;
         case GT_OPTION:
-          fprintf(fp, "_gt_s16");
+          fprintf(fp, "_gt_i16");
           // t = (a.s16 > b.s16);
           break;
         case GE_OPTION:
-          fprintf(fp, "_ge_s16");
+          fprintf(fp, "_ge_i16");
           // t = (a.s16 >= b.s16);
           break;
         default:
@@ -2693,27 +2703,27 @@ bool CmpOp(int type, ptx_reg_t a, ptx_reg_t b, unsigned cmpop, FILE* fp) {
     case S32_TYPE:
       switch (cmpop) {
         case EQ_OPTION:
-          fprintf(fp, "_eq_s32");
+          fprintf(fp, "_eq_i32");
           // t = (a.s32 == b.s32);
           break;
         case NE_OPTION:
-          fprintf(fp, "_ne_s32");
+          fprintf(fp, "_ne_i32");
           // t = (a.s32 != b.s32);
           break;
         case LT_OPTION:
-          fprintf(fp, "_lt_s32");
+          fprintf(fp, "_lt_i32");
           // t = (a.s32 < b.s32);
           break;
         case LE_OPTION:
-          fprintf(fp, "_le_s32");
+          fprintf(fp, "_le_i32");
           // t = (a.s32 <= b.s32);
           break;
         case GT_OPTION:
-          fprintf(fp, "_gt_s32");
+          fprintf(fp, "_gt_i32");
           // t = (a.s32 > b.s32);
           break;
         case GE_OPTION:
-          fprintf(fp, "_ge_s32");
+          fprintf(fp, "_ge_i32");
           // t = (a.s32 >= b.s32);
           break;
         default:
@@ -2723,27 +2733,27 @@ bool CmpOp(int type, ptx_reg_t a, ptx_reg_t b, unsigned cmpop, FILE* fp) {
     case S64_TYPE:
       switch (cmpop) {
         case EQ_OPTION:
-          fprintf(fp, "_eq_s64");
+          fprintf(fp, "_eq_i64");
           // t = (a.s64 == b.s64);
           break;
         case NE_OPTION:
-          fprintf(fp, "_ne_s64");
+          fprintf(fp, "_ne_i64");
           // t = (a.s64 != b.s64);
           break;
         case LT_OPTION:
-          fprintf(fp, "_lt_s64");
+          fprintf(fp, "_lt_i64");
           // t = (a.s64 < b.s64);
           break;
         case LE_OPTION:
-          fprintf(fp, "_le_s64");
+          fprintf(fp, "_le_i64");
           // t = (a.s64 <= b.s64);
           break;
         case GT_OPTION:
-          fprintf(fp, "_gt_s64");
+          fprintf(fp, "_gt_i64");
           // t = (a.s64 > b.s64);
           break;
         case GE_OPTION:
-          fprintf(fp, "_ge_s64");
+          fprintf(fp, "_ge_i64");
           // t = (a.s64 >= b.s64);
           break;
         default:
@@ -3041,7 +3051,7 @@ void setp_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) 
   // a = thread->get_operand_value(src1, dst, type, thread, 1);
   // b = thread->get_operand_value(src2, dst, type, thread, 1);
 
-  fprintf(fp, "v_cmp_lt_i32");
+  fprintf(fp, "v_cmp");
   t = CmpOp(type, a, b, cmpop, fp);
 
   ptx_reg_t data;
