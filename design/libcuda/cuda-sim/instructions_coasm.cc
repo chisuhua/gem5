@@ -113,7 +113,7 @@ void print_bra(function_info *finfo, const ptx_instruction *pI, const operand_in
   basic_block_t *target_bb = target_pI->get_bb();
 
   if (pI->has_pred()) {
-     fprintf(fp, "s_cbranch  bb_%02u", target_bb->bb_id);
+     fprintf(fp, "s_cbranch_z bb_%02u", target_bb->bb_id);
      const operand_info &p = pI->get_pred();
      fprintf(fp, ",\t%s", finfo->get_coasm_tcc(p).c_str());
   } else {
@@ -641,7 +641,7 @@ void chop(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
 void sext(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign,
                int rounding_mode, int saturation_mode, FILE* fp) {
   // x = chop(x, 0, from_width, 0, rounding_mode, saturation_mode);
-      fprintf(fp, "_sext_s%u_s%u", to_width, from_width);
+      fprintf(fp, "_sext_i%u_i%u", to_width, from_width);
 /*
   switch (from_width) {
     case 8:
@@ -670,7 +670,7 @@ void sext(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
 void sexd(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign,
                int rounding_mode, int saturation_mode, FILE* fp) {
   // x = chop(x, 0, from_width, 0, rounding_mode, saturation_mode);
-      fprintf(fp, "_sext_s%u_s%u", to_width, from_width);
+      fprintf(fp, "_sext_i%u_i%u", to_width, from_width);
   /*
   switch (to_width) {
     case 8:
@@ -721,7 +721,7 @@ void f2x(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
   // assert( from_width == 32);
   //
   if (to_sign == 1)   // convert to 64-bit number first?
-    fprintf(fp, "_f2x_s%u_f%u", to_width, from_width);
+    fprintf(fp, "_f2x_i%u_f%u", to_width, from_width);
   else
     fprintf(fp, "_f2x_u%u_f%u", to_width, from_width);
 
@@ -830,7 +830,7 @@ void d2x(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
   assert(from_width == 64);
 
   if (to_sign == 1)   // convert to 64-bit number first?
-    fprintf(fp, "_d2x_s%u_d%u", to_width, from_width);
+    fprintf(fp, "_d2x_i%u_d%u", to_width, from_width);
   else
     fprintf(fp, "_d2x_u%u_d%u", to_width, from_width);
 
@@ -963,19 +963,19 @@ void s2f(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
       case 32:
         switch (rounding_mode) {
           case RZ_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rz", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rz", to_width, from_width);
             // y.f32 = cuda_math::__ll2float_rz(y.s64);
             break;
           case RN_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rn", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rn", to_width, from_width);
             // y.f32 = cuda_math::__ll2float_rn(y.s64);
             break;
           case RM_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rm", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rm", to_width, from_width);
             // y.f32 = cuda_math::__ll2float_rd(y.s64);
             break;
           case RP_OPTION:
-            fprintf(fp, "_s2f_f%u_s%u_rm", to_width, from_width);
+            fprintf(fp, "_s2f_f%u_i%u_rm", to_width, from_width);
             // y.f32 = cuda_math::__ll2float_ru(y.s64);
             break;
           default:
@@ -983,7 +983,7 @@ void s2f(unsigned from_type, unsigned from_width, unsigned to_width, int to_sign
         }
         break;
       case 64:
-        fprintf(fp, "_s2f_f%u_s%u_rm", to_width, from_width);
+        fprintf(fp, "_s2f_f%u_i%u_rm", to_width, from_width);
         // y.f64 = y.s64;
         break;  // no internal implementation found
       default:
@@ -3151,12 +3151,12 @@ void shl_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned i_type = pI->get_type();
   // a = thread->get_operand_value(src1, dst, i_type, thread, 1);
   // b = thread->get_operand_value(src2, dst, i_type, thread, 1);
-  fprintf(fp, "v_shl");
+  fprintf(fp, "v_lshl");
 
   switch (i_type) {
     case B16_TYPE:
     case U16_TYPE:
-      fprintf(fp, "_u16\t");
+      fprintf(fp, "_b16\t");
       print_dst(finfo, dst, fp, 1); fprintf(fp, ",\t");
       print_src(finfo, src1, fp, 1); fprintf(fp, ",\t");
       print_src(finfo, src2, fp, 1);
@@ -3168,7 +3168,7 @@ void shl_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
     case B32_TYPE:
     case U32_TYPE:
-      fprintf(fp, "_u32\t");
+      fprintf(fp, "_b32\t");
       print_dst(finfo, dst, fp, 1); fprintf(fp, ",\t");
       print_src(finfo, src1, fp, 1); fprintf(fp, ",\t");
       print_src(finfo, src2, fp, 1);
@@ -3179,7 +3179,7 @@ void shl_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
     case B64_TYPE:
     case U64_TYPE:
-      fprintf(fp, "_u64\t");
+      fprintf(fp, "_b64\t");
       print_dst(finfo, dst, fp, 2); fprintf(fp, ",\t");
       print_src(finfo, src1, fp, 2); fprintf(fp, ",\t");
       print_src(finfo, src2, fp, 2);
