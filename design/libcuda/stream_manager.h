@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <list>
+// #include <mutex>
 #include "abstract_hardware_model.h"
 
 //class stream_barrier {
@@ -247,6 +248,9 @@ private:
 struct CUstream_st {
 public:
   CUstream_st(); 
+  ~CUstream_st() {
+      printf("stream %d is destroy\n", m_uid);
+  }
   bool empty();
   bool busy();
   void synchronize();
@@ -265,6 +269,7 @@ private:
   std::list<stream_operation> m_operations;
   bool m_pending; // front operation has started but not yet completed
 
+  // std::mutex m_mutex;
   pthread_mutex_t m_lock; // ensure only one host or gpu manipulates stream operation at one time
 };
 
@@ -298,6 +303,7 @@ public:
   std::map<unsigned,CUstream_st *> m_grid_id_to_stream;
   CUstream_st m_stream_zero;
   bool m_service_stream_zero;
+  // std::mutex m_lock;
   pthread_mutex_t m_lock;
   std::list<struct CUstream_st*>::iterator m_last_stream;
 };

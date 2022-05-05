@@ -1625,6 +1625,8 @@ cudaDeviceGetAttributeInternal(int *value, enum cudaDeviceAttr attr, int device,
       case 19:
         *value = 0;
         break;
+      case 20:
+        *value = dev->get_id();
       case 21:
       case 22:
       case 23:
@@ -1880,7 +1882,7 @@ __host__ cudaError_t CUDARTAPI cudaStreamCreateInternal(
   printf("LIBCUDA PTX: cudaStreamCreate\n");
 #if (CUDART_VERSION >= 3000)
   auto libcuda_stream = new struct libcuda::CUstream_st();
-  *stream = *reinterpret_cast<cudaStream_t *>(libcuda_stream);
+  *stream = reinterpret_cast<cudaStream_t>(libcuda_stream);
   ctx->the_gpgpusim->g_stream_manager->add_stream(libcuda_stream);
 #endif
   return g_last_cudaError = cudaSuccess;

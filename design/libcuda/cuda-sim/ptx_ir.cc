@@ -321,6 +321,24 @@ void symbol_table::dump() {
   printf("\n");
 }
 
+void symbol_table::dump_shared(FILE *fp) {
+  std::map<std::string, symbol *>::iterator i;
+  for (i = m_symbols.begin(); i != m_symbols.end(); i++) {
+    if (i->second->is_shared()) {
+        fprintf(fp, "    .shared:\n");
+        break;
+    }
+  }
+  for (i = m_symbols.begin(); i != m_symbols.end(); i++) {
+    if (not i->second->is_shared()) {
+        continue;
+    }
+    fprintf(fp, "      - .name: %s\n", i->first.c_str());
+    fprintf(fp, "        .offset: %d\n", i->second->get_address());
+    fprintf(fp, "        .size: %d\n", i->second->get_size_in_bytes());
+  }
+}
+
 unsigned operand_info::get_uid() {
   unsigned result = (gpgpu_ctx->operand_info_sm_next_uid)++;
   return result;
@@ -788,6 +806,12 @@ void function_info::gen_coasm(FILE *fp) {
     // offset += param_addr;
   }
   fprintf(fp, "    .name: %s\n", m_name.c_str());
+  fprintf(fp, "    .local_framesize: %d\n", local_mem_framesize());
+  const struct gpgpu_ptx_sim_info *kernel_info = this->get_kernel_info();
+  fprintf(fp, "    .smem: %d\n", kernel_info->smem);
+  fprintf(fp, "    .lmem: %d\n", kernel_info->lmem);
+  fprintf(fp, "    .cmem: %d\n", kernel_info->cmem);
+  m_symtab->dump_shared(fp);
   fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
   fprintf(fp, "    .kernel_mode: %d\n", 0);
   fprintf(fp, "opu.version:\n");

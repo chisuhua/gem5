@@ -329,7 +329,7 @@ private:
   void operator=(const kernel_info_t & ); // disable copy operator
 
   class function_info *m_kernel_entry;
-  class DispatchInfo *m_disp_info;
+  class DispatchInfo *m_disp_info {nullptr};
 
   unsigned m_uid;
   static unsigned m_next_uid;

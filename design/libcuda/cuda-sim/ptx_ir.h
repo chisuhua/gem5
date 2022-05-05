@@ -350,6 +350,7 @@ class symbol_table {
   iterator const_iterator_end() { return m_consts.end(); }
 
   void dump();
+  void dump_shared(FILE *fp);
 
   // Jin: handle instruction group for cdp
   symbol_table *start_inst_group();

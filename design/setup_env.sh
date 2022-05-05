@@ -30,7 +30,7 @@ echo "find cuda path $CUDAHOME"
 CUDA_VERSION=`nvcc --version |grep release | sed 's#.*release ##' | cut -d',' -f1 |sed 's#\.##'`
 
 
-export PATH="$CUDAHOME/bin:$PATH"
+export PATH="$GEM5_ROOT/bin:$CUDAHOME/bin:$PATH"
 export CUDA_INSTALL_PATH=$CUDAHOME
 export CUDA_PATH=$CUDAHOME
 export CPU_ENGINE=cpu
@@ -42,7 +42,7 @@ export CUDA_VERSION_NUMBER=${CUDA_VERSION}00
 
 export PTX_SIM_USE_PTX_FILE=1.ptx
 export PTX_SIM_KERNELFILE=_1.ptx
-export PTX_SIM_MODE_FUNC=1
+#export PTX_SIM_MODE_FUNC=1
 export PTX_SIM_DEBUG=3
 export PYTORCH_BIN=
 export CUOBJDUMP_SIM_FILE=jj

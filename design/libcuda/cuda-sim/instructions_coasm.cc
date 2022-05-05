@@ -113,9 +113,10 @@ void print_bra(function_info *finfo, const ptx_instruction *pI, const operand_in
   basic_block_t *target_bb = target_pI->get_bb();
 
   if (pI->has_pred()) {
-     fprintf(fp, "s_cbranch_z bb_%02u", target_bb->bb_id);
+     fprintf(fp, "s_cbranch_tccz ");
      const operand_info &p = pI->get_pred();
-     fprintf(fp, ",\t%s", finfo->get_coasm_tcc(p).c_str());
+     fprintf(fp, "%s", finfo->get_coasm_tcc(p).c_str());
+     fprintf(fp, ",\tbb_%02u", target_bb->bb_id);
   } else {
      fprintf(fp, "s_branch  bb_%02u", target_bb->bb_id);
   }
@@ -161,7 +162,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   // performs addition. Sets carry and overflow if needed.
   switch (i_type) {
     case S8_TYPE:
-      fprintf(fp, "v_add_i32_s8");
+      fprintf(fp, "v_add_i8");
       // data.s64 = (src1_data.s64 & 0x0000000FF) + (src2_data.s64 & 0x0000000FF);
       // if (((src1_data.s64 & 0x80) - (src2_data.s64 & 0x80)) == 0) {
       //   overflow = ((src1_data.s64 & 0x80) - (data.s64 & 0x80)) == 0 ? 0 : 1;
@@ -169,7 +170,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // carry = (data.u64 & 0x000000100) >> 8;
       break;
     case S16_TYPE:
-      fprintf(fp, "v_add_i32_i16");
+      fprintf(fp, "v_add_i16");
       // data.s64 = (src1_data.s64 & 0x00000FFFF) + (src2_data.s64 & 0x00000FFFF);
       // if (((src1_data.s64 & 0x8000) - (src2_data.s64 & 0x8000)) == 0) {
       //   overflow =
@@ -178,7 +179,7 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // carry = (data.u64 & 0x000010000) >> 16;
       break;
     case S32_TYPE:
-      fprintf(fp, "v_add_i32_i32");
+      fprintf(fp, "v_add_i32");
       // data.s64 = (src1_data.s64 & 0x0FFFFFFFF) + (src2_data.s64 & 0x0FFFFFFFF);
       // if (((src1_data.s64 & 0x80000000) - (src2_data.s64 & 0x80000000)) == 0) {
       //   overflow = ((src1_data.s64 & 0x80000000) - (data.s64 & 0x80000000)) == 0
@@ -189,41 +190,41 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
     case S64_TYPE:
       size = 2;
-      fprintf(fp, "v_add_i64_i64");
+      fprintf(fp, "v_add_i64");
       // data.s64 = src1_data.s64 + src2_data.s64;
       break;
     case U8_TYPE:
-      fprintf(fp, "v_add_u32_u8");
+      fprintf(fp, "v_add_u8");
       // data.u64 = (src1_data.u64 & 0xFF) + (src2_data.u64 & 0xFF);
       // carry = (data.u64 & 0x100) >> 8;
       break;
     case U16_TYPE:
-      fprintf(fp, "v_add_u32_u16");
+      fprintf(fp, "v_add_u16");
       // data.u64 = (src1_data.u64 & 0xFFFF) + (src2_data.u64 & 0xFFFF);
       // carry = (data.u64 & 0x10000) >> 16;
       break;
     case U32_TYPE:
-      fprintf(fp, "v_add_u32_u32");
+      fprintf(fp, "v_add_u32");
       // data.u64 = (src1_data.u64 & 0xFFFFFFFF) + (src2_data.u64 & 0xFFFFFFFF);
       // carry = (data.u64 & 0x100000000) >> 32;
       break;
     case U64_TYPE:
       size = 2;
-      fprintf(fp, "v_add_u64_u64");
+      fprintf(fp, "v_add_u64");
       // data.u64 = src1_data.u64 + src2_data.u64;
       break;
     case F16_TYPE:
-      fprintf(fp, "v_add_f16_f16");
+      fprintf(fp, "v_add_f16");
       // data.f16 = src1_data.f16 + src2_data.f16;
       break;  // assert(0); break;
     case F32_TYPE:
-      fprintf(fp, "v_add_f32_f32");
+      fprintf(fp, "v_add_f32");
       // data.f32 = src1_data.f32 + src2_data.f32;
       break;
     case F64_TYPE:
     case FF64_TYPE:
       size = 2;
-      fprintf(fp, "v_add_f64_f64");
+      fprintf(fp, "v_add_f64");
       // data.f64 = src1_data.f64 + src2_data.f64;
       break;
     default:
@@ -345,7 +346,9 @@ void bar_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       if (pI->get_num_operands() == 2) {
         print_type_2op("bar_sync", finfo, pI, fp);  // bar_sync bar_id, bar_count
       } else if (pI->get_num_operands() == 1) {
-        fprintf(fp, "FIXME bar_sync op on sync_option %s\n", __FUNCTION__);  // bar_sync bar_id
+        const operand_info &op0 = pI->dst();
+        assert(op0.is_literal());
+        fprintf(fp, "bar_sync %d\n", op0.get_literal_value());  // bar_sync bar_id
         // print_type_1op("bar_sync", finfo, pI, fp);  // bar_sync bar_id
       } else {
         fprintf(fp, "FIXME bar_sync op on sync_option %s\n", __FUNCTION__);  // bar_sync bar_id
@@ -645,7 +648,7 @@ void sext(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
 /*
   switch (from_width) {
     case 8:
-      fprintf(fp, "_sext_i32_s8");
+      fprintf(fp, "_sext_i32_i8");
       // if (x.get_bit(7)) x.mask_or(0xFFFFFFFF, 0xFFFFFF00);
       break;
     case 16:
@@ -674,7 +677,7 @@ void sexd(unsigned from_type, unsigned from_width, unsigned to_width, int to_sig
   /*
   switch (to_width) {
     case 8:
-      fprintf(fp, "_sext_i32_s8");
+      fprintf(fp, "_sext_i32_i8");
       // if (x.get_bit(7)) x.mask_or(0xFFFFFFFF, 0xFFFFFF00);
       break;
     case 16:
@@ -1675,13 +1678,13 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   fprintf(fp, "v_load");
 
   if (dsize == 1)
-    fprintf(fp, "_byte");
+    fprintf(fp, "_u8");
   else if (dsize == 2)
-    fprintf(fp, "_short");
+    fprintf(fp, "_u16");
   else if (dsize == 4)
-    fprintf(fp, "_dword");
+    fprintf(fp, "_u32");
   else if (dsize == 8)
-    fprintf(fp, "_dwordx2");
+    fprintf(fp, "_u64");
   else
     assert("ld_exec failed on unknow type");
 
@@ -2298,6 +2301,8 @@ void mov_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE* fp)  
         fprintf(fp, ",\t%d", src1.get_literal_value());
     } else if (src1.is_reg()) {
         fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1).c_str());
+    } else if (src1.is_shared()) {
+        fprintf(fp, ",\t%s", src1.get_symbol()->name().c_str());
     } else {
         // FIXME
         fprintf(fp, ",\tFIXME\n");
@@ -3247,13 +3252,13 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned dsize = dtype_size(type);
 
   if (dsize == 1)
-    fprintf(fp, "_byte");
+    fprintf(fp, "_u8");
   else if (dsize == 2)
-    fprintf(fp, "_short");
+    fprintf(fp, "_u16");
   else if (dsize == 4)
-    fprintf(fp, "_dword");
+    fprintf(fp, "_u32");
   else if (dsize == 8)
-    fprintf(fp, "_dwordx2");
+    fprintf(fp, "_u64");
   else
     assert("ld_exec failed on unknow type");
 
