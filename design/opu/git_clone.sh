@@ -6,4 +6,5 @@ git clone git@github.com:chisuhua/umd.git
 git clone git@github.com:chisuhua/oputest.git
 git clone https://gitee.com/chisuhua/py3antlr4book.git
 git clone https://gitee.com/mirrors/elfio.git 3rdparty/elfio
-git clone https://gitee.com/chisuhua/cash.git
+git clone https://gitee.com/chisuhua/cash.git 3rdparty/cash
+git clone https://gitee.com/chisuhua/pymtl3.git 3rdparty/pymtl3

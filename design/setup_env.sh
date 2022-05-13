@@ -59,3 +59,5 @@ export LD_LIBRARY_PATH=$GEM5_ROOT/design/libcuda:$LD_LIBRARY_PATH
 export CO_DESIGN=co_design/simple_ppu
 export CO_BUILD_DIR=build
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GEM5_ROOT/design/cosim
+
+export PYTHONPATH=$DESIGN_ROOT/opu/3rdparty/pymtl3:$DESIGN_ROOT/opu/oputest/python:$PYTHONPATH
