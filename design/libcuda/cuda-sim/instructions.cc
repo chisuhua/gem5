@@ -515,6 +515,13 @@ unsigned get_operand_nbits(const operand_info &op) {
         fflush(stdout);
         abort();
     }
+  } else if (op.is_memory_operand()) {
+    _memory_space_t space_type = op.get_addr_space();
+    if (space_type == shared_space) {
+      return 32;
+    } else {
+      return 64;
+    }
   } else {
     printf(
         "ERROR: Need to implement get_operand_nbits() for currently "

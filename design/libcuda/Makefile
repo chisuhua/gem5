@@ -88,7 +88,7 @@ endif
 
 PROG     =cuda
 M5OP = m5op_x86
-INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer -I../opu/isasim/executor -I../opu/umd -I../opu/coasm
+INCLUDES = -I./ -I../src -I$(OUTPUT_DIR) -I$(CUDA_INSTALL_PATH)/include -I../../../../include -I../../../../build/X86_VI_hammer -I../opu/isasim/isa -I../opu/isasim/model -I../opu/umd -I../opu/coasm
 
 CXX_SRCS =  cuda_runtime_api.cc stream_manager.cc gpgpusim_entrypoint.cc abstract_hardware_model.cc \
 	    gpu-sim.cc \

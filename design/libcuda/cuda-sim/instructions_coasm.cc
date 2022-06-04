@@ -18,24 +18,59 @@ void coasm_not_impl(const ptx_instruction *pI) {
   abort();
 }
 
-void print_src(function_info *finfo, const operand_info &src, FILE* fp, uint32_t size=0) {
+void print_tcc(function_info *finfo, const operand_info &operand, FILE* fp) {
+  fprintf(fp, "\t%s", finfo->get_coasm_tcc(operand).c_str());
+}
+
+void print_src(function_info *finfo, const operand_info &src, FILE* fp, uint32_t size=0, unsigned i_type = U32_TYPE) {
   if (src.is_builtin())
       fprintf(fp, "\%build_in%u", src.get_int());
   else if (src.is_literal())
       fprintf(fp, "0x%x", src.get_literal_value());
   else {
-      // fprintf(fp, "v[%u,%u]", src.reg_num(), src.reg_num()+size-1);
-      fprintf(fp, "%s", finfo->get_coasm_reg(src, size).c_str());
+    if (size == 0) {
+      if (src.is_vector()) {
+        size = src.get_vect_nelem();
+      } else {
+        switch (i_type) {
+          case PRED_TYPE:
+            return print_tcc(finfo, src, fp);
+          case S64_TYPE:
+          case U64_TYPE:
+          case F64_TYPE:
+          case FF64_TYPE: {
+            size = 2; break;
+          }
+          default:
+          size = 1; break;
+        }
+      }
+    }
+    // fprintf(fp, "v[%u,%u]", src.reg_num(), src.reg_num()+size-1);
+    fprintf(fp, "%s", finfo->get_coasm_reg(src, size).c_str());
   }
 }
 
 void print_dst(function_info *finfo, const operand_info &dst, FILE* fp, uint32_t size=0) {
+  if (size == 0) {
+    if (dst.is_vector()) {
+      size = dst.get_vect_nelem();
+    } else {
+      size = 1;
+    }
+  }
+
     // fprintf(fp, "v%u", dst.reg_num());
     // fprintf(fp, "v[%u,%u]", dst.reg_num(), dst.reg_num()+size-1);
     if (dst.is_reg()) {
-        fprintf(fp, "%s", finfo->get_coasm_reg(dst, size).c_str());
+      fprintf(fp, "%s", finfo->get_coasm_reg(dst, size).c_str());
+    } else if (dst.is_vector()) {
+      unsigned nelem = dst.get_vect_nelem();
+      fprintf(fp, "%s", finfo->get_coasm_reg(dst, nelem).c_str());
+    } else if(dst.is_memory_operand()) {
+      fprintf(fp, "%s", finfo->get_coasm_reg(dst, 2).c_str());
     } else {
-        fprintf(fp, "FIXME on dst operand: %s\n", __FUNCTION__);
+      fprintf(fp, "FIXME on dst operand: %s\n", __FUNCTION__);
     }
 }
 
@@ -43,9 +78,13 @@ void print_dst(function_info *finfo, const operand_info &dst, FILE* fp, uint32_t
 void print_type_1op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size =0 , unsigned src1_size = 0) {
     size_t size;
     int t;
-    type_info_key::type_decode(pI->get_type(), size, t);
-    switch(t) {
-        case 1: fprintf(fp, "v_%s_s%d\t", op, size); break;
+    unsigned i_type = pI->get_type();
+    if (i_type == PRED_TYPE) {
+      fprintf(fp, "s_%s_b32\t", op);
+    } else {
+      type_info_key::type_decode(pI->get_type(), size, t);
+      switch(t) {
+        case 1: fprintf(fp, "v_%s_i%d\t", op, size); break;
         case 0: fprintf(fp, "v_%s_u%d\t", op, size); break;
         case -1: fprintf(fp, "v_%s_f%d\t", op, size); break;
         case 2: fprintf(fp, "s_%s_t%d\t", op, size); break;  // PRED
@@ -53,6 +92,26 @@ void print_type_1op(const char* op, function_info *finfo, const ptx_instruction 
         default:
             printf("ERROR ** type_decode() does not know about \"%s\"\n", decode_token(pI->get_type()));
             assert(0);
+      }
+    }
+
+    if (dst_size == 0) {
+      if (pI->dst().is_vector()) {
+        dst_size = pI->dst().get_vect_nelem();
+      } else {
+        switch (i_type) {
+          case PRED_TYPE:
+            return print_tcc(finfo, pI->dst(), fp);
+          case S64_TYPE:
+          case U64_TYPE:
+          case F64_TYPE:
+          case FF64_TYPE: {
+            dst_size = 2; break;
+          }
+          default:
+          dst_size = 1; break;
+        }
+      }
     }
 
     print_dst(finfo, pI->dst(), fp, dst_size);
@@ -61,25 +120,26 @@ void print_type_1op(const char* op, function_info *finfo, const ptx_instruction 
 void print_type_2op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size=0, unsigned src1_size=0, unsigned src2_size=0) {
     print_type_1op(op, finfo, pI, fp, dst_size, src1_size);
     fprintf(fp, ",\t");
-    print_src(finfo, pI->src1(), fp, src1_size);
+
+    print_src(finfo, pI->src1(), fp, src1_size, pI->get_type());
 }
 
 void print_type_3op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size=0, unsigned src1_size=0, unsigned src2_size=0, unsigned src3_size=0) {
     print_type_2op(op, finfo, pI, fp, dst_size, src1_size, src2_size);
     fprintf(fp, ",\t");
-    print_src(finfo, pI->src2(), fp, src2_size);
+    print_src(finfo, pI->src2(), fp, src2_size, pI->get_type());
 }
 
 void print_type_4op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size=0, unsigned src1_size=0, unsigned src2_size=0, unsigned src3_size=0) {
     print_type_3op(op, finfo, pI, fp, dst_size, src1_size, src2_size);
     fprintf(fp, ",\t");
-    print_src(finfo, pI->src3(), fp, src3_size);
+    print_src(finfo, pI->src3(), fp, src3_size, pI->get_type());
 }
 
 void print_type_5op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size=0, unsigned src1_size=0, unsigned src2_size=0, unsigned src3_size=0, unsigned src4_size=0) {
     print_type_4op(op, finfo, pI, fp, dst_size, src1_size, src2_size, src3_size);
     fprintf(fp, ",\t");
-    print_src(finfo, pI->src4(), fp, src4_size);
+    print_src(finfo, pI->src4(), fp, src4_size, pI->get_type());
 }
 
 void print_type_op(const char* op, function_info *finfo, const ptx_instruction *pI, FILE* fp, unsigned dst_size=0, unsigned src1_size=0, unsigned src2_size=0, unsigned src3_size=0, unsigned src4_size=0) {
@@ -103,9 +163,6 @@ void print_2op(function_info *finfo, const ptx_instruction *pI, FILE* fp, unsign
     print_src(finfo, pI->src2(), fp, size);
 }
 
-void print_tcc(function_info *finfo, const operand_info &operand, FILE* fp) {
-  fprintf(fp, "\t%s", finfo->get_coasm_tcc(operand).c_str());
-}
 
 void print_bra(function_info *finfo, const ptx_instruction *pI, const operand_info &target, FILE* fp) {
   unsigned addr = finfo->get_label_addr(target.name());
@@ -113,7 +170,11 @@ void print_bra(function_info *finfo, const ptx_instruction *pI, const operand_in
   basic_block_t *target_bb = target_pI->get_bb();
 
   if (pI->has_pred()) {
-     fprintf(fp, "s_cbranch_tccz ");
+     if (pI->get_pred_neg()) {
+        fprintf(fp, "t_cbranch_tccz ");
+     } else {
+        fprintf(fp, "t_cbranch_tccnz ");
+     }
      const operand_info &p = pI->get_pred();
      fprintf(fp, "%s", finfo->get_coasm_tcc(p).c_str());
      fprintf(fp, ",\tbb_%02u", target_bb->bb_id);
@@ -161,6 +222,9 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned size = 1;
   // performs addition. Sets carry and overflow if needed.
   switch (i_type) {
+    case PRED_TYPE:
+      fprintf(fp, "v_add_tcc");
+      size = 0;
     case S8_TYPE:
       fprintf(fp, "v_add_i8");
       // data.s64 = (src1_data.s64 & 0x0000000FF) + (src2_data.s64 & 0x0000000FF);
@@ -231,8 +295,8 @@ void add_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
   }
   fprintf(fp, "\t"); print_dst(finfo, dst, fp, size);
-  fprintf(fp, ",\t"); print_src(finfo, src1, fp, size);
-  fprintf(fp, ",\t"); print_src(finfo, src2, fp, size);
+  fprintf(fp, ",\t"); print_src(finfo, src1, fp, size, i_type);
+  fprintf(fp, ",\t"); print_src(finfo, src2, fp, size, i_type);
   // thread->set_operand_value(dst, data, i_type, thread, pI, overflow, carry);
 }
 
@@ -242,11 +306,12 @@ void addc_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) 
 
 void and_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 
-  unsigned i_type = pI->get_type();
-  if (i_type != PRED_TYPE || i_type != U64_TYPE) {
-      printf("Check and_impl_coasm on type %d\n", i_type);
-      // assert(0)
-  }
+  //unsigned i_type = pI->get_type();
+
+  // if (i_type != PRED_TYPE || i_type != U64_TYPE) {
+  //    printf("Check and_impl_coasm on type %d\n", i_type);
+  //    // assert(0)
+  //}
   // the way ptxplus handles predicates: 1 = false and 0 = true
   /*
   if (i_type == PRED_TYPE)
@@ -259,7 +324,7 @@ void and_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 void andn_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-
+#if 0
   unsigned i_type = pI->get_type();
 
   switch (i_type) {
@@ -277,7 +342,7 @@ void andn_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) 
       assert(0);
       break;
   }
-
+#endif
   print_type_3op("andn", finfo, pI, fp);
 
 }
@@ -340,16 +405,17 @@ void bar_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned bar_op = pI->barrier_op();
   unsigned red_op = pI->get_atomic();
   // unsigned ctaid = thread->get_cta_uid();
+  const operand_info &dst = pI->dst();
+  assert(dst.is_literal());
+  unsigned bar_id = dst.get_literal_value();
+  finfo->get_bar_used().insert(bar_id);
 
   switch (bar_op) {
     case SYNC_OPTION: {
       if (pI->get_num_operands() == 2) {
         print_type_2op("bar_sync", finfo, pI, fp);  // bar_sync bar_id, bar_count
       } else if (pI->get_num_operands() == 1) {
-        const operand_info &op0 = pI->dst();
-        assert(op0.is_literal());
-        fprintf(fp, "bar_sync %d\n", op0.get_literal_value());  // bar_sync bar_id
-        // print_type_1op("bar_sync", finfo, pI, fp);  // bar_sync bar_id
+        fprintf(fp, "bar_sync 0x%x\n", bar_id);  // bar_sync bar_id
       } else {
         fprintf(fp, "FIXME bar_sync op on sync_option %s\n", __FUNCTION__);  // bar_sync bar_id
       }
@@ -467,7 +533,7 @@ void mma_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   if ((type == F16_TYPE) && (type2 == F16_TYPE))
         fprintf(fp, "wmma_f16_f16"); // matrix_d[i][j].f16 += matrix_c[i][j].f16;
   else if ((type == F32_TYPE) && (type2 == F16_TYPE)) {
-        fprintf(fp, "mma_f32_f16");/*
+        fprintf(fp, "wmma_f32_f16");/*
         temp2 = matrix_d[i][j].f16 + matrix_c[i][j].f16;
         temp = temp2;
         matrix_d[i][j].f32 = temp;*/
@@ -483,15 +549,22 @@ void mma_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
         matrix_d[i][j].f32 = temp;*/
   }
 
-  for (int operand_num = 1; operand_num <= 3; operand_num++) {
-      const operand_info &src_a = pI->operand_lookup(operand_num);
-      unsigned nelem = src_a.get_vect_nelem();
-      fprintf(fp, "%s", finfo->get_coasm_reg(src_a, nelem).c_str());
+  for (int operand_num = 0; operand_num < pI->get_num_operands(); operand_num++) {
+    const operand_info &src = pI->operand_lookup(operand_num);
+    if (operand_num != 0) fprintf(fp, ",");
+    if (src.is_reg()) {
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, 1).c_str());
+    } else if (src.is_memory_operand()) {
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, 2).c_str());
+    } else {
+      unsigned nelem = src.get_vect_nelem();
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, nelem).c_str());
+    }
   }
 
   unsigned a_layout = pI->get_wmma_layout(0);
   unsigned b_layout = pI->get_wmma_layout(1);
-  fprintf(fp, "a_layout:%s", (a_layout == ROW) ? "row" :"col");
+  fprintf(fp, "\t%% a_layout:%s, ", (a_layout == ROW) ? "row" :"col");
   fprintf(fp, "b_layout:%s", (b_layout == ROW) ? "row" :"col");
   // FIXME on wmma_type
 }
@@ -1491,7 +1564,7 @@ void ex2_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 void exit_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  fprintf(fp, "s_exit\n");
+  fprintf(fp, "t_exit\n");
     /*
   thread->set_done();
   thread->exitCore();
@@ -1733,7 +1806,7 @@ void ld_exec(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     // fprintf(fp, ",\tv%u", src1.reg_num());
     fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
   } else if(src1.is_memory_operand()) {
-    fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1, 2).c_str());
+    fprintf(fp, ",\t%s, 0x%x", finfo->get_coasm_reg(src1, 2).c_str(), src1.get_addr_offset());
   } else {
     fprintf(fp, "\tFIXME on operand src1 %s", __FUNCTION__);
   }
@@ -1774,13 +1847,15 @@ void mma_st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp
 
     //ptx_reg_t addr_reg = thread->get_operand_value(src1, src, type, thread, 1);
     // ptx_reg_t src2_data = thread->get_operand_value(src2, src, type, thread, 1);
-    const operand_info &src_a = pI->operand_lookup(1);
-    unsigned nelem = src_a.get_vect_nelem();
-
-    fprintf(fp, "%s", finfo->get_coasm_reg(src_a, nelem).c_str());
-
     // stride = src2_data.u32;
     memory_space_t space = pI->get_space();
+    _memory_space_t space_type = space.get_type();
+
+    // hack to find correct mem space
+    if (pI->source().find(".shared.") != std::string::npos) {
+      space_type = shared_space;
+      space = memory_space_t(space_type);
+    }
 
     memory_space *mem = NULL;
     // addr_t addr = addr_reg.u32;
@@ -1795,14 +1870,31 @@ void mma_st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp
 
     if (type == F32_TYPE) {
         // mem->write(new_addr+4*acc_float_offset(k,wmma_layout,stride),size/8,&v[k].s64,thread,pI);
-      fprintf(fp, "mma_st_f32");
+      fprintf(fp, "wmma_st_f32");
     } else if (type == F16_TYPE) {
-      if (wmma_layout == ROW) {
-        fprintf(fp, "mma_st_f32_row");
-      } else if (wmma_layout == COL) {
-        fprintf(fp, "mma_st_f32_col");
-      }
+      fprintf(fp, "wmma_st_f16");
+    } else {
+      printf("wrong wmma data type\n");
+      abort();
     }
+
+  for (int operand_num = 0; operand_num < 3; operand_num++) {
+    const operand_info &src = pI->operand_lookup(operand_num);
+    if (operand_num != 0) fprintf(fp, ",");
+    if (src.is_reg()) {
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, 1).c_str());
+    } else if (src.is_memory_operand()) {
+      uint32_t size = 2;
+      if (space_type == shared_space) {size = 1;}
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, size).c_str());
+    } else {
+      unsigned nelem = src.get_vect_nelem();
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, nelem).c_str());
+    }
+  }
+
+  print_mspace(space, fp);
+  fprintf(fp, ",layout:%s", (wmma_layout == ROW) ? "row" :"col");
 }
 
 void mma_ld_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
@@ -1823,6 +1915,14 @@ void mma_ld_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp
 
     // stride = src2_data.u32;
     memory_space_t space = pI->get_space();
+    decode_space(space, src1);
+    _memory_space_t space_type = space.get_type();
+
+    // hack to find correct mem space
+    if (pI->source().find(".shared.") != std::string::npos) {
+      space_type = shared_space;
+      space = memory_space_t(space_type);
+    }
 
     memory_space *mem = NULL;
     // addr_t addr = src1_data.u32;
@@ -1833,46 +1933,41 @@ void mma_ld_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp
     addr_t fetch_addr;
 
     if (wmma_type == LOAD_A) {
-        if (wmma_layout == ROW) {
-          fprintf(fp, "mma_ld_a_f32_row");
-        } else if (wmma_layout == COL) {
-          fprintf(fp, "mma_ld_a_f32_col");
-          // mem->read(new_addr+2*(i%4)+2*stride*4*(i/4),size/8,&data[i].s64);
-        } else {
-          printf("mma_ld:wrong_layout_type\n");
-          abort();
-        }
+        fprintf(fp, "wmma_ld_a");
+        // mem->read(new_addr+2*(i%4)+2*stride*4*(i/4),size/8,&data[i].s64);
     } else if (wmma_type == LOAD_B) {
-        if (wmma_layout == COL) {
-          fprintf(fp, "mma_ld_b_f32_col");
-        } else if (wmma_layout == ROW) {
-          fprintf(fp, "mma_ld_b_f32_row");
-        } else {
-          printf("mma_ld:wrong_layout_type\n");
-          abort();
-        }
+        fprintf(fp, "wmma_ld_b");
     } else if (wmma_type == LOAD_C) {
-        if (type == F16_TYPE) {
-          if (wmma_layout == ROW) {
-            fprintf(fp, "mma_ld_c_f16_row");
-          } else if (wmma_layout == COL) {
-            fprintf(fp, "mma_ld_c_f16_col");
-            // mem->read(new_addr+2*stride*i,size/8,&data[i].s64);
-          } else {
-            printf("mma_ld:wrong_type\n");
-            abort();
-          }
-        } else if (type == F32_TYPE) {
-            fprintf(fp, "mma_ld_c_f32");
-          // mem->read(new_addr+4*acc_float_offset(i,wmma_layout,stride),size/8,&data[i].s64);
-        } else {
-          printf("wrong type");
-          abort();
-        }
+        fprintf(fp, "wmma_ld_c");
     } else {
-      printf("wrong wmma type\n");
+      printf("wrong wmma load type\n");
       abort();
     }
+
+    if (type == F16_TYPE) fprintf(fp, "_f32");
+    else if (type == F32_TYPE) fprintf(fp, "_f16");
+    else {
+      printf("wrong wmma data type\n");
+      abort();
+    }
+
+  for (int operand_num = 0; operand_num < 3; operand_num++) {
+    const operand_info &src = pI->operand_lookup(operand_num);
+    if (operand_num != 0) fprintf(fp, ",");
+    if (src.is_reg()) {
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, 1).c_str());
+    } else if (src.is_memory_operand()) {
+      uint32_t size = 2;
+      if (space_type == shared_space) {size = 1;}
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, size).c_str());
+    } else {
+      unsigned nelem = src.get_vect_nelem();
+      fprintf(fp, "\t%s", finfo->get_coasm_reg(src, nelem).c_str());
+    }
+  }
+
+  print_mspace(space, fp);
+  fprintf(fp, ",layout:%s", (wmma_layout == ROW) ? "row" :"col");
 }
 
 void lg2_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
@@ -1928,11 +2023,15 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
   }
   */
 
+  std::vector<std::string> sufix;
   unsigned rounding_mode = pI->rounding_mode();
 
   int to_sign, from_sign;
   size_t from_width, to_width;
   unsigned dst_fmt = type_info_key::type_decode(i_type, to_width, to_sign);
+
+  uint32_t size = 1;
+  uint32_t dst_size = 1;
 
   fprintf(fp, "v_mad");
   switch (i_type) {
@@ -1942,10 +2041,10 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
         fprintf(fp, "_i32_i16");
         // d.s32 = t.s32 + c.s32 + carry_bit.pred;
       else if (pI->is_hi())
-        fprintf(fp, "hi_i16_i16");
+        fprintf(fp, "hi_i16");
         // d.s16 = (t.s32 >> 16) + c.s16 + carry_bit.pred;
       else if (pI->is_lo())
-        fprintf(fp, "lo_i16_i16");
+        fprintf(fp, "lo_i16");
         // d.s16 = t.s16 + c.s16 + carry_bit.pred;
       else
         assert(0);
@@ -1953,25 +2052,28 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       break;
     case S32_TYPE:
       // t.s64 = a.s32 * b.s32;
-      if (pI->is_wide())
+      if (pI->is_wide()) {
+        dst_size = 2;
         fprintf(fp, "_i64_i32");
         // d.s64 = t.s64 + c.s64 + carry_bit.pred;
-      else if (pI->is_hi())
-        fprintf(fp, "hi_i32_i32");
+      } else if (pI->is_hi())
+        fprintf(fp, "hi_i32");
         // d.s32 = (t.s64 >> 32) + c.s32 + carry_bit.pred;
       else if (pI->is_lo())
-        fprintf(fp, "lo_i32_i32");
+        fprintf(fp, "lo_i32");
         // d.s32 = t.s32 + c.s32 + carry_bit.pred;
       else
         assert(0);
       break;
     case S64_TYPE:
+      size = 2;
+      dst_size = 2;
       // t.s64 = a.s64 * b.s64;
       assert(!pI->is_wide());
       assert(!pI->is_hi());
       assert(use_carry == false);
       if (pI->is_lo())
-        fprintf(fp, "lo_i64_i64");
+        fprintf(fp, "lo_i64");
         // d.s64 = t.s64 + c.s64 + carry_bit.pred;
       else
         assert(0);
@@ -1982,10 +2084,10 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
         fprintf(fp, "_u32_u16");
         // d.u32 = t.u32 + c.u32 + carry_bit.pred;
       else if (pI->is_hi())
-        fprintf(fp, "hi_u16_u16");
+        fprintf(fp, "hi_u16");
         // d.u16 = (t.u32 + c.u16 + carry_bit.pred) >> 16;
       else if (pI->is_lo())
-        fprintf(fp, "lo_u16_u16");
+        fprintf(fp, "lo_u16");
         // d.u16 = t.u16 + c.u16 + carry_bit.pred;
       else
         assert(0);
@@ -1995,19 +2097,22 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       break;
     case U32_TYPE:
       // t.u64 = a.u32 * b.u32;
-      if (pI->is_wide())
+      if (pI->is_wide()) {
+        dst_size = 2;
         fprintf(fp, "_u64_u32");
         // d.u64 = t.u64 + c.u64 + carry_bit.pred;
-      else if (pI->is_hi())
-        fprintf(fp, "hi_u32_u32");
+      } else if (pI->is_hi())
+        fprintf(fp, "hi_u32");
         // d.u32 = (t.u64 + c.u32 + carry_bit.pred) >> 32;
       else if (pI->is_lo())
-        fprintf(fp, "lo_u32_u32");
+        fprintf(fp, "lo_u32");
         // d.u32 = t.u32 + c.u32 + carry_bit.pred;
       else
         assert(0);
       break;
     case U64_TYPE:
+      size = 2;
+      dst_size = 2;
       // t.u64 = a.u64 * b.u64;
       assert(!pI->is_wide());
       assert(!pI->is_hi());
@@ -2021,15 +2126,16 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
     case F16_TYPE: {
       // assert(0);
       // break;
-      fprintf(fp, "f16_f16");
+      fprintf(fp, "_f16");
       assert(use_carry == false);
       // int orig_rm = fegetround();
       switch (rounding_mode) {
         case RN_OPTION:
+          sufix.push_back("rm:rn");
           break;
         case RZ_OPTION:
+          sufix.push_back("rm:rz");
           // fesetround(FE_TOWARDZERO);
-          fprintf(fp, " rm:rz");
           break;
         default:
           assert(0);
@@ -2037,7 +2143,7 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       }
       // d.f16 = a.f16 * b.f16 + c.f16;
       if (pI->saturation_mode()) {
-        fprintf(fp, " satm:sat");
+        sufix.push_back("sat:01");
         /*if (d.f16 < 0)
           d.f16 = 0;
         else if (d.f16 > 1.0f)
@@ -2049,13 +2155,14 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
     }
     case F32_TYPE: {
       assert(use_carry == false);
-      fprintf(fp, "f32_f32");
+      fprintf(fp, "_f32");
       // int orig_rm = fegetround();
       switch (rounding_mode) {
         case RN_OPTION:
+          sufix.push_back("rm:rn");
           break;
         case RZ_OPTION:
-          fprintf(fp, " rm:rz");
+          sufix.push_back("rm:rz");
           // fesetround(FE_TOWARDZERO);
           break;
         default:
@@ -2064,7 +2171,7 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       }
       // d.f32 = a.f32 * b.f32 + c.f32;
       if (pI->saturation_mode()) {
-          fprintf(fp, " satm:sat");
+        sufix.push_back("sat:01");
         /*if (d.f32 < 0)
           d.f32 = 0;
         else if (d.f32 > 1.0f)
@@ -2076,14 +2183,17 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
     }
     case F64_TYPE:
     case FF64_TYPE: {
+      size = 2;
+      dst_size = 2;
       assert(use_carry == false);
       // int orig_rm = fegetround();
-      fprintf(fp, "f64_f64");
+      fprintf(fp, "_f64");
       switch (rounding_mode) {
         case RN_OPTION:
+          sufix.push_back("rm:rn");
           break;
         case RZ_OPTION:
-          fprintf(fp, " rm:rz");
+          sufix.push_back("rm:rz");
           // fesetround(FE_TOWARDZERO);
           break;
         default:
@@ -2092,7 +2202,7 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       }
       // d.f64 = a.f64 * b.f64 + c.f64;
       if (pI->saturation_mode()) {
-        fprintf(fp, " satm:sat");
+        sufix.push_back("sat:01");
         /*if (d.f64 < 0)
           d.f64 = 0;
         else if (d.f64 > 1.0f)
@@ -2107,7 +2217,7 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
       break;
   }
   fprintf(fp, "\t");
-  print_src(finfo, dst, fp);
+  print_src(finfo, dst, fp, dst_size);
   fprintf(fp, ",\t");
   print_src(finfo, src1, fp);
   fprintf(fp, ",\t");
@@ -2115,6 +2225,15 @@ void mad_def(function_info *finfo, const ptx_instruction *pI, FILE *fp, bool use
   fprintf(fp, ",\t");
   print_src(finfo, src3, fp);
   // thread->set_operand_value(dst, d, i_type, thread, pI, overflow, carry);
+  for (int i= 0 ; i < sufix.size(); i++) {
+    if (i == 0) {
+        fprintf(fp, " %% ");
+    } else {
+        fprintf(fp, ",");
+    }
+    fprintf(fp, " %s ", sufix[i].c_str());
+  }
+
 }
 
 void max_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
@@ -2298,7 +2417,7 @@ void mov_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE* fp)  
             fprintf(fp, ",\t%s", finfo->get_coasm_buildin(buildin_id, dim).first.c_str());
         }
     } else if (src1.is_literal()) {
-        fprintf(fp, ",\t%d", src1.get_literal_value());
+        fprintf(fp, ",\t0x%x", src1.get_literal_value());
     } else if (src1.is_reg()) {
         fprintf(fp, ",\t%s", finfo->get_coasm_reg(src1).c_str());
     } else if (src1.is_shared()) {
@@ -2325,6 +2444,8 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   const operand_info &src2 = pI->src2();
   ptx_reg_t d, t;
 
+  std::vector<std::string> sufix;
+
   unsigned i_type = pI->get_type();
   // ptx_reg_t a = thread->get_operand_value(src1, dst, i_type, thread, 1);
   // ptx_reg_t b = thread->get_operand_value(src2, dst, i_type, thread, 1);
@@ -2332,31 +2453,34 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
   unsigned rounding_mode = pI->rounding_mode();
 
   unsigned size = 1;
+  unsigned dst_size = 1;
   switch (i_type) {
     case S16_TYPE:
       // t.s32 = ((int)a.s16) * ((int)b.s16);
-      if (pI->is_wide())
+      if (pI->is_wide()) {
         fprintf(fp, "v_mul_i32_i16");
+        dst_size = 2;
         // d.s32 = t.s32;
-      else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_i16_i16");
+      } else if (pI->is_hi())
+        fprintf(fp, "v_mulhi_i16");
         // d.s16 = (t.s32 >> 16);
       else if (pI->is_lo())
-        fprintf(fp, "v_mullo_i16_i16");
+        fprintf(fp, "v_mullo_i16");
         // d.s16 = t.s16;
       else
         assert(0);
       break;
     case S32_TYPE:
       // t.s64 = ((long long)a.s32) * ((long long)b.s32);
-      if (pI->is_wide())
+      if (pI->is_wide()) {
         fprintf(fp, "v_mul_i64_i32");
+        dst_size = 2;
         // d.s64 = t.s64;
-      else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_i32_i32");
+      } else if (pI->is_hi())
+        fprintf(fp, "v_mulhi_i32");
         // d.s32 = (t.s64 >> 32);
       else if (pI->is_lo())
-        fprintf(fp, "v_mullo_i32_i32");
+        fprintf(fp, "v_mullo_i32");
         // d.s32 = t.s32;
       else
         assert(0);
@@ -2367,7 +2491,7 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       assert(!pI->is_wide());
       assert(!pI->is_hi());
       if (pI->is_lo())
-        fprintf(fp, "v_mullo_i64_i64");
+        fprintf(fp, "v_mullo_i64");
         // d.s64 = t.s64;
       else
         assert(0);
@@ -2378,24 +2502,25 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
         fprintf(fp, "v_mul_u32_u16");
         // d.u32 = t.u32;
       else if (pI->is_lo())
-        fprintf(fp, "v_mullo_u16_u16");
+        fprintf(fp, "v_mullo_u16");
         // d.u16 = t.u16;
       else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_u16_u16");
+        fprintf(fp, "v_mulhi_u16");
         // d.u16 = (t.u32 >> 16);
       else
         assert(0);
       break;
     case U32_TYPE:
       // t.u64 = ((unsigned long long)a.u32) * ((unsigned long long)b.u32);
-      if (pI->is_wide())
+      if (pI->is_wide()) {
         fprintf(fp, "v_mul_u64_u32");
+        dst_size = 2;
         // d.u64 = t.u64;
-      else if (pI->is_lo())
-        fprintf(fp, "v_mullo_u32_u32");
+      }else if (pI->is_lo())
+        fprintf(fp, "v_mullo_u32");
         // d.u32 = t.u32;
       else if (pI->is_hi())
-        fprintf(fp, "v_mulhi_u32_u32");
+        fprintf(fp, "v_mulhi_u32");
         // d.u32 = (t.u64 >> 32);
       else
         assert(0);
@@ -2406,7 +2531,7 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       assert(!pI->is_wide());
       assert(!pI->is_hi());
       if (pI->is_lo())
-        fprintf(fp, "v_mullo_u64_u64");
+        fprintf(fp, "v_mullo_u64");
         // d.u64 = t.u64;
       else
         assert(0);
@@ -2415,12 +2540,15 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // assert(0);
       // break;
       // int orig_rm = fegetround();
+      fprintf(fp, "v_mul_f16");
       switch (rounding_mode) {
         case RN_OPTION:
-          fprintf(fp, "v_mul_f16_f16_rn");
+          sufix.push_back("rm:rn");
+          // fprintf(fp, "v_mul_f16_rn");
           break;
         case RZ_OPTION:
-          fprintf(fp, "v_mul_f16_f16_rz");
+          //fprintf(fp, "v_mul_f16_rz");
+          sufix.push_back("rm:rz");
           // fesetround(FE_TOWARDZERO);
           break;
         default:
@@ -2431,7 +2559,8 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // d.f16 = a.f16 * b.f16;
 
       if (pI->saturation_mode()) {
-        fprintf(fp, "_sat");
+        //fprintf(fp, "_sat");
+        sufix.push_back("sat:01");
         /*if (d.f16 < 0)
           d.f16 = 0;
         else if (d.f16 > 1.0f)
@@ -2442,12 +2571,15 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     }
     case F32_TYPE: {
       // int orig_rm = fegetround();
+      fprintf(fp, "v_mul_f32");
       switch (rounding_mode) {
         case RN_OPTION:
-          fprintf(fp, "v_mul_f32_f32_rn");
+          sufix.push_back("rm:rn");
+          //fprintf(fp, "v_mul_f32_rn");
           break;
         case RZ_OPTION:
-          fprintf(fp, "v_mul_f32_f32_rz");
+          sufix.push_back("rm:rz");
+          //fprintf(fp, "v_mul_f32_rz");
           // fesetround(FE_TOWARDZERO);
           break;
         default:
@@ -2456,10 +2588,11 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       }
 
       // d.f32 = a.f32 * b.f32;
-      fprintf(fp, "v_mul_f32_f32");
+      //fprintf(fp, "v_mul_f32_f32");
 
       if (pI->saturation_mode()) {
-        fprintf(fp, "_sat");
+        sufix.push_back("sat:01");
+        //fprintf(fp, "_sat");
         /*if (d.f32 < 0)
           d.f32 = 0;
         else if (d.f32 > 1.0f)
@@ -2472,12 +2605,13 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
     case FF64_TYPE: {
       size = 2;
       // int orig_rm = fegetround();
+      fprintf(fp, "v_mul_f64");
       switch (rounding_mode) {
         case RN_OPTION:
-          fprintf(fp, "v_mul_f64_f64_rn");
+          sufix.push_back("rm:rn");
           break;
         case RZ_OPTION:
-          fprintf(fp, "v_mul_f64_f64_rz");
+          sufix.push_back("rm:rz");
           // fesetround(FE_TOWARDZERO);
           break;
         default:
@@ -2486,7 +2620,7 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       }
       // d.f64 = a.f64 * b.f64;
       if (pI->saturation_mode()) {
-        fprintf(fp, "_sat");
+        sufix.push_back("sat:01");
         /*if (d.f64 < 0)
           d.f64 = 0;
         else if (d.f64 > 1.0f)
@@ -2500,9 +2634,19 @@ void mul_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       break;
   }
 
-  fprintf(fp, "\t"); print_dst(finfo, dst, fp, size);
+  if (dst_size < size) dst_size = size;
+
+  fprintf(fp, "\t"); print_dst(finfo, dst, fp, dst_size);
   fprintf(fp, ",\t"); print_src(finfo, src1, fp, size);
   fprintf(fp, ",\t"); print_src(finfo, src2, fp, size);
+  for (int i= 0 ; i < sufix.size(); i++) {
+    if (i == 0) {
+        fprintf(fp, " %% ");
+    } else {
+        fprintf(fp, ",");
+    }
+    fprintf(fp, " %s ", sufix[i].c_str());
+  }
   // thread->set_operand_value(dst, d, i_type, thread, pI);
 }
 
@@ -2558,11 +2702,11 @@ void not_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 void or_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  print_type_op("norn", finfo, pI, fp);
+  print_type_op("or", finfo, pI, fp);
 }
 
 void orn_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  print_type_op("norn", finfo, pI, fp);
+  print_type_op("orn", finfo, pI, fp);
 }
 
 void pmevent_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
@@ -2601,12 +2745,12 @@ void rem_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 void ret_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  fprintf(fp, "s_exit\n");
+  fprintf(fp, "t_exit\n");
 }
 
 // Ptxplus version of ret instruction.
 void retp_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  fprintf(fp, "s_exit\n");
+  fprintf(fp, "t_exit\n");
 }
 
 void rsqrt_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
@@ -2620,7 +2764,9 @@ void sad_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 }
 
 void selp_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
-  print_type_op("sel", finfo, pI, fp);
+  print_type_3op("csel", finfo, pI, fp);
+  fprintf(fp, ",");
+  print_tcc(finfo, pI->src3(), fp);
 
   // predicate value was changed so the lowest bit being set means the zero flag
   // is set. As a result, the value of c.pred must be inverted to get proper
@@ -3265,19 +3411,12 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
 
   if (!vector_spec) {
     fprintf(fp, "\t%s", finfo->get_coasm_reg(src1).c_str());
-    if (dst.is_reg()) {
-        fprintf(fp, ",\t%s", finfo->get_coasm_reg(dst, 2).c_str());
-    } else if (dst.is_memory_operand()) {
-        fprintf(fp, ",\t%s", finfo->get_coasm_reg(dst, 2).c_str());
-    } else {
-        fprintf(fp, "\tFIXME on dst operand %s ", __func__);
-    }
     // data = thread->get_operand_value(src1, dst, type, thread, 1);
     // mem->write(addr, size / 8, &data.s64, thread, pI);
   } else {
     if (vector_spec == V2_TYPE) {
+      fprintf(fp, "x2\t");
       print_src(finfo, src1, fp, 2); fprintf(fp, ",\t");
-      print_dst(finfo, dst, fp, 1);
       // ptx_reg_t *ptx_regs = new ptx_reg_t[2];
       // thread->get_vector_operand_values(src1, ptx_regs, 2);
       // mem->write(addr, size / 8, &ptx_regs[0].s64, thread, pI);
@@ -3285,8 +3424,8 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // delete[] ptx_regs;
     }
     if (vector_spec == V3_TYPE) {
+      fprintf(fp, "x3\t");
       print_src(finfo, src1, fp, 3); fprintf(fp, ",\t");
-      print_dst(finfo, dst, fp, 1);
       // ptx_reg_t *ptx_regs = new ptx_reg_t[3];
       // thread->get_vector_operand_values(src1, ptx_regs, 3);
       // mem->write(addr, size / 8, &ptx_regs[0].s64, thread, pI);
@@ -3295,8 +3434,8 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // delete[] ptx_regs;
     }
     if (vector_spec == V4_TYPE) {
+      fprintf(fp, "x4\t");
       print_src(finfo, src1, fp, 4); fprintf(fp, ",\t");
-      print_dst(finfo, dst, fp, 1);
       // ptx_reg_t *ptx_regs = new ptx_reg_t[4];
       // thread->get_vector_operand_values(src1, ptx_regs, 4);
       // mem->write(addr, size / 8, &ptx_regs[0].s64, thread, pI);
@@ -3305,6 +3444,20 @@ void st_impl_coasm(function_info *finfo, const ptx_instruction *pI, FILE *fp) {
       // mem->write(addr + 3 * size / 8, size / 8, &ptx_regs[3].s64, thread, pI);
       // delete[] ptx_regs;
     }
+  }
+
+  decode_space(space, dst);
+  _memory_space_t space_type = space.get_type();
+
+  uint32_t dst_size = 2;
+  if (space_type == shared_space) {
+    dst_size = 1;
+  }
+
+  if(dst.is_memory_operand()) {
+    fprintf(fp, ",\t%s, 0x%x", finfo->get_coasm_reg(dst, dst_size).c_str(), dst.get_addr_offset());
+  } else {
+    fprintf(fp, "FIXME on st dst operand: %s\n", __FUNCTION__);
   }
 
   print_mspace(space, fp);

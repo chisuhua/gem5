@@ -664,10 +664,67 @@ class operand_info {
   void make_memory_operand() { m_type = memory_t; }
   void set_return() { m_is_return_var = true; }
   void set_immediate_addr() { m_immediate_address = true; }
-  const std::string &name() const {
-    assert(m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
-           m_type == memory_t || m_type == label_t);
-    return m_value.m_symbolic->name();
+  const std::string name() const {
+    if ((m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
+           m_type == memory_t || m_type == label_t)) {
+        return m_value.m_symbolic->name();
+    };
+    if ((m_type == vector_t)) {
+        vector_name().first;
+    }
+  }
+
+  const std::pair<std::string,std::string> vector_name() const {
+    assert((m_type == vector_t));
+    uint32_t nelem = get_vect_nelem();
+    std::map<std::string, std::pair<uint32_t, uint32_t>> reg_list;
+    int32_t regidx_stride = -999;
+    for (uint32_t i = 0; i < nelem; i++) {
+        auto name = m_value.m_vector_symbolic[i]->name();
+        auto pos = name.find_first_of("0123456789");
+        auto regbase = name.substr(0, pos);
+        int32_t regidx;
+        std::istringstream regidx_s(name.substr(pos));
+        if (!(regidx_s >> regidx)) regidx = 0;
+
+        auto itr = reg_list.find(regbase);
+        if (itr == reg_list.end()) {
+            reg_list.insert(std::make_pair(regbase, std::make_pair(regidx, 1)));
+        } else {
+            if (regidx_stride == -999) {
+                regidx_stride = regidx - reg_list[regbase].first;
+            }
+            if ((reg_list[regbase].first + reg_list[regbase].second * regidx_stride) != regidx) {
+                printf("vector reg %s expect continue from base %d to %d", regbase,
+                            reg_list[regbase].first, regidx);
+                assert(false);
+            };
+            reg_list[regbase].second += 1;
+        }
+    }
+    std::ostringstream ss;
+    std::ostringstream regbase_name;
+    uint32_t reg_num = 1;
+    for (auto &itr : reg_list) {
+      if (reg_num > 1) {
+        ss << ",";
+      }
+      if (regidx_stride < 0) {
+        regbase_name << itr.first << itr.second.first + itr.second.second * regidx_stride;
+      } else {
+        regbase_name << itr.first << itr.second.first;
+      }
+
+      if (regidx_stride == 0) {
+        ss << regbase_name.str();
+      } else {
+        // ss << itr.first;
+        // FIXME the reg name is used in m_coasm_regs, it require scalar reg type
+        ss << itr.first << "[" << itr.second.first << ":" << (itr.second.first + itr.second.second * regidx_stride) << "]";
+      }
+      reg_num += 1;
+    }
+    return std::make_pair(regbase_name.str(), ss.str());
   }
 
   unsigned get_vect_nelem() const {
@@ -972,6 +1029,7 @@ class ptx_instruction : public warp_inst_t {
   bool get_pred_neg() const { return m_neg_pred; }
   int get_pred_mod() const { return m_pred_mod; }
   const char *get_source() const { return m_source.c_str(); }
+  const std::string& source() const { return m_source; }
 
   const std::list<int> get_scalar_type() const { return m_scalar_type; }
   const std::list<int> get_options() const { return m_options; }
@@ -1330,6 +1388,7 @@ class function_info {
   void remove_args() { m_args.clear(); }
   unsigned num_args() const { return m_args.size(); }
   unsigned get_args_aligned_size();
+  std::set<unsigned>& get_bar_used() { return m_bar_used;}
 
   const symbol *get_arg(unsigned n) const {
     assert(n < m_args.size());
@@ -1401,6 +1460,7 @@ class function_info {
   unsigned maxnt_id;
   unsigned m_uid;
   unsigned m_local_mem_framesize;
+  std::set<unsigned> m_bar_used;
   bool m_entry_point;
   bool m_extern;
   bool m_assembled;
@@ -1505,20 +1565,38 @@ class function_info {
   }
 
   std::string get_coasm_reg(const operand_info &operand, int reg_size = 1) {
-      std::string operand_name = operand.name();
+      std::string operand_name, operand_vector_name;
+      if (operand.is_vector()) {
+        auto name_pair = operand.vector_name();
+        operand_name = name_pair.first;
+        operand_vector_name = name_pair.second;
+        if (operand_name == operand_vector_name) { reg_size = 1; }
+        // operand_name = name_pair.second;
+        printf("get vector operand name %s for reg %s, reg_size %d\n",
+                operand_name.c_str(), operand_vector_name.c_str(), reg_size);
+      } else {
+        operand_name = operand.name();
+      }
       if (m_coasm_regs.find(operand_name) == m_coasm_regs.end()) {
-          m_coasm_regs.insert(std::make_pair(operand_name, m_coasm_reg_max));
-          m_coasm_reg_max += reg_size;
+        m_coasm_regs.insert(std::make_pair(operand_name, m_coasm_reg_max));
+        m_coasm_reg_max += reg_size;
       }
       std::stringstream ss;
       unsigned reg_num = m_coasm_regs[operand_name];
       unsigned size;
-      if (reg_size != 1) size = reg_size;
-      else size = (get_operand_nbits(operand) + 31) / 32;
-      if (size <= 1)
+
+      if (operand.is_vector() and reg_size == 1) {
         ss << "v" << reg_num;
-      else
-        ss << "v[" << reg_num << ":" << (reg_num + size -1) << "]";
+        return ss.str();
+      }
+
+      // memory _oprand need to pass correct size
+      if (reg_size != 1 || operand.is_memory_operand()) {
+        size = reg_size;
+      } else size = (get_operand_nbits(operand) + 31) / 32;
+
+      if (size <= 1) ss << "v" << reg_num;
+      else ss << "v[" << reg_num << ":" << (reg_num + size -1) << "]";
       return ss.str();
   };
 
@@ -1650,6 +1728,8 @@ class function_info {
           abort();
           break;
         case WARPSZ_REG:
+          // TODO hardcode
+          return std::make_pair("warp_size", 32);
           // return m_core->get_warp_size();
         default:
           assert(0);

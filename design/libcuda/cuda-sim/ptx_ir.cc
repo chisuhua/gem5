@@ -806,11 +806,12 @@ void function_info::gen_coasm(FILE *fp) {
     // offset += param_addr;
   }
   fprintf(fp, "    .name: %s\n", m_name.c_str());
-  fprintf(fp, "    .local_framesize: %d\n", local_mem_framesize());
+  fprintf(fp, "    .private_framesize: %d\n", local_mem_framesize());
   const struct gpgpu_ptx_sim_info *kernel_info = this->get_kernel_info();
-  fprintf(fp, "    .smem: %d\n", kernel_info->smem);
-  fprintf(fp, "    .lmem: %d\n", kernel_info->lmem);
-  fprintf(fp, "    .cmem: %d\n", kernel_info->cmem);
+  fprintf(fp, "    .shared_memsize: %d\n", kernel_info->smem);
+  fprintf(fp, "    .private_memsize: %d\n", kernel_info->lmem);
+  fprintf(fp, "    .cmem_size: %d\n", kernel_info->cmem);
+  fprintf(fp, "    .bar_used: %d\n", m_bar_used.size());
   m_symtab->dump_shared(fp);
   fprintf(fp, "    .kernel_ctrl: %d\n", kernel_ctrl);
   fprintf(fp, "    .kernel_mode: %d\n", 0);

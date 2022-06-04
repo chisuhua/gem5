@@ -904,27 +904,38 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
 
   if (ctx->func_sim->g_ptx_sim_mode == 2) {
     FILE *fp_coasm;
-    if (fp_coasm = fopen(kname.c_str(), "r")) {
+    const char *file = getenv("PREDEFINE_COASM");
+    if (file != NULL) {
+        fp_coasm = fopen(file, "r");
+        if (not fp_coasm) {
+            printf("WARNING: Failed to load predefine coasm file %s\n", file);
+            exit(0);
+        }
     } else {
-      fp_coasm = fopen(kname.c_str(), "w");
-      kernel_func_info->gen_coasm(fp_coasm);
+        file = kname.c_str();
+        fp_coasm = fopen(file, "r");
+        if (not fp_coasm) {
+            fp_coasm = fopen(file, "w");
+            kernel_func_info->gen_coasm(fp_coasm);
+        }
     }
     fclose(fp_coasm);
+    std::string coasm_kname = file;
     char command[1000];
     snprintf(command, 1000,
-            "python $DESIGN_ROOT/opu/coasm/assembler.py %s", kname.c_str());
+            "python $DESIGN_ROOT/opu/coasm/assembler.py %s", file);
     printf("LIBCUDA INFO: running coasm assembler: %s\n", command);
     if (system(command) != 0) {
       printf("WARNING: Failed to execute assembler to get codeobject\n");
       exit(0);
     }
-    auto exec = drv::load_program(kname + ".o");
+    auto exec = drv::load_program(coasm_kname + ".o");
     DispatchInfo **ptr_to_disp_info = grid->ptr_to_disp_info();
 
     void* param_addr;
     // cudaMallocInternal(&param_addr, size);
     drv::memory_allocate(1000, &param_addr);
-    drv::set_kernel_disp(kname, exec, ptr_to_disp_info,
+    drv::set_kernel_disp(coasm_kname, exec, ptr_to_disp_info,
             gridDim,
             blockDim,
             (uint64_t)param_addr);
