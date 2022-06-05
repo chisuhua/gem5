@@ -302,7 +302,6 @@ void symbol_table::set_label_address(const symbol *label, unsigned addr) {
   symbol *s = i->second;
   s->set_label_address(addr);
 }
-
 void symbol_table::update_gpgpu_ctx(gpgpu_context *ctx) {
   gpgpu_ctx = ctx;
   std::map<std::string, symbol *>::iterator i;
@@ -325,6 +324,24 @@ void symbol_table::dump() {
     printf("\n");
   }
   printf("\n");
+}
+
+void symbol_table::dump_shared(FILE *fp) {
+  std::map<std::string, symbol *>::iterator i;
+  for (i = m_symbols.begin(); i != m_symbols.end(); i++) {
+    if (i->second->is_shared()) {
+        fprintf(fp, "    .shared:\n");
+        break;
+    }
+  }
+  for (i = m_symbols.begin(); i != m_symbols.end(); i++) {
+    if (not i->second->is_shared()) {
+        continue;
+    }
+    fprintf(fp, "      - .name: %s\n", i->first.c_str());
+    fprintf(fp, "        .offset: %d\n", i->second->get_address());
+    fprintf(fp, "        .size: %d\n", i->second->get_size_in_bytes());
+  }
 }
 
 unsigned operand_info::get_uid() {
@@ -645,6 +662,8 @@ void function_info::do_pdom() {
          m_name.c_str());
   fflush(stdout);
   m_assembled = true;
+}
+uint32_t function_info::get_kernel_ctrl() {
 }
 void intersect(std::set<int> &A, const std::set<int> &B) {
   // return intersection of A and B in A
@@ -1471,6 +1490,8 @@ void ptx_instruction::print_insn(FILE *fp) const {
   fprintf(fp, "%s", to_string().c_str());
 }
 
+void ptx_instruction::print_coasm(function_info *finfo, FILE *fp) const {
+}
 std::string ptx_instruction::to_string() const {
   char buf[STR_SIZE];
   unsigned used_bytes = 0;

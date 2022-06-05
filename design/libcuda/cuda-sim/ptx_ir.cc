@@ -305,6 +305,14 @@ void symbol_table::set_label_address(const symbol *label, unsigned addr) {
   symbol *s = i->second;
   s->set_label_address(addr);
 }
+void symbol_table::update_gpgpu_ctx(gpgpu_context *ctx) {
+  gpgpu_ctx = ctx;
+  std::map<std::string, symbol *>::iterator i;
+  for (i = m_symbols.begin(); i != m_symbols.end(); i++) {
+    if (i->second)
+      i->second->print_info(stdout);
+  }
+}
 
 void symbol_table::dump() {
   printf("\n\n");

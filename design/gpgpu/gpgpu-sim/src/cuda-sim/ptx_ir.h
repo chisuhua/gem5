@@ -347,6 +347,7 @@ class symbol_table {
   iterator const_iterator_end() { return m_consts.end(); }
 
   void dump();
+  void dump_shared(FILE *fp);
 
   // Jin: handle instruction group for cdp
   symbol_table *start_inst_group();
@@ -662,9 +663,66 @@ class operand_info {
   void set_return() { m_is_return_var = true; }
   void set_immediate_addr() { m_immediate_address = true; }
   const std::string &name() const {
-    assert(m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
-           m_type == memory_t || m_type == label_t);
-    return m_value.m_symbolic->name();
+    if ((m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
+           m_type == memory_t || m_type == label_t)) {
+        return m_value.m_symbolic->name();
+    };
+    if ((m_type == vector_t)) {
+        vector_name().first;
+    }
+  }
+
+  const std::pair<std::string,std::string> vector_name() const {
+    assert((m_type == vector_t));
+    uint32_t nelem = get_vect_nelem();
+    std::map<std::string, std::pair<uint32_t, uint32_t>> reg_list;
+    int32_t regidx_stride = -999;
+    for (uint32_t i = 0; i < nelem; i++) {
+        auto name = m_value.m_vector_symbolic[i]->name();
+        auto pos = name.find_first_of("0123456789");
+        auto regbase = name.substr(0, pos);
+        int32_t regidx;
+        std::istringstream regidx_s(name.substr(pos));
+        if (!(regidx_s >> regidx)) regidx = 0;
+
+        auto itr = reg_list.find(regbase);
+        if (itr == reg_list.end()) {
+            reg_list.insert(std::make_pair(regbase, std::make_pair(regidx, 1)));
+        } else {
+            if (regidx_stride == -999) {
+                regidx_stride = regidx - reg_list[regbase].first;
+            }
+            if ((reg_list[regbase].first + reg_list[regbase].second * regidx_stride) != regidx) {
+                printf("vector reg %s expect continue from base %d to %d", regbase,
+                            reg_list[regbase].first, regidx);
+                assert(false);
+            };
+            reg_list[regbase].second += 1;
+        }
+    }
+    std::ostringstream ss;
+    std::ostringstream regbase_name;
+    uint32_t reg_num = 1;
+    for (auto &itr : reg_list) {
+      if (reg_num > 1) {
+        ss << ",";
+      }
+      if (regidx_stride < 0) {
+        regbase_name << itr.first << itr.second.first + itr.second.second * regidx_stride;
+      } else {
+        regbase_name << itr.first << itr.second.first;
+      }
+
+      if (regidx_stride == 0) {
+        ss << regbase_name.str();
+      } else {
+        // ss << itr.first;
+        // FIXME the reg name is used in m_coasm_regs, it require scalar reg type
+        ss << itr.first << "[" << itr.second.first << ":" << (itr.second.first + itr.second.second * regidx_stride) << "]";
+      }
+      reg_num += 1;
+    }
+    return std::make_pair(regbase_name.str(), ss.str());
   }
 
   unsigned get_vect_nelem() const {
@@ -949,7 +1007,7 @@ class ptx_instruction : public warp_inst_t {
 
   void print_insn() const;
   virtual void print_insn(FILE *fp) const;
-  // virtual void print_coasm(function_info* finfo, FILE *fp) const ;
+  virtual void print_coasm(function_info* finfo, FILE *fp) const ;
   std::string to_string() const;
   unsigned inst_size() const { return m_inst_size; }
   unsigned uid() const { return m_uid; }
@@ -969,6 +1027,7 @@ class ptx_instruction : public warp_inst_t {
   bool get_pred_neg() const { return m_neg_pred; }
   int get_pred_mod() const { return m_pred_mod; }
   const char *get_source() const { return m_source.c_str(); }
+  const std::string& source() const { return m_source; }
 
   const std::list<int> get_scalar_type() const { return m_scalar_type; }
   const std::list<int> get_options() const { return m_options; }
@@ -1299,6 +1358,10 @@ class function_info {
   void print_ipostdominators();
   void do_pdom();  // function to call pdom analysis
   void gen_coasm(FILE* fp);  // function to convert ptx to coasm
+  unsigned get_kernel_ctrl();
+  std::map<int, int> &get_coasm_special_sregs() {
+      return m_coasm_special_sregs;
+  };
 
   unsigned get_num_reconvergence_pairs();
 
@@ -1323,6 +1386,7 @@ class function_info {
   void remove_args() { m_args.clear(); }
   unsigned num_args() const { return m_args.size(); }
   unsigned get_args_aligned_size();
+  std::set<unsigned>& get_bar_used() { return m_bar_used;}
 
   const symbol *get_arg(unsigned n) const {
     assert(n < m_args.size());
@@ -1337,7 +1401,7 @@ class function_info {
   }
   addr_t get_start_PC() const { return m_start_PC; }
 
-  void finalize(memory_space *param_mem);
+  void finalize(memory_space *param_mem, char* buffer = nullptr);
   void param_to_shared(memory_space *shared_mem, symbol_table *symtab);
   void list_param(FILE *fout) const;
   void ptx_jit_config(std::map<unsigned long long, size_t> mallocPtr_Size,
@@ -1394,6 +1458,7 @@ class function_info {
   unsigned maxnt_id;
   unsigned m_uid;
   unsigned m_local_mem_framesize;
+  std::set<unsigned> m_bar_used;
   bool m_entry_point;
   bool m_extern;
   bool m_assembled;
@@ -1431,6 +1496,7 @@ class function_info {
   unsigned m_coasm_tcc_max {0};
 
   // to be match with src/model/gpu/Compute.cpp
+#if 0
   enum coasm_sregs {
       GRID_DIM_X = 0,
       GRID_DIM_Y,
@@ -1441,6 +1507,9 @@ class function_info {
       BLOCK_IDX_X,
       BLOCK_IDX_Y,
       BLOCK_IDX_Z,
+      CTRL_BIT_THREAD_IDX_X = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_THREAD_IDX_Y = KERNEL_CTRL_BIT_GRID_DIM_Y,
+      CTRL_BIT_THREAD_IDX_Z = KERNEL_CTRL_BIT_GRID_DIM_Y,
       SPECIAL_SREG_MAX
   };
 
@@ -1450,7 +1519,6 @@ class function_info {
       THREAD_IDX_Z,
       SPECIAL_VREG_MAX
   };
-
   std::vector<std::pair<std::string, int>> m_coasm_special_sregs {
       {"grid_dim_x", 0},
       {"grid_dim_y", 0},
@@ -1462,13 +1530,16 @@ class function_info {
       {"block_idx_y", 0},
       {"block_idx_z", 0}
   };
-
+#endif
+  // it is const regs instead
+  std::map<int, int> m_coasm_special_sregs;// {
+#if 0
   std::vector<std::pair<std::string, int>> m_coasm_special_vregs {
       {"thread_idx_x", 0},
       {"thread_idx_y", 0},
       {"thread_idx_z", 0}
   };
-
+#endif
  public:
   ptx_instruction* get_target_pI(addr_t addr) {
       return m_instr_mem[addr];

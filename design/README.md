@@ -1,15 +1,49 @@
+Thare many mode to run application, the build step is dependent the mode the app run:
 
-1. build libcuda
-> cd design/gpgpu/gpgpu-sim
+- run with umd_mode = 0, which can run ptx sim or opu isasim
+. build libcuda
+> cd design
 > source setup_env.sh
 > cd libgem5cuda; make
 > cd libcuda; make
 
-2. update design/gpgpu/gpgpu-sim/gem5.env
+- run with umd_mode = 1, which app run with gem5
+. update design/gpgpu/gpgpu-sim/gem5.env
+. build gem5gpu
+> cd design
+> source setup_env.sh
+> build.sh
 
-3. build gem5gpu
-> source design/setup_env.sh
-> design/build.sh
+- run app outside gem5
+. build libgem5
+> cd design
+> ./build_libgem5.sh
+and copy $GEM5_ROOT/build/X86_VI_hammer/libgem5_$VARIANT.so to $GEM5_ROOT/cosim
+
+- run gem5 mixed with systemc
+. build sc cosim
+> cd design/cosim
+> scons
+
+
+## run howto
+
+in run directory bchange gpgpusim.config for different umd mode
+
+1. isasim or libcuda ptx simulation mode
+-gpgpu_umd_mode 0
+
+2. run app in gem5
+-gpgpu_umd_mode 1
+
+at begining, run design/opu/oputest/cuda_samples/smoke test to verify it works
+currently there are tests in smoke:
+- vectorCopy
+- vectorAdd
+- vectorSmem
+- matrixMul
+- simpleTensorCoreGemm
+- shmemTensorCoreGemm
 
 
 ## debug howto

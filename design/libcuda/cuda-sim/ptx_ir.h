@@ -273,6 +273,9 @@ class symbol {
   }
   void print_info(FILE *fp) const;
   unsigned uid() const { return m_uid; }
+  void update_gpgpu_ctx(gpgpu_context *ctx) {
+      gpgpu_ctx = ctx;
+  }
 
  private:
   gpgpu_context *gpgpu_ctx;
@@ -358,6 +361,7 @@ class symbol_table {
 
   // backward pointer
   class gpgpu_context *gpgpu_ctx;
+  void update_gpgpu_ctx(gpgpu_context *ctx);
 
  private:
   unsigned m_reg_allocator;
@@ -664,7 +668,7 @@ class operand_info {
   void make_memory_operand() { m_type = memory_t; }
   void set_return() { m_is_return_var = true; }
   void set_immediate_addr() { m_immediate_address = true; }
-  const std::string name() const {
+  const std::string &name() const {
     if ((m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
            m_type == memory_t || m_type == label_t)) {
         return m_value.m_symbolic->name();

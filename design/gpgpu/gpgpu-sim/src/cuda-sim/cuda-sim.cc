@@ -1414,7 +1414,7 @@ unsigned function_info::get_args_aligned_size() {
   return m_args_aligned_size;
 }
 
-void function_info::finalize(memory_space *param_mem) {
+void function_info::finalize(memory_space *param_mem, char* buffer) {
   unsigned param_address = 0;
   for (std::map<unsigned, param_info>::iterator i =
            m_ptx_kernel_param_info.begin();
