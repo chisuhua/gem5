@@ -1,26 +1,22 @@
 Thare many mode to run application, the build step is dependent the mode the app run:
 
-- run with umd_mode = 0, which can run ptx sim or opu isasim
 . build libcuda
 > cd design
 > source setup_env.sh
 > cd libgem5cuda; make
 > cd libcuda; make
 
-- run with umd_mode = 1, which app run with gem5
-. update design/gpgpu/gpgpu-sim/gem5.env
-. build gem5gpu
+. build gem5
 > cd design
 > source setup_env.sh
 > build.sh
 
-- run app outside gem5
 . build libgem5
 > cd design
 > ./build_libgem5.sh
 and copy $GEM5_ROOT/build/X86_VI_hammer/libgem5_$VARIANT.so to $GEM5_ROOT/cosim
 
-- run gem5 mixed with systemc
+if run gem5 mixed with systemc, we need to be cosim
 . build sc cosim
 > cd design/cosim
 > scons
@@ -28,13 +24,46 @@ and copy $GEM5_ROOT/build/X86_VI_hammer/libgem5_$VARIANT.so to $GEM5_ROOT/cosim
 
 ## run howto
 
-in run directory bchange gpgpusim.config for different umd mode
+it require gpgpusim.config in run directory
+
+### setting between ptx and opu isa
+
+- ptx
+`
+-gpgpu_ptx_sim_mode 1
+`
+
+- opu isa
+`
+-gpgpu_ptx_sim_mode 2
+`
+
+### setting for different umd mode
 
 1. isasim or libcuda ptx simulation mode
+`
 -gpgpu_umd_mode 0
+`
+  - only libcuda code is used
+  - libcuda will spawn thread to process cuda operation
 
-2. run app in gem5
+2. run app with gem5
+
+any gem5xxx api called in cuda_runtime_api will call m5_gpu , which invlide gem5
+
+`
 -gpgpu_umd_mode 1
+`
+  - using umd platform libcuda, which call libcuda code
+    - gpgpu-sim/src/gpgpusim_entrypoint.cc start_sim_thread will spawn processing thread
+  - NOTE: looks broken
+
+`
+-gpgpu_umd_mode 2
+`
+  - using umd platform libgem5cuda, which invoke cuda_gpu cycles to process cuda command
+
+if run inside gem5, nee to update design/gpgpu/gpgpu-sim/gem5.env
 
 at begining, run design/opu/oputest/cuda_samples/smoke test to verify it works
 currently there are tests in smoke:
@@ -48,7 +77,7 @@ currently there are tests in smoke:
 
 ## debug howto
 
-the app run in gem5 is debugged by remote gdb
+- the app run in gem5 is debugged by remote gdb
 
 1. use -w option with gem5.debug
 2. run command in remote gdb
@@ -61,6 +90,16 @@ the app run in gem5 is debugged by remote gdb
 > target remote localhost:7000
 
 note: you can use design/.gdbini, which run gdb at design directory
+
+- debug ptx
+modify gpgpusim.config for below:
+`
+-trace_enabled 1
+-gpgpu_ptx_inst_debug_to_file 1
+-gpgpu_ptx_inst_debug_thread_uid 1
+`
+
+
 
 ## m5 cpu/gpu api syscall
 
