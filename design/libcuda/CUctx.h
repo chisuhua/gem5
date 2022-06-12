@@ -44,9 +44,9 @@ struct device_id {
 
 
 struct CUctx {
-  CUctx(device_id *gpu, int umd_mode)
+  CUctx(device_id *gpu, std::string& umd)
       : m_gpu(gpu)
-      , umd_mode(umd_mode)
+      , m_umd(umd)
   {}
 #if 0
   void add_codeobject(KernelSymbol *sym, unsigned fat_cubin_handle) {
@@ -75,6 +75,10 @@ struct CUctx {
     m_agent = agent;
   }
 
+  std::string& get_umd_name() {
+      return m_umd;
+  }
+
 #if 0
   std::map<unsigned, KernelSymbol *> m_codeobject; // fab binary handle -> global symbol table
   std::map<const void*, KernelInfo *> m_executable_lookup; // unique id (CUDA app function address) -> kernel exec
@@ -83,5 +87,6 @@ struct CUctx {
 
   device_id *m_gpu;  // selected gpu
 
-  int umd_mode;     // 0: not use umd 1: umd_libcuda 2: umd_libgem5cuda 3: umd_se
+  // int umd_mode;     // 0: not use umd 1: umd_libcuda 2: umd_libgem5cuda 3: umd_se
+  std::string m_umd;
 };

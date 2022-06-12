@@ -280,7 +280,7 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = null
       the_device = the_gpgpusim->the_cude_device;
       start_sim_thread(1);
       if (pCUctx_st != nullptr) {
-          *pCUctx_st = new CUctx_st(the_device, this->umd_mode); // umd_mode is 0, load_program will use platlibcuda
+          *pCUctx_st = new CUctx_st(the_device); // umd_mode is 0, load_program will use platlibcuda
           the_context = *pCUctx_st;
           drv::setDefaultCtx(*pCUctx_st);
       }
@@ -291,8 +291,17 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = null
       the_gpgpusim->the_cude_device = new _cuda_device_id(the_gpu);
       the_device = the_gpgpusim->the_cude_device;
 
+      std::string umd_platname;
+      if (this->umd_mode == 1) {
+        umd_platname = "libgem5cuda";
+      } else if (this->umd_mode == 2) {
+        umd_platname = "gem5umd";
+      } else if (this->umd_mode == 2) {
+        umd_platname = "gem5kmd";
+      }
+
       if (pCUctx_st != nullptr) {
-        *pCUctx_st = new CUctx_st(the_device, this->umd_mode);
+        *pCUctx_st = new CUctx_st(the_device, umd_platname);
         the_context = *pCUctx_st;
         drv::setDefaultCtx(*pCUctx_st);
       }
@@ -984,7 +993,8 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
   if (ctx->umd_mode) {
     drv::launchKernel(hostFun);
   } else {
-    stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
+    // stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
+    stream_operation op(grid, ctx->umd_mode == 0, stream);
     ctx->the_gpgpusim->g_stream_manager->push(op);
   }
   ctx->api->g_cuda_launch_stack.pop_back();
@@ -1869,16 +1879,14 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernelInternal(
   cudaConfigureCallInternal(gridDim, blockDim, sharedMem, stream, ctx);
 #endif
   // if (ctx->func_sim->g_ptx_sim_mode) {
-  for(unsigned i = 0; i < entry->num_args(); i++){
+  for(unsigned i = 0; i < entry->num_args(); i++) {
     std::pair<size_t, unsigned> p = entry->get_param_config(i);
-    if (ctx->umd_mode == 0) {
-        cudaSetupArgumentInternal(args[i], p.first, p.second);
+    if (ctx->umd_mode && ctx->func_sim->g_ptx_sim_mode == 1) {
+      gem5cudaSetupArgument(args[i], p.first, p.second);
+        // drv::setupKernelArgument(args[i], p.first, p.second);
     } else {
-        if (ctx->func_sim->g_ptx_sim_mode == 1) {
-            drv::setupKernelArgument(args[i], p.first, p.second);
-        }
+      cudaSetupArgumentInternal(args[i], p.first, p.second);
     }
-
   }
 #if 0
   if (ctx->umd_mode) {
@@ -1892,10 +1900,11 @@ __host__ cudaError_t CUDARTAPI cudaLaunchKernelInternal(
       }
   }
 #endif
-  if (ctx->umd_mode == 0) {
-    return cudaLaunchInternal(hostFun);
+  if (ctx->umd_mode && ctx->func_sim->g_ptx_sim_mode == 1) {
+    return gem5cudaLaunch(hostFun);
   } else {
-    drv::launchKernel(hostFun);
+    return cudaLaunchInternal(hostFun);
+    // drv::launchKernel(hostFun);
     /*
     gem5cudaConfigureCall(gridDim, blockDim, args, sharedMem, stream);
     gem5cudaSetupArgument(entry, args);

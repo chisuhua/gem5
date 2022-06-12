@@ -131,7 +131,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
         break;
 
       //functional simulation
-      if (ctx->func_sim->g_ptx_sim_mode) {
+      // if (ctx->func_sim->g_ptx_sim_mode) {
         kernel_info_t *kernel =
             ctx->the_gpgpusim->g_the_gpu->get_functional_kernel();
         // assert(kernel);
@@ -139,12 +139,13 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
         if (ctx->func_sim->g_ptx_sim_mode == 1) {
             ctx->the_gpgpusim->gpgpu_ctx->func_sim->gpgpu_cuda_ptx_sim_main_func(
                 *kernel);
-        } else if (ctx->func_sim->g_ptx_sim_mode == 2) {
+        } else {
             DispatchInfo *dispinfo = kernel->disp_info();
             ctx->the_gpgpusim->gpgpu_ctx->get_isasim()->launch(dispinfo, kernel->get_uid());
         }
         ctx->the_gpgpusim->g_the_gpu->finish_functional_sim(kernel);
       //} else if (ctx->opufunc_sim->g_sim_mode) {
+#if 0
       } else {
         //performance simulation
         if ( gem5gpu_active() ) {
@@ -161,6 +162,7 @@ void *gpgpu_sim_thread_concurrent(void *ctx_ptr) {
           }
         }
       }
+#endif
 
       active = ctx->the_gpgpusim->g_the_gpu->active() ||
                !(ctx->the_gpgpusim->g_stream_manager->empty_protected());

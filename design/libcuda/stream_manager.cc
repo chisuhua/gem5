@@ -294,11 +294,13 @@ bool stream_manager::operation(bool *sim) {
 
 bool stream_manager::check_finished_kernel() {
   unsigned grid_uid;
-  if (m_ptx_sim_mode) {
+  //if (m_ptx_sim_mode) {
     grid_uid = m_gpu->finished_kernel();
+  /*
   } else {
     grid_uid = gem5gpu_finish_kernel();
   }
+  */
   bool check = register_finished_kernel(grid_uid);
   return check;
 }
@@ -341,11 +343,11 @@ void stream_manager::stop_all_running_kernels(){
   pthread_mutex_lock(&m_lock);
 
   // Signal m_gpu to stop all running kernels
-  if (m_ptx_sim_mode) {
+  // if (m_ptx_sim_mode) {
     m_gpu->stop_all_running_kernels();
-  } else {
-    gem5gpu_stop_all_running_kernels();
-  }
+  // } else {
+  //   gem5gpu_stop_all_running_kernels();
+  // }
 
   // Clean up all streams waiting on running kernels
   int count = 0;
@@ -355,11 +357,11 @@ void stream_manager::stop_all_running_kernels(){
 
   // If any kernels completed, print out the current stats
   if(count > 0) {
-    if (m_ptx_sim_mode) {
+    // if (m_ptx_sim_mode) {
       m_gpu->print_stats();
-    } else {
-      gem5gpu_print_stats();
-    }
+    // } else {
+    //   gem5gpu_print_stats();
+    // }
   }
 
   pthread_mutex_unlock(&m_lock);
@@ -524,7 +526,7 @@ void stream_manager::push(stream_operation op ) {
 
   // std::lock_guard<std::mutex> lock(m_lock);
   pthread_mutex_lock(&m_lock);
-  if ( m_ptx_sim_mode && !m_gpu->cycle_insn_cta_max_hit()) {
+  if ( /*m_ptx_sim_mode &&*/ !m_gpu->cycle_insn_cta_max_hit()) {
     // Accept the stream operation if the maximum cycle/instruction/cta counts
     // are not triggered
     if (stream && !m_cuda_launch_blocking) {
@@ -533,13 +535,13 @@ void stream_manager::push(stream_operation op ) {
       op.set_stream(&m_stream_zero);
       m_stream_zero.push(op);
     }
-  } else if(!m_ptx_sim_mode && !gem5gpu_cycle_insn_cta_max_hit()) {
+  /*} else if(!m_ptx_sim_mode && !gem5gpu_cycle_insn_cta_max_hit()) {
     if (stream && !m_cuda_launch_blocking) {
       stream->push(op);
     } else {
       op.set_stream(&m_stream_zero);
       m_stream_zero.push(op);
-    }
+    }*/
   } else {
     // Otherwise, ignore operation and continue
     printf(

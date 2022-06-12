@@ -42,8 +42,8 @@ struct _cuda_device_id : public device_id {
 };
 
 struct CUctx_st : public CUctx {
-  CUctx_st(_cuda_device_id *gpu, int umd_mode = 0) :
-      CUctx(gpu, umd_mode) {
+  CUctx_st(_cuda_device_id *gpu, std::string umd = "") :
+      CUctx(gpu, umd) {
     m_binary_info.cmem = 0;
     m_binary_info.gmem = 0;
     no_of_ptx = 0;
