@@ -292,12 +292,14 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = null
       the_device = the_gpgpusim->the_cude_device;
 
       std::string umd_platname;
-      if (this->umd_mode == 1) {
-        umd_platname = "libgem5cuda";
-      } else if (this->umd_mode == 2) {
-        umd_platname = "gem5umd";
-      } else if (this->umd_mode == 2) {
-        umd_platname = "gem5kmd";
+      if (this->func_sim->g_ptx_sim_mode == 1) {
+        umd_platname = "platlibgem5cuda";
+      } else {
+        if (this->umd_mode == 1) {
+          umd_platname = "platgem5umd";
+        } else if (this->umd_mode == 2) {
+          umd_platname = "platgem5kmd";
+        }
       }
 
       if (pCUctx_st != nullptr) {
