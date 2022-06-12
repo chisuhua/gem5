@@ -2,6 +2,7 @@
 // #include "../libcuda/gpu-sim.h"
 #include <cassert>
 #include <map>
+#include <string>
 
 class KernelSymbol;
 class KernelInfo;
@@ -44,6 +45,7 @@ struct device_id {
 
 
 struct CUctx {
+public:
   CUctx(device_id *gpu, std::string& umd)
       : m_gpu(gpu)
       , m_umd(umd)

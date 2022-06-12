@@ -280,7 +280,7 @@ struct _cuda_device_id *gpgpu_context::GPGPUSim_Init(CUctx_st** pCUctx_st = null
       the_device = the_gpgpusim->the_cude_device;
       start_sim_thread(1);
       if (pCUctx_st != nullptr) {
-          *pCUctx_st = new CUctx_st(the_device); // umd_mode is 0, load_program will use platlibcuda
+          *pCUctx_st = new CUctx_st(the_device, "platlibcuda"); // umd_mode is 0, load_program will use platlibcuda
           the_context = *pCUctx_st;
           drv::setDefaultCtx(*pCUctx_st);
       }
