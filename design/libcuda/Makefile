@@ -119,7 +119,7 @@ LEXFLAGS	= -B
 YACC		= bison
 YFLAGS		= -t -d -v --report=all
 
-.PHONY: clean cuda-sim gem5cuda
+.PHONY: clean cuda-sim gem5cuda gem5m5op
 
 #OUTPUT_DIR=$(SIM_OBJ_FILES_DIR)/libcuda
 OUTPUT_DIR=.
@@ -137,11 +137,11 @@ OBJS += $(YACC_SRCS:%.y=$(OUTPUT_DIR)/%_parser.o)
 #	ar rcs $(OUTPUT_DIR)/lib$(M5OP).a $(M5OP).o
 all: libcudart.so libcudart_static.a
 
-libcudart.so: cuda-sim gem5cuda $(OBJS)
-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=./linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) gem5cuda/m5op_x86.o gem5cuda/gem5cuda_runtime_api.o -lm -lz -lGL -ldl -pthread -L$(DESIGN_ROOT)/cosim -lumd -lisasim -o $(OUTPUT_DIR)/libcudart.so
+libcudart.so: cuda-sim gem5cuda gem5umd gem5m5op $(OBJS)
+	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=./linux-so-version.txt $(OBJS) $(CUDA_SIM_OBJS) gem5/m5op/m5op_x86.o gem5/m5op/gem5_syscall_util.o gem5/cuda/gem5cuda_runtime_api.o gem5/opuumd/gem5umd_runtime_api.o -lm -lz -lGL -ldl -pthread -L$(DESIGN_ROOT)/cosim -lumd -lisasim -o $(OUTPUT_DIR)/libcudart.so
 
-libcudart_static.a: $(OBJS)
-	$(AR) rcs libcudart_static.a $(OBJS) ./gem5cuda/gem5cuda_runtime_api.o ./gem5cuda/m5op_x86.o
+libcudart_static.a: $(OBJS) gem5cuda gem5umd
+	$(AR) rcs libcudart_static.a $(OBJS) ./gem5/cuda/gem5cuda_runtime_api.o ./gem5/opuumd/gem5umd_runtime_api.o ./gem5/m5op/m5op_x86.o ./gem5/m5op/gem5_syscall_util.o
 
 $(OUTPUT_DIR)/%.o: %.cc
 	$(CPP) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
@@ -149,8 +149,8 @@ $(OUTPUT_DIR)/%.o: %.cc
 $(OUTPUT_DIR)/%.o: %.c
 	$(CPP) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
-$(OUTPUT_DIR)/$(M5OP).o: $(M5OP_PATH)/$(M5OP).S
-	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
+#$(OUTPUT_DIR)/$(M5OP).o: $(M5OP_PATH)/$(M5OP).S
+#	$(CC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
 
 $(OUTPUT_DIR)/cuobjdump_parser.c: cuobjdump.y
@@ -176,11 +176,20 @@ cuda-sim:
 	$(MAKE) -C ./cuda-sim/ depend
 	$(MAKE) -C ./cuda-sim/
 
-gem5cuda:
-	$(MAKE) -C ./gem5cuda/
+gem5m5op:
+	$(MAKE) -C ./gem5/m5op/
+
+gem5cuda: gem5m5op
+	$(MAKE) -C ./gem5/cuda/
+
+gem5umd: gem5m5op
+	$(MAKE) -C ./gem5/opuumd/
 
 clean:
 	make -C cuda-sim clean
+	make -C gem5/m5op clean
+	make -C gem5/cuda clean
+	make -C gem5/opuumd clean
 	rm -f $(PROG)
 	rm -f *.o
 	rm -f lib$(PROG).a

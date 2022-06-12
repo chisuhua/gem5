@@ -26,7 +26,7 @@ if run gem5 mixed with systemc, we need to be cosim
 
 it require gpgpusim.config in run directory
 
-### setting between ptx and opu isa
+### choosing run with ptx or opu isa
 
 - ptx
 `
@@ -38,7 +38,20 @@ it require gpgpusim.config in run directory
 -gpgpu_ptx_sim_mode 2
 `
 
-### setting for different umd mode
+### setting ptx umd mode
+
+- run ptx with libcuda
+`
+-gpgpu_umd_mode 0
+`
+run with libcuda ptx
+
+- run ptx with gem5 libcuda
+`
+-gpgpu_umd_mode >0
+`
+
+### setting opuisa umd mode
 
 1. isasim or libcuda ptx simulation mode
 `
@@ -49,7 +62,8 @@ it require gpgpusim.config in run directory
 
 2. run app with gem5
 
-any gem5xxx api called in cuda_runtime_api will call m5_gpu , which invlide gem5
+if run inside gem5, nee to update design/gpgpu/gpgpu-sim/gem5.env
+below is assume run outside gem5, when any gem5xxx api called in cuda_runtime_api will call m5_gpu , which invoke gem5
 
 `
 -gpgpu_umd_mode 1
@@ -63,7 +77,6 @@ any gem5xxx api called in cuda_runtime_api will call m5_gpu , which invlide gem5
 `
   - using umd platform libgem5cuda, which invoke cuda_gpu cycles to process cuda command
 
-if run inside gem5, nee to update design/gpgpu/gpgpu-sim/gem5.env
 
 at begining, run design/opu/oputest/cuda_samples/smoke test to verify it works
 currently there are tests in smoke:
@@ -74,6 +87,15 @@ currently there are tests in smoke:
 - simpleTensorCoreGemm
 - shmemTensorCoreGemm
 
+`
+-gpgpu_umd_mode 3
+`
+run opu umd
+
+`
+-gpgpu_umd_mode 4
+`
+run opu kmd
 
 ## debug howto
 
@@ -116,6 +138,7 @@ src/sim/PseudoInst.cc 定义了通过PseduoInst调用的系统调用，
 PseudoInst::gpu
 
 其中调用的函数gpgpu_funcs
+gpugpu_funcs定义在design/gpgpu/src/api/libcuda_syscalls.cc
 
 ## mmu
 

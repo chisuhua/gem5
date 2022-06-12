@@ -76,7 +76,8 @@
 #define M5OP_WORK_BEGIN         0x5a
 #define M5OP_WORK_END           0x5b
 #define M5OP_GPU                0x5c
-#define M5OP_PPU                0x5d
+#define M5OP_OPU_UMD            0x5d
+#define M5OP_OPU_KMD            0x5e
 
 #define M5OP_DIST_TOGGLE_SYNC   0x62
 
@@ -109,7 +110,8 @@
     M5OP(m5_work_begin, M5OP_WORK_BEGIN)                        \
     M5OP(m5_work_end, M5OP_WORK_END)                            \
     M5OP(m5_gpu, M5OP_GPU)                                      \
-    M5OP(m5_ppu, M5OP_PPU)                                      \
+    M5OP(m5_opu_umd, M5OP_OPU_UMD)                              \
+    M5OP(m5_opu_kmd, M5OP_OPU_KMD)                              \
     M5OP(m5_se_syscall, M5OP_SE_SYSCALL)                        \
     M5OP(m5_se_page_fault, M5OP_SE_PAGE_FAULT)                  \
     M5OP(m5_dist_toggle_sync, M5OP_DIST_TOGGLE_SYNC)            \

@@ -34,4 +34,4 @@ cd $GEM5_ROOT
 
 #scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_$GEM5_VARIANT --verbose BUILD_PPU=yes USE_ZEPHYR=yes --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
 #scons -j6 --with-cxx-config --without-python --without-tcmalloc build/X86_VI_hammer/libgem5_$GEM5_VARIANT.so --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
-scons -j$GEM5_CPU_CORES --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_$GEM5_VARIANT.so --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu
+scons -j$GEM5_CPU_CORES --with-cxx-config --without-tcmalloc build/X86_VI_hammer/libgem5_$GEM5_VARIANT.so --verbose --default=../design/gpgpu/build_opts/X86_VI_hammer EXTRAS=design/gpgpu:design/opu/opusim/src/gem5

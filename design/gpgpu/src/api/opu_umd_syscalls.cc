@@ -1,9 +1,9 @@
-// This file created from cuda_runtime_api.h distributed with CUDA 1.1
+// This file created from opu_runtime_api.h distributed with opu 1.1
 // Changes Copyright 2009,  Tor M. Aamodt, Ali Bakhoda and George L. Yuan
 // University of British Columbia
 
 /*
- * cuda_syscalls.cc
+ * opu_syscalls.cc
  *
  * Copyright © 2009 by Tor M. Aamodt, Wilson W. L. Fung, Ali Bakhoda,
  * George L. Yuan and the University of British Columbia, Vancouver,
@@ -24,11 +24,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * NOTE: The files libcuda/cuda_runtime_api.c and src/cuda-sim/cuda-math.h
- * are derived from the CUDA Toolset available from http://www.nvidia.com/cuda
+ * NOTE: The files libopu/opu_runtime_api.c and src/opu-sim/opu-math.h
+ * are derived from the opu Toolset available from http://www.nvidia.com/opu
  * (property of NVIDIA).  The files benchmarks/BlackScholes/ and
- * benchmarks/template/ are derived from the CUDA SDK available from
- * http://www.nvidia.com/cuda (also property of NVIDIA).  The files from
+ * benchmarks/template/ are derived from the opu SDK available from
+ * http://www.nvidia.com/opu (also property of NVIDIA).  The files from
  * src/intersim/ are derived from Booksim (a simulator provided with the
  * textbook "Principles and Practices of Interconnection Networks" available
  * from http://cva.stanford.edu/books/ppin/). As such, those files are bound by
@@ -37,7 +37,7 @@
  * modified a file our copyright notice appears before the original copyright
  * notice).
  *
- * Using this version of GPGPU-Sim requires a complete installation of CUDA
+ * Using this version of GPGPU-Sim requires a complete installation of opu
  * which is distributed seperately by NVIDIA under separate terms and
  * conditions.  To use this version of GPGPU-Sim with OpenCL requires a
  * recent version of NVIDIA's drivers which support OpenCL.
@@ -149,30 +149,28 @@
 #endif
 #endif
 
-#include "api/libcuda_syscalls.hh"
+#include "api/opu_umd_syscalls.hh"
 #include "api/gpu_syscall_helper.hh"
-#include "cuda-sim/cuda-sim.h"
-#include "cuda-sim/ptx_ir.h"
-#include "cuda-sim/ptx_loader.h"
-#include "cuda-sim/ptx_parser.h"
+#include "cpu/thread_context.hh"
+// #include "opu-sim/opu-sim.h"
+// #include "opu-sim/ptx_ir.h"
+// #include "opu-sim/ptx_loader.h"
+// #include "opu-sim/ptx_parser.h"
 #include "debug/GPUSyscalls.hh"
 #include "gpgpu-sim/gpu-sim.h"
 #include "gpgpusim_entrypoint.h"
-#include "gpu/gpgpu-sim/cuda_gpu.hh"
+#include "opu_top.hh"
 #include "stream_manager.h"
-#include "../libcuda_sim/gpgpu_context.h"
+// #include "../libopu_sim/gpgpu_context.h"
 #include "cpu/simple_thread.hh"
 #include "arch/x86/vecregs.hh"
 
 #define MAX_STRING_LEN 1000
 
-typedef struct CUstream_st *cudaStream_t;
+typedef struct CUstream_st *opuStream_t;
 
-static int load_static_globals(GPUSyscallHelper *helper, symbol_table *symtab, unsigned min_gaddr);
-static int load_constants(GPUSyscallHelper *helper, symbol_table *symtab, addr_t min_gaddr);
-
-unsigned g_active_device = 0; // Active CUDA-enabled GPU that runs the code
-cudaError_t g_last_cudaError = cudaSuccess;
+static unsigned g_active_device = 0; // Active opu-enabled GPU that runs the code
+static cudaError_t g_last_cudaError = cudaSuccess;
 
 using namespace gem5;
 /*
@@ -181,164 +179,22 @@ public:
     AppSystem() {}
 };
 */
-#if 0
-class AppThreadContext : public ThreadState, public ThreadContext {
-public:
-    /*
-    using VecLane8 = VecLaneT<uint8_t, false>;
-    using VecLane16 = VecLaneT<uint16_t, false>;
-    using VecLane32 = VecLaneT<uint32_t, false>;
-    using VecLane64 = VecLaneT<uint64_t, false>;
-
-    using ConstVecLane8 = VecLaneT<uint8_t, true>;
-    using ConstVecLane16 = VecLaneT<uint16_t, true>;
-    using ConstVecLane32 = VecLaneT<uint32_t, true>;
-    using ConstVecLane64 = VecLaneT<uint64_t, true>;
-    */
-
-    typedef ThreadContext::Status ThreadStatus;
-
-    ::gem5::X86ISA::VecRegContainer vecReg;
-    ::gem5::X86ISA::VecElem vecElem;
-    ::gem5::X86ISA::VecPredRegContainer vecPredReg;
-    ThreadStatus status_;
-    gem5::System    *system_;
-    AppThreadContext() : ThreadState(nullptr, 1, nullptr)
-    {
-        status_ = ThreadStatus();
-        // system_ = new AppSystem();
-    }
-    BaseCPU *getCpuPtr() {return nullptr;};
-    int cpuId() const {return 0;};
-    uint32_t socketId() const {return 0;};
-    int threadId() const {return 0;};
-    void setThreadId(int id) {};
-    ContextID contextId() const {return ContextID();};
-    void setContextId(ContextID id) {};
-    BaseMMU *getMMUPtr() {return nullptr;};
-#ifndef BUILD_PPU
-    CheckerCPU *getCheckerCpuPtr() {return nullptr;};
-#endif
-    BaseISA *getIsaPtr() {return nullptr;};
-    ::gem5::X86ISA::Decoder *getDecoderPtr() {return nullptr;};
-    System *getSystemPtr() {return nullptr;};
-    PortProxy &getVirtProxy() {return ThreadState::getVirtProxy();};
-    void initMemProxies(ThreadContext *tc) {};
-    Process *getProcessPtr() {return nullptr;};
-    void setProcessPtr(Process *p) {};
-    ThreadStatus status() const {return status_;};
-    void setStatus(ThreadStatus new_status) {};
-    void activate() {};
-    void suspend() {};
-    void halt() {};
-    void takeOverFrom(ThreadContext *old_context) {};
-    void regStats(const std::string &name) {};
-    void scheduleInstCountEvent(Event *event, Tick count) {};
-    void descheduleInstCountEvent(Event *event) {};
-    Tick getCurrentInstCount() {return Tick();};
-    Tick readLastActivate() {return Tick();};
-    Tick readLastSuspend() {return Tick();};
-    void copyArchRegs(ThreadContext *tc) {};
-    void clearArchRegs() {};
-    RegVal readIntReg(RegIndex reg_idx) const {return RegVal();};
-    RegVal readFloatReg(RegIndex reg_idx) const {return RegVal();};
-    const ::gem5::X86ISA::VecRegContainer& readVecReg(const RegId& reg) const {return vecReg;};
-    ::gem5::X86ISA::VecRegContainer& getWritableVecReg(const RegId& reg) {return vecReg;};
-    const ::gem5::X86ISA::VecElem& readVecElem(const RegId& reg) const {return vecElem;};
-
-    const ::gem5::X86ISA::VecPredRegContainer& readVecPredReg(
-            const RegId& reg) const {return vecPredReg;};
-    ::gem5::X86ISA::VecPredRegContainer& getWritableVecPredReg(
-            const RegId& reg) {return vecPredReg;};
-
-    RegVal readCCReg(RegIndex reg_idx) const {return RegVal();};
-    void setIntReg(RegIndex reg_idx, RegVal val) {};
-    void setFloatReg(RegIndex reg_idx, RegVal val) {};
-    void setVecReg(const RegId& reg, const ::gem5::X86ISA::VecRegContainer& val) {};
-    void setVecElem(const RegId& reg, const ::gem5::X86ISA::VecElem& val) {};
-    void setVecPredReg(const RegId& reg,
-            const ::gem5::X86ISA::VecPredRegContainer& val) {};
-    void setCCReg(RegIndex reg_idx, RegVal val) {};
-    ::gem5::X86ISA::PCState pcState() const {return ::gem5::X86ISA::PCState();};
-    void pcState(const ::gem5::X86ISA::PCState &val) {};
-    void pcStateNoRecord(const ::gem5::X86ISA::PCState &val) {};
-    Addr instAddr() const {return Addr();};
-    Addr nextInstAddr() const {return Addr();};
-    MicroPC microPC() const {return MicroPC();};
-    RegVal readMiscRegNoEffect(RegIndex misc_reg) const {return RegVal();};
-    RegVal readMiscReg(RegIndex misc_reg) {return RegVal();};
-    void setMiscRegNoEffect(RegIndex misc_reg, RegVal val) {};
-    // TODO schi add from gem5-gpu
-    void setMiscRegActuallyNoEffect(int misc_reg, const RegVal &val) {};
-    void setMiscReg(RegIndex misc_reg, RegVal val) {};
-    RegId flattenRegId(const RegId& reg_id) const {return RegId();};
-    unsigned readStCondFailures() const {return 0;};
-    void setStCondFailures(unsigned sc_failures) {};
-    int exit() { return 1; };
-    RegVal readIntRegFlat(RegIndex idx) const {return RegVal();};
-    void setIntRegFlat(RegIndex idx, RegVal val) {};
-    RegVal readFloatRegFlat(RegIndex idx) const {return RegVal();};
-    void setFloatRegFlat(RegIndex idx, RegVal val) {};
-    const ::gem5::X86ISA::VecRegContainer&
-        readVecRegFlat(RegIndex idx) const {return vecReg;};
-    ::gem5::X86ISA::VecRegContainer& getWritableVecRegFlat(RegIndex idx) {return vecReg;};
-    void setVecRegFlat(RegIndex idx,
-            const ::gem5::X86ISA::VecRegContainer& val) {};
-
-    const ::gem5::X86ISA::VecElem& readVecElemFlat(RegIndex idx,
-            const ElemIndex& elem_idx) const {return vecElem;};
-    void setVecElemFlat(RegIndex idx, const ElemIndex& elem_idx,
-            const ::gem5::X86ISA::VecElem& val) {};
-
-    const ::gem5::X86ISA::VecPredRegContainer &
-        readVecPredRegFlat(RegIndex idx) const {return vecPredReg;};
-    ::gem5::X86ISA::VecPredRegContainer& getWritableVecPredRegFlat(
-            RegIndex idx) {return vecPredReg;};
-    void setVecPredRegFlat(RegIndex idx,
-            const ::gem5::X86ISA::VecPredRegContainer& val) {};
-
-    RegVal readCCRegFlat(RegIndex idx) const {return RegVal();};
-    void setCCRegFlat(RegIndex idx, RegVal val) {};
-    void htmAbortTransaction(uint64_t htm_uid,
-                                     HtmFailureFaultCause cause) {};
-    BaseHTMCheckpointPtr& getHtmCheckpointPtr() override {
-        // return std::unique_ptr<BaseHTMCheckpoint>(new BaseHTMCheckpoint());
-        panic("%s not implemented.", __FUNCTION__);
-    };
-    void setHtmCheckpointPtr(BaseHTMCheckpointPtr cpt) {};
-
-    bool schedule(PCEvent *e) override { return true; }
-    bool remove(PCEvent *e) override { return true; }
-};
-
-ThreadContext* create_thread_context() {
-    static ThreadContext *app_context_outside_gem5 = nullptr;
-    if (app_context_outside_gem5 == nullptr) {
-        app_context_outside_gem5 = new ::AppThreadContext();
-    }
-    return app_context_outside_gem5;
-}
-#endif
 extern ThreadContext* create_thread_context();
 
-extern "C" void app_direct_call_gpu(uint64_t gpusysno, uint64_t call_params)
+extern "C" void app_direct_call_opu_umd(uint64_t gpusysno, uint64_t call_params)
 {
     ThreadContext *tc = create_thread_context();
-    gpgpu_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
+    opu_umd_funcs[gpusysno](tc, (gpusyscall_t*)call_params);
 }
 
-void register_ptx_function(const char *name, function_info *impl)
-{
-   // TODO: Figure out the best location for this function
-}
-
-kernel_info_t *gpgpu_cuda_ptx_sim_init_grid(gpgpu_ptx_sim_arg_list_t args,
+#if 0
+kernel_info_t *gpgpu_opu_ptx_sim_init_grid(gpgpu_ptx_sim_arg_list_t args,
                                             struct dim3 gridDim,
                                             struct dim3 blockDim,
                                             function_info* entry)
 {
-   CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-   gpgpu_t *gpu = cudaGPU->getTheGPU();
+   OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+   gpgpu_t *gpu = opu_top->getTheGPU();
 
    kernel_info_t *result = new kernel_info_t(gridDim,blockDim,entry, gpu->getNameArrayMapping(), gpu->getNameInfoMapping());
 
@@ -357,6 +213,7 @@ kernel_info_t *gpgpu_cuda_ptx_sim_init_grid(gpgpu_ptx_sim_arg_list_t args,
 
    return result;
 }
+#endif
 
 #if defined __APPLE__
 #   define __my_func__    __PRETTY_FUNCTION__
@@ -401,36 +258,37 @@ class kernel_config {
 #endif
 
 using namespace gem5;
-
+#if 0
 extern "C" void gem5_ptxinfo_addinfo()
 {
-    if (!strcmp("__cuda_dummy_entry__",get_ptxinfo_kname())) {
+    if (!strcmp("__opu_dummy_entry__",get_ptxinfo_kname())) {
       // this string produced by ptxas for empty ptx files (e.g., bandwidth test)
         clear_ptxinfo();
         return;
     }
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     print_ptxinfo();
-    cudaGPU->add_ptxinfo(get_ptxinfo_kname(), get_ptxinfo());
+    opu_top->add_ptxinfo(get_ptxinfo_kname(), get_ptxinfo());
     clear_ptxinfo();
 }
+#endif
 
-void cuda_not_implemented(const char* func, unsigned line)
+void opu_not_implemented(const char* func, unsigned line)
 {
     fflush(stdout);
     fflush(stderr);
-    printf("\n\ngem5-gpu CUDA: Execution error: CUDA API function \"%s()\" has not been implemented yet.\n"
+    printf("\n\ngem5-gpu opu: Execution error: opu API function \"%s()\" has not been implemented yet.\n"
             "                 [gem5-gpu/src/gem5/%s around line %u]\n\n\n",
     func,__FILE__, line);
     fflush(stdout);
     abort();
 }
 
-typedef std::map<unsigned,CUevent_st*> event_tracker_t;
+// typedef std::map<unsigned,CUevent_st*> event_tracker_t;
 
-int CUevent_st::m_next_event_uid;
-event_tracker_t g_timer_events;
-std::list<kernel_config> g_cuda_launch_stack;
+// int CUevent_st::m_next_event_uid;
+// event_tracker_t g_timer_events;
+//std::list<kernel_config> g_opu_launch_stack;
 
 /*******************************************************************************
 *                                                                              *
@@ -439,26 +297,26 @@ std::list<kernel_config> g_cuda_launch_stack;
 *******************************************************************************/
 
 void
-libcudaMalloc(ThreadContext *tc, gpusyscall_t *call_params)
+libopuMalloc(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_devPtr = *((Addr*)helper.getParam(0, true));
     size_t sim_size = *((size_t*)helper.getParam(1));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMalloc(devPtr = %x, size = %d)\n", sim_devPtr, sim_size);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMalloc(devPtr = %x, size = %d)\n", sim_devPtr, sim_size);
 
     g_last_cudaError = cudaSuccess;
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    if (!cudaGPU->isManagingGPUMemory()) {
-        // Tell CUDA runtime to allocate memory
+    if (!opu_top->isManagingGPUMemory()) {
+        // Tell opu runtime to allocate memory
         cudaError_t to_return = cudaErrorApiFailureBase;
         helper.setReturn((uint8_t*)&to_return, sizeof(cudaError_t));
         return;
     } else {
-        Addr addr = cudaGPU->allocateGPUMemory(sim_size);
+        Addr addr = opu_top->allocateGPUMemory(sim_size);
         helper.writeBlob(sim_devPtr, (uint8_t*)(&addr), sizeof(Addr), true);
         if (addr) {
             g_last_cudaError = cudaSuccess;
@@ -470,61 +328,61 @@ libcudaMalloc(ThreadContext *tc, gpusyscall_t *call_params)
 }
 
 void
-libcudaMallocHost(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuMallocHost(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_ptr = *((Addr*)helper.getParam(0, true));
     size_t sim_size = *((size_t*)helper.getParam(1));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMallocHost(ptr = %x, size = %d)\n", sim_ptr, sim_size);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMallocHost(ptr = %x, size = %d)\n", sim_ptr, sim_size);
 
     g_last_cudaError = cudaSuccess;
-    // Tell CUDA runtime to allocate memory
+    // Tell opu runtime to allocate memory
     cudaError_t to_return = cudaErrorApiFailureBase;
     helper.setReturn((uint8_t*)&to_return, sizeof(cudaError_t));
 }
 
 void
-libcudaRegisterDeviceMemory(ThreadContext *tc, gpusyscall_t *call_params)
+libopuRegisterDeviceMemory(ThreadContext *tc, gpusyscall_t *call_params)
 {
     // This GPU syscall is used to initialize tracking of GPU memory so that
     // the GPU can do TLB lookups and if necessary, physical memory allocations
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_devicePtr = *((Addr*)helper.getParam(0, true));
     size_t sim_size = *((size_t*)helper.getParam(1));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaRegisterDeviceMemory(devicePtr = %x, size = %d)\n", sim_devicePtr, sim_size);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuRegisterDeviceMemory(devicePtr = %x, size = %d)\n", sim_devicePtr, sim_size);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    cudaGPU->registerDeviceMemory(tc, sim_devicePtr, sim_size);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    opu_top->registerDeviceMemory(tc, sim_devicePtr, sim_size);
 }
 
 void
-cudaMallocPitch(ThreadContext *tc, gpusyscall_t *call_params)
+opuMallocPitch(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMallocArray(struct cudaArray **array, const struct cudaChannelFormatDesc *desc, size_t width, size_t height __dv(1)) {
+//__host__ cudaError_t opuRTAPI opuMallocArray(struct opuArray **array, const struct opuChannelFormatDesc *desc, size_t width, size_t height __dv(1)) {
 void
-cudaMallocArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMallocArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-libcudaFree(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuFree(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_devPtr = *((Addr*)helper.getParam(0, true));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaFree(devPtr = %x)\n", sim_devPtr);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuFree(devPtr = %x)\n", sim_devPtr);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    if (!cudaGPU->isManagingGPUMemory()) {
+    if (!opu_top->isManagingGPUMemory()) {
         g_last_cudaError = cudaSuccess;
-        // Tell CUDA runtime to free memory
+        // Tell opu runtime to free memory
         cudaError_t to_return = cudaErrorApiFailureBase;
         helper.setReturn((uint8_t*)&to_return, sizeof(cudaError_t));
     } else {
@@ -535,23 +393,23 @@ libcudaFree(ThreadContext *tc, gpusyscall_t *call_params) {
 }
 
 void
-libcudaFreeHost(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuFreeHost(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_ptr = *((Addr*)helper.getParam(0, true));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaFreeHost(ptr = %x)\n", sim_ptr);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuFreeHost(ptr = %x)\n", sim_ptr);
 
     g_last_cudaError = cudaSuccess;
-    // Tell CUDA runtime to free memory
+    // Tell opu runtime to free memory
     cudaError_t to_return = cudaErrorApiFailureBase;
     helper.setReturn((uint8_t*)&to_return, sizeof(cudaError_t));
 }
 
-//__host__ cudaError_t CUDARTAPI cudaFreeArray(struct cudaArray *array){
+//__host__ cudaError_t opuRTAPI opuFreeArray(struct opuArray *array){
 void
-cudaFreeArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuFreeArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 };
 
 
@@ -562,19 +420,19 @@ cudaFreeArray(ThreadContext *tc, gpusyscall_t *call_params) {
 *******************************************************************************/
 
 void
-libcudaMemcpy(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuMemcpy(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_dst = *((Addr*)helper.getParam(0, true));
     Addr sim_src = *((Addr*)helper.getParam(1, true));
     size_t sim_count = *((size_t*)helper.getParam(2));
     enum cudaMemcpyKind sim_kind = *((enum cudaMemcpyKind*)helper.getParam(3));
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMemcpy(dst = %x, src = %x, count = %d, kind = %s)\n",
-            sim_dst, sim_src, sim_count, cudaMemcpyKindStrings[sim_kind]);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMemcpy(dst = %x, src = %x, count = %d, kind = %s)\n",
+            sim_dst, sim_src, sim_count, opuMemcpyKindStrings[sim_kind]);
 
     bool suspend = false;
     if (sim_count == 0) {
@@ -583,81 +441,81 @@ libcudaMemcpy(ThreadContext *tc, gpusyscall_t *call_params) {
         return;
     }
 
-    if (sim_kind == cudaMemcpyHostToDevice) {
+    if (sim_kind == opuMemcpyHostToDevice) {
         stream_operation mem_op((const void*)sim_src, (size_t)sim_dst, sim_count, 0);
         mem_op.setThreadContext(tc);
-        cudaGPU->getStreamManager()->push(mem_op);
-    } else if (sim_kind == cudaMemcpyDeviceToHost) {
+        opu_top->getStreamManager()->push(mem_op);
+    } else if (sim_kind == opuMemcpyDeviceToHost) {
         stream_operation mem_op((size_t)sim_src, (void*)sim_dst, sim_count, 0);
         mem_op.setThreadContext(tc);
-        cudaGPU->getStreamManager()->push(mem_op);
-    } else if (sim_kind == cudaMemcpyDeviceToDevice) {
+        opu_top->getStreamManager()->push(mem_op);
+    } else if (sim_kind == opuMemcpyDeviceToDevice) {
         stream_operation mem_op((size_t)sim_src, (size_t)sim_dst, sim_count, 0);
         mem_op.setThreadContext(tc);
-        cudaGPU->getStreamManager()->push(mem_op);
+        opu_top->getStreamManager()->push(mem_op);
     } else {
-        panic("GPGPU-Sim PTX: cudaMemcpy - ERROR : unsupported cudaMemcpyKind\n");
+        panic("GPGPU-Sim PTX: opuMemcpy - ERROR : unsupported cudaMemcpyKind\n");
     }
 
-    suspend = cudaGPU->needsToBlock();
+    suspend = opu_top->needsToBlock();
     assert(suspend);
     g_last_cudaError = cudaSuccess;
     helper.setReturn((uint8_t*)&suspend, sizeof(bool));
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpyToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind) {
+//__host__ cudaError_t opuRTAPI opuMemcpyToArray(struct opuArray *dst, size_t wOffset, size_t hOffset, const void *src, size_t count, enum cudaMemcpyKind kind) {
 void
-cudaMemcpyToArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpyToArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpyFromArray(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind) {
+//__host__ cudaError_t opuRTAPI opuMemcpyFromArray(void *dst, const struct opuArray *src, size_t wOffset, size_t hOffset, size_t count, enum cudaMemcpyKind kind) {
 void
-cudaMemcpyFromArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpyFromArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpyArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst,
-//                                                      const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc,
-//                                                      size_t count, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice)) {
+//__host__ cudaError_t opuRTAPI opuMemcpyArrayToArray(struct opuArray *dst, size_t wOffsetDst, size_t hOffsetDst,
+//                                                      const struct opuArray *src, size_t wOffsetSrc, size_t hOffsetSrc,
+//                                                      size_t count, enum cudaMemcpyKind kind __dv(opuMemcpyDeviceToDevice)) {
 void
-cudaMemcpyArrayToArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpyArrayToArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpy2D(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width,
+//__host__ cudaError_t opuRTAPI opuMemcpy2D(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width,
 //                                            size_t height, enum cudaMemcpyKind kind) {
 void
-cudaMemcpy2D(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpy2D(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpy2DToArray(struct cudaArray *dst, size_t wOffset, size_t hOffset, const void *src,
+//__host__ cudaError_t opuRTAPI opuMemcpy2DToArray(struct opuArray *dst, size_t wOffset, size_t hOffset, const void *src,
 //                                                  size_t spitch, size_t width, size_t height, enum cudaMemcpyKind kind) {
 void
-cudaMemcpy2DToArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpy2DToArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpy2DFromArray(void *dst, size_t dpitch, const struct cudaArray *src, size_t wOffset,
+//__host__ cudaError_t opuRTAPI opuMemcpy2DFromArray(void *dst, size_t dpitch, const struct opuArray *src, size_t wOffset,
 //                                                  size_t hOffset, size_t width, size_t height, enum cudaMemcpyKind kind) {
 void
-cudaMemcpy2DFromArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpy2DFromArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//__host__ cudaError_t CUDARTAPI cudaMemcpy2DArrayToArray(struct cudaArray *dst, size_t wOffsetDst, size_t hOffsetDst,
-//                                                      const struct cudaArray *src, size_t wOffsetSrc, size_t hOffsetSrc,
-//                                                      size_t width, size_t height, enum cudaMemcpyKind kind __dv(cudaMemcpyDeviceToDevice)) {
+//__host__ cudaError_t opuRTAPI opuMemcpy2DArrayToArray(struct opuArray *dst, size_t wOffsetDst, size_t hOffsetDst,
+//                                                      const struct opuArray *src, size_t wOffsetSrc, size_t hOffsetSrc,
+//                                                      size_t width, size_t height, enum cudaMemcpyKind kind __dv(opuMemcpyDeviceToDevice)) {
 void
-cudaMemcpy2DArrayToArray(ThreadContext *tc, gpusyscall_t *call_params) {
-    cuda_not_implemented(__my_func__,__LINE__);
+opuMemcpy2DArrayToArray(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-libcudaMemcpyToSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuMemcpyToSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_symbol = *((Addr*)helper.getParam(0, true));
     Addr sim_src = *((Addr*)helper.getParam(1, true));
@@ -665,26 +523,26 @@ libcudaMemcpyToSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
     size_t sim_offset = *((size_t*)helper.getParam(3));
     enum cudaMemcpyKind sim_kind = *((enum cudaMemcpyKind*)helper.getParam(4));
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMemcpyToSymbol(symbol = %x, src = %x, count = %d, offset = %d, kind = %s)\n",
-            sim_symbol, sim_src, sim_count, sim_offset, cudaMemcpyKindStrings[sim_kind]);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMemcpyToSymbol(symbol = %x, src = %x, count = %d, offset = %d, kind = %s)\n",
+            sim_symbol, sim_src, sim_count, sim_offset, opuMemcpyKindStrings[sim_kind]);
 
-    assert(sim_kind == cudaMemcpyHostToDevice);
+    assert(sim_kind == opuMemcpyHostToDevice);
     stream_operation mem_op((const void*)sim_src, (const char*)sim_symbol, sim_count, sim_offset, NULL);
     mem_op.setThreadContext(tc);
-    cudaGPU->getStreamManager()->push(mem_op);
+    opu_top->getStreamManager()->push(mem_op);
 
-    bool suspend = cudaGPU->needsToBlock();
+    bool suspend = opu_top->needsToBlock();
     assert(suspend);
     g_last_cudaError = cudaSuccess;
     helper.setReturn((uint8_t*)&suspend, sizeof(bool));
 }
 
 void
-libcudaMemcpyFromSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
+libopuMemcpyFromSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_dst = *((Addr*)helper.getParam(0, true));
     Addr sim_symbol = *((Addr*)helper.getParam(1, true));
@@ -692,17 +550,17 @@ libcudaMemcpyFromSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
     size_t sim_offset = *((size_t*)helper.getParam(3));
     enum cudaMemcpyKind sim_kind = *((enum cudaMemcpyKind*)helper.getParam(4));
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMemcpyToSymbol(symbol = %x, src = %x, count = %d, offset = %d, kind = %s)\n",
-            sim_symbol, sim_dst, sim_count, sim_offset, cudaMemcpyKindStrings[sim_kind]);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMemcpyToSymbol(symbol = %x, src = %x, count = %d, offset = %d, kind = %s)\n",
+            sim_symbol, sim_dst, sim_count, sim_offset, opuMemcpyKindStrings[sim_kind]);
 
-    assert(sim_kind == cudaMemcpyDeviceToHost);
+    assert(sim_kind == opuMemcpyDeviceToHost);
     stream_operation mem_op((const char*)sim_symbol, (void*)sim_dst, sim_count, sim_offset, NULL);
     mem_op.setThreadContext(tc);
-    cudaGPU->getStreamManager()->push(mem_op);
+    opu_top->getStreamManager()->push(mem_op);
 
-    bool suspend = cudaGPU->needsToBlock();
+    bool suspend = opu_top->needsToBlock();
     assert(suspend);
     g_last_cudaError = cudaSuccess;
     helper.setReturn((uint8_t*)&suspend, sizeof(bool));
@@ -714,62 +572,62 @@ libcudaMemcpyFromSymbol(ThreadContext *tc, gpusyscall_t *call_params) {
 *                                                                              *
 *******************************************************************************/
 
-//	__host__ cudaError_t CUDARTAPI cudaMemcpyAsync(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+//	__host__ cudaError_t opuRTAPI opuMemcpyAsync(void *dst, const void *src, size_t count, enum cudaMemcpyKind kind, opuStream_t stream)
 void
-cudaMemcpyAsync(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpyAsync(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//	__host__ cudaError_t CUDARTAPI cudaMemcpyToArrayAsync(struct cudaArray *dst, size_t wOffset, size_t hOffset,
-//	                                                        const void *src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+//	__host__ cudaError_t opuRTAPI opuMemcpyToArrayAsync(struct opuArray *dst, size_t wOffset, size_t hOffset,
+//	                                                        const void *src, size_t count, enum cudaMemcpyKind kind, opuStream_t stream)
 void
-cudaMemcpyToArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpyToArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//	__host__ cudaError_t CUDARTAPI cudaMemcpyFromArrayAsync(void *dst, const struct cudaArray *src, size_t wOffset, size_t hOffset,
-//	                                                        size_t count, enum cudaMemcpyKind kind, cudaStream_t stream)
+//	__host__ cudaError_t opuRTAPI opuMemcpyFromArrayAsync(void *dst, const struct opuArray *src, size_t wOffset, size_t hOffset,
+//	                                                        size_t count, enum cudaMemcpyKind kind, opuStream_t stream)
 void
-cudaMemcpyFromArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpyFromArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-//	__host__ cudaError_t CUDARTAPI cudaMemcpy2DAsync(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width,
-//	                                                size_t height, enum cudaMemcpyKind kind, cudaStream_t stream)
+//	__host__ cudaError_t opuRTAPI opuMemcpy2DAsync(void *dst, size_t dpitch, const void *src, size_t spitch, size_t width,
+//	                                                size_t height, enum cudaMemcpyKind kind, opuStream_t stream)
 void
-cudaMemcpy2DAsync(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpy2DAsync(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaMemcpy2DToArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaMemcpy2DFromArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpy2DToArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaBlockThread(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemcpy2DFromArrayAsync(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuBlockThread(ThreadContext *tc, gpusyscall_t *call_params)
 {
     // Similar to futex in syscalls, except we need to track the variable to
     // be set
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
     Addr sim_is_free_ptr = *((Addr*)helper.getParam(0, true));
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaBlockThread(tc = %x, is_free_ptr = %x)\n", tc, sim_is_free_ptr);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuBlockThread(tc = %x, is_free_ptr = %x)\n", tc, sim_is_free_ptr);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    cudaGPU->blockThread(tc, sim_is_free_ptr);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    opu_top->blockThread(tc, sim_is_free_ptr);
 }
 
 /*******************************************************************************
@@ -779,20 +637,20 @@ cudaBlockThread(ThreadContext *tc, gpusyscall_t *call_params)
 *******************************************************************************/
 
 void
-libcudaMemset(ThreadContext *tc, gpusyscall_t *call_params)
+libopuMemset(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_mem = *((Addr*)helper.getParam(0, true));
     int sim_c = *((int*)helper.getParam(1));
     size_t sim_count = *((size_t*)helper.getParam(2));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaMemset(mem = %x, c = %d, count = %d)\n", sim_mem, sim_c, sim_count);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuMemset(mem = %x, c = %d, count = %d)\n", sim_mem, sim_c, sim_count);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    if (!cudaGPU->isManagingGPUMemory() && !cudaGPU->isAccessingHostPagetable()) {
-        // Signal to libcuda that it should handle the memset. This is required
+    if (!opu_top->isManagingGPUMemory() && !opu_top->isAccessingHostPagetable()) {
+        // Signal to libopu that it should handle the memset. This is required
         // if the copy engine may be unable to access the CPU's pagetable to get
         // address translations (unified memory without access host pagetable)
         g_last_cudaError = cudaErrorApiFailureBase;
@@ -800,19 +658,19 @@ libcudaMemset(ThreadContext *tc, gpusyscall_t *call_params)
     } else {
         stream_operation mem_op((size_t)sim_mem, sim_c, sim_count, 0);
         mem_op.setThreadContext(tc);
-        cudaGPU->getStreamManager()->push(mem_op);
+        opu_top->getStreamManager()->push(mem_op);
         g_last_cudaError = cudaSuccess;
         helper.setReturn((uint8_t*)&g_last_cudaError, sizeof(cudaError_t));
 
-        bool suspend = cudaGPU->needsToBlock();
+        bool suspend = opu_top->needsToBlock();
         assert(suspend);
     }
 }
 
 void
-cudaMemset2D(ThreadContext *tc, gpusyscall_t *call_params)
+opuMemset2D(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -822,15 +680,15 @@ cudaMemset2D(ThreadContext *tc, gpusyscall_t *call_params)
 *******************************************************************************/
 
 void
-cudaGetSymbolAddress(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetSymbolAddress(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaGetSymbolSize(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetSymbolSize(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -840,32 +698,32 @@ cudaGetSymbolSize(ThreadContext *tc, gpusyscall_t *call_params)
 *******************************************************************************/
 
 void
-libcudaGetDeviceCount(ThreadContext *tc, gpusyscall_t *call_params)
+libopuGetDeviceCount(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
     Addr sim_count = *((Addr*)helper.getParam(0, true));
 
-    int count = CudaGPU::getNumCudaDevices();
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaGetDeviceCount(count* = %x) = %d\n", sim_count, count);
+    int count = OpuTop::getNumOpuDevices();
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuGetDeviceCount(count* = %x) = %d\n", sim_count, count);
 
     helper.writeBlob(sim_count, (uint8_t*)(&count), sizeof(int));
     g_last_cudaError = cudaSuccess;
 }
 
 void
-libcudaGetDeviceProperties(ThreadContext *tc, gpusyscall_t *call_params)
+libopuGetDeviceProperties(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_prop = *((Addr*)helper.getParam(0, true));
     int sim_device = *((int*)helper.getParam(1));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaGetDeviceProperties(prop* = %x, device = %d)\n", sim_prop, sim_device);
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    if (sim_device <= CudaGPU::getNumCudaDevices())  {
-        CudaGPU::CudaDeviceProperties *prop = cudaGPU->getDeviceProperties();
-        helper.writeBlob(sim_prop, (uint8_t*)(prop), sizeof(CudaGPU::CudaDeviceProperties));
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuGetDeviceProperties(prop* = %x, device = %d)\n", sim_prop, sim_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    if (sim_device <= OpuTop::getNumOpuDevices())  {
+        OpuTop::OpuDeviceProperties *prop = opu_top->getDeviceProperties();
+        helper.writeBlob(sim_prop, (uint8_t*)(prop), sizeof(OpuTop::OpuDeviceProperties));
         g_last_cudaError = cudaSuccess;
     } else {
         g_last_cudaError = cudaErrorInvalidDevice;
@@ -874,20 +732,20 @@ libcudaGetDeviceProperties(ThreadContext *tc, gpusyscall_t *call_params)
 }
 
 void
-cudaChooseDevice(ThreadContext *tc, gpusyscall_t *call_params)
+opuChooseDevice(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-libcudaSetDevice(ThreadContext *tc, gpusyscall_t *call_params)
+libopuSetDevice(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     int sim_device = *((int*)helper.getParam(0));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaSetDevice(device = %d)\n", sim_device);
-    if (sim_device <= CudaGPU::getNumCudaDevices()) {
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuSetDevice(device = %d)\n", sim_device);
+    if (sim_device <= OpuTop::getNumOpuDevices()) {
         g_active_device = sim_device;
         g_last_cudaError = cudaSuccess;
     } else {
@@ -897,14 +755,14 @@ libcudaSetDevice(ThreadContext *tc, gpusyscall_t *call_params)
 }
 
 void
-libcudaGetDevice(ThreadContext *tc, gpusyscall_t *call_params)
+libopuGetDevice(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_device = *((Addr*)helper.getParam(0, true));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaGetDevice(device = 0x%x)\n", sim_device);
-    if (g_active_device <= CudaGPU::getNumCudaDevices()) {
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuGetDevice(device = 0x%x)\n", sim_device);
+    if (g_active_device <= OpuTop::getNumOpuDevices()) {
         helper.writeBlob(sim_device, (uint8_t*)&g_active_device, sizeof(int));
         g_last_cudaError = cudaSuccess;
     } else {
@@ -919,37 +777,37 @@ libcudaGetDevice(ThreadContext *tc, gpusyscall_t *call_params)
  *                                                                              *
 *******************************************************************************/
 
-// __host__ cudaError_t CUDARTAPI cudaBindTexture(size_t *offset, const struct textureReference *texref, const void *devPtr,
-//                                                      const struct cudaChannelFormatDesc *desc, size_t size __dv(UINT_MAX))
+// __host__ cudaError_t opuRTAPI opuBindTexture(size_t *offset, const struct textureReference *texref, const void *devPtr,
+//                                                      const struct opuChannelFormatDesc *desc, size_t size __dv(UINT_MAX))
 void
-cudaBindTexture(ThreadContext *tc, gpusyscall_t *call_params)
+opuBindTexture(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaBindTextureToArray(ThreadContext *tc, gpusyscall_t *call_params)
+opuBindTextureToArray(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaUnbindTexture(ThreadContext *tc, gpusyscall_t *call_params)
+opuUnbindTexture(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaGetTextureAlignmentOffset(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetTextureAlignmentOffset(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaGetTextureReference(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetTextureReference(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -959,15 +817,15 @@ cudaGetTextureReference(ThreadContext *tc, gpusyscall_t *call_params)
 *******************************************************************************/
 
 void
-cudaGetChannelDesc(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetChannelDesc(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaCreateChannelDesc(ThreadContext *tc, gpusyscall_t *call_params)
+opuCreateChannelDesc(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -977,18 +835,18 @@ cudaCreateChannelDesc(ThreadContext *tc, gpusyscall_t *call_params)
 *******************************************************************************/
 
 void
-cudaGetLastError(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetLastError(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaGetLastError()\n");
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuGetLastError()\n");
     helper.setReturn((uint8_t*)&g_last_cudaError, sizeof(cudaError_t));
 }
 
 void
-cudaGetErrorString(ThreadContext *tc, gpusyscall_t *call_params)
+opuGetErrorString(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -996,31 +854,39 @@ cudaGetErrorString(ThreadContext *tc, gpusyscall_t *call_params)
  *                                                                              *
  *                                                                              *
 *******************************************************************************/
-void libgem5cudaConfigureCall(ThreadContext *tc, gpusyscall_t *call_params)
+void libgem5opuConfigureCall(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+#if 0
+void libgem5opuConfigureCall(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     dim3 sim_gridDim = *((dim3*)helper.getParam(0));
     dim3 sim_blockDim = *((dim3*)helper.getParam(1));
     size_t sim_sharedMem = *((size_t*)helper.getParam(2));
-    cudaStream_t sim_stream = *((cudaStream_t*)helper.getParam(3));
+    opuStream_t sim_stream = *((opuStream_t*)helper.getParam(3));
     if (sim_stream) {
-        panic("gem5-fusion doesn't currently support CUDA streams");
+        panic("gem5-fusion doesn't currently support opu streams");
     }
-    assert(!sim_stream); // We do not currently support CUDA streams
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaConfigureCall(tc = %p, gridDim = (%u,%u,%u), blockDim = (%u,%u,%u), sharedMem = %u, stream)\n",
+    assert(!sim_stream); // We do not currently support opu streams
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuConfigureCall(tc = %p, gridDim = (%u,%u,%u), blockDim = (%u,%u,%u), sharedMem = %u, stream)\n",
             tc, sim_gridDim.x, sim_gridDim.y, sim_gridDim.z, sim_blockDim.x,
             sim_blockDim.y, sim_blockDim.z, sim_sharedMem);
 
-    g_cuda_launch_stack.push_back(kernel_config(sim_gridDim, sim_blockDim, sim_sharedMem, sim_stream));
+    g_opu_launch_stack.push_back(kernel_config(sim_gridDim, sim_blockDim, sim_sharedMem, sim_stream));
     g_last_cudaError = cudaSuccess;
 }
+#endif
 
-// void gem5cudaSetupArgument_(ThreadContext *tc, gpusyscall_t *call_params){
-void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
+// void gem5opuSetupArgument_(ThreadContext *tc, gpusyscall_t *call_params){
+void libgem5opuSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_arg = *((Addr*)helper.getParam(0, true));
     size_t sim_size = *((size_t*)helper.getParam(1));
@@ -1028,33 +894,34 @@ void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
 
     const void* arg = new uint8_t[sim_size];
     helper.readBlob(sim_arg, (uint8_t*)arg, sim_size);
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaSetupArgument(tc = %p, arg = %x, size = %d, offset = %d) *arg = %p\n",
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuSetupArgument(tc = %p, arg = %x, size = %d, offset = %d) *arg = %p\n",
             tc, sim_arg, sim_size, sim_offset, arg);
 
-    assert(!g_cuda_launch_stack.empty());
-    kernel_config &config = g_cuda_launch_stack.back();
+    assert(!g_opu_launch_stack.empty());
+    kernel_config &config = g_opu_launch_stack.back();
     config.set_arg(arg, sim_size, sim_offset);
 
     g_last_cudaError = cudaSuccess;
+#endif
 }
 
 /*
-void gem5cudaSetupArgument_(GPUSyscallHelper &helper, Addr sim_arg, size_t sim_size, size_t sim_offset)
+void gem5opuSetupArgument_(GPUSyscallHelper &helper, Addr sim_arg, size_t sim_size, size_t sim_offset)
 {
     const void* arg = new uint8_t[sim_size];
     helper.readBlob(sim_arg, (uint8_t*)arg, sim_size);
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaSetupArgument(arg = %x, size = %d, offset = %d) *arg = %p\n",
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuSetupArgument(arg = %x, size = %d, offset = %d) *arg = %p\n",
             sim_arg, sim_size, sim_offset, arg);
 
-    assert(!g_cuda_launch_stack.empty());
-    kernel_config &config = g_cuda_launch_stack.back();
+    assert(!g_opu_launch_stack.empty());
+    kernel_config &config = g_opu_launch_stack.back();
     config.set_arg(arg, sim_size, sim_offset);
 }
 
 
-void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
+void libgem5opuSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     function_info* f = *((function_info**)helper.getParam(0, true));
     Addr sim_arg = *((Addr*)helper.getParam(1, true));
@@ -1065,15 +932,16 @@ void libgem5cudaSetupArgument(ThreadContext *tc, gpusyscall_t *call_params){
 
     for(unsigned i = 0; i < num_args; i++){
        	std::pair<size_t, unsigned> p = f->get_param_config(i);
-       	gem5cudaSetupArgument_(helper, (Addr)(args[i]), p.first, p.second);
+       	gem5opuSetupArgument_(helper, (Addr)(args[i]), p.first, p.second);
     }
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaSetupArguments(tc = %p, arg = %x) *arg = %p\n",
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuSetupArguments(tc = %p, arg = %x) *arg = %p\n",
             tc, sim_arg);
 
     g_last_cudaError = cudaSuccess;
 }
-
+*/
+/*
 #define CACHE_BLOCK_SIZE_BYTES 128
 #define PAGE_SIZE_BYTES 4096
 
@@ -1100,38 +968,35 @@ __inline__ void *checkedAlignedAlloc(size_t size, size_t align_gran = CACHE_BLOC
 */
 
 
-
-void libgem5cudaLaunch(ThreadContext *tc, gpusyscall_t *call_params)
+void libgem5opuLaunch(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_hostFun = *((Addr*)helper.getParam(0, true));
+    struct CUstream_st *stream= *((CUstream_st**)helper.getParam(1, true));
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    char *mode = getenv("PTX_SIM_MODE_FUNC");
-    int ptx_sim_mode;
-    if (mode)
-        sscanf(mode,"%u", &ptx_sim_mode);
-    assert(!g_cuda_launch_stack.empty());
-    kernel_config config = g_cuda_launch_stack.back();
-    struct CUstream_st *stream = config.get_stream();
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaLaunch(tc = %p, hostFun* = %x)\n", tc, sim_hostFun);
-    kernel_info_t *grid = gpgpu_cuda_ptx_sim_init_grid(config.get_args(), config.grid_dim(), config.block_dim(), cudaGPU->get_kernel((const char*)sim_hostFun));
-    grid->set_inst_base_vaddr(cudaGPU->getInstBaseVaddr());
-    std::string kname = grid->name();
-    stream_operation op(grid, ptx_sim_mode, stream);
-    op.setThreadContext(tc);
-    cudaGPU->getStreamManager()->push(op);
-    g_cuda_launch_stack.pop_back();
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    // assert(!g_opu_launch_stack.empty());
+    // kernel_config config = g_opu_launch_stack.back();
+    // struct CUstream_st *stream = config.get_stream();
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuLaunch(tc = %p, hostFun* = %x)\n", tc, sim_hostFun);
+    // FIXME
+    // kernel_info_t *grid = gpgpu_opu_ptx_sim_init_grid(config.get_args(), config.grid_dim(), config.block_dim(), opu_top->get_kernel((const char*)sim_hostFun));
+    // grid->set_inst_base_vaddr(opu_top->getInstBaseVaddr());
+    // std::string kname = grid->name();
+    // stream_operation op(grid, 0, stream);
+    // op.setThreadContext(tc);
+    // opu_top->getStreamManager()->push(op);
+    // g_opu_launch_stack.pop_back();
     g_last_cudaError = cudaSuccess;
 }
 
-size_t getMaxThreadsPerBlock(struct cudaFuncAttributes attr) {
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    CudaGPU::CudaDeviceProperties *prop;
+size_t getMaxThreadsPerBlock(struct OpuFuncAttributes attr) {
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    OpuTop::OpuDeviceProperties *prop;
 
-    prop = cudaGPU->getDeviceProperties();
+    prop = opu_top->getDeviceProperties();
 
     size_t max = prop->maxThreadsPerBlock;
 
@@ -1143,22 +1008,22 @@ size_t getMaxThreadsPerBlock(struct cudaFuncAttributes attr) {
 }
 
 void
-libcudaFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
+libopuFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_attr = *((Addr*)helper.getParam(0, true));
     Addr sim_hostFun = *((Addr*)helper.getParam(1, true));
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaFuncGetAttributes(attr* = %x, hostFun* = %x)\n", sim_attr, sim_hostFun);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuFuncGetAttributes(attr* = %x, hostFun* = %x)\n", sim_attr, sim_hostFun);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    function_info *entry = cudaGPU->get_kernel((const char*)sim_hostFun);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    function_info *entry = opu_top->get_kernel((const char*)sim_hostFun);
 
     if (entry) {
         const struct gpgpu_ptx_sim_info *kinfo = entry->get_kernel_info();
-        cudaFuncAttributes attr;
+        OpuFuncAttributes attr;
         attr.sharedSizeBytes = kinfo->smem;
         attr.constSizeBytes  = kinfo->cmem;
         attr.localSizeBytes  = kinfo->lmem;
@@ -1166,7 +1031,7 @@ libcudaFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
         attr.maxThreadsPerBlock = getMaxThreadsPerBlock(attr);
         attr.ptxVersion      = kinfo->ptx_version;
         attr.binaryVersion   = kinfo->sm_target;
-        helper.writeBlob(sim_attr, (uint8_t*)&attr, sizeof(cudaFuncAttributes));
+        helper.writeBlob(sim_attr, (uint8_t*)&attr, sizeof(OpuFuncAttributes));
         g_last_cudaError = cudaSuccess;
     } else {
         g_last_cudaError = cudaErrorInvalidDeviceFunction;
@@ -1181,75 +1046,32 @@ libcudaFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
  *                                                                              *
 *******************************************************************************/
 
-// __host__ cudaError_t CUDARTAPI cudaStreamCreate(cudaStream_t *stream)
+// __host__ cudaError_t opuRTAPI opuStreamCreate(opuStream_t *stream)
 void
-cudaStreamCreate(ThreadContext *tc, gpusyscall_t *call_params)
+opuStreamCreate(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-// __host__ cudaError_t CUDARTAPI cudaStreamDestroy(cudaStream_t stream)
+// __host__ cudaError_t opuRTAPI opuStreamDestroy(opuStream_t stream)
 void
-cudaStreamDestroy(ThreadContext *tc, gpusyscall_t *call_params)
+opuStreamDestroy(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-// __host__ cudaError_t CUDARTAPI cudaStreamSynchronize(cudaStream_t stream)
+// __host__ cudaError_t opuRTAPI opuStreamSynchronize(opuStream_t stream)
 void
-cudaStreamSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
+opuStreamSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-// __host__ cudaError_t CUDARTAPI cudaStreamQuery(cudaStream_t stream)
+// __host__ cudaError_t opuRTAPI opuStreamQuery(opuStream_t stream)
 void
-cudaStreamQuery(ThreadContext *tc, gpusyscall_t *call_params)
+opuStreamQuery(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-/*******************************************************************************
- *                                                                              *
- *                                                                              *
- *                                                                              *
-*******************************************************************************/
-
-// __host__ cudaError_t CUDARTAPI cudaEventCreate(cudaEvent_t *event)
-void
-cudaEventCreate(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventRecord(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventQuery(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventDestroy(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventElapsedTime(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 /*******************************************************************************
@@ -1258,52 +1080,81 @@ cudaEventElapsedTime(ThreadContext *tc, gpusyscall_t *call_params)
  *                                                                              *
 *******************************************************************************/
 
+// __host__ cudaError_t opuRTAPI opuEventCreate(opuEvent_t *event)
 void
-cudaThreadExit(ThreadContext *tc, gpusyscall_t *call_params)
+opuEventCreate(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventRecord(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventQuery(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventDestroy(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventElapsedTime(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+/*******************************************************************************
+ *                                                                              *
+ *                                                                              *
+ *                                                                              *
+*******************************************************************************/
+
+void
+opuThreadExit(ThreadContext *tc, gpusyscall_t *call_params)
 {
     // This function should clean-up any/all resources associated with the
     // current device in the passed thread context
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaThreadSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
+opuThreadSynchronize(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: cudaThreadSynchronize(), tc = %x\n", tc);
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    bool suspend = cudaGPU->needsToBlock();
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: opuThreadSynchronize(), tc = %x\n", tc);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    bool suspend = opu_top->needsToBlock();
     g_last_cudaError = cudaSuccess;
     helper.setReturn((uint8_t*)&suspend, sizeof(bool));
 }
 
 void
-__cudaSynchronizeThreads(ThreadContext *tc, gpusyscall_t *call_params)
+__opuSynchronizeThreads(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-void
-deleteFatCudaBinary(__cudaFatCudaBinary* fat_cubin) {
-    if (fat_cubin->ident) delete[] fat_cubin->ident;
-    if (fat_cubin->ptx) {
-        // @TODO: This might need to loop... consider splitting out the
-        // CUDA binary read into a separate helper class that tracks the
-        // number of ptx_entries that are read in
-        if (fat_cubin->ptx->gpuProfileName) delete[] fat_cubin->ptx->gpuProfileName;
-        if (fat_cubin->ptx->ptx) delete[] fat_cubin->ptx->ptx;
-        delete[] fat_cubin->ptx;
-    }
-    delete fat_cubin;
-}
-
-symbol_table* registering_symtab = NULL;
-unsigned registering_fat_cubin_handle = 0;
-int registering_allocation_size = -1;
-Addr registering_allocation_ptr = 0;
-Addr registering_local_alloc_ptr = 0;
-
+// symbol_table* registering_symtab = NULL;
+// unsigned registering_fat_cubin_handle = 0;
+// int registering_allocation_size = -1;
+// Addr registering_allocation_ptr = 0;
+// Addr registering_local_alloc_ptr = 0;
+#if 0
 unsigned
 get_global_and_constant_alloc_size(symbol_table* symtab)
 {
@@ -1325,12 +1176,13 @@ get_global_and_constant_alloc_size(symbol_table* symtab)
     return total_bytes;
 }
 
+
 unsigned
-get_local_alloc_size(CudaGPU *cudaGPU) {
-    unsigned cores = cudaGPU->getDeviceProperties()->multiProcessorCount;
-    unsigned threads_per_core = cudaGPU->getMaxThreadsPerMultiprocessor();
-    // NOTE: Per technical specs Wikipedia: http://en.wikipedia.org/wiki/CUDA
-    // For CUDA GPUs with compute capability 1.x, each thread should be able to
+get_local_alloc_size(OpuTop *opu_top) {
+    unsigned cores = opu_top->getDeviceProperties()->multiProcessorCount;
+    unsigned threads_per_core = opu_top->getMaxThreadsPerMultiprocessor();
+    // NOTE: Per technical specs Wikipedia: http://en.wikipedia.org/wiki/opu
+    // For opu GPUs with compute capability 1.x, each thread should be able to
     // access up to 16kB of memory, and for compute capability 2.x+, each
     // thread should be able to access up to 512kB of local memory. Since this
     // could blow out the simulator's memory footprint, here we use 8kB per
@@ -1343,18 +1195,21 @@ get_local_alloc_size(CudaGPU *cudaGPU) {
     unsigned max_local_mem_per_thread = 8 * 1024;
     return cores * threads_per_core * max_local_mem_per_thread;
 }
+#endif
 
+#if 0
 void
 finalize_global_and_constant_setup(ThreadContext *tc, Addr base_addr, symbol_table* symtab)
 {
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    opu_not_implemented(__my_func__,__LINE__);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     Addr curr_addr = base_addr;
     Addr next_addr = 0;
     symbol_table::iterator iter;
     for (iter = symtab->global_iterator_begin(); iter != symtab->global_iterator_end(); iter++) {
         symbol* global = *iter;
         global->set_address(curr_addr);
-        cudaGPU->registerDeviceMemory(tc, curr_addr, global->get_size_in_bytes());
+        opu_top->registerDeviceMemory(tc, curr_addr, global->get_size_in_bytes());
         next_addr = curr_addr + global->get_size_in_bytes();
         if (next_addr - base_addr > registering_allocation_size) {
             panic("Didn't allocate enough global+const memory. Bailing!");
@@ -1367,7 +1222,7 @@ finalize_global_and_constant_setup(ThreadContext *tc, Addr base_addr, symbol_tab
     for (iter = symtab->const_iterator_begin(); iter != symtab->const_iterator_end(); iter++) {
         symbol* constant = *iter;
         constant->set_address(curr_addr);
-        cudaGPU->registerDeviceMemory(tc, curr_addr, constant->get_size_in_bytes());
+        opu_top->registerDeviceMemory(tc, curr_addr, constant->get_size_in_bytes());
         next_addr = curr_addr + constant->get_size_in_bytes();
         if (next_addr - base_addr > registering_allocation_size) {
             panic("Didn't allocate enough global+const memory. Bailing!");
@@ -1383,17 +1238,18 @@ void registerFatBinaryTop(GPUSyscallHelper *helper,
         unsigned int handle
         )
 {
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    gpgpu_t *gpu = cudaGPU->getTheGPU();
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    // gpgpu_t *gpu = opu_top->getTheGPU();
 
-    registering_symtab = symtab;
-    registering_fat_cubin_handle = handle;
+    // registering_symtab = symtab;
+    // registering_fat_cubin_handle = handle;
 
     // Read ident member
-    cudaGPU->add_binary(registering_symtab, registering_fat_cubin_handle);
+    // opu_top->add_binary(registering_symtab, registering_fat_cubin_handle);
 
 
 }
+#endif
 
 
 #if 0
@@ -1401,7 +1257,7 @@ void
 sysgem5gpu_symbol_lookup(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     symbol_table* symtab = *((symbol_table**)helper.getParam(0, true));
     Addr name = *((Addr*)helper.getParam(1, true));
@@ -1410,7 +1266,7 @@ sysgem5gpu_symbol_lookup(ThreadContext *tc, gpusyscall_t *call_params)
 
     symbol *s = symtab->lookup(symbol_name);
 
-    // if (!cudaGPU->isManagingGPUMemory()) {
+    // if (!opu_top->isManagingGPUMemory()) {
     helper.setReturn((uint8_t*)&s, sizeof(void*));
 }
 
@@ -1418,7 +1274,7 @@ void
 sysgem5gpu_symbol_get_function(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     symbol_table* symtab = *((symbol_table**)helper.getParam(0, true));
     Addr name = *((Addr*)helper.getParam(1, true));
@@ -1432,26 +1288,30 @@ sysgem5gpu_symbol_get_function(ThreadContext *tc, gpusyscall_t *call_params)
         assert(f != NULL);
     }
 
-    // if (!cudaGPU->isManagingGPUMemory()) {
+    // if (!opu_top->isManagingGPUMemory()) {
     helper.setReturn((uint8_t*)&f, sizeof(void*));
 }
 #endif
 
 void
-libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
+libgem5opuRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params) {
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+#if 0
 {
 
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
-    // Get CUDA call simulated parameters
+    // Get opu call simulated parameters
     // Addr sim_fatCubin = *((Addr*)helper.getParam(0, true));
     // int sim_binSize = *((int*)helper.getParam(1));
     symbol_table* symtab = *((symbol_table**)helper.getParam(0, true));
     unsigned int handle = *((int*)helper.getParam(1));
 
-    // DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterFatBinary(fatCubin* = %x, binSize = %d)\n", sim_fatCubin, sim_binSize);
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    // DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuRegisterFatBinary(fatCubin* = %x, binSize = %d)\n", sim_fatCubin, sim_binSize);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
     assert(registering_symtab == NULL);
     registering_symtab = symtab;
@@ -1462,54 +1322,54 @@ libgem5cudaRegisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
     // registerFatBinaryTop(&helper, sim_fatCubin, sim_binSize);
     registerFatBinaryTop(&helper, registering_symtab, registering_fat_cubin_handle);
 
-    // FIXME now cudart load global and use cudaMemcpy instead
+    // FIXME now opurt load global and use opuMemcpy instead
     registering_allocation_size = get_global_and_constant_alloc_size(registering_symtab);
 
-    // FIXME register_allocation_size will used return to gem5cudaRegisterFatBinary
-    //  and it call libcudaRegisterFatBinaryFinalize, which will call
+    // FIXME register_allocation_size will used return to gem5opuRegisterFatBinary
+    //  and it call libopuRegisterFatBinaryFinalize, which will call
     //  registerDeviceMemory, the size 0x4000 is hardcode now
     registering_allocation_size += 0x4000;
 
 
-    // FIXME i don't think it is need cudaGPU->saveFatBinaryInfoTop(tc->threadId(), registering_fat_cubin_handle, sim_fatCubin, sim_binSize);
+    // FIXME i don't think it is need opu_top->saveFatBinaryInfoTop(tc->threadId(), registering_fat_cubin_handle, sim_fatCubin, sim_binSize);
 
-    if (!cudaGPU->isManagingGPUMemory()) {
+    if (!opu_top->isManagingGPUMemory()) {
         helper.setReturn((uint8_t*)&registering_allocation_size, sizeof(int));
         // FIXME hack temp for inst text
-        // cudaGPU->registerDeviceMemory(tc, 0xF0000000, 0x4000);
+        // opu_top->registerDeviceMemory(tc, 0xF0000000, 0x4000);
     } else {
         assert(!registering_allocation_ptr);
-        registering_allocation_ptr = cudaGPU->allocateGPUMemory(registering_allocation_size);
+        registering_allocation_ptr = opu_top->allocateGPUMemory(registering_allocation_size);
         // FIXME
         // g_program_memory_start = registering_allocation_ptr;
         int zero_allocation = 0;
         helper.setReturn((uint8_t*)&zero_allocation, sizeof(int));
     }
 }
+#endif
 
 #if 0
 void
-libgem5cudaRegisterPtxInfo(ThreadContext *tc, gpusyscall_t *call_params)
+libgem5opuRegisterPtxInfo(ThreadContext *tc, gpusyscall_t *call_params)
 {
 
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
-    // Get CUDA call simulated parameters
+    // Get opu call simulated parameters
     char* ptxinfo_kname = ((char*)helper.getParam(0, true));
     gpgpu_ptx_sim_info ptxinfo_kinfo = *((gpgpu_ptx_sim_info*)helper.getParam(1, true));
 
-    // DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterFatBinary(fatCubin* = %x, binSize = %d)\n", sim_fatCubin, sim_binSize);
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    // DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuRegisterFatBinary(fatCubin* = %x, binSize = %d)\n", sim_fatCubin, sim_binSize);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     // gpgpu_ptxinfo_load_from_string(ptx, source_num);
     // TODO ptx_loader.cc ptxinfo_parse know ptxinfo_kname, ptxinfo_kinfo
-    cudaGPU->add_ptxinfo(ptxinfo_kname, ptxinfo_kinfo);
+    opu_top->add_ptxinfo(ptxinfo_kname, ptxinfo_kinfo);
 }
-#endif
 
 unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_ptr)
 {
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterFatBinaryFinalize(alloc_ptr* = 0x%x)\n", sim_alloc_ptr);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuRegisterFatBinaryFinalize(alloc_ptr* = 0x%x)\n", sim_alloc_ptr);
 
     assert(registering_symtab);
     assert(registering_fat_cubin_handle > 0);
@@ -1517,11 +1377,11 @@ unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_pt
     assert(sim_alloc_ptr || registering_allocation_size == 0);
 
     if (registering_allocation_size > 0) {
-        // FIXME , i think libcuda runtime have dont it, so skip in here
+        // FIXME , i think libopu runtime have dont it, so skip in here
         finalize_global_and_constant_setup(helper->getThreadContext(), sim_alloc_ptr, registering_symtab);
     }
 
-    // FIXME , i think libcuda runtime have dont it, so skip in here
+    // FIXME , i think libopu runtime have dont it, so skip in here
     load_static_globals(helper, registering_symtab, STATIC_ALLOC_LIMIT);
     load_constants(helper, registering_symtab, STATIC_ALLOC_LIMIT);
 
@@ -1534,146 +1394,162 @@ unsigned int registerFatBinaryBottom(GPUSyscallHelper *helper, Addr sim_alloc_pt
 
     return handle;
 }
+#endif
 
 void
-libcudaRegisterFatBinaryFinalize(ThreadContext *tc, gpusyscall_t *call_params)
+libopuRegisterFatBinaryFinalize(ThreadContext *tc, gpusyscall_t *call_params)
 {
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
     Addr sim_alloc_ptr = *((Addr*)helper.getParam(0, true));
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
-    // cudaGPU->saveFatBinaryInfoBottom(sim_alloc_ptr);
+    // opu_top->saveFatBinaryInfoBottom(sim_alloc_ptr);
 
     unsigned int handle;
-    if (!cudaGPU->isManagingGPUMemory()) {
-        // cudaGPU->saveFatBinaryInfoBottom(sim_alloc_ptr);
+    if (!opu_top->isManagingGPUMemory()) {
+        // opu_top->saveFatBinaryInfoBottom(sim_alloc_ptr);
         handle = registerFatBinaryBottom(&helper, sim_alloc_ptr);
         // g_program_memory_start = sim_alloc_ptr;
-        cudaGPU->registerDeviceMemory(tc, sim_alloc_ptr, 0x4000);
+        opu_top->registerDeviceMemory(tc, sim_alloc_ptr, 0x4000);
     } else {
         assert(!sim_alloc_ptr);
         assert(registering_allocation_ptr || registering_allocation_size == 0);
-        // cudaGPU->saveFatBinaryInfoBottom(registering_allocation_ptr);
+        // opu_top->saveFatBinaryInfoBottom(registering_allocation_ptr);
         handle = registerFatBinaryBottom(&helper, registering_allocation_ptr);
     }
 
     // TODO: If local memory has been allocated and has been mapped by the CPU
     // thread, register the allocation with the GPU for address translation.
-    if (registering_local_alloc_ptr /*FIXME && !cudaGPU->getAccessHostPagetable()*/) {
-        cudaGPU->registerDeviceMemory(tc, registering_local_alloc_ptr, get_local_alloc_size(cudaGPU));
+    if (registering_local_alloc_ptr /*FIXME && !opu_top->getAccessHostPagetable()*/) {
+        opu_top->registerDeviceMemory(tc, registering_local_alloc_ptr, get_local_alloc_size(opu_top));
     }
 
     helper.setReturn((uint8_t*)&handle, sizeof(void**), true);
+#endif
 }
 
 void
-__cudaCheckAllocateLocal(ThreadContext *tc, gpusyscall_t *call_params)
+__opuCheckAllocateLocal(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaCheckAllocateLocal()\n");
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuCheckAllocateLocal()\n");
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+#if 0
     assert(registering_symtab);
     if (registering_symtab->get_local_next() > 0 && (registering_local_alloc_ptr == NULL)) {
-        unsigned long long local_alloc_size = get_local_alloc_size(cudaGPU);
-        if (!cudaGPU->isManagingGPUMemory()) {
+        unsigned long long local_alloc_size = get_local_alloc_size(opu_top);
+        if (!opu_top->isManagingGPUMemory()) {
             DPRINTF(GPUSyscalls, "gem5 GPU Syscall:      CPU must allocate local: %lluB\n", local_alloc_size);
             helper.setReturn((uint8_t*)&local_alloc_size, sizeof(unsigned long long), false);
         } else {
             DPRINTF(GPUSyscalls, "gem5 GPU Syscall:      GPU allocating local...\n");
-            registering_local_alloc_ptr = cudaGPU->allocateGPUMemory(local_alloc_size);
-            cudaGPU->setLocalBaseVaddr(registering_local_alloc_ptr);
-            cudaGPU->registerDeviceMemory(tc, registering_local_alloc_ptr, local_alloc_size);
+            registering_local_alloc_ptr = opu_top->allocateGPUMemory(local_alloc_size);
+            opu_top->setLocalBaseVaddr(registering_local_alloc_ptr);
+            opu_top->registerDeviceMemory(tc, registering_local_alloc_ptr, local_alloc_size);
             unsigned long long zero_allocation = 0;
             helper.setReturn((uint8_t*)&zero_allocation, sizeof(int));
         }
     }
+#endif
 }
 
 void
-__cudaSetLocalAllocation(ThreadContext *tc, gpusyscall_t *call_params) {
+__opuSetLocalAllocation(ThreadContext *tc, gpusyscall_t *call_params) {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
     Addr sim_alloc_ptr = *((Addr*)helper.getParam(0, true));
 
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaSetLocalAllocation(alloc_ptr* = 0x%x)\n", sim_alloc_ptr);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuSetLocalAllocation(alloc_ptr* = 0x%x)\n", sim_alloc_ptr);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
     // Save the local memory base address
-    assert(!cudaGPU->isManagingGPUMemory());
-    assert(!registering_local_alloc_ptr);
-    registering_local_alloc_ptr = sim_alloc_ptr;
-    cudaGPU->setLocalBaseVaddr(registering_local_alloc_ptr);
+    assert(!opu_top->isManagingGPUMemory());
+    // assert(!registering_local_alloc_ptr);
+    // registering_local_alloc_ptr = sim_alloc_ptr;
+    // opu_top->setLocalBaseVaddr(registering_local_alloc_ptr);
 
     // TODO: Need to check if using host or GPU page mappings. If the GPU is
     // not able to access the host's pagetable, then the memory pages need to
     // be mapped for the GPU to access them.
     // global: bool registering_signal_local_map = false;
-    // if (!cudaGPU->getAccessHostPagetable()) {
+    // if (!opu_top->getAccessHostPagetable()) {
     //     registering_signal_local_map = true;
     //     helper.setReturn((uint8_t*)&signal_map_memory, sizeof(bool));
     // }
 }
 
 void
-libcudaUnregisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
+libopuUnregisterFatBinary(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: libcudaUnregisterFatBinary() Faked\n");
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: libopuUnregisterFatBinary() Faked\n");
 
     registering_local_alloc_ptr = 0;
+#endif
 }
 
 void
-libcudaRegisterFunction(ThreadContext *tc, gpusyscall_t *call_params)
+libopuRegisterFunction(ThreadContext *tc, gpusyscall_t *call_params)
 {
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_fatCubinHandle = *((Addr*)helper.getParam(0, true));
     Addr sim_hostFun = *((Addr*)helper.getParam(1, true));
     Addr sim_deviceFun = *((Addr*)helper.getParam(2, true));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: libcudaRegisterFunction(fatCubinHandle** = %x, hostFun* = %x, deviceFun* = %x)\n",
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: libopuRegisterFunction(fatCubinHandle** = %x, hostFun* = %x, deviceFun* = %x)\n",
             sim_fatCubinHandle, sim_hostFun, sim_deviceFun);
 
     // Read device function name from simulated system memory
     char* device_fun = new char[MAX_STRING_LEN];
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     helper.readString(sim_deviceFun, (uint8_t*)device_fun, MAX_STRING_LEN);
 
     // Register function
     unsigned fat_cubin_handle = (unsigned)(unsigned long long)sim_fatCubinHandle;
-    cudaGPU->register_function(fat_cubin_handle, (const char*)sim_hostFun, device_fun);
-    // FIXME cudaGPU->saveFunctionNames(fat_cubin_handle, (const char*)sim_hostFun, device_fun);
+    opu_top->register_function(fat_cubin_handle, (const char*)sim_hostFun, device_fun);
+    // FIXME opu_top->saveFunctionNames(fat_cubin_handle, (const char*)sim_hostFun, device_fun);
     delete[] device_fun;
+#endif
 }
 
-void register_var(CudaGPU *cudaGPU, Addr sim_deviceAddress, const char* deviceName, int sim_size, int sim_constant, int sim_global, int sim_ext, Addr sim_hostVar)
+void register_var(OpuTop *opu_top, Addr sim_deviceAddress, const char* deviceName, int sim_size, int sim_constant, int sim_global, int sim_ext, Addr sim_hostVar)
 {
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterVar(fatCubinHandle** = %x, hostVar* = 0x%x, deviceAddress* = 0x%x, deviceName* = %s, ext = %d, size = %d, constant = %d, global = %d)\n",
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuRegisterVar(fatCubinHandle** = %x, hostVar* = 0x%x, deviceAddress* = 0x%x, deviceName* = %s, ext = %d, size = %d, constant = %d, global = %d)\n",
             /*sim_fatCubinHandle*/ 0, sim_hostVar, sim_deviceAddress,
             deviceName, sim_ext, sim_size, sim_constant, sim_global);
 
     if (sim_constant && !sim_global && !sim_ext) {
-        cudaGPU->getGPGPUCtx()->func_sim->gpgpu_ptx_sim_register_const_variable((void*)sim_hostVar, deviceName, sim_size);
+        opu_top->getGPGPUCtx()->func_sim->gpgpu_ptx_sim_register_const_variable((void*)sim_hostVar, deviceName, sim_size);
     } else if (!sim_constant && !sim_global && !sim_ext) {
-        cudaGPU->getGPGPUCtx()->func_sim->gpgpu_ptx_sim_register_global_variable((void*)sim_hostVar, deviceName, sim_size);
+        opu_top->getGPGPUCtx()->func_sim->gpgpu_ptx_sim_register_global_variable((void*)sim_hostVar, deviceName, sim_size);
     } else {
-        panic("__cudaRegisterVar: Don't know how to register variable!");
+        panic("__opuRegisterVar: Don't know how to register variable!");
     }
+#endif
 }
 
-void libcudaRegisterVar(ThreadContext *tc, gpusyscall_t *call_params)
+void libopuRegisterVar(ThreadContext *tc, gpusyscall_t *call_params)
 {
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     // Addr sim_fatCubinHandle = *((Addr*)helper.getParam(0, true));
     Addr sim_hostVar = *((Addr*)helper.getParam(1, true));
@@ -1685,32 +1561,35 @@ void libcudaRegisterVar(ThreadContext *tc, gpusyscall_t *call_params)
     int sim_global = *((int*)helper.getParam(7));
 
     const char* deviceName = new char[MAX_STRING_LEN];
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     helper.readString(sim_deviceName, (uint8_t*)deviceName, MAX_STRING_LEN);
 
-    cudaGPU->saveVar(sim_deviceAddress, deviceName, sim_size, sim_constant, sim_global, sim_ext, sim_hostVar);
+    opu_top->saveVar(sim_deviceAddress, deviceName, sim_size, sim_constant, sim_global, sim_ext, sim_hostVar);
 
-    register_var(cudaGPU, sim_deviceAddress, deviceName, sim_size, sim_constant, sim_global, sim_ext, sim_hostVar);
+    register_var(opu_top, sim_deviceAddress, deviceName, sim_size, sim_constant, sim_global, sim_ext, sim_hostVar);
+#endif
 }
 
-//  void __cudaRegisterShared(void **fatCubinHandle, void **devicePtr)
+//  void __opuRegisterShared(void **fatCubinHandle, void **devicePtr)
 void
-__cudaRegisterShared(ThreadContext *tc, gpusyscall_t *call_params)
+__opuRegisterShared(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-__cudaRegisterSharedVar(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-libcudaRegisterTexture(ThreadContext *tc, gpusyscall_t *call_params)
+__opuRegisterSharedVar(ThreadContext *tc, gpusyscall_t *call_params)
 {
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+libopuRegisterTexture(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     // Addr sim_fatCubinHandle = *((Addr*)helper.getParam(0, true));
     Addr sim_hostVar = *((Addr*)helper.getParam(1));
@@ -1719,139 +1598,140 @@ libcudaRegisterTexture(ThreadContext *tc, gpusyscall_t *call_params)
     int sim_dim = *((int*)helper.getParam(4));
     int sim_norm = *((int*)helper.getParam(5));
     int sim_ext = *((int*)helper.getParam(6));
-    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __cudaRegisterTexture(fatCubinHandle** = %x, hostVar* = %x, deviceAddress* = %x, deviceName* = %x, dim = %d, norm = %d, ext = %d)\n",
+    DPRINTF(GPUSyscalls, "gem5 GPU Syscall: __opuRegisterTexture(fatCubinHandle** = %x, hostVar* = %x, deviceAddress* = %x, deviceName* = %x, dim = %d, norm = %d, ext = %d)\n",
             /*sim_fatCubinHandle*/ 0, sim_hostVar, /*sim_deviceAddress*/ 0,
             sim_deviceName, sim_dim, sim_norm, sim_ext);
 
     const char* deviceName = new char[MAX_STRING_LEN];
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
-    gpgpu_t *gpu = cudaGPU->getTheGPU();
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
+    gpgpu_t *gpu = opu_top->getTheGPU();
     helper.readString(sim_deviceName, (uint8_t*)deviceName, MAX_STRING_LEN);
 
     gpu->gpgpu_ptx_sim_bindNameToTexture(deviceName, (const struct textureReference*)sim_hostVar, sim_dim, sim_norm, sim_ext);
-    warn("__cudaRegisterTexture implementation is not complete!");
-}
-
-void
-cudaGLRegisterBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaGLMapBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaGLUnmapBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaGLUnregisterBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-#if (CUDART_VERSION >= 2010)
-
-void
-cudaHostAlloc(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaHostGetDevicePointer(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaSetValidDevices(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaSetDeviceFlags(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaEventCreateWithFlags(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaDriverGetVersion(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
-void
-cudaRuntimeGetVersion(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
-}
-
+    warn("__opuRegisterTexture implementation is not complete!");
 #endif
-
-void
-cudaGLSetGLDevice(ThreadContext *tc, gpusyscall_t *call_params)
-{
-    cuda_not_implemented(__my_func__,__LINE__);
 }
 
 void
-cudaWGLGetDevice(ThreadContext *tc, gpusyscall_t *call_params)
+opuGLRegisterBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-__cudaMutexOperation(ThreadContext *tc, gpusyscall_t *call_params)
+opuGLMapBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
 void
-__cudaTextureFetch(ThreadContext *tc, gpusyscall_t *call_params)
+opuGLUnmapBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
 {
-    cuda_not_implemented(__my_func__,__LINE__);
+    opu_not_implemented(__my_func__,__LINE__);
 }
 
-namespace cuda_math {
-    uint64_t __cudaMutexOperation(ThreadContext *tc, gpusyscall_t *call_params)
+void
+opuGLUnregisterBufferObject(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+// #if (opuRT_VERSION >= 2010)
+
+void
+opuHostAlloc(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuHostGetDevicePointer(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuSetValidDevices(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuSetDeviceFlags(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuEventCreateWithFlags(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuDriverGetVersion(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuRuntimeGetVersion(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+// #endif
+
+void
+opuGLSetGLDevice(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+opuWGLGetDevice(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+__opuMutexOperation(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+void
+__opuTextureFetch(ThreadContext *tc, gpusyscall_t *call_params)
+{
+    opu_not_implemented(__my_func__,__LINE__);
+}
+
+namespace opu_math {
+    uint64_t __opuMutexOperation(ThreadContext *tc, gpusyscall_t *call_params)
     {
-        cuda_not_implemented(__my_func__,__LINE__);
+        opu_not_implemented(__my_func__,__LINE__);
         return 0;
     }
 
-    uint64_t __cudaTextureFetch(ThreadContext *tc, gpusyscall_t *call_params)
+    uint64_t __opuTextureFetch(ThreadContext *tc, gpusyscall_t *call_params)
     {
-        cuda_not_implemented(__my_func__,__LINE__);
+        opu_not_implemented(__my_func__,__LINE__);
         return 0;
     }
 
-    uint64_t __cudaSynchronizeThreads(ThreadContext *tc, gpusyscall_t *call_params)
+    uint64_t __opuSynchronizeThreads(ThreadContext *tc, gpusyscall_t *call_params)
     {
         //TODO This function should syncronize if we support Asyn kernel calls
         return g_last_cudaError = cudaSuccess;
     }
 
-    void  __cudaTextureFetch(const void *tex, void *index, int integer, void *val) {
-        cuda_not_implemented(__my_func__,__LINE__);
+    void  __opuTextureFetch(const void *tex, void *index, int integer, void *val) {
+        opu_not_implemented(__my_func__,__LINE__);
     }
 
-    void __cudaMutexOperation(int lock)
+    void __opuMutexOperation(int lock)
     {
-        cuda_not_implemented(__my_func__,__LINE__);
+        opu_not_implemented(__my_func__,__LINE__);
     }
 }
 
@@ -1881,7 +1761,7 @@ static int load_static_globals(GPUSyscallHelper *helper, symbol_table *symtab, u
                 ptx_reg_t value = op.get_literal_value();
 
                 Addr addr = global->get_address();
-				assert( (addr+offset+nbytes) < min_gaddr ); // min_gaddr is start of "heap" for cudaMalloc
+				assert( (addr+offset+nbytes) < min_gaddr ); // min_gaddr is start of "heap" for opuMalloc
                 helper->writeBlob(addr + offset, (uint8_t*)&value, nbytes);
 
                 offset += nbytes;
@@ -1941,13 +1821,13 @@ void
 sysgem5gpu_active(ThreadContext *tc, gpusyscall_t *call_params)
 {
     GPUSyscallHelper helper(tc, call_params);
-    CudaGPU::getCudaGPU(g_active_device)->checkUpdateThreadContext(tc);
+    OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
-    CudaGPU *cudaGPU = CudaGPU::getCudaGPU(g_active_device);
+    OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
 
     Addr sim_active = *((Addr*)helper.getParam(0, true));
 
-    int active = cudaGPU->is_active();
+    int active = opu_top->is_active();
     DPRINTF(GPUSyscalls, "gem5 GPU Syscall: sysgem5gpu_active = %d\n", sim_active);
 
     helper.writeBlob(sim_active, (uint8_t*)(&active), sizeof(int));

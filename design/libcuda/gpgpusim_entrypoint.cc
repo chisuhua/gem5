@@ -38,7 +38,8 @@
 #include "../libcuda/stream_manager.h"
 #include "inc/IsaSim.h"
 
-#include "gem5cuda/gem5cuda_runtime_api.h"
+#include "gem5/cuda/gem5cuda_runtime_api.h"
+#include "gem5/opuumd/gem5umd_runtime_api.h"
 #include <dlfcn.h>
 
 

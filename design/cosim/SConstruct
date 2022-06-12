@@ -189,6 +189,23 @@ env.AlwaysBuild(buildplatlibgem5cuda)
 
 env.Command(libplatlibgem5cuda_dst, libplatlibgem5cuda_src, Copy("$TARGET", "$SOURCE"))
 
+##### libplatgem5umd.so
+libplatgem5umd_src=os.path.join(design_root, 'opu/umd/build/libplatgem5umd.so')
+libplatgem5umd_dst=os.path.join(design_root, 'cosim/libplatgem5umd.so')
+buildplatgem5umd = env.Command(libplatgem5umd_src, [], "cd {} && ./build.sh libplatgem5umd.so".format(os.path.join(design_root, 'opu/umd')))
+env.AlwaysBuild(buildplatgem5umd)
+
+env.Command(libplatgem5umd_dst, libplatgem5umd_src, Copy("$TARGET", "$SOURCE"))
+
+##### libplatgem5kmd.so
+libplatgem5kmd_src=os.path.join(design_root, 'opu/umd/build/libplatgem5kmd.so')
+libplatgem5kmd_dst=os.path.join(design_root, 'cosim/libplatgem5kmd.so')
+buildplatgem5kmd = env.Command(libplatgem5kmd_src, [], "cd {} && ./build.sh libplatgem5kmd.so".format(os.path.join(design_root, 'opu/umd')))
+env.AlwaysBuild(buildplatgem5kmd)
+
+env.Command(libplatgem5kmd_dst, libplatgem5kmd_src, Copy("$TARGET", "$SOURCE"))
+
+
 
 ##### libisasim.so
 libisasim_src=os.path.join(design_root, 'opu/isasim/build/libisasim.so')
@@ -203,9 +220,14 @@ Depends(libcudart_src, libumd_dst)
 Depends(libisasim_src, libcudart_dst)
 Depends(libplatlibcuda_src, libcudart_dst)
 Depends(libplatlibgem5cuda_src, libcudart_dst)
+Depends(libplatgem5umd_src, libcudart_dst)
+Depends(libplatgem5kmd_src, libcudart_dst)
+
 Depends(design, libcudart_dst)
 Depends(design, libplatlibcuda_dst)
 Depends(design, libplatlibgem5cuda_dst)
+Depends(design, libplatgem5umd_dst)
+Depends(design, libplatgem5kmd_dst)
 Depends(design, libisasim_dst)
 
 #Default(ex_master + ex_slave + design)

@@ -76,11 +76,13 @@ typedef uint64_t (*cudaFunc_t)(gem5::ThreadContext *, gpusyscall_t *);
 // add for opu_cmdio
 // struct ppusyscall;
 // typedef struct ppusyscall ppusyscall_t;
-typedef uint64_t (*opu_cmdio_func_t)(gem5::ThreadContext *, gpusyscall_t *);
+typedef uint64_t (*opu_umd_func_t)(gem5::ThreadContext *, gpusyscall_t *);
+typedef uint64_t (*opu_kmd_func_t)(gem5::ThreadContext *, gpusyscall_t *);
 
 //#ifdef BUILD_PPU_SYSTEM
 extern cudaFunc_t gpgpu_funcs[];
-extern opu_cmdio_func_t opu_cmdio_funcs[];
+extern opu_umd_func_t opu_umd_funcs[];
+extern opu_kmd_func_t opu_kmd_funcs[];
 //#endif
 
 using namespace std;
@@ -622,19 +624,23 @@ gpu(ThreadContext *tc, uint64_t gpusysno, uint64_t call_params)
 }
 
 void
-opu_cmdio(ThreadContext *tc, uint64_t opu_cmdio_sysno, uint64_t call_params)
+opu_umd(ThreadContext *tc, uint64_t opu_umd_sysno, uint64_t call_params)
 {
-    if (opu_cmdio_sysno > 100) {
-        warn("Ignoring gpu syscall %d\n", opu_cmdio_sysno);
+    if (opu_umd_sysno > 100) {
+        warn("Ignoring gpu syscall %d\n", opu_umd_sysno);
         return;
     }
+    opu_umd_funcs[opu_umd_sysno](tc, (gpusyscall_t*)call_params);
+}
 
-//#ifdef BUILD_PPU_SYSTEM
-    // opu_cmdio_funcs[opu_cmdio_sysno](tc, (gpusyscall_t*)call_params);
-//#else
-//    warn("Ignoring gpu syscall %d since BUILD_PPU_SYSTEM is not defined\n", opu_cmdio_sysno);
-//    return;
-//#endif
+void
+opu_kmd(ThreadContext *tc, uint64_t opu_kmd_sysno, uint64_t call_params)
+{
+    if (opu_kmd_sysno > 100) {
+        warn("Ignoring gpu syscall %d\n", opu_kmd_sysno);
+        return;
+    }
+    opu_kmd_funcs[opu_kmd_sysno](tc, (gpusyscall_t*)call_params);
 }
 
 } // namespace pseudo_inst

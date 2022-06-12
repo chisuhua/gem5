@@ -31,18 +31,18 @@
 
 #include "api/gpu_syscall_helper.hh"
 #include "sim/syscall_emul.hh"
-#include "cmdio.h"
+// #include "cmdio.h"
 
-typedef void (*ppu_cmdio_func_t)(ThreadContext *, gpusyscall_t *);
+typedef void (*opu_kmd_func_t)(ThreadContext *, gpusyscall_t *);
 
-void ppu_open(ThreadContext *tc, gpusyscall_t *call_params);
+void opu_open(ThreadContext *tc, gpusyscall_t *call_params);
 void create_queue(ThreadContext *tc, gpusyscall_t *call_params);
 void alloc_memory(ThreadContext *tc, gpusyscall_t *call_params);
 void read_register(ThreadContext *tc, gpusyscall_t *call_params);
 void write_register(ThreadContext *tc, gpusyscall_t *call_params);
 
-ppu_cmdio_func_t ppu_cmdio_funcs[] = {
-        ppu_open,             /* 0 */
+opu_kmd_func_t opu_kmd_funcs[] = {
+        opu_open,             /* 0 */
         create_queue,             /* 0 */
         alloc_memory,         /* 1 */
         read_register,        /* 2 */
