@@ -157,10 +157,10 @@
 // #include "opu-sim/ptx_loader.h"
 // #include "opu-sim/ptx_parser.h"
 #include "debug/GPUSyscalls.hh"
-#include "gpgpu-sim/gpu-sim.h"
-#include "gpgpusim_entrypoint.h"
+// #include "gpgpu-sim/gpu-sim.h"
+// #include "gpgpusim_entrypoint.h"
 #include "opu_top.hh"
-#include "stream_manager.h"
+#include "opu_stream.hh"
 // #include "../libopu_sim/gpgpu_context.h"
 #include "cpu/simple_thread.hh"
 #include "arch/x86/vecregs.hh"
@@ -1010,6 +1010,8 @@ size_t getMaxThreadsPerBlock(struct OpuFuncAttributes attr) {
 void
 libopuFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
 {
+    opu_not_implemented(__my_func__,__LINE__);
+#if 0
     GPUSyscallHelper helper(tc, call_params);
     OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
@@ -1038,6 +1040,7 @@ libopuFuncGetAttributes(ThreadContext *tc, gpusyscall_t *call_params)
     }
 
     helper.setReturn((uint8_t*)&g_last_cudaError, sizeof(cudaError_t));
+#endif
 }
 
 /*******************************************************************************
@@ -1737,86 +1740,22 @@ namespace opu_math {
 
 /// static functions
 
+#if 0
 static int load_static_globals(GPUSyscallHelper *helper, symbol_table *symtab, unsigned min_gaddr)
 {
+    opu_not_implemented(__my_func__,__LINE__);
     DPRINTF(GPUSyscalls, "GPGPU-Sim PTX: loading globals with explicit initializers\n");
     int ng_bytes = 0;
-    symbol_table::iterator g = symtab->global_iterator_begin();
-
-    for (; g != symtab->global_iterator_end(); g++) {
-        symbol *global = *g;
-        if (global->has_initializer()) {
-            DPRINTF(GPUSyscalls, "GPGPU-Sim PTX:     initializing '%s'\n", global->name().c_str());
-            // unsigned addr = global->get_address();
-            const type_info *type = global->type();
-            type_info_key ti = type->get_key();
-            size_t size;
-            int t;
-            ti.type_decode(size, t);
-            int nbytes = size/8;
-            Addr offset = 0;
-            std::list<operand_info> init_list = global->get_initializer();
-            for (std::list<operand_info>::iterator i = init_list.begin(); i != init_list.end(); i++) {
-                operand_info op = *i;
-                ptx_reg_t value = op.get_literal_value();
-
-                Addr addr = global->get_address();
-				assert( (addr+offset+nbytes) < min_gaddr ); // min_gaddr is start of "heap" for opuMalloc
-                helper->writeBlob(addr + offset, (uint8_t*)&value, nbytes);
-
-                offset += nbytes;
-                ng_bytes += nbytes;
-            }
-            DPRINTF(GPUSyscalls, " wrote %u bytes to \'%s\'\n", offset, global->name());
-        }
-    }
-    DPRINTF(GPUSyscalls, "GPGPU-Sim PTX: finished loading globals (%u bytes total).\n", ng_bytes);
     return ng_bytes;
 }
 
 static int load_constants(GPUSyscallHelper *helper, symbol_table *symtab, addr_t min_gaddr)
 {
+   opu_not_implemented(__my_func__,__LINE__);
    DPRINTF(GPUSyscalls, "GPGPU-Sim PTX: loading constants with explicit initializers\n");
    int nc_bytes = 0;
-   symbol_table::iterator g = symtab->const_iterator_begin();
-
-   for (; g != symtab->const_iterator_end(); g++) {
-      symbol *constant = *g;
-      if (constant->is_const() && constant->has_initializer()) {
-
-         // get the constant element data size
-         int basic_type;
-         size_t num_bits;
-         constant->type()->get_key().type_decode(num_bits, basic_type);
-
-         std::list<operand_info> init_list = constant->get_initializer();
-         int nbytes_written = 0;
-         for (std::list<operand_info>::iterator i = init_list.begin(); i != init_list.end(); ++i) {
-            operand_info op = *i;
-            ptx_reg_t value = op.get_literal_value();
-            int nbytes = num_bits/8;
-            switch (op.get_type()) {
-            case int_t: assert(nbytes >= 1); break;
-            case float_op_t: assert(nbytes == 4); break;
-            case double_op_t: assert(nbytes >= 4); break; // account for double DEMOTING
-            default:
-               panic("Op type not recognized in load_constants"); break;
-            }
-
-            Addr addr = constant->get_address() + nbytes_written;
-			assert( addr+nbytes < min_gaddr );
-            helper->writeBlob(addr, (uint8_t*)&value, nbytes);
-
-            DPRINTF(GPUSyscalls, " wrote %u bytes to \'%s\'\n", nbytes, constant->name());
-            nc_bytes += nbytes;
-            nbytes_written += nbytes;
-         }
-      }
-   }
-   DPRINTF(GPUSyscalls, "GPGPU-Sim PTX: finished loading constants (%u bytes total).\n", nc_bytes);
    return nc_bytes;
 }
-#if 0
 void
 sysgem5gpu_active(ThreadContext *tc, gpusyscall_t *call_params)
 {
