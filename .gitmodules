@@ -1,12 +1,12 @@
 [submodule "ext/libsystemctlm-soc"]
 	path = ext/libsystemctlm-soc
-	url = git@github.com:chisuhua/libsystemctlm-soc.git
+	url = https://github.com/chisuhua/libsystemctlm-soc.git
 [submodule "ext/axi"]
 	path = ext/axi
-	url = git@github.com:chisuhua/axi.git
+	url = https://github.com/chisuhua/axi.git
 [submodule "design/cosim/firrtl"]
 	path = design/cosim/firrtl
-	url = git@gitee.com:chisuhua/firrtl.git
+	url = https://gitee.com/chisuhua/firrtl.git
 [submodule "design/cosim/src/chisel_design/riscv-mini"]
 	path = design/cosim/src/chisel_design/riscv-mini
 	url = https://gitee.com/chisuhua/riscv-mini.git
@@ -18,4 +18,4 @@
 	url = https://gitee.com/chisuhua/hwacha.git
 [submodule "util/libiniloader"]
 	path = util/libiniloader
-	url = git@github.com:chisuhua/libiniloader.git
+	url = https://github.com/chisuhua/libiniloader.git

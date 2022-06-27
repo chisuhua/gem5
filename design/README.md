@@ -1,25 +1,31 @@
 Thare many mode to run application, the build step is dependent the mode the app run:
 
-. build libcuda
+> git clone https://github.com/chisuhua/gem5.git
+> cd gem5; 
+> git sumodule udpate --init
+
+. setup env
 > cd design
 > source setup_env.sh
-> cd libgem5cuda; make
-> cd libcuda; make
 
 . build gem5
 > cd design
-> source setup_env.sh
 > build.sh
 
 . build libgem5
 > cd design
 > ./build_libgem5.sh
-and copy $GEM5_ROOT/build/X86_VI_hammer/libgem5_$VARIANT.so to $GEM5_ROOT/cosim
 
-if run gem5 mixed with systemc, we need to be cosim
-. build sc cosim
+. build cosim
 > cd design/cosim
 > scons
+
+if only run isasim, it can only build libcuda
+. build libcuda
+> cd design
+> source setup_env.sh
+> cd libcuda; make
+
 
 
 ## run howto
