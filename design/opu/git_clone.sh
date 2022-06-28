@@ -9,3 +9,4 @@ git clone https://gitee.com/chisuhua/py3antlr4book.git
 git clone https://gitee.com/mirrors/elfio.git 3rdparty/elfio
 git clone https://github.com/chisuhua/cash.git 3rdparty/cash
 git clone https://gitee.com/chisuhua/pymtl3.git 3rdparty/pymtl3
+git clone -b cpp_master https://gitee.com/chisuhua/msgpack-c.git 3rdparty/msgpack-c
