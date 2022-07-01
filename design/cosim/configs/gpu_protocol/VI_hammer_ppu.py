@@ -74,8 +74,10 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     # (32B/cycle @ 772MHz). Use ~16B per Ruby cycle to match this. Maxwell
     # per-core bandwidth peaks at 40GB/s (42B/cycle @ 1029MHz). Use ~24B per
     # Ruby cycle to match this.
-    if options.gpu_core_config == 'Ppu':
+    if options.gpu_core_config == 'Gpu':
         # FIXME on Volta bw
+        l1_cluster_bw = 24
+    elif options.gpu_core_config == 'Opu':
         l1_cluster_bw = 24
     else:
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)
@@ -219,8 +221,10 @@ def create_system(options, full_system, system, dma_devices, bootmem, ruby_syste
     # (92B/cycle @ 772MHz). Use ~34B per Ruby cycle to match this. Maxwell
     # per-L2 bank bandwidth peaks at 123GB/s (128B/cycle @ 1029MHz). Use ~64B
     # per Ruby cycle to match this.
-    if options.gpu_core_config == 'Ppu':
+    if options.gpu_core_config == 'Gpu':
         # FIXME
+        l2_cluster_bw = 68
+    elif options.gpu_core_config == 'Opu':
         l2_cluster_bw = 68
     else:
         m5.util.fatal("Unknown GPU core config: %s" % options.gpu_core_config)

@@ -26,7 +26,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Authors: Jason Power, Joel Hestness
-
+import pdb
 import argparse
 import os
 import sys
@@ -184,8 +184,13 @@ Simulation.setWorkCountOptions(system, options)
 ############################
 # Create the GPU
 #
-if options.system_config != 'cpu_only':
+pdb.set_trace()
+if options.system_config == 'cpu_only':
+    pass
+elif options.system_config == 'gpgpu':
     system.gpu = GPUConfig.createGPU(options, gpu_mem_range, system)
+else:
+    system.gpu = GPUConfig.createOPU(options, gpu_mem_range, system)
 
 #
 # Setup Ruby
@@ -268,8 +273,12 @@ for (i, cpu) in enumerate(system.cpu):
 ##########################
 # Connect GPU ports
 #
-if options.system_config != 'cpu_only':
+if options.system_config == 'cpu_only':
+    pass
+elif options.system_config == 'gpgpu':
     GPUConfig.connectGPUPorts(system.gpu, system.ruby, options, system)
+else:
+    GPUConfig.connectOPUPorts(system.gpu, system.ruby, options, system)
 
 if options.mem_type == "RubyMemoryControl":
     GPUMemConfig.setMemoryControlOptions(system, options)
