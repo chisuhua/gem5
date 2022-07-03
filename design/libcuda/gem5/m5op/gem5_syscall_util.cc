@@ -88,7 +88,7 @@ const char* cudaErrorStrings[] =
     "all CUDA-capable devices are busy or unavailable", // 46
 };
 
-inline void cuda_not_implemented(const char* file, const char* func, unsigned line)
+void cuda_not_implemented(const char* file, const char* func, unsigned line)
 {
    fflush(stdout);
    fflush(stderr);

@@ -70,7 +70,7 @@ enum { CUDA_MALLOC_DEVICE = 0,
 # endif
 #endif
 
-inline void cuda_not_implemented(const char* file, const char* func, unsigned line);
+void cuda_not_implemented(const char* file, const char* func, unsigned line);
 
 
 /*******************************************************************************

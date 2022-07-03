@@ -409,7 +409,7 @@ def createOPU(options, gpu_mem_range, system):
             atoms_per_cache_subline = 32
 
     for sc in gpu.shader_cores:
-        sc.lsq = ShaderLSQ()
+        sc.lsq = OpuLSQ()
         sc.lsq.data_tlb.entries = options.gpu_tlb_entries
         sc.lsq.forward_flush = (buildEnv['PROTOCOL'] == 'VI_hammer_fusion' \
                                 and options.flush_kernel_end)
