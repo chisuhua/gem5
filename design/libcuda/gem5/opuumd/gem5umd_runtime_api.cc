@@ -1320,16 +1320,17 @@ cudaError_t  gem5umdMemset(void *mem, int c, size_t count)
     return g_last_cudaError = cudaSuccess;
 }
 
- cudaError_t  gem5umdLaunch(const char *hostFun) // , kernel_info_t* grid)
+ cudaError_t  gem5umdLaunch(const char *hostFun, void* disp_info, void* stream)
 {
     gpusyscall_t call_params;
-    call_params.num_args = 1;
+    call_params.num_args = 3;
     call_params.arg_lengths = new int[call_params.num_args];
 
     call_params.arg_lengths[0] = sizeof(const char*);
-    // call_params.arg_lengths[1] = sizeof(kernel_info_t*);
-    // call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1];
-    call_params.total_bytes = call_params.arg_lengths[0];
+    call_params.arg_lengths[1] = sizeof(void*);
+    call_params.arg_lengths[1] = sizeof(void*);
+    call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1] +
+                                +call_params.arg_lengths[2];
 
     call_params.args = new char[call_params.total_bytes];
     call_params.ret = new char[sizeof(cudaError_t)];

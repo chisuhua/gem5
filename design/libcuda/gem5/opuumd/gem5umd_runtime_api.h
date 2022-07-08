@@ -1176,7 +1176,7 @@ extern  cudaError_t  gem5umdFuncSetCacheConfig(const char *func, enum cudaFuncCa
  * ::cudaThreadGetCacheConfig,
  * ::cudaThreadSetCacheConfig
  */
-extern  cudaError_t  gem5umdLaunch(const char *entry); // , kernel_info_t* grid);
+extern  cudaError_t  gem5umdLaunch(const char *entry, void* disp_info, void* stream);
 
 /**
  * \brief Find out attributes for a given function

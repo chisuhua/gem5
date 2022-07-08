@@ -993,7 +993,7 @@ cudaError_t cudaLaunchInternal(const char *hostFun,
       gridDim.z, blockDim.x, blockDim.y, blockDim.z);
 
   if (ctx->umd_mode) {
-    drv::launchKernel(hostFun);
+    drv::launchKernel(hostFun, *(grid->ptr_to_disp_info()), stream);
   } else {
     // stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
     stream_operation op(grid, ctx->umd_mode == 0, stream);

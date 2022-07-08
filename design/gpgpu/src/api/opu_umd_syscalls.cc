@@ -974,7 +974,8 @@ void libgem5opuLaunch(ThreadContext *tc, gpusyscall_t *call_params)
     OpuTop::getOpuTop(g_active_device)->checkUpdateThreadContext(tc);
 
     Addr sim_hostFun = *((Addr*)helper.getParam(0, true));
-    struct CUstream_st *stream= *((CUstream_st**)helper.getParam(1, true));
+    struct DispatchInfo *disp_info= *((DispatchInfo**)helper.getParam(1, true));
+    struct gem5::Stream_st *stream= *((gem5::Stream_st**)helper.getParam(2, true));
 
     OpuTop *opu_top = OpuTop::getOpuTop(g_active_device);
     // assert(!g_opu_launch_stack.empty());
@@ -985,9 +986,9 @@ void libgem5opuLaunch(ThreadContext *tc, gpusyscall_t *call_params)
     // kernel_info_t *grid = gpgpu_opu_ptx_sim_init_grid(config.get_args(), config.grid_dim(), config.block_dim(), opu_top->get_kernel((const char*)sim_hostFun));
     // grid->set_inst_base_vaddr(opu_top->getInstBaseVaddr());
     // std::string kname = grid->name();
-    // stream_operation op(grid, 0, stream);
-    // op.setThreadContext(tc);
-    // opu_top->getStreamManager()->push(op);
+    stream_operation op(disp_info, 0, stream);
+    op.setThreadContext(tc);
+    opu_top->getStreamManager()->push(op);
     // g_opu_launch_stack.pop_back();
     g_last_cudaError = cudaSuccess;
 }
