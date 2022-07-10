@@ -1328,7 +1328,7 @@ cudaError_t  gem5umdMemset(void *mem, int c, size_t count)
 
     call_params.arg_lengths[0] = sizeof(const char*);
     call_params.arg_lengths[1] = sizeof(void*);
-    call_params.arg_lengths[1] = sizeof(void*);
+    call_params.arg_lengths[2] = sizeof(void*);
     call_params.total_bytes = call_params.arg_lengths[0] + call_params.arg_lengths[1] +
                                 +call_params.arg_lengths[2];
 
@@ -1340,7 +1340,8 @@ cudaError_t  gem5umdMemset(void *mem, int c, size_t count)
     int bytes_off = 0;
     int lengths_off = 0;
     pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&hostFun, call_params.arg_lengths[0]);
-    // pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&grid, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&disp_info, call_params.arg_lengths[1]);
+    pack(call_params.args, bytes_off, call_params.arg_lengths, lengths_off, (char *)&stream, call_params.arg_lengths[2]);
 
     // call libgem5umdLaunch
     m5_opu_umd(43, (uint64_t)&call_params);
