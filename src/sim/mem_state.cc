@@ -155,6 +155,7 @@ MemState::updateBrkRegion(Addr old_brk, Addr new_brk)
             return;
         }
 
+
         /**
          * Note that the heap regions are always contiguous but there is
          * no mechanism right now to coalesce together memory that belongs
@@ -163,6 +164,7 @@ MemState::updateBrkRegion(Addr old_brk, Addr new_brk)
          * necessary if the list becomes too long to walk.
          */
         mapRegion(page_aligned_old_brk, length, "heap");
+        _ownerProcess->allocateMem(page_aligned_old_brk, length);
     }
 
     _brkPoint = new_brk;

@@ -141,8 +141,16 @@ class MemCmd
         // Fake simulator-only commands
         PrintReq,       // Print state matching address
         FlushReq,      //request for a cache flush
+        FlushResp,     // TODO schi add
         InvalidateReq,   // request for address to be invalidated
         InvalidateResp,
+
+        // TODO schi add from gem5-gpu
+        FlushAllReq,      // Flush entire cache request
+        FlushAllResp,
+        FenceReq,       // Enforce memory access ordering based on pkt contents
+        FenceResp,      // Fence operation has completed
+
         // hardware transactional memory
         HTMReq,
         HTMReqResp,

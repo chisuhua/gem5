@@ -166,6 +166,11 @@ class Request : public Extensible<Request>
         PF_EXCLUSIVE                = 0x02000000,
         /** The request should be marked as LRU. */
         EVICT_NEXT                  = 0x04000000,
+
+        // TODO schi add from gem5-gpu
+        /** The request should bypass the L1 cache. */
+        BYPASS_L1                   = 0x08000000,
+
         /** The request should be marked with ACQUIRE. */
         ACQUIRE                     = 0x00020000,
         /** The request should be marked with RELEASE. */
@@ -363,6 +368,10 @@ class Request : public Extensible<Request>
         VALID_PC             = 0x00000010,
         /** Whether or not the context ID is valid. */
         VALID_CONTEXT_ID     = 0x00000020,
+
+        // TODO schi add from gem5-gpu
+        VALID_THREAD_ID      = 0x00000040,
+
         /** Whether or not the sc result is valid. */
         VALID_EXTRA_DATA     = 0x00000080,
         /** Whether or not the stream ID and substream ID is valid. */
@@ -456,6 +465,10 @@ class Request : public Extensible<Request>
     /** The context ID (for statistics, locks, and wakeups). */
     ContextID _contextId = InvalidContextID;
 
+    // TODO FIXME after merge
+    /** The thread ID (id within this CPU) */
+    ThreadID _threadId = 0;
+
     /** program counter of initiating access; for tracing/debugging */
     Addr _pc = MaxAddr;
 
@@ -495,6 +508,20 @@ class Request : public Extensible<Request>
         _flags.set(flags);
         privateFlags.set(VALID_PADDR|VALID_SIZE);
         _byteEnable = std::vector<bool>(size, true);
+        _isGPUFuncAccess = false;
+    }
+
+    Request(Addr vaddr, unsigned size, Flags flags,
+            RequestorID mid, Addr pc, ContextID cid, ThreadID tid)
+        : _paddr(0), _size(0), _requestorId(invldRequestorId), _time(0),
+          _taskId(context_switch_task_id::Unknown), _vaddr(0),
+          _extraData(0), _contextId(0), _threadId(0),  _pc(0),
+          _reqInstSeqNum(0), atomicOpFunctor(nullptr), translateDelta(0),
+          accessDelta(0), depth(0)
+    {
+        setVirt(vaddr, size, flags, mid, pc);
+        // TODO schi setContext(cid);
+        setThreadContext(cid, tid);
         _isGPUFuncAccess = false;
     }
 
@@ -554,6 +581,18 @@ class Request : public Extensible<Request>
     {
         _contextId = context_id;
         privateFlags.set(VALID_CONTEXT_ID);
+    }
+
+    // TODO schi add from gem5-gpu
+    /**
+     * Set up CPU and thread numbers.
+     */
+    void
+    setThreadContext(ContextID context_id, ThreadID tid)
+    {
+        _contextId = context_id;
+        _threadId = tid;
+        privateFlags.set(VALID_CONTEXT_ID|VALID_THREAD_ID);
     }
 
     void
